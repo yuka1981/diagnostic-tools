@@ -1,0 +1,48 @@
+# Omakase Ruby styling for Rails
+inherit_gem: { rubocop-rails-omakase: rubocop.yml }
+
+# Project-specific configurations
+AllCops:
+  TargetRubyVersion: 3.4
+  NewCops: enable
+  Exclude:
+    - "bin/**/*"
+    - "db/schema.rb"
+    - "node_modules/**/*"
+    - "tmp/**/*"
+    - "vendor/**/*"
+    - "coverage/**/*"
+
+# Allow longer lines in specs
+Layout/LineLength:
+  Max: 120
+  Exclude:
+    - "spec/**/*"
+    - "config/**/*"
+
+# Allow blocks in specs to be longer
+Metrics/BlockLength:
+  Exclude:
+    - "spec/**/*"
+    - "config/routes.rb"
+    - "config/environments/**/*"
+
+# Allow method length flexibility in specs
+Metrics/MethodLength:
+  Max: 15
+  Exclude:
+    - "spec/**/*"
+    - "db/migrate/**/*"
+
+# Documentation is optional for now
+Style/Documentation:
+  Enabled: false
+
+# Frozen string literal comment
+Style/FrozenStringLiteralComment:
+  EnforcedStyle: always
+  Exclude:
+    - "db/schema.rb"
+    - "db/migrate/**/*"
+    - "config/**/*"
+    - "Gemfile"
