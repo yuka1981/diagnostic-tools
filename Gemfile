@@ -56,7 +56,7 @@ group :development, :test do
   gem "faker", "~> 3.4"
 
   # Shoulda Matchers for common Rails testing patterns [https://github.com/thoughtbot/shoulda-matchers]
-  gem "shoulda-matchers", "~> 6.2"
+  gem "shoulda-matchers", "~> 7.0"
 end
 
 group :test do
