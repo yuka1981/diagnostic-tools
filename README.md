@@ -34,20 +34,43 @@ git clone https://github.com/your-org/diagnostic-tools.git
 cd diagnostic-tools
 ```
 
-### 2. Install dependencies
+### 2. Install Ruby dependencies
 
 ```bash
 bundle install
 ```
 
-### 3. Setup database
+### 3. Setup PostgreSQL (Ubuntu/WSL2)
+
+If PostgreSQL is not installed, follow these steps:
+
+```bash
+# Install PostgreSQL 16
+sudo apt update
+sudo apt install -y postgresql-16 postgresql-contrib-16 libpq-dev
+
+# Start PostgreSQL service
+sudo service postgresql start
+
+# Create a PostgreSQL role for your user (run once)
+sudo -u postgres createuser -s $USER
+```
+
+To ensure PostgreSQL starts automatically on WSL2:
+
+```bash
+# Add to your ~/.bashrc or ~/.zshrc
+echo 'sudo service postgresql start' >> ~/.bashrc
+```
+
+### 4. Setup database
 
 ```bash
 bin/rails db:create
 bin/rails db:migrate
 ```
 
-### 4. Start the development server
+### 5. Start the development server
 
 ```bash
 bin/dev
