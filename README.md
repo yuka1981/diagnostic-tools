@@ -5,6 +5,7 @@ A web application for monitoring HPC (High Performance Computing) cluster nodes 
 ## Overview
 
 This tool provides:
+
 - **Node Inventory Management**: View and manage HPC cluster nodes with versioned configuration history
 - **Benchmark Execution**: Run and track HPCG benchmarks on cluster nodes
 - **Dashboard Visualization**: Real-time metrics and node status heatmaps
@@ -23,7 +24,6 @@ This tool provides:
 
 - Ruby 3.4.8
 - PostgreSQL 16+
-- Node.js (for asset compilation)
 
 ## Setup
 

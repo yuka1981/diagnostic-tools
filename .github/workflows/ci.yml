@@ -74,6 +74,7 @@ jobs:
     env:
       RAILS_ENV: test
       DATABASE_URL: postgres://postgres:postgres@localhost:5432/diagnostic_tools_test
+      COVERAGE: true
 
     steps:
       - name: Checkout code
