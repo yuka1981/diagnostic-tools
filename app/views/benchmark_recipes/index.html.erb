@@ -1,0 +1,47 @@
+<% content_for(:page_title) { "Benchmark Recipes" } %>
+
+<div class="flex items-center justify-between mb-6">
+  <div>
+    <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Benchmark Recipes</h2>
+    <p class="mt-1 text-sm text-gray-500 dark:text-slate-400">Available benchmark configurations</p>
+  </div>
+</div>
+
+<% if @benchmark_recipes.any? %>
+  <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+    <% @benchmark_recipes.each do |recipe| %>
+      <%= link_to benchmark_recipe_path(recipe), 
+          class: "group block rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-200 transition-all hover:shadow-md dark:bg-slate-800/50 dark:ring-white/10" do %>
+        <div class="flex items-center gap-4">
+          <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 shadow-lg shadow-violet-500/20">
+            <svg class="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+            </svg>
+          </div>
+          <div class="flex-1 min-w-0">
+            <p class="text-lg font-semibold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+              <%= recipe.name %>
+            </p>
+            <p class="text-sm text-gray-500 dark:text-slate-400">Version <%= recipe.version %></p>
+          </div>
+          <svg class="h-5 w-5 text-gray-400 group-hover:text-blue-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+          </svg>
+        </div>
+      <% end %>
+    <% end %>
+  </div>
+<% else %>
+  <div class="rounded-2xl bg-white p-12 shadow-sm ring-1 ring-gray-200 dark:bg-slate-800/50 dark:ring-white/10">
+    <div class="flex flex-col items-center justify-center text-center">
+      <svg class="h-12 w-12 text-gray-300 dark:text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" 
+          d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+      </svg>
+      <p class="mt-4 text-sm font-medium text-gray-500 dark:text-slate-400">No recipes available</p>
+      <p class="mt-1 text-xs text-gray-400 dark:text-slate-500">Recipes will appear here once configured</p>
+    </div>
+  </div>
+<% end %>
+

@@ -30,6 +30,9 @@ class Node < ApplicationRecord
   # Constants
   ONLINE_THRESHOLD = 5.minutes
 
+  # Scopes
+  scope :online, -> { where(last_seen_at: ONLINE_THRESHOLD.ago..) }
+
   # Instance methods
   def online?
     return false if last_seen_at.nil?

@@ -1,0 +1,83 @@
+<% content_for(:page_title) { "Nodes" } %>
+
+<div class="flex items-center justify-between mb-6">
+  <div>
+    <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Nodes</h2>
+    <p class="mt-1 text-sm text-gray-500 dark:text-slate-400">Manage your HPC cluster nodes</p>
+  </div>
+</div>
+
+<div class="rounded-2xl bg-white shadow-sm ring-1 ring-gray-200 dark:bg-slate-800/50 dark:ring-white/10 overflow-hidden">
+  <% if @nodes.any? %>
+    <table class="min-w-full divide-y divide-gray-200 dark:divide-white/5">
+      <thead class="bg-gray-50 dark:bg-white/5">
+        <tr>
+          <th scope="col" class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-slate-400">Hostname</th>
+          <th scope="col" class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-slate-400">Role</th>
+          <th scope="col" class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-slate-400">Status</th>
+          <th scope="col" class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-slate-400">Last Seen</th>
+          <th scope="col" class="relative px-6 py-3">
+            <span class="sr-only">Actions</span>
+          </th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-200 dark:divide-white/5">
+        <% @nodes.each do |node| %>
+          <tr class="hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
+            <td class="whitespace-nowrap px-6 py-4">
+              <div class="flex items-center gap-3">
+                <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100 dark:bg-white/10">
+                  <svg class="h-4 w-4 text-slate-600 dark:text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                      d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2" />
+                  </svg>
+                </div>
+                <div>
+                  <p class="text-sm font-medium text-gray-900 dark:text-white"><%= node.hostname %></p>
+                  <% if node.ip.present? %>
+                    <p class="text-xs text-gray-500 dark:text-slate-400"><%= node.ip %></p>
+                  <% end %>
+                </div>
+              </div>
+            </td>
+            <td class="whitespace-nowrap px-6 py-4">
+              <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium <%= role_badge_class(node.role) %>">
+                <%= node.role.humanize %>
+              </span>
+            </td>
+            <td class="whitespace-nowrap px-6 py-4">
+              <% if node.online? %>
+                <span class="inline-flex items-center gap-1.5 text-sm text-emerald-600 dark:text-emerald-400">
+                  <span class="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                  Online
+                </span>
+              <% else %>
+                <span class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-slate-400">
+                  <span class="h-2 w-2 rounded-full bg-gray-400"></span>
+                  Offline
+                </span>
+              <% end %>
+            </td>
+            <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500 dark:text-slate-400">
+              <%= node.last_seen_at ? time_ago_in_words(node.last_seen_at) + " ago" : "Never" %>
+            </td>
+            <td class="whitespace-nowrap px-6 py-4 text-right text-sm">
+              <%= link_to "View", node_path(node), 
+                  class: "text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300 font-medium" %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% else %>
+    <div class="flex flex-col items-center justify-center py-12 text-center">
+      <svg class="h-12 w-12 text-gray-300 dark:text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" 
+          d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2" />
+      </svg>
+      <p class="mt-4 text-sm font-medium text-gray-500 dark:text-slate-400">No nodes found</p>
+      <p class="mt-1 text-xs text-gray-400 dark:text-slate-500">Import nodes via CSV to get started</p>
+    </div>
+  <% end %>
+</div>
+

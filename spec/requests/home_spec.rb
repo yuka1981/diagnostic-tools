@@ -9,9 +9,10 @@ RSpec.describe "Home", type: :request do
       expect(response).to have_http_status(:success)
     end
 
-    it "displays the welcome page" do
+    it "displays the dashboard" do
       get root_path
-      expect(response.body).to include("HPC System Detection & Benchmark")
+      expect(response.body).to include("Dashboard")
+      expect(response.body).to include("HPC Diagnostics")
     end
   end
 end
