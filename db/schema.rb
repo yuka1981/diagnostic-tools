@@ -10,9 +10,23 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2025_12_29_004254) do
+ActiveRecord::Schema[7.2].define(version: 2025_12_29_005637) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
+
+  create_table "node_states", force: :cascade do |t|
+    t.bigint "node_id", null: false
+    t.jsonb "cpu_info", default: {}
+    t.jsonb "mem_info", default: {}
+    t.jsonb "disk_info", default: []
+    t.jsonb "net_info", default: []
+    t.datetime "captured_at", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["captured_at"], name: "index_node_states_on_captured_at"
+    t.index ["node_id", "captured_at"], name: "index_node_states_on_node_id_and_captured_at", order: { captured_at: :desc }
+    t.index ["node_id"], name: "index_node_states_on_node_id"
+  end
 
   create_table "nodes", force: :cascade do |t|
     t.string "hostname", limit: 255, null: false
@@ -41,4 +55,6 @@ ActiveRecord::Schema[7.2].define(version: 2025_12_29_004254) do
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
   end
+
+  add_foreign_key "node_states", "nodes"
 end

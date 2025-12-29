@@ -3,6 +3,9 @@
 require "ipaddr"
 
 class Node < ApplicationRecord
+  # Associations
+  has_many :node_states, dependent: :destroy
+
   # Enums
   enum :role, { compute: 0, login: 1, admin: 2 }, default: :compute
   enum :source, { manual: 0, csv: 1, agent_push: 2 }, default: :manual
@@ -35,5 +38,10 @@ class Node < ApplicationRecord
 
   def touch_last_seen
     touch(:last_seen_at)
+  end
+
+  # Returns the most recent NodeState for this node
+  def current_state
+    node_states.latest_first.first
   end
 end
