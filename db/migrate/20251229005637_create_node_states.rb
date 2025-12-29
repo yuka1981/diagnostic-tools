@@ -6,8 +6,8 @@ class CreateNodeStates < ActiveRecord::Migration[7.2]
       t.references :node, null: false, foreign_key: true
       t.jsonb :cpu_info, default: {}
       t.jsonb :mem_info, default: {}
-      t.jsonb :disk_info, default: {}
-      t.jsonb :net_info, default: {}
+      t.jsonb :disk_info, default: []
+      t.jsonb :net_info, default: []
       t.datetime :captured_at, null: false
 
       t.timestamps

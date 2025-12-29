@@ -109,6 +109,12 @@ RSpec.describe NodeState, type: :model do
     it "returns false when comparing with nil" do
       expect(state1.same_content_as?(nil)).to be false
     end
+
+    it "returns false when comparing with non-NodeState object" do
+      expect(state1.same_content_as?("string")).to be false
+      expect(state1.same_content_as?(123)).to be false
+      expect(state1.same_content_as?({})).to be false
+    end
   end
 
   describe "Node#node_states association" do

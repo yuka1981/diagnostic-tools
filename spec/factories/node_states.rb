@@ -5,8 +5,8 @@ FactoryBot.define do
     association :node
     cpu_info { {} }
     mem_info { {} }
-    disk_info { {} }
-    net_info { {} }
+    disk_info { [] }
+    net_info { [] }
     captured_at { Time.current }
 
     trait :with_cpu_info do
@@ -23,9 +23,9 @@ FactoryBot.define do
     trait :with_mem_info do
       mem_info do
         {
-          "total" => 256 * 1024 * 1024 * 1024, # 256 GB in bytes
-          "free" => 200 * 1024 * 1024 * 1024,  # 200 GB in bytes
-          "available" => 220 * 1024 * 1024 * 1024
+          "total" => 256.gigabytes,
+          "free" => 200.gigabytes,
+          "available" => 220.gigabytes
         }
       end
     end
@@ -37,15 +37,15 @@ FactoryBot.define do
             "device" => "/dev/sda",
             "mountpoint" => "/",
             "fstype" => "ext4",
-            "total" => 500 * 1024 * 1024 * 1024,
-            "used" => 100 * 1024 * 1024 * 1024
+            "total" => 500.gigabytes,
+            "used" => 100.gigabytes
           },
           {
             "device" => "/dev/sdb",
             "mountpoint" => "/data",
             "fstype" => "xfs",
-            "total" => 2 * 1024 * 1024 * 1024 * 1024,
-            "used" => 500 * 1024 * 1024 * 1024
+            "total" => 2.terabytes,
+            "used" => 500.gigabytes
           }
         ]
       end

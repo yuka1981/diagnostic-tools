@@ -13,21 +13,21 @@ class NodeState < ApplicationRecord
   scope :latest_first, -> { order(captured_at: :desc) }
   scope :for_node, ->(node) { where(node: node) }
 
-  # Generate a hash of the content for comparison
+  # Generate a hash of the content for comparison (memoized for performance)
   def content_hash
-    content = {
-      cpu_info: cpu_info,
-      mem_info: mem_info,
-      disk_info: disk_info,
-      net_info: net_info
-    }
-    Digest::SHA256.hexdigest(content.to_json)
+    @content_hash ||= begin
+      content = {
+        cpu_info: cpu_info,
+        mem_info: mem_info,
+        disk_info: disk_info,
+        net_info: net_info
+      }
+      Digest::SHA256.hexdigest(content.to_json)
+    end
   end
 
-  # Compare content with another state
+  # Compare content with another state (type-safe)
   def same_content_as?(other)
-    return false if other.nil?
-
-    content_hash == other.content_hash
+    other.is_a?(NodeState) && content_hash == other.content_hash
   end
 end

@@ -18,8 +18,8 @@ ActiveRecord::Schema[7.2].define(version: 2025_12_29_005637) do
     t.bigint "node_id", null: false
     t.jsonb "cpu_info", default: {}
     t.jsonb "mem_info", default: {}
-    t.jsonb "disk_info", default: {}
-    t.jsonb "net_info", default: {}
+    t.jsonb "disk_info", default: []
+    t.jsonb "net_info", default: []
     t.datetime "captured_at", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
