@@ -108,10 +108,10 @@ RSpec.describe Inventory::ImportCsvService do
           CSV
         end
 
-        it "records the error" do
+        it "records a specific error" do
           result = service.call
           expect(result.error_count).to eq(1)
-          expect(result.errors.first[:message].downcase).to include("role")
+          expect(result.errors.first[:message]).to match(/is not a valid role/i)
         end
       end
 
