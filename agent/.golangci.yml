@@ -7,8 +7,6 @@ linters-settings:
     check-shadowing: true
   gocyclo:
     min-complexity: 15
-  maligned:
-    suggest-new: true
   dupl:
     threshold: 100
   goconst:
@@ -31,7 +29,6 @@ linters-settings:
       - dupImport # https://github.com/go-critic/go-critic/issues/845
       - ifElseChain
       - octalLiteral
-      - whyNoLint
       - wrapperFunc
 
 linters:
@@ -41,6 +38,7 @@ linters:
     - dogsled
     - dupl
     - errcheck
+    - fieldalignment
     - funlen
     - goconst
     - gocritic
@@ -73,8 +71,8 @@ issues:
         - errcheck
         - dupl
         - gosec
+        - funlen
     - path: cmd/
       linters:
         - goconst
         - gocyclo
-
