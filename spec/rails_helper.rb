@@ -54,8 +54,8 @@ RSpec.configure do |config|
     Rails.root.join("spec/fixtures")
   ]
 
-  # Only use transactional fixtures if database is available
-  config.use_transactional_fixtures = DATABASE_AVAILABLE
+  # Disable transactional fixtures when using DatabaseCleaner
+  config.use_transactional_fixtures = false
 
   # Infer spec type from file location
   config.infer_spec_type_from_file_location!
@@ -69,14 +69,23 @@ RSpec.configure do |config|
   # DatabaseCleaner configuration (only if database is available)
   if DATABASE_AVAILABLE
     config.before(:suite) do
-      DatabaseCleaner.strategy = :transaction
       DatabaseCleaner.clean_with(:truncation)
     end
 
-    config.around(:each) do |example|
-      DatabaseCleaner.cleaning do
-        example.run
-      end
+    config.before(:each) do
+      DatabaseCleaner.strategy = :transaction
+    end
+
+    config.before(:each, js: true) do
+      DatabaseCleaner.strategy = :truncation
+    end
+
+    config.before(:each) do
+      DatabaseCleaner.start
+    end
+
+    config.after(:each) do
+      DatabaseCleaner.clean
     end
   end
 end
