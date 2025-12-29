@@ -3,7 +3,7 @@
 class CreateNodes < ActiveRecord::Migration[7.2]
   def change
     create_table :nodes do |t|
-      t.string :hostname, null: false
+      t.string :hostname, null: false, limit: 255
       t.string :ip
       t.integer :role, default: 0, null: false
       t.string :arch

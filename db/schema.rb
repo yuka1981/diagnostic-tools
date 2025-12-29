@@ -15,7 +15,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_12_29_004254) do
   enable_extension "plpgsql"
 
   create_table "nodes", force: :cascade do |t|
-    t.string "hostname", null: false
+    t.string "hostname", limit: 255, null: false
     t.string "ip"
     t.integer "role", default: 0, null: false
     t.string "arch"

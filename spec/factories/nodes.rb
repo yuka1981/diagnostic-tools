@@ -9,20 +9,12 @@ FactoryBot.define do
     source { :manual }
     last_seen_at { nil }
 
-    trait :compute do
-      role { :compute }
-    end
-
     trait :login do
       role { :login }
     end
 
     trait :admin do
       role { :admin }
-    end
-
-    trait :manual do
-      source { :manual }
     end
 
     trait :csv do

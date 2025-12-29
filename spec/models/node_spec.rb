@@ -72,8 +72,8 @@ RSpec.describe Node, type: :model do
       expect(node).to be_valid
     end
 
-    it "creates a valid node with compute trait" do
-      node = build(:node, :compute)
+    it "creates a valid node with default compute role" do
+      node = build(:node)
       expect(node).to be_valid
       expect(node).to be_compute
     end
@@ -104,7 +104,7 @@ RSpec.describe Node, type: :model do
   end
 
   describe "scopes" do
-    let!(:compute_nodes) { create_list(:node, 2, :compute) }
+    let!(:compute_nodes) { create_list(:node, 2) } # defaults to compute role
     let!(:login_node) { create(:node, :login) }
     let!(:admin_node) { create(:node, :admin) }
 
