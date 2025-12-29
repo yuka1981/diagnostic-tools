@@ -42,13 +42,11 @@ module DashboardHelper
     }
   }.freeze
 
-  DEFAULT_HEATMAP_CLASS = "bg-gray-300 dark:bg-slate-600"
-
   def node_heatmap_class(node)
     role = node.role.to_sym
     status = node.online? ? :online : :offline
 
-    HEATMAP_COLORS.dig(role, status) || DEFAULT_HEATMAP_CLASS
+    HEATMAP_COLORS.dig(role, status)
   end
 
   def status_badge_class(status)

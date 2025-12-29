@@ -6,7 +6,6 @@ RSpec.describe "Dashboard Heatmap", type: :system do
   let(:user) { create(:user) }
 
   before do
-    driven_by(:rack_test)
     sign_in user
   end
 
@@ -138,6 +137,110 @@ RSpec.describe "Dashboard Heatmap", type: :system do
         node = build(:node, role: :compute, last_seen_at: 10.minutes.ago)
         expect(helper.node_heatmap_class(node)).to include("bg-gray-300")
       end
+    end
+  end
+
+  describe "Stimulus controller interactions", :js do
+    let!(:node1) { create(:node, hostname: "compute-001", last_seen_at: 1.minute.ago) }
+    let!(:node2) { create(:node, hostname: "compute-002", last_seen_at: 1.minute.ago) }
+    let!(:recipe) { create(:benchmark_recipe) }
+    let!(:run1) { create(:benchmark_run, :success, node: node1, benchmark_recipe: recipe, started_at: 1.hour.ago) }
+    let!(:run2) { create(:benchmark_run, :failed, node: node2, benchmark_recipe: recipe, started_at: 2.hours.ago) }
+
+    it "filters runs when clicking a node cell" do
+      visit dashboard_path
+
+      # Initially shows all runs
+      within("#filtered_runs") do
+        expect(page).to have_content(node1.hostname)
+        expect(page).to have_content(node2.hostname)
+      end
+
+      # Click node1 to filter
+      find("[data-node-id='#{node1.id}']").click
+
+      # Wait for the selected label to appear (visible, not hidden)
+      expect(page).to have_css("[data-heatmap-target='selectedLabel']:not(.hidden)", text: "Filtered by: compute-001")
+
+      # Wait for Turbo Frame to update with filtered content
+      within("#filtered_runs") do
+        expect(page).to have_content("Benchmark Runs for compute-001", wait: 5)
+        expect(page).to have_content(run1.benchmark_recipe.display_name)
+        expect(page).not_to have_content(run2.node.hostname)
+      end
+    end
+
+    it "shows clear filter button when node is selected" do
+      visit dashboard_path
+
+      # Clear button initially not visible
+      expect(page).not_to have_button("Clear filter", visible: true)
+
+      # Click a node
+      find("[data-node-id='#{node1.id}']").click
+
+      # Clear button becomes visible after selection
+      expect(page).to have_button("Clear filter", visible: true, wait: 5)
+    end
+
+    it "clears filter when clicking clear button" do
+      visit dashboard_path
+
+      # Click node to filter
+      find("[data-node-id='#{node1.id}']").click
+
+      # Wait for filter to be applied
+      expect(page).to have_css("[data-heatmap-target='selectedLabel']:not(.hidden)", wait: 5)
+
+      # Click clear filter button
+      click_button "Clear filter"
+
+      # Selected label becomes hidden
+      expect(page).to have_css("[data-heatmap-target='selectedLabel'].hidden", visible: :hidden)
+
+      # Runs list resets to show all
+      within("#filtered_runs") do
+        expect(page).to have_content("Recent Benchmark Runs", wait: 5)
+      end
+    end
+
+    it "toggles selection when clicking same node twice" do
+      visit dashboard_path
+
+      cell = find("[data-node-id='#{node1.id}']")
+
+      # First click - select
+      cell.click
+      expect(page).to have_css("[data-heatmap-target='selectedLabel']:not(.hidden)", wait: 5)
+
+      # Second click - deselect
+      cell.click
+      expect(page).to have_css("[data-heatmap-target='selectedLabel'].hidden", visible: :hidden, wait: 5)
+    end
+
+    it "highlights selected node with ring style" do
+      visit dashboard_path
+
+      cell_selector = "[data-node-id='#{node1.id}']"
+
+      # Initially cells have focus:ring but not selection ring
+      # The Stimulus controller should not add ring-2 class until clicked
+      cell = find(cell_selector)
+      initial_classes = cell[:class].split
+
+      # Click to select - Stimulus adds ring-2 (without focus: prefix)
+      cell.click
+
+      # Wait for UI update then check classes
+      expect(page).to have_css("[data-heatmap-target='selectedLabel']:not(.hidden)", wait: 5)
+
+      updated_cell = find(cell_selector)
+      updated_classes = updated_cell[:class].split
+
+      # Stimulus adds these selection classes (not focus: prefixed)
+      expect(updated_classes).to include("ring-2")
+      expect(updated_classes).to include("ring-cyan-500")
+      expect(updated_classes).to include("ring-offset-2")
     end
   end
 end

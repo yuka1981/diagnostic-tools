@@ -17,7 +17,7 @@ class DashboardController < ApplicationController
     @nodes = Node.order(:hostname)
 
     # Handle node filtering for benchmark runs
-    @selected_node = params[:node_id].present? ? Node.find_by(id: params[:node_id]) : nil
+    @selected_node = Node.find_by(id: params[:node_id])
 
     # Load runs with optional node filter
     runs_scope = BenchmarkRun.recent.includes(:node, :benchmark_recipe)

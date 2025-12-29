@@ -48,12 +48,14 @@ export default class extends Controller {
       }
     })
 
-    // Update clear button visibility
+    // Update clear button visibility (toggle both hidden and inline-flex to avoid CSS conflicts)
     if (this.hasClearButtonTarget) {
       if (selectedId) {
         this.clearButtonTarget.classList.remove("hidden")
+        this.clearButtonTarget.classList.add("inline-flex")
       } else {
         this.clearButtonTarget.classList.add("hidden")
+        this.clearButtonTarget.classList.remove("inline-flex")
       }
     }
 
