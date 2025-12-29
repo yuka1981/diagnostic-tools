@@ -2,9 +2,20 @@
 
 module Inventory
   class ProcessStateService
-    Result = Struct.new(:success, :state_created, :node_state, :error, keyword_init: true) do
+    # Error codes for proper error classification
+    ERROR_CODES = {
+      not_found: :not_found,
+      bad_request: :bad_request,
+      internal_error: :internal_error
+    }.freeze
+
+    Result = Struct.new(:success, :state_created, :node_state, :error, :error_code, keyword_init: true) do
       def success?
         success
+      end
+
+      def not_found?
+        error_code == :not_found
       end
     end
 
@@ -17,10 +28,10 @@ module Inventory
     end
 
     def call
-      return error_result("Raw JSON is empty") if @raw_json.nil?
+      return error_result("Raw JSON is empty", :bad_request) if @raw_json.nil?
 
       node = find_node
-      return error_result("Node not found") unless node
+      return error_result("Node not found", :not_found) unless node
 
       process_state(node)
     end
@@ -78,7 +89,7 @@ module Inventory
         node_state: node_state
       )
     rescue ActiveRecord::RecordInvalid => e
-      error_result("Failed to create NodeState: #{e.message}")
+      error_result("Failed to create NodeState: #{e.message}", :internal_error)
     end
 
     def touch_node(node, current_state)
@@ -91,12 +102,13 @@ module Inventory
       )
     end
 
-    def error_result(message)
+    def error_result(message, code = :bad_request)
       Result.new(
         success: false,
         state_created: false,
         node_state: nil,
-        error: message
+        error: message,
+        error_code: code
       )
     end
   end
