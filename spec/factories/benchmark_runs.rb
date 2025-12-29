@@ -10,12 +10,6 @@ FactoryBot.define do
     metrics { {} }
     error_message { nil }
 
-    trait :pending do
-      status { :pending }
-      started_at { nil }
-      finished_at { nil }
-    end
-
     trait :running do
       status { :running }
       started_at { 10.minutes.ago }

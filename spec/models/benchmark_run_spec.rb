@@ -76,8 +76,10 @@ RSpec.describe BenchmarkRun, type: :model do
     end
 
     describe ".completed" do
-      it "returns only success and failed runs" do
-        expect(BenchmarkRun.completed).to contain_exactly(success_run, failed_run)
+      let!(:cancelled_run) { create(:benchmark_run, :cancelled, node: node, benchmark_recipe: recipe) }
+
+      it "returns success, failed, and cancelled runs" do
+        expect(BenchmarkRun.completed).to contain_exactly(success_run, failed_run, cancelled_run)
       end
     end
 
@@ -135,6 +137,11 @@ RSpec.describe BenchmarkRun, type: :model do
 
     it "returns true for failed status" do
       run = build(:benchmark_run, status: :failed)
+      expect(run.completed?).to be true
+    end
+
+    it "returns true for cancelled status" do
+      run = build(:benchmark_run, status: :cancelled)
       expect(run.completed?).to be true
     end
 
