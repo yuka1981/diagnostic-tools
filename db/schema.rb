@@ -10,9 +10,36 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2025_12_29_005637) do
+ActiveRecord::Schema[7.2].define(version: 2025_12_29_011555) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
+
+  create_table "benchmark_recipes", force: :cascade do |t|
+    t.string "name", limit: 100, null: false
+    t.string "version", limit: 50, null: false
+    t.jsonb "default_profile", default: {}
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["name", "version"], name: "index_benchmark_recipes_on_name_and_version", unique: true
+    t.index ["name"], name: "index_benchmark_recipes_on_name"
+  end
+
+  create_table "benchmark_runs", force: :cascade do |t|
+    t.bigint "node_id", null: false
+    t.bigint "benchmark_recipe_id", null: false
+    t.datetime "started_at"
+    t.datetime "finished_at"
+    t.integer "status", default: 0, null: false
+    t.jsonb "metrics", default: {}
+    t.text "error_message"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["benchmark_recipe_id"], name: "index_benchmark_runs_on_benchmark_recipe_id"
+    t.index ["node_id", "started_at"], name: "index_benchmark_runs_on_node_id_and_started_at", order: { started_at: :desc }
+    t.index ["node_id"], name: "index_benchmark_runs_on_node_id"
+    t.index ["started_at"], name: "index_benchmark_runs_on_started_at"
+    t.index ["status"], name: "index_benchmark_runs_on_status"
+  end
 
   create_table "node_states", force: :cascade do |t|
     t.bigint "node_id", null: false
@@ -56,5 +83,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_12_29_005637) do
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
   end
 
+  add_foreign_key "benchmark_runs", "benchmark_recipes"
+  add_foreign_key "benchmark_runs", "nodes"
   add_foreign_key "node_states", "nodes"
 end
