@@ -84,48 +84,15 @@
   </div>
 </div>
 
+<%# Node Heatmap Section %>
+<div class="mt-8">
+  <%= render "dashboard/heatmap", nodes: @nodes %>
+</div>
+
 <%# Recent Activity Section %>
 <div class="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
-  <%# Recent Benchmark Runs %>
-  <div class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-200 dark:bg-slate-800/50 dark:ring-white/10">
-    <div class="flex items-center justify-between mb-4">
-      <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Recent Benchmark Runs</h2>
-      <%= link_to "View all", benchmark_runs_path, 
-          class: "text-sm font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300" %>
-    </div>
-
-    <% if @recent_runs.any? %>
-      <div class="space-y-3">
-        <% @recent_runs.each do |run| %>
-          <div class="flex items-center gap-4 rounded-xl bg-gray-50 p-4 dark:bg-white/5">
-            <div class="flex h-10 w-10 items-center justify-center rounded-lg <%= status_bg_class(run.status) %>">
-              <%= status_icon(run.status) %>
-            </div>
-            <div class="flex-1 min-w-0">
-              <p class="text-sm font-medium text-gray-900 truncate dark:text-white">
-                <%= run.benchmark_recipe.display_name %>
-              </p>
-              <p class="text-xs text-gray-500 dark:text-slate-400">
-                <%= run.node.hostname %> · <%= time_ago_in_words(run.started_at || run.created_at) %> ago
-              </p>
-            </div>
-            <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium <%= status_badge_class(run.status) %>">
-              <%= run.status.humanize %>
-            </span>
-          </div>
-        <% end %>
-      </div>
-    <% else %>
-      <div class="flex flex-col items-center justify-center py-12 text-center">
-        <svg class="h-12 w-12 text-gray-300 dark:text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" 
-            d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-        </svg>
-        <p class="mt-4 text-sm font-medium text-gray-500 dark:text-slate-400">No benchmark runs yet</p>
-        <p class="mt-1 text-xs text-gray-400 dark:text-slate-500">Start a benchmark to see results here</p>
-      </div>
-    <% end %>
-  </div>
+  <%# Filtered Benchmark Runs (Turbo Frame) %>
+  <%= render "dashboard/filtered_runs", runs: @filtered_runs, selected_node: @selected_node %>
 
   <%# Quick Actions %>
   <div class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-200 dark:bg-slate-800/50 dark:ring-white/10">
