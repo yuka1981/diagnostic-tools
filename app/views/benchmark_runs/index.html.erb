@@ -8,70 +8,198 @@
     </div>
   </div>
 
-  <div class="rounded-2xl bg-white shadow-sm ring-1 ring-gray-200 dark:bg-slate-800/50 dark:ring-white/10 overflow-hidden">
-    <% if @benchmark_runs.any? %>
-      <table class="min-w-full divide-y divide-gray-200 dark:divide-white/5">
-        <thead class="bg-gray-50 dark:bg-white/5">
-          <tr>
-            <th scope="col" class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-slate-400">Recipe</th>
-            <th scope="col" class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-slate-400">Node</th>
-            <th scope="col" class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-slate-400">Status</th>
-            <th scope="col" class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-slate-400">Started</th>
-            <th scope="col" class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-slate-400">Duration</th>
-            <th scope="col" class="relative px-6 py-3">
-              <span class="sr-only">Actions</span>
-            </th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-gray-200 dark:divide-white/5">
-          <% @benchmark_runs.each do |run| %>
-            <tr class="hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
-              <td class="whitespace-nowrap px-6 py-4">
-                <p class="text-sm font-medium text-gray-900 dark:text-white"><%= run.benchmark_recipe.name %></p>
-                <p class="text-xs text-gray-500 dark:text-slate-400"><%= run.benchmark_recipe.version %></p>
-              </td>
-              <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-700 dark:text-slate-300">
-                <%= run.node.hostname %>
-              </td>
-              <td class="whitespace-nowrap px-6 py-4">
-                <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium <%= status_badge_class(run.status) %>">
-                  <%= run.status.humanize %>
-                </span>
-              </td>
-              <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500 dark:text-slate-400">
-                <%= run.started_at ? time_ago_in_words(run.started_at) + " ago" : "Pending" %>
-              </td>
-              <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500 dark:text-slate-400">
-                <% if run.duration %>
-                  <%= distance_of_time_in_words(run.duration) %>
-                <% else %>
-                  —
-                <% end %>
-              </td>
-              <td class="whitespace-nowrap px-6 py-4 text-right text-sm">
-                <%= link_to "View", 
-                    benchmark_run_path(run),
-                    data: { 
-                      action: "click->slide-over#open",
-                      turbo_frame: "slide_over_content"
-                    },
-                    class: "text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300 font-medium" %>
-              </td>
-            </tr>
-          <% end %>
-        </tbody>
-      </table>
-    <% else %>
-      <div class="flex flex-col items-center justify-center py-12 text-center">
-        <svg class="h-12 w-12 text-gray-300 dark:text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" 
-            d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-        </svg>
-        <p class="mt-4 text-sm font-medium text-gray-500 dark:text-slate-400">No benchmark runs yet</p>
-        <p class="mt-1 text-xs text-gray-400 dark:text-slate-500">Start a benchmark to see results here</p>
+  <%# Filter Controls %>
+  <div class="mb-6 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-gray-200 dark:bg-slate-800/50 dark:ring-white/10">
+    <%= form_with url: benchmark_runs_path, method: :get, data: { controller: "autosubmit", turbo_frame: "runs_list", turbo_action: "advance" }, class: "flex flex-wrap items-end gap-4" do |f| %>
+      <%# Search Field %>
+      <div class="flex-1 min-w-[200px]">
+        <label for="q" class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Search</label>
+        <div class="relative">
+          <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+            <svg class="h-4 w-4 text-gray-400 dark:text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </div>
+          <%= f.text_field :q, 
+              value: @filter.search_query,
+              placeholder: "Search by node or recipe...",
+              class: "block w-full rounded-lg border-0 bg-gray-50 py-2 pl-10 pr-3 text-sm text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-cyan-600 dark:bg-slate-700 dark:text-white dark:ring-white/10 dark:placeholder:text-slate-500" %>
+        </div>
+      </div>
+
+      <%# Status Filter %>
+      <div class="w-40">
+        <label for="status" class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Status</label>
+        <%= f.select :status, 
+            options_for_select([["All Statuses", ""]] + BenchmarkRun.statuses.keys.map { |s| [s.humanize, s] }, @filter.status),
+            {},
+            class: "block w-full rounded-lg border-0 bg-gray-50 py-2 pl-3 pr-10 text-sm text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-cyan-600 dark:bg-slate-700 dark:text-white dark:ring-white/10",
+            data: { action: "change->autosubmit#submit" } %>
+      </div>
+
+      <%# Node Filter %>
+      <div class="w-44">
+        <label for="node_id" class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Node</label>
+        <%= f.select :node_id,
+            options_for_select([["All Nodes", ""]] + @nodes.map { |n| [n.hostname, n.id] }, @filter.node_id),
+            {},
+            class: "block w-full rounded-lg border-0 bg-gray-50 py-2 pl-3 pr-10 text-sm text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-cyan-600 dark:bg-slate-700 dark:text-white dark:ring-white/10",
+            data: { action: "change->autosubmit#submit" } %>
+      </div>
+
+      <%# Recipe Filter %>
+      <div class="w-44">
+        <label for="recipe_id" class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Recipe</label>
+        <%= f.select :recipe_id,
+            options_for_select([["All Recipes", ""]] + @recipes.map { |r| [r.name, r.id] }, @filter.recipe_id),
+            {},
+            class: "block w-full rounded-lg border-0 bg-gray-50 py-2 pl-3 pr-10 text-sm text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-cyan-600 dark:bg-slate-700 dark:text-white dark:ring-white/10",
+            data: { action: "change->autosubmit#submit" } %>
+      </div>
+
+      <%# Actions %>
+      <div class="flex items-center gap-2">
+        <%= f.submit "Search",
+            class: "inline-flex items-center rounded-lg bg-cyan-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900 transition-colors cursor-pointer" %>
+        
+        <% if @filter.filtered? %>
+          <%= link_to "Clear filters", benchmark_runs_path,
+              data: { turbo_frame: "runs_list" },
+              class: "inline-flex items-center rounded-lg px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 dark:text-slate-400 dark:hover:text-white dark:hover:bg-white/10 transition-colors" %>
+        <% end %>
       </div>
     <% end %>
   </div>
+
+  <%# Runs List (Turbo Frame) %>
+  <%= turbo_frame_tag "runs_list", data: { turbo_action: "advance" } do %>
+    <div class="rounded-2xl bg-white shadow-sm ring-1 ring-gray-200 dark:bg-slate-800/50 dark:ring-white/10 overflow-hidden">
+      <% if @benchmark_runs.any? %>
+        <%# Filter Summary %>
+        <% if @filter.filtered? %>
+          <div class="border-b border-gray-200 bg-gray-50 px-6 py-3 dark:border-white/10 dark:bg-white/5">
+            <p class="text-sm text-gray-600 dark:text-slate-400">
+              Showing <%= pluralize(@benchmark_runs.total_count, "result") %>
+              <% if @filter.search_query.present? %>
+                matching <strong class="font-medium text-gray-900 dark:text-white">"<%= h(@filter.search_query) %>"</strong>
+              <% end %>
+            </p>
+          </div>
+        <% end %>
+
+        <table class="min-w-full divide-y divide-gray-200 dark:divide-white/5">
+          <thead class="bg-gray-50 dark:bg-white/5">
+            <tr>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-slate-400">Recipe</th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-slate-400">Node</th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-slate-400">Status</th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-slate-400">Started</th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-slate-400">Duration</th>
+              <th scope="col" class="relative px-6 py-3">
+                <span class="sr-only">Actions</span>
+              </th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-200 dark:divide-white/5">
+            <% @benchmark_runs.each do |run| %>
+              <tr class="hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
+                <td class="whitespace-nowrap px-6 py-4">
+                  <p class="text-sm font-medium text-gray-900 dark:text-white"><%= run.benchmark_recipe.name %></p>
+                  <p class="text-xs text-gray-500 dark:text-slate-400"><%= run.benchmark_recipe.version %></p>
+                </td>
+                <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-700 dark:text-slate-300">
+                  <%= run.node.hostname %>
+                </td>
+                <td class="whitespace-nowrap px-6 py-4">
+                  <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium <%= status_badge_class(run.status) %>">
+                    <%= run.status.humanize %>
+                  </span>
+                </td>
+                <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500 dark:text-slate-400">
+                  <%= run.started_at ? time_ago_in_words(run.started_at) + " ago" : "Pending" %>
+                </td>
+                <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500 dark:text-slate-400">
+                  <% if run.duration %>
+                    <%= distance_of_time_in_words(run.duration) %>
+                  <% else %>
+                    —
+                  <% end %>
+                </td>
+                <td class="whitespace-nowrap px-6 py-4 text-right text-sm">
+                  <%= link_to "View", 
+                      benchmark_run_path(run),
+                      data: { 
+                        action: "click->slide-over#open",
+                        turbo_frame: "slide_over_content"
+                      },
+                      class: "text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300 font-medium" %>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+
+        <%# Pagination %>
+        <% if @benchmark_runs.total_pages > 1 %>
+          <div class="border-t border-gray-200 bg-gray-50 px-6 py-4 dark:border-white/10 dark:bg-white/5">
+            <nav class="flex items-center justify-between" aria-label="Pagination">
+              <div class="hidden sm:block">
+                <p class="text-sm text-gray-700 dark:text-slate-400">
+                  Showing
+                  <span class="font-medium text-gray-900 dark:text-white"><%= @benchmark_runs.offset_value + 1 %></span>
+                  to
+                  <span class="font-medium text-gray-900 dark:text-white"><%= [@benchmark_runs.offset_value + @benchmark_runs.limit_value, @benchmark_runs.total_count].min %></span>
+                  of
+                  <span class="font-medium text-gray-900 dark:text-white"><%= @benchmark_runs.total_count %></span>
+                  results
+                </p>
+              </div>
+              <div class="flex flex-1 justify-between sm:justify-end gap-2">
+                <% if @benchmark_runs.prev_page %>
+                  <%= link_to "Previous", 
+                      benchmark_runs_path(filter_params.merge(page: @benchmark_runs.prev_page)),
+                      data: { turbo_frame: "runs_list" },
+                      class: "relative inline-flex items-center rounded-lg bg-white px-3 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 dark:bg-slate-700 dark:text-white dark:ring-white/10 dark:hover:bg-slate-600" %>
+                <% end %>
+                <% if @benchmark_runs.next_page %>
+                  <%= link_to "Next",
+                      benchmark_runs_path(filter_params.merge(page: @benchmark_runs.next_page)),
+                      data: { turbo_frame: "runs_list" },
+                      class: "relative inline-flex items-center rounded-lg bg-white px-3 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 dark:bg-slate-700 dark:text-white dark:ring-white/10 dark:hover:bg-slate-600" %>
+                <% end %>
+              </div>
+            </nav>
+          </div>
+        <% end %>
+      <% else %>
+        <div class="flex flex-col items-center justify-center py-12 text-center">
+          <svg class="h-12 w-12 text-gray-300 dark:text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" 
+              d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+          </svg>
+          <p class="mt-4 text-sm font-medium text-gray-500 dark:text-slate-400">
+            <% if @filter.filtered? %>
+              No benchmark runs match your filters
+            <% else %>
+              No benchmark runs yet
+            <% end %>
+          </p>
+          <p class="mt-1 text-xs text-gray-400 dark:text-slate-500">
+            <% if @filter.filtered? %>
+              Try adjusting your search or filters
+            <% else %>
+              Start a benchmark to see results here
+            <% end %>
+          </p>
+          <% if @filter.filtered? %>
+            <%= link_to "Clear all filters", benchmark_runs_path,
+                data: { turbo_frame: "runs_list" },
+                class: "mt-4 inline-flex items-center rounded-lg bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200 dark:bg-white/10 dark:text-slate-300 dark:hover:bg-white/20 transition-colors" %>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+  <% end %>
 
   <%# Slide-over Panel %>
   <%= render "benchmark_runs/slide_over" %>

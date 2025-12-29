@@ -2,9 +2,15 @@
 
 class BenchmarkRunsController < ApplicationController
   layout "dashboard"
+  helper_method :filter_params
 
   def index
-    @benchmark_runs = BenchmarkRun.recent.includes(:node, :benchmark_recipe)
+    @filter = Runs::FilterQuery.new(filter_params)
+    @benchmark_runs = @filter.call.page(params[:page]).per(20)
+
+    # Load data for filter dropdowns
+    @nodes = Node.order(:hostname)
+    @recipes = BenchmarkRecipe.order(:name)
   end
 
   def show
@@ -16,5 +22,11 @@ class BenchmarkRunsController < ApplicationController
     render partial: "benchmark_runs/slide_over_content",
            locals: { benchmark_run: @benchmark_run },
            layout: false
+  end
+
+  private
+
+  def filter_params
+    params.permit(:status, :node_id, :recipe_id, :q)
   end
 end
