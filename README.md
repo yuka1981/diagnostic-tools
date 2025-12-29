@@ -78,6 +78,36 @@ bin/dev
 
 The application will be available at `http://localhost:3000`.
 
+## Configuration
+
+### SSH & Agent Collection
+
+To enable the application to collect data from nodes via SSH, you need to configure SSH credentials and ensure the agent is installed on the target nodes.
+
+#### 1. Credentials
+
+You can configure SSH settings using Rails credentials (`bin/rails credentials:edit`) or Environment Variables.
+
+| Setting | Rails Credential (`ssh:`) | Environment Variable | Description |
+|---------|---------------------------|----------------------|-------------|
+| User | `user` | `SSH_USER` | SSH username to connect as |
+| Key Path | `key_path` | `SSH_KEY_PATH` | Path to the private key file |
+| Timeout | `timeout` | `SSH_TIMEOUT` | Connection timeout in seconds (default: 30) |
+| Host Key Verification | `verify_host_key` | `SSH_VERIFY_HOST_KEY` | Host key verification strategy (default: strict) |
+
+**Example `config/credentials.yml.enc`:**
+
+```yaml
+ssh:
+  user: "hpc-admin"
+  key_path: "/home/app/.ssh/id_rsa"
+  timeout: 10
+```
+
+#### 2. Agent Installation
+
+The `agent` binary must be available on the target nodes. By default, the service expects the binary to be named `agent` and available in the system PATH.
+
 ## Usage
 
 ### Importing Nodes via CSV
