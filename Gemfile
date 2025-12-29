@@ -18,6 +18,8 @@ gem "stimulus-rails"
 gem "tailwindcss-rails"
 # Build JSON APIs with ease [https://github.com/rails/jbuilder]
 gem "jbuilder"
+# CSV parsing (required from Ruby 3.4.0+) [https://github.com/ruby/csv]
+gem "csv"
 # Use Redis adapter to run Action Cable in production
 # gem "redis", ">= 4.0.1"
 
