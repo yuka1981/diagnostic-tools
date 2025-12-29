@@ -1,8 +1,5 @@
 # frozen_string_literal: true
 
-require "digest"
-require "json"
-
 module Inventory
   class ProcessStateService
     Result = Struct.new(:success, :state_created, :node_state, :error, keyword_init: true) do
@@ -12,6 +9,8 @@ module Inventory
     end
 
     def initialize(node_id: nil, hostname: nil, raw_json:)
+      raise ArgumentError, "Either node_id or hostname must be provided" if node_id.blank? && hostname.blank?
+
       @node_id = node_id
       @hostname = hostname
       @raw_json = raw_json&.with_indifferent_access
@@ -59,31 +58,10 @@ module Inventory
     def state_changed?(current_state, new_data)
       return true if current_state.nil?
 
-      # Compare content hashes directly
-      new_content_hash = compute_content_hash(new_data)
-      current_state.content_hash != new_content_hash
-    end
-
-    def compute_content_hash(data)
-      content = {
-        cpu_info: deep_sort_keys(data[:cpu_info] || {}),
-        mem_info: deep_sort_keys(data[:mem_info] || {}),
-        disk_info: deep_sort_keys(data[:disk_info] || []),
-        net_info: deep_sort_keys(data[:net_info] || [])
-      }
-      Digest::SHA256.hexdigest(JSON.generate(content))
-    end
-
-    # Recursively sort hash keys to ensure consistent JSON output
-    def deep_sort_keys(obj)
-      case obj
-      when Hash
-        obj.sort.to_h.transform_values { |v| deep_sort_keys(v) }
-      when Array
-        obj.map { |item| deep_sort_keys(item) }
-      else
-        obj
-      end
+      # Build a temporary NodeState object to calculate hash consistently
+      # This leverages the model's content_hash logic (DRY principle)
+      temp_state = NodeState.new(new_data)
+      current_state.content_hash != temp_state.content_hash
     end
 
     def create_new_state(node, state_data)

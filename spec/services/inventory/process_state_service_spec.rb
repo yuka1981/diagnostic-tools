@@ -197,5 +197,11 @@ RSpec.describe Inventory::ProcessStateService do
         expect(result.error).to match(/not found/i)
       end
     end
+
+    context "when neither node_id nor hostname is provided" do
+      it "raises an ArgumentError" do
+        expect { described_class.new(raw_json: raw_json) }.to raise_error(ArgumentError, /node_id or hostname/i)
+      end
+    end
   end
 end
