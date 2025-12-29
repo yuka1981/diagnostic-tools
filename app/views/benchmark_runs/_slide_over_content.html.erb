@@ -1,0 +1,183 @@
+<%# Slide-over Content - Loaded via Turbo Frame %>
+<%= turbo_frame_tag "slide_over_content" do %>
+  <div data-controller="tabs">
+    <%# Run Header with Status %>
+    <div class="border-b border-gray-200 px-6 py-4 dark:border-white/10">
+      <div class="flex items-start gap-4">
+        <div class="flex h-12 w-12 items-center justify-center rounded-xl <%= status_bg_class(benchmark_run.status) %>">
+          <%= status_icon(benchmark_run.status) %>
+        </div>
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center gap-2">
+            <h3 class="text-base font-semibold text-gray-900 truncate dark:text-white">
+              <%= benchmark_run.benchmark_recipe.display_name %>
+            </h3>
+            <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium <%= status_badge_class(benchmark_run.status) %>">
+              <%= benchmark_run.status.humanize %>
+            </span>
+          </div>
+          <p class="mt-1 text-sm text-gray-500 dark:text-slate-400">
+            Run #<%= benchmark_run.id %> on <%= benchmark_run.node.hostname %>
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <%# Tabs Navigation %>
+    <div class="border-b border-gray-200 dark:border-white/10">
+      <nav class="flex px-6" aria-label="Tabs" role="tablist" data-action="keydown->tabs#handleKeydown">
+        <button type="button"
+                role="tab"
+                aria-selected="true"
+                aria-controls="tab-panel-summary"
+                data-tabs-target="tab"
+                data-action="click->tabs#select"
+                class="border-b-2 border-cyan-500 px-4 py-3 text-sm font-medium text-cyan-600 dark:text-cyan-400 focus:outline-none">
+          Summary
+        </button>
+        <button type="button"
+                role="tab"
+                aria-selected="false"
+                aria-controls="tab-panel-metrics"
+                tabindex="-1"
+                data-tabs-target="tab"
+                data-action="click->tabs#select"
+                class="border-b-2 border-transparent px-4 py-3 text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-slate-400 dark:hover:text-slate-300 focus:outline-none">
+          Metrics
+        </button>
+        <button type="button"
+                role="tab"
+                aria-selected="false"
+                aria-controls="tab-panel-logs"
+                tabindex="-1"
+                data-tabs-target="tab"
+                data-action="click->tabs#select"
+                class="border-b-2 border-transparent px-4 py-3 text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-slate-400 dark:hover:text-slate-300 focus:outline-none">
+          Logs
+        </button>
+      </nav>
+    </div>
+
+    <%# Tab Panels %>
+    <div class="p-6">
+      <%# Summary Tab Panel %>
+      <div id="tab-panel-summary"
+           role="tabpanel"
+           aria-labelledby="tab-summary"
+           aria-hidden="false"
+           data-tabs-target="panel">
+        
+        <%# Error Message (if any) %>
+        <% if benchmark_run.error_message.present? %>
+          <div class="mb-6 rounded-xl bg-red-50 p-4 dark:bg-red-500/10">
+            <div class="flex items-start gap-3">
+              <svg class="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <div>
+                <p class="text-sm font-medium text-red-800 dark:text-red-300">Error</p>
+                <p class="mt-1 text-sm text-red-700 dark:text-red-400"><%= benchmark_run.error_message %></p>
+              </div>
+            </div>
+          </div>
+        <% end %>
+
+        <%# Details Grid %>
+        <dl class="grid grid-cols-2 gap-4">
+          <div class="rounded-lg bg-gray-50 p-4 dark:bg-white/5">
+            <dt class="text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-slate-400">Node</dt>
+            <dd class="mt-1 text-sm font-semibold text-gray-900 dark:text-white"><%= benchmark_run.node.hostname %></dd>
+          </div>
+          <div class="rounded-lg bg-gray-50 p-4 dark:bg-white/5">
+            <dt class="text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-slate-400">Recipe</dt>
+            <dd class="mt-1 text-sm font-semibold text-gray-900 dark:text-white"><%= benchmark_run.benchmark_recipe.name %></dd>
+          </div>
+          <div class="rounded-lg bg-gray-50 p-4 dark:bg-white/5">
+            <dt class="text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-slate-400">Started</dt>
+            <dd class="mt-1 text-sm font-semibold text-gray-900 dark:text-white">
+              <%= benchmark_run.started_at ? l(benchmark_run.started_at, format: :short) : "Pending" %>
+            </dd>
+          </div>
+          <div class="rounded-lg bg-gray-50 p-4 dark:bg-white/5">
+            <dt class="text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-slate-400">Duration</dt>
+            <dd class="mt-1 text-sm font-semibold text-gray-900 dark:text-white">
+              <%= benchmark_run.duration ? distance_of_time_in_words(benchmark_run.duration) : "—" %>
+            </dd>
+          </div>
+          <div class="rounded-lg bg-gray-50 p-4 dark:bg-white/5">
+            <dt class="text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-slate-400">Finished</dt>
+            <dd class="mt-1 text-sm font-semibold text-gray-900 dark:text-white">
+              <%= benchmark_run.finished_at ? l(benchmark_run.finished_at, format: :short) : "—" %>
+            </dd>
+          </div>
+          <div class="rounded-lg bg-gray-50 p-4 dark:bg-white/5">
+            <dt class="text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-slate-400">Version</dt>
+            <dd class="mt-1 text-sm font-semibold text-gray-900 dark:text-white"><%= benchmark_run.benchmark_recipe.version %></dd>
+          </div>
+        </dl>
+
+        <%# Quick Actions %>
+        <div class="mt-6 flex gap-3">
+          <%= link_to benchmark_run_path(benchmark_run), 
+              class: "flex-1 inline-flex items-center justify-center gap-2 rounded-lg bg-cyan-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900 transition-colors" do %>
+            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+            </svg>
+            View Full Details
+          <% end %>
+        </div>
+      </div>
+
+      <%# Metrics Tab Panel %>
+      <div id="tab-panel-metrics"
+           role="tabpanel"
+           aria-labelledby="tab-metrics"
+           aria-hidden="true"
+           class="hidden"
+           data-tabs-target="panel">
+        
+        <% if benchmark_run.metrics.present? %>
+          <div class="space-y-4">
+            <% benchmark_run.metrics.each do |key, value| %>
+              <div class="flex items-center justify-between rounded-lg bg-gray-50 p-4 dark:bg-white/5">
+                <dt class="text-sm font-medium text-gray-700 dark:text-slate-300"><%= key.humanize %></dt>
+                <dd class="text-sm font-semibold text-gray-900 dark:text-white">
+                  <%= value.is_a?(Numeric) ? number_with_precision(value, precision: 4, strip_insignificant_zeros: true) : value %>
+                </dd>
+              </div>
+            <% end %>
+          </div>
+        <% else %>
+          <div class="flex flex-col items-center justify-center py-12 text-center">
+            <svg class="h-12 w-12 text-gray-300 dark:text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" 
+                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+            <p class="mt-4 text-sm font-medium text-gray-500 dark:text-slate-400">No metrics available</p>
+            <p class="mt-1 text-xs text-gray-400 dark:text-slate-500">Metrics will appear here when the run completes</p>
+          </div>
+        <% end %>
+      </div>
+
+      <%# Logs Tab Panel %>
+      <div id="tab-panel-logs"
+           role="tabpanel"
+           aria-labelledby="tab-logs"
+           aria-hidden="true"
+           class="hidden"
+           data-tabs-target="panel">
+        
+        <%# Placeholder for logs - can be extended with actual log storage %>
+        <div class="flex flex-col items-center justify-center py-12 text-center">
+          <svg class="h-12 w-12 text-gray-300 dark:text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" 
+              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+          <p class="mt-4 text-sm font-medium text-gray-500 dark:text-slate-400">No logs available</p>
+          <p class="mt-1 text-xs text-gray-400 dark:text-slate-500">Log output will be displayed here when available</p>
+        </div>
+      </div>
+    </div>
+  </div>
+<% end %>
+
