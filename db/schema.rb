@@ -10,9 +10,23 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2025_12_29_001212) do
+ActiveRecord::Schema[7.2].define(version: 2025_12_29_004254) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
+
+  create_table "nodes", force: :cascade do |t|
+    t.string "hostname", null: false
+    t.string "ip"
+    t.integer "role", default: 0, null: false
+    t.string "arch"
+    t.integer "source", default: 0, null: false
+    t.datetime "last_seen_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["hostname"], name: "index_nodes_on_hostname", unique: true
+    t.index ["role"], name: "index_nodes_on_role"
+    t.index ["source"], name: "index_nodes_on_source"
+  end
 
   create_table "users", force: :cascade do |t|
     t.string "email", default: "", null: false
