@@ -85,12 +85,14 @@ The application will be available at `http://localhost:3000`.
 You can bulk import nodes using a CSV file. A sample file is provided at `examples/nodes.csv`.
 
 **CSV Format Requirements:**
+
 - **hostname** (Required): Unique hostname for the node
 - **ip** (Optional): Valid IP address
 - **role** (Optional): One of `compute`, `login`, `admin` (defaults to `compute`)
 - **arch** (Optional): CPU architecture (e.g., `x86_64`, `aarch64`)
 
 **Example CSV Content:**
+
 ```csv
 hostname,ip,role,arch
 compute-001,10.0.1.1,compute,x86_64
@@ -99,6 +101,7 @@ admin-node,,admin,aarch64
 ```
 
 To import nodes via the UI:
+
 1. Navigate to the **Nodes** page in the dashboard.
 2. Click the **Import CSV** button.
 3. Upload your CSV file using the form.

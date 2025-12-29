@@ -2,5 +2,5 @@ hostname,ip,role,arch
 compute-001,10.0.1.1,compute,x86_64
 compute-002,10.0.1.2,compute,x86_64
 login-01,192.168.1.10,login,x86_64
-admin-node,192.168.0.5,admin,aarch64
+admin-node,,admin,aarch64
 node-without-ip,,compute,x86_64
