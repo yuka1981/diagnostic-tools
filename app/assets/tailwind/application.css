@@ -1,1 +1,4 @@
 @import "tailwindcss";
+
+/* Enable class-based dark mode (instead of media query based) */
+@variant dark (&:where(.dark, .dark *));
