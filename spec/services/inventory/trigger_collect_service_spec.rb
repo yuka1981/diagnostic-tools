@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "rails_helper"
+require "shellwords"
 
 RSpec.describe Inventory::TriggerCollectService do
   let(:gateway_node) { create(:node, :admin, hostname: "gateway-01", ip: "192.168.1.1") }
@@ -18,7 +19,6 @@ RSpec.describe Inventory::TriggerCollectService do
 
   describe "#call" do
     let(:mock_session) { instance_double(Net::SSH::Connection::Session) }
-    let(:mock_channel) { instance_double(Net::SSH::Connection::Channel) }
 
     context "when SSH command succeeds" do
       let(:command_output) do
@@ -43,8 +43,8 @@ RSpec.describe Inventory::TriggerCollectService do
         service.call
       end
 
-      it "executes the correct SSH command" do
-        expected_command = "ssh #{target_node.hostname} agent collect --json"
+      it "executes the correct SSH command with escaped arguments" do
+        expected_command = "ssh #{Shellwords.escape(target_node.hostname)} #{Shellwords.escape('agent')} collect --json"
 
         expect(mock_session).to receive(:exec!).with(expected_command)
 
@@ -96,18 +96,16 @@ RSpec.describe Inventory::TriggerCollectService do
       end
     end
 
-    context "when SSH connection fails" do
+    # SSH exceptions should bubble up to allow job retry logic to work
+    context "when SSH connection times out" do
       before do
         allow(Net::SSH).to receive(:start).and_raise(
           Net::SSH::ConnectionTimeout.new("Connection timed out")
         )
       end
 
-      it "returns error result with connection error" do
-        result = service.call
-
-        expect(result.success?).to be false
-        expect(result.error).to include("Connection")
+      it "raises ConnectionTimeout exception" do
+        expect { service.call }.to raise_error(Net::SSH::ConnectionTimeout)
       end
     end
 
@@ -118,11 +116,8 @@ RSpec.describe Inventory::TriggerCollectService do
         )
       end
 
-      it "returns error result with authentication error" do
-        result = service.call
-
-        expect(result.success?).to be false
-        expect(result.error).to include("Authentication")
+      it "raises AuthenticationFailed exception" do
+        expect { service.call }.to raise_error(Net::SSH::AuthenticationFailed)
       end
     end
 
@@ -133,17 +128,14 @@ RSpec.describe Inventory::TriggerCollectService do
         )
       end
 
-      it "returns error result with host key error" do
-        result = service.call
-
-        expect(result.success?).to be false
-        expect(result.error).to include("Host key")
+      it "raises HostKeyMismatch exception" do
+        expect { service.call }.to raise_error(Net::SSH::HostKeyMismatch)
       end
     end
   end
 
   describe "#command" do
-    it "builds correct command for target node" do
+    it "builds correct command for target node with escaped arguments" do
       expect(service.send(:command)).to eq("ssh compute-01 agent collect --json")
     end
 
@@ -152,8 +144,29 @@ RSpec.describe Inventory::TriggerCollectService do
         described_class.new(target_node, gateway: gateway_node, ssh_config: ssh_config, agent_path: "/opt/agent/bin/agent")
       end
 
-      it "uses custom agent path" do
+      it "uses custom agent path escaped" do
         expect(service.send(:command)).to eq("ssh compute-01 /opt/agent/bin/agent collect --json")
+      end
+    end
+
+    context "with hostname containing special characters" do
+      let(:target_node) { create(:node, hostname: "node-with-dash", ip: "192.168.1.10") }
+
+      it "escapes hostname properly" do
+        command = service.send(:command)
+        expect(command).to eq("ssh node-with-dash agent collect --json")
+      end
+    end
+
+    context "with potentially dangerous hostname" do
+      # This tests command injection prevention
+      let(:target_node) { create(:node, hostname: "node; rm -rf /", ip: "192.168.1.10") }
+
+      it "escapes dangerous characters" do
+        command = service.send(:command)
+        # Shellwords.escape should escape the semicolon and spaces
+        expect(command).to include("node\\;\\ rm\\ -rf\\ /")
+        expect(command).not_to eq("ssh node; rm -rf / agent collect --json")
       end
     end
   end
@@ -182,12 +195,48 @@ RSpec.describe Inventory::TriggerCollectService do
     end
   end
 
+  describe "SSH options" do
+    context "when verify_host_key is not configured" do
+      it "does not include verify_host_key in options (uses net-ssh default :secure)" do
+        expect(Net::SSH).to receive(:start).with(
+          anything,
+          anything,
+          hash_not_including(:verify_host_key)
+        ).and_yield(instance_double(Net::SSH::Connection::Session, exec!: "{}"))
+
+        service.call
+      end
+    end
+
+    context "when verify_host_key is explicitly configured" do
+      let(:ssh_config) do
+        {
+          user: "admin",
+          keys: [ "/path/to/key" ],
+          timeout: 30,
+          verify_host_key: :accept_new
+        }
+      end
+
+      it "includes verify_host_key in options" do
+        expect(Net::SSH).to receive(:start).with(
+          anything,
+          anything,
+          hash_including(verify_host_key: :accept_new)
+        ).and_yield(instance_double(Net::SSH::Connection::Session, exec!: "{}"))
+
+        service.call
+      end
+    end
+  end
+
   describe "default configuration" do
     context "when ssh_config uses Rails credentials" do
       before do
         allow(Rails.application.credentials).to receive(:dig).with(:ssh, :user).and_return("deploy")
         allow(Rails.application.credentials).to receive(:dig).with(:ssh, :key_path).and_return("/home/deploy/.ssh/id_rsa")
         allow(Rails.application.credentials).to receive(:dig).with(:ssh, :timeout).and_return(60)
+        allow(Rails.application.credentials).to receive(:dig).with(:ssh, :verify_host_key).and_return(nil)
       end
 
       subject(:service) { described_class.new(target_node, gateway: gateway_node) }

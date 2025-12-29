@@ -3,9 +3,9 @@
 class InventoryCollectJob < ApplicationJob
   queue_as :default
 
-  # Retry on network errors
+  # Retry only on transient network errors (connection timeout)
+  # Other SSH errors (AuthenticationFailed, HostKeyMismatch) are non-retriable
   retry_on Net::SSH::ConnectionTimeout, wait: :polynomially_longer, attempts: 3
-  retry_on Net::SSH::Exception, wait: 5.seconds, attempts: 2
 
   # Discard job if node no longer exists
   discard_on ActiveRecord::RecordNotFound
@@ -28,6 +28,15 @@ class InventoryCollectJob < ApplicationJob
     else
       handle_collection_error(target_node, result.error)
     end
+  rescue Net::SSH::AuthenticationFailed => e
+    # Non-retriable: Authentication failure should not be retried
+    handle_ssh_error(target_node, "Authentication failed: #{e.message}")
+  rescue Net::SSH::HostKeyMismatch => e
+    # Non-retriable: Host key issues require manual intervention
+    handle_ssh_error(target_node, "Host key verification failed: #{e.message}")
+  rescue Net::SSH::Exception => e
+    # Catch-all for other SSH errors (non-retriable by default)
+    handle_ssh_error(target_node, "SSH error: #{e.message}")
   end
 
   private
@@ -42,8 +51,11 @@ class InventoryCollectJob < ApplicationJob
 
   def handle_collection_error(node, error_message)
     Rails.logger.error("[InventoryCollectJob] Failed to collect data from #{node.hostname}: #{error_message}")
+  end
 
-    # Optionally: Update node status or create an alert
-    # This could be extended to notify admins or update a status field
+  def handle_ssh_error(node, error_message)
+    Rails.logger.error("[InventoryCollectJob] SSH error for #{node.hostname}: #{error_message}")
+    # Non-retriable SSH errors are logged but not re-raised
+    # This allows the job to complete without retry
   end
 end
