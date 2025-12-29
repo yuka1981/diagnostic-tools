@@ -3,13 +3,13 @@ import { Controller } from "@hotwired/stimulus"
 // Connects to data-controller="slide-over"
 // Handles slide-over panel behavior with CSS transitions and accessibility
 export default class extends Controller {
-  static targets = ["panel", "backdrop", "content"]
+  static targets = ["panel", "backdrop", "content", "closeButton"]
   static values = {
     open: { type: Boolean, default: false }
   }
 
   connect() {
-    // Bind keyboard handler for escape key
+    // Bind keyboard handler for escape key and focus trapping
     this.boundHandleKeydown = this.handleKeydown.bind(this)
     document.addEventListener("keydown", this.boundHandleKeydown)
     
@@ -63,6 +63,13 @@ export default class extends Controller {
 
     // Prevent body scroll
     document.body.classList.add("overflow-hidden")
+
+    // Set initial focus on close button for accessibility
+    requestAnimationFrame(() => {
+      if (this.hasCloseButtonTarget) {
+        this.closeButtonTarget.focus()
+      }
+    })
   }
 
   hide() {
@@ -70,24 +77,23 @@ export default class extends Controller {
     if (this.hasBackdropTarget) {
       this.backdropTarget.classList.remove("opacity-100")
       this.backdropTarget.classList.add("opacity-0")
-      // Hide completely after transition
-      setTimeout(() => {
-        if (!this.openValue) {
-          this.backdropTarget.classList.add("hidden")
-        }
-      }, 300)
     }
 
-    // Slide panel out to right
+    // Slide panel out to right and hide after transition completes
     if (this.hasPanelTarget) {
-      this.panelTarget.classList.remove("translate-x-0")
-      this.panelTarget.classList.add("translate-x-full")
-      // Hide completely after transition
-      setTimeout(() => {
+      const onTransitionEnd = () => {
         if (!this.openValue) {
           this.panelTarget.classList.add("hidden")
+          if (this.hasBackdropTarget) {
+            this.backdropTarget.classList.add("hidden")
+          }
         }
-      }, 300)
+        this.panelTarget.removeEventListener("transitionend", onTransitionEnd)
+      }
+      this.panelTarget.addEventListener("transitionend", onTransitionEnd)
+
+      this.panelTarget.classList.remove("translate-x-0")
+      this.panelTarget.classList.add("translate-x-full")
     }
 
     // Re-enable body scroll
@@ -95,8 +101,44 @@ export default class extends Controller {
   }
 
   handleKeydown(event) {
-    if (event.key === "Escape" && this.openValue) {
+    if (!this.openValue) return
+
+    // Handle Escape key to close
+    if (event.key === "Escape") {
       this.close(event)
+      return
+    }
+
+    // Handle Tab key for focus trapping
+    if (event.key === "Tab" && this.hasPanelTarget) {
+      this.trapFocus(event)
+    }
+  }
+
+  trapFocus(event) {
+    const focusableElements = Array.from(
+      this.panelTarget.querySelectorAll(
+        'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])'
+      )
+    )
+
+    if (focusableElements.length === 0) return
+
+    const firstElement = focusableElements[0]
+    const lastElement = focusableElements[focusableElements.length - 1]
+
+    if (event.shiftKey) {
+      // Shift + Tab: if on first element, wrap to last
+      if (document.activeElement === firstElement) {
+        lastElement.focus()
+        event.preventDefault()
+      }
+    } else {
+      // Tab: if on last element, wrap to first
+      if (document.activeElement === lastElement) {
+        firstElement.focus()
+        event.preventDefault()
+      }
     }
   }
 
@@ -107,4 +149,3 @@ export default class extends Controller {
     }
   }
 }
-
