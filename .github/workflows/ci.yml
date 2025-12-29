@@ -91,6 +91,9 @@ jobs:
           bin/rails db:create
           bin/rails db:migrate
 
+      - name: Build Tailwind CSS
+        run: bin/rails tailwindcss:build
+
       - name: Run tests
         run: bin/rspec --format documentation
 
