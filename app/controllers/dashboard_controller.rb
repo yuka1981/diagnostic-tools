@@ -13,6 +13,15 @@ class DashboardController < ApplicationController
     @runs_by_status = metrics.runs_by_status
     @nodes_by_role = metrics.nodes_by_role
 
-    @recent_runs = BenchmarkRun.recent.includes(:node, :benchmark_recipe).limit(5)
+    # Load all nodes for heatmap display
+    @nodes = Node.order(:hostname)
+
+    # Handle node filtering for benchmark runs
+    @selected_node = params[:node_id].present? ? Node.find_by(id: params[:node_id]) : nil
+
+    # Load runs with optional node filter
+    runs_scope = BenchmarkRun.recent.includes(:node, :benchmark_recipe)
+    runs_scope = runs_scope.for_node(@selected_node) if @selected_node
+    @filtered_runs = runs_scope.limit(10)
   end
 end

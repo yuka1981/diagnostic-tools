@@ -26,6 +26,31 @@ module DashboardHelper
   DEFAULT_BADGE_CLASS = "bg-gray-100 text-gray-700 dark:bg-gray-500/20 dark:text-gray-400"
   DEFAULT_BG_CLASS = "bg-gray-100 dark:bg-gray-500/20"
 
+  # Heatmap cell colors based on node role and status
+  HEATMAP_COLORS = {
+    compute: {
+      online: "bg-emerald-500 hover:bg-emerald-400 dark:bg-emerald-600 dark:hover:bg-emerald-500",
+      offline: "bg-gray-300 hover:bg-gray-200 dark:bg-slate-600 dark:hover:bg-slate-500"
+    },
+    login: {
+      online: "bg-blue-500 hover:bg-blue-400 dark:bg-blue-600 dark:hover:bg-blue-500",
+      offline: "bg-gray-300 hover:bg-gray-200 dark:bg-slate-600 dark:hover:bg-slate-500"
+    },
+    admin: {
+      online: "bg-amber-500 hover:bg-amber-400 dark:bg-amber-600 dark:hover:bg-amber-500",
+      offline: "bg-gray-300 hover:bg-gray-200 dark:bg-slate-600 dark:hover:bg-slate-500"
+    }
+  }.freeze
+
+  DEFAULT_HEATMAP_CLASS = "bg-gray-300 dark:bg-slate-600"
+
+  def node_heatmap_class(node)
+    role = node.role.to_sym
+    status = node.online? ? :online : :offline
+
+    HEATMAP_COLORS.dig(role, status) || DEFAULT_HEATMAP_CLASS
+  end
+
   def status_badge_class(status)
     STATUS_BADGE_CLASSES.fetch(status.to_s, DEFAULT_BADGE_CLASS)
   end

@@ -12,6 +12,7 @@ AllCops:
     - "tmp/**/*"
     - "vendor/**/*"
     - "coverage/**/*"
+    - "app/javascript/**/*"
 
 # Allow longer lines in specs
 Layout/LineLength:
