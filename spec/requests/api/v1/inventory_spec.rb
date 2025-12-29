@@ -3,9 +3,15 @@
 require "rails_helper"
 
 RSpec.describe "Api::V1::Inventory", type: :request do
-  let(:valid_token) { Rails.application.credentials.dig(:api, :agent_token) || "test-agent-token" }
+  let(:valid_token) { "test-agent-token" }
   let(:invalid_token) { "invalid-token" }
   let(:node) { create(:node) }
+
+  before do
+    # Stub the ENV variable for token authentication in tests
+    allow(ENV).to receive(:[]).and_call_original
+    allow(ENV).to receive(:[]).with("API_AGENT_TOKEN").and_return(valid_token)
+  end
 
   let(:valid_payload) do
     {

@@ -9,8 +9,7 @@ module Api
 
       def authenticate_with_token!
         token = extract_bearer_token
-        return render_unauthorized unless token.present?
-        render_unauthorized unless valid_token?(token)
+        render_unauthorized unless token.present? && valid_token?(token)
       end
 
       def extract_bearer_token
@@ -23,8 +22,8 @@ module Api
       end
 
       def valid_token?(token)
-        expected_token = Rails.application.credentials.dig(:api, :agent_token)
-        expected_token ||= ENV.fetch("API_AGENT_TOKEN", "test-agent-token")
+        expected_token = Rails.application.credentials.dig(:api, :agent_token) || ENV["API_AGENT_TOKEN"]
+        return false unless expected_token.present?
 
         ActiveSupport::SecurityUtils.secure_compare(token, expected_token)
       end

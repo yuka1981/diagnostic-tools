@@ -144,10 +144,12 @@ RSpec.describe Inventory::ProcessStateService do
     context "when node does not exist" do
       subject(:service) { described_class.new(node_id: 99999, raw_json: raw_json) }
 
-      it "returns failure result" do
+      it "returns failure result with not_found error code" do
         result = service.call
         expect(result.success?).to be false
         expect(result.error).to match(/not found/i)
+        expect(result.error_code).to eq(:not_found)
+        expect(result.not_found?).to be true
       end
 
       it "does not create NodeState" do
@@ -158,10 +160,11 @@ RSpec.describe Inventory::ProcessStateService do
     context "when raw_json is nil" do
       let(:raw_json) { nil }
 
-      it "returns failure result" do
+      it "returns failure result with bad_request error code" do
         result = service.call
         expect(result.success?).to be false
         expect(result.error).to match(/empty/i)
+        expect(result.error_code).to eq(:bad_request)
       end
     end
 
@@ -191,10 +194,11 @@ RSpec.describe Inventory::ProcessStateService do
     context "when hostname does not exist" do
       subject(:service) { described_class.new(hostname: "nonexistent", raw_json: raw_json) }
 
-      it "returns failure result" do
+      it "returns failure result with not_found error code" do
         result = service.call
         expect(result.success?).to be false
         expect(result.error).to match(/not found/i)
+        expect(result.error_code).to eq(:not_found)
       end
     end
 

@@ -33,40 +33,35 @@ module Api
             node_state_id: result.node_state&.id
           }, status: :ok
         else
-          handle_service_error(result.error)
+          handle_service_error(result)
         end
       end
 
       private
 
       def parse_request_body
-        if request.body.read.blank?
+        body = request.body.read
+        if body.blank?
           render_bad_request("Request body cannot be empty")
           return {}
         end
 
-        request.body.rewind
-        JSON.parse(request.body.read, symbolize_names: true)
+        JSON.parse(body, symbolize_names: true)
       rescue JSON::ParserError => e
         render_bad_request("Invalid JSON: #{e.message}")
         {}
       end
 
       def build_raw_json(parsed_body)
-        {
-          cpu_info: parsed_body[:cpu_info],
-          mem_info: parsed_body[:mem_info],
-          disk_info: parsed_body[:disk_info],
-          net_info: parsed_body[:net_info]
-        }
+        parsed_body.slice(:cpu_info, :mem_info, :disk_info, :net_info)
       end
 
-      def handle_service_error(error)
-        case error
-        when /not found/i
-          render_not_found(error)
+      def handle_service_error(result)
+        case result.error_code
+        when :not_found
+          render_not_found(result.error)
         else
-          render_bad_request(error)
+          render_bad_request(result.error)
         end
       end
     end
