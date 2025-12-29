@@ -14,8 +14,9 @@ module Nodes
         return render_error("Please select a CSV file to import")
       end
 
-      csv_content = params[:file].read
-      result = Inventory::ImportCsvService.new(csv_content).call
+      # Use streaming mode to avoid loading entire file into memory
+      file_path = params[:file].tempfile.path
+      result = Inventory::ImportCsvService.new(file_path, from_file: true).call
 
       if result.success?
         handle_success(result)

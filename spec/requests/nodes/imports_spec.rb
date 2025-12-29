@@ -28,42 +28,35 @@ RSpec.describe "Nodes::Imports", type: :request do
   describe "POST /nodes/import" do
     context "with valid CSV file" do
       let(:csv_content) { "hostname,ip,role,arch\nnode-001,192.168.1.1,compute,x86_64\nnode-002,192.168.1.2,login,x86_64" }
-      let(:csv_file) { fixture_file_upload(StringIO.new(csv_content), "text/csv", filename: "nodes.csv") }
-
-      before do
-        # Create a temp file for the upload
-        @tempfile = Tempfile.new([ "nodes", ".csv" ])
-        @tempfile.write(csv_content)
-        @tempfile.rewind
+      let(:tempfile) do
+        file = Tempfile.new([ "nodes", ".csv" ])
+        file.write(csv_content)
+        file.rewind
+        file
       end
+      let(:uploaded_file) { Rack::Test::UploadedFile.new(tempfile.path, "text/csv") }
 
       after do
-        @tempfile.close
-        @tempfile.unlink
+        tempfile.close
+        tempfile.unlink
       end
 
       it "creates new nodes" do
-        file = Rack::Test::UploadedFile.new(@tempfile.path, "text/csv")
-
         expect {
-          post import_nodes_path, params: { file: file }
+          post import_nodes_path, params: { file: uploaded_file }
         }.to change(Node, :count).by(2)
       end
 
       it "redirects to nodes index with success message" do
-        file = Rack::Test::UploadedFile.new(@tempfile.path, "text/csv")
-
-        post import_nodes_path, params: { file: file }
+        post import_nodes_path, params: { file: uploaded_file }
 
         expect(response).to redirect_to(nodes_path)
         follow_redirect!
-        expect(response.body).to include("2")
+        expect(response.body).to include("Import complete: 2 created")
       end
 
       it "returns turbo stream response when requested" do
-        file = Rack::Test::UploadedFile.new(@tempfile.path, "text/csv")
-
-        post import_nodes_path, params: { file: file }, headers: { "Accept" => "text/vnd.turbo-stream.html" }
+        post import_nodes_path, params: { file: uploaded_file }, headers: { "Accept" => "text/vnd.turbo-stream.html" }
 
         expect(response.media_type).to eq("text/vnd.turbo-stream.html")
       end
@@ -78,44 +71,46 @@ RSpec.describe "Nodes::Imports", type: :request do
     end
 
     context "with invalid CSV" do
-      before do
-        @tempfile = Tempfile.new([ "nodes", ".csv" ])
-        @tempfile.write("invalid,headers\ndata,here")
-        @tempfile.rewind
+      let(:csv_content) { "invalid,headers\ndata,here" }
+      let(:tempfile) do
+        file = Tempfile.new([ "nodes", ".csv" ])
+        file.write(csv_content)
+        file.rewind
+        file
       end
+      let(:uploaded_file) { Rack::Test::UploadedFile.new(tempfile.path, "text/csv") }
 
       after do
-        @tempfile.close
-        @tempfile.unlink
+        tempfile.close
+        tempfile.unlink
       end
 
       it "returns error with details" do
-        file = Rack::Test::UploadedFile.new(@tempfile.path, "text/csv")
-
-        post import_nodes_path, params: { file: file }
+        post import_nodes_path, params: { file: uploaded_file }
 
         expect(response).to have_http_status(:unprocessable_content)
-        expect(response.body).to include("hostname")
+        expect(response.body).to include("Missing required header: hostname")
       end
     end
 
     context "with partial success" do
-      before do
-        @tempfile = Tempfile.new([ "nodes", ".csv" ])
-        @tempfile.write("hostname,ip,role\nvalid-node,,compute\ninvalid-node,not-an-ip,compute")
-        @tempfile.rewind
+      let(:csv_content) { "hostname,ip,role\nvalid-node,,compute\ninvalid-node,not-an-ip,compute" }
+      let(:tempfile) do
+        file = Tempfile.new([ "nodes", ".csv" ])
+        file.write(csv_content)
+        file.rewind
+        file
       end
+      let(:uploaded_file) { Rack::Test::UploadedFile.new(tempfile.path, "text/csv") }
 
       after do
-        @tempfile.close
-        @tempfile.unlink
+        tempfile.close
+        tempfile.unlink
       end
 
       it "creates valid nodes and reports errors" do
-        file = Rack::Test::UploadedFile.new(@tempfile.path, "text/csv")
-
         expect {
-          post import_nodes_path, params: { file: file }
+          post import_nodes_path, params: { file: uploaded_file }
         }.to change(Node, :count).by(1)
       end
     end

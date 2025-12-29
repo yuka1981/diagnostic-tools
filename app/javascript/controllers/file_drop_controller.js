@@ -50,10 +50,18 @@ export default class extends Controller {
 
   updateLabel(file) {
     if (this.hasLabelTarget) {
-      this.labelTarget.innerHTML = `
-        <span class="text-emerald-600 dark:text-emerald-400">${file.name}</span>
-        <span class="text-gray-400 dark:text-slate-500">(${this.formatFileSize(file.size)})</span>
-      `
+      this.labelTarget.innerHTML = "" // Clear existing content
+
+      const nameSpan = document.createElement("span")
+      nameSpan.className = "text-emerald-600 dark:text-emerald-400"
+      nameSpan.textContent = file.name
+
+      const sizeSpan = document.createElement("span")
+      sizeSpan.className = "text-gray-400 dark:text-slate-500"
+      sizeSpan.textContent = ` (${this.formatFileSize(file.size)})`
+
+      this.labelTarget.appendChild(nameSpan)
+      this.labelTarget.appendChild(sizeSpan)
     }
   }
 

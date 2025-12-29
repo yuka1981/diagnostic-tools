@@ -32,7 +32,7 @@
           <%# Error display area %>
           <div id="import_errors"></div>
 
-          <%= form_with url: import_nodes_path, method: :post, multipart: true, data: { controller: "import-form", action: "submit->import-form#submit" } do |f| %>
+          <%= form_with url: import_nodes_path, method: :post, multipart: true do |f| %>
             <%# File drop zone %>
             <div class="relative" data-controller="file-drop" data-file-drop-target="zone">
               <input type="file" 
@@ -84,8 +84,7 @@
                   class: "rounded-lg px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:text-slate-300 dark:hover:bg-white/5",
                   data: { turbo_frame: "import_modal" } %>
               <button type="submit" 
-                      class="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-emerald-500 to-green-600 px-4 py-2.5 text-sm font-medium text-white shadow-lg shadow-emerald-500/20 transition-all hover:from-emerald-600 hover:to-green-700 disabled:cursor-not-allowed disabled:opacity-50"
-                      data-import-form-target="submitButton">
+                      class="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-emerald-500 to-green-600 px-4 py-2.5 text-sm font-medium text-white shadow-lg shadow-emerald-500/20 transition-all hover:from-emerald-600 hover:to-green-700 disabled:cursor-not-allowed disabled:opacity-50">
                 <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
                 </svg>

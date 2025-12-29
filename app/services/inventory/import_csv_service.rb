@@ -12,16 +12,51 @@ module Inventory
 
     REQUIRED_HEADERS = %w[hostname].freeze
 
-    def initialize(csv_content)
-      @csv_content = csv_content
+    # Initialize with either file path (streaming) or content string
+    # @param source [String, Pathname] file path or CSV content string
+    # @param from_file [Boolean] true if source is a file path (streaming mode)
+    def initialize(source, from_file: false)
+      @source = source
+      @from_file = from_file
       @created_count = 0
       @updated_count = 0
       @errors = []
     end
 
     def call
-      return error_result("CSV content is empty") if @csv_content.blank?
+      if @from_file
+        return error_result("File path is empty") if @source.blank?
+        return error_result("File not found") unless File.exist?(@source)
 
+        process_file_streaming
+      else
+        return error_result("CSV content is empty") if @source.blank?
+
+        process_content_string
+      end
+    end
+
+    private
+
+    def process_file_streaming
+      headers = nil
+      row_number = 1
+
+      CSV.foreach(@source, headers: true, header_converters: :downcase, skip_blanks: true) do |row|
+        headers ||= row.headers
+        row_number += 1
+        process_row(row, row_number)
+      end
+
+      # Check headers after first row processed
+      return error_result("Missing required header: hostname") unless valid_headers?(headers)
+
+      build_result
+    rescue CSV::MalformedCSVError => e
+      error_result("Malformed CSV: #{e.message}")
+    end
+
+    def process_content_string
       parsed = parse_csv
       return parsed if parsed.is_a?(Result)
 
@@ -31,10 +66,8 @@ module Inventory
       build_result
     end
 
-    private
-
     def parse_csv
-      CSV.parse(@csv_content, headers: true, header_converters: :downcase, skip_blanks: true)
+      CSV.parse(@source, headers: true, header_converters: :downcase, skip_blanks: true)
     rescue CSV::MalformedCSVError => e
       error_result("Malformed CSV: #{e.message}")
     end

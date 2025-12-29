@@ -3,7 +3,7 @@
 require "rails_helper"
 
 RSpec.describe Inventory::ImportCsvService do
-  describe "#call" do
+  describe "#call with string content (default mode)" do
     subject(:service) { described_class.new(csv_content) }
 
     context "with valid CSV content" do
@@ -219,6 +219,69 @@ RSpec.describe Inventory::ImportCsvService do
 
       it "creates only one node" do
         expect { service.call }.to change(Node, :count).by(1)
+      end
+    end
+  end
+
+  describe "#call with file streaming mode (from_file: true)" do
+    let(:csv_content) do
+      <<~CSV
+        hostname,ip,role,arch
+        compute-001,192.168.1.101,compute,x86_64
+        compute-002,192.168.1.102,compute,x86_64
+      CSV
+    end
+    let(:tempfile) do
+      file = Tempfile.new([ "nodes", ".csv" ])
+      file.write(csv_content)
+      file.rewind
+      file
+    end
+
+    subject(:service) { described_class.new(tempfile.path, from_file: true) }
+
+    after do
+      tempfile.close
+      tempfile.unlink
+    end
+
+    it "creates nodes from file" do
+      expect { service.call }.to change(Node, :count).by(2)
+    end
+
+    it "returns success result" do
+      result = service.call
+      expect(result.success?).to be true
+      expect(result.created_count).to eq(2)
+    end
+
+    context "when file path is empty" do
+      subject(:service) { described_class.new("", from_file: true) }
+
+      it "returns error result" do
+        result = service.call
+        expect(result.success?).to be false
+        expect(result.errors.first[:message]).to include("empty")
+      end
+    end
+
+    context "when file does not exist" do
+      subject(:service) { described_class.new("/nonexistent/path.csv", from_file: true) }
+
+      it "returns error result" do
+        result = service.call
+        expect(result.success?).to be false
+        expect(result.errors.first[:message]).to include("not found")
+      end
+    end
+
+    context "with missing required headers in file" do
+      let(:csv_content) { "ip,role,arch\n192.168.1.101,compute,x86_64" }
+
+      it "returns error result" do
+        result = service.call
+        expect(result.success?).to be false
+        expect(result.errors.first[:message]).to match(/hostname/i)
       end
     end
   end

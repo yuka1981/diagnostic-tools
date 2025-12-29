@@ -17,11 +17,6 @@
   </div>
 </div>
 
-<%# Flash messages area for turbo stream updates %>
-<div id="flash_messages" class="mb-4">
-  <%= render "shared/flash", notice: flash[:notice], alert: flash[:alert] %>
-</div>
-
 <%# Nodes table %>
 <div id="nodes_table">
   <%= render "nodes/table", nodes: @nodes %>
