@@ -13,12 +13,12 @@ module Runs
     end
 
     def call
-      scope = base_scope
-      scope = filter_by_status(scope)
-      scope = filter_by_node(scope)
-      scope = filter_by_recipe(scope)
-      scope = filter_by_search(scope)
-      scope
+      %i[
+        filter_by_status
+        filter_by_node
+        filter_by_recipe
+        filter_by_search
+      ].reduce(base_scope) { |scope, filter| send(filter, scope) }
     end
 
     def filtered?

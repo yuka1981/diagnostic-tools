@@ -201,5 +201,43 @@ RSpec.describe "Benchmark Runs Filtering", type: :system do
         expect(page).to have_selector("tr", maximum: 20)
       end
     end
+
+    it "navigates to the next page when clicking Next" do
+      visit benchmark_runs_path
+
+      # Verify we're on page 1
+      expect(page).to have_content("Showing 1 to 20 of 25 results")
+
+      # Click Next link
+      click_link "Next"
+
+      # Verify page 2 content
+      expect(page).to have_content("Showing 21 to 25 of 25 results", wait: 5)
+
+      # First page has 20 rows, second page has 5 rows
+      within("tbody") do
+        expect(page).to have_selector("tr", count: 5)
+      end
+
+      # Previous link should now be visible
+      expect(page).to have_link("Previous")
+    end
+
+    it "navigates back to the previous page when clicking Previous" do
+      visit benchmark_runs_path(page: 2)
+
+      # Verify we're on page 2
+      expect(page).to have_content("Showing 21 to 25 of 25 results")
+
+      # Click Previous link
+      click_link "Previous"
+
+      # Verify page 1 content
+      expect(page).to have_content("Showing 1 to 20 of 25 results", wait: 5)
+
+      within("tbody") do
+        expect(page).to have_selector("tr", count: 20)
+      end
+    end
   end
 end
