@@ -1,0 +1,48 @@
+<%# Slide-over Panel - Inspector for Benchmark Run details %>
+
+<%# Backdrop %>
+<div data-slide-over-target="backdrop"
+     data-action="click->slide-over#backdropClick"
+     class="hidden fixed inset-0 z-40 bg-gray-900/60 backdrop-blur-sm opacity-0 transition-opacity duration-300 ease-in-out">
+</div>
+
+<%# Slide-over Panel %>
+<div data-slide-over-target="panel"
+     role="dialog"
+     aria-modal="true"
+     aria-labelledby="slide-over-title"
+     class="hidden fixed inset-y-0 right-0 z-50 w-full max-w-lg transform translate-x-full transition-transform duration-300 ease-in-out">
+  
+  <div class="flex h-full flex-col bg-white shadow-2xl dark:bg-slate-900 ring-1 ring-gray-200 dark:ring-white/10">
+    <%# Header %>
+    <div class="flex items-center justify-between border-b border-gray-200 px-6 py-4 dark:border-white/10">
+      <h2 id="slide-over-title" class="text-lg font-semibold text-gray-900 dark:text-white">
+        Run Details
+      </h2>
+      <button type="button"
+              data-slide-over-target="closeButton"
+              data-action="click->slide-over#close"
+              class="rounded-lg p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 dark:hover:bg-white/10 dark:hover:text-slate-300 transition-colors">
+        <span class="sr-only">Close panel</span>
+        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+
+    <%# Content - Turbo Frame for lazy loading %>
+    <div class="flex-1 overflow-y-auto">
+      <%= turbo_frame_tag "slide_over_content", data: { slide_over_target: "content" } do %>
+        <%# Placeholder content - will be replaced when a run is selected %>
+        <div class="flex flex-col items-center justify-center h-full py-12 text-center px-6">
+          <svg class="h-12 w-12 text-gray-300 dark:text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" 
+              d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+          </svg>
+          <p class="mt-4 text-sm font-medium text-gray-500 dark:text-slate-400">Select a benchmark run to view details</p>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>
+
