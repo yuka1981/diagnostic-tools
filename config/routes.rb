@@ -8,6 +8,14 @@ Rails.application.routes.draw do
     end
   end
 
+  # Dashboard
+  get "dashboard", to: "dashboard#index", as: :dashboard
+
+  # Resource routes
+  resources :nodes, only: %i[index show]
+  resources :benchmark_runs, only: %i[index show]
+  resources :benchmark_recipes, only: %i[index show]
+
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.
@@ -19,5 +27,5 @@ Rails.application.routes.draw do
   get "manifest" => "rails/pwa#manifest", as: :pwa_manifest
 
   # Defines the root path route ("/")
-  root "home#index"
+  root "dashboard#index"
 end
