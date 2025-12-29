@@ -1,6 +1,6 @@
 Title,Description,Priority,Estimate,Status,Labels
 "[Setup] Project Init & CI", "Initialize Go module, set up linter (golangci-lint), and create GitHub Actions workflow for testing and static binary build.", "High", 1, "Completed", "infra"
-"[Core] Define Domain Models", "Create structs for NodeState, HostInfo, CPUInfo, MemInfo, NetInfo, BenchmarkRun based on PRD schema.", "High", 1, "Todo", "backend"
+"[Core] Define Domain Models", "Create structs for NodeState, HostInfo, CPUInfo, MemInfo, NetInfo, BenchmarkRun based on PRD schema.", "High", 1, "Completed", "backend"
 "[Core] Define Interfaces (Ports)", "Define Collector, Uploader, and CommandRunner interfaces to enable TDD.", "High", 1, "Todo", "backend"
 "[Inventory] Implement Linux CPU Collector", "TDD: Write parser test for /proc/cpuinfo -> Implement logic.", "Medium", 2, "Todo", "feature"
 "[Inventory] Implement Linux Mem Collector", "TDD: Write parser test for /proc/meminfo -> Implement logic.", "Medium", 1, "Todo", "feature"
