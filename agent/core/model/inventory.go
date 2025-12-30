@@ -16,10 +16,10 @@ type HostInfo struct {
 // CPUInfo represents processor details.
 type CPUInfo struct {
 	ModelName string   `json:"model_name"`
-	Cores     int      `json:"cores"`   // Physical cores
-	Threads   int      `json:"threads"` // Logical processors
-	Sockets   int      `json:"sockets"` // Number of physical CPU packages
-	Flags     []string `json:"flags"`   // CPU feature flags
+	Flags     []string `json:"flags"`
+	Cores     int      `json:"cores"`
+	Threads   int      `json:"threads"`
+	Sockets   int      `json:"sockets"`
 }
 
 // MemoryInfo represents memory statistics in bytes.
@@ -55,10 +55,10 @@ type NetInfo struct {
 // NodeState represents a snapshot of the node's complete inventory state.
 // This matches the structure expected by the backend for versioning.
 type NodeState struct {
+	CapturedAt time.Time  `json:"captured_at"`
 	Host       HostInfo   `json:"host"`
 	CPU        CPUInfo    `json:"cpu"`
-	Memory     MemoryInfo `json:"memory"`
 	Disks      []DiskInfo `json:"disks"`
 	Network    []NetInfo  `json:"network"`
-	CapturedAt time.Time  `json:"captured_at"`
+	Memory     MemoryInfo `json:"memory"`
 }
