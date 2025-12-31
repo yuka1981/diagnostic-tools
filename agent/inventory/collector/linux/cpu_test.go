@@ -214,4 +214,3 @@ func TestLinuxCPUCollector_Collect_FileNotFound(t *testing.T) {
 		t.Error("expected error when file not found, got nil")
 	}
 }
-

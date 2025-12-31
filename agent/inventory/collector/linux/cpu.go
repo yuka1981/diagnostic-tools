@@ -34,8 +34,8 @@ func (c *LinuxCPUCollector) Collect() (*model.CPUInfo, error) {
 type cpuParseState struct {
 	physicalIDs    map[string]bool
 	coresPerSocket map[string]int
-	processorCount int
 	currentPhysID  string
+	processorCount int
 	currentCores   int
 }
 
@@ -119,4 +119,3 @@ func ParseCPUInfo(r io.Reader) (*model.CPUInfo, error) {
 	state.finalizeCPUInfo(info)
 	return info, nil
 }
-

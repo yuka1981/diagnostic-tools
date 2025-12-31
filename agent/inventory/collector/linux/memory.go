@@ -86,4 +86,3 @@ func ParseMemInfo(r io.Reader) (*model.MemoryInfo, error) {
 
 	return info, nil
 }
-
