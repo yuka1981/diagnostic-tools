@@ -23,5 +23,5 @@ type Uploader interface {
 // This abstraction allows for mocking command execution in tests.
 type CommandRunner interface {
 	// Run executes a command with the given arguments and returns the combined stdout/stderr output.
-	Run(ctx context.Context, name string, args ...string) (string, error)
+	Run(ctx context.Context, name string, args ...string) ([]byte, error)
 }
