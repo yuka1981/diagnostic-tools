@@ -5,7 +5,7 @@ Title,Description,Priority,Estimate,Status,Labels
 "[Inventory] Implement Linux CPU Collector", "TDD: Write parser test for /proc/cpuinfo -> Implement logic.", "Medium", 2, "Completed", "feature"
 "[Inventory] Implement Linux Mem Collector", "TDD: Write parser test for /proc/meminfo -> Implement logic.", "Medium", 1, "Completed", "feature"
 "[Inventory] Implement Linux Net/Disk Collector", "TDD: Write parser test for /sys/class/net and df command output -> Implement logic.", "Medium", 2, "Completed", "feature"
-"[CLI] Implement 'agent collect' command", "Wire up Collectors to Cobra command. Output JSON to stdout.", "Medium", 1, "Todo", "feature"
+"[CLI] Implement 'agent collect' command", "Wire up Collectors to Cobra command. Output JSON to stdout.", "Medium", 1, "Completed", "feature"
 "[Push] Implement HTTP Uploader", "TDD: Mock API server, test auth header and JSON body. Implement Retry logic.", "Medium", 2, "Todo", "feature"
 "[CLI] Implement 'agent inventory push' command", "Wire up Collector and Uploader. Handle errors gracefully.", "Medium", 1, "Todo", "feature"
 "[HPCG] Config Generator", "TDD: Input params -> Output hpcg.dat file content. Verify formatting.", "Medium", 1, "Todo", "feature"

@@ -5,16 +5,6 @@ import (
 	"testing"
 )
 
-// MockCommandRunner mocks the CommandRunner interface.
-type MockCommandRunner struct {
-	Err    error
-	Output string
-}
-
-func (m *MockCommandRunner) Run(ctx context.Context, name string, args ...string) ([]byte, error) {
-	return []byte(m.Output), m.Err
-}
-
 func TestParseDiskInfo(t *testing.T) {
 	output := `Filesystem     1B-blocks      Used Available Use% Mounted on
 /dev/sda2      263174213 100000000 163174213  38% /

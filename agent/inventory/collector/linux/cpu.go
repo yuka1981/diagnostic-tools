@@ -2,6 +2,7 @@ package linux
 
 import (
 	"bufio"
+	"context"
 	"io"
 	"os"
 	"strconv"
@@ -21,7 +22,9 @@ func NewLinuxCPUCollector() *LinuxCPUCollector {
 }
 
 // Collect reads and parses the CPU info.
-func (c *LinuxCPUCollector) Collect() (*model.CPUInfo, error) {
+func (c *LinuxCPUCollector) Collect(ctx context.Context) (*model.CPUInfo, error) {
+	// In a real implementation with heavy I/O, we should check ctx.Done().
+	// For now, just keeping the signature consistent.
 	file, err := os.Open(c.Path)
 	if err != nil {
 		return nil, err

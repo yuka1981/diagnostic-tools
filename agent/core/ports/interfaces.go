@@ -12,6 +12,15 @@ type InventoryCollector interface {
 	Collect(ctx context.Context) (*model.NodeState, error)
 }
 
+// SystemCollector defines the interface for collecting specific system metrics.
+type SystemCollector interface {
+	GetHostInfo(ctx context.Context) (*model.HostInfo, error)
+	GetCPUInfo(ctx context.Context) (*model.CPUInfo, error)
+	GetMemInfo(ctx context.Context) (*model.MemoryInfo, error)
+	GetDiskInfo(ctx context.Context) ([]model.DiskInfo, error)
+	GetNetInfo(ctx context.Context) ([]model.NetInfo, error)
+}
+
 // Uploader defines the interface for sending data to a remote server.
 type Uploader interface {
 	// Upload sends the given payload to the configured endpoint.

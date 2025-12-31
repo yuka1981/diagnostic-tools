@@ -55,3 +55,5 @@ Thumbs.db
 !/app/assets/builds/.keep
 
 .gemini/settings.json
+.gemini/
+/agent/agent
