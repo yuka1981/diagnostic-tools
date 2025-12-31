@@ -201,7 +201,7 @@ func TestNewLinuxMemoryCollector(t *testing.T) {
 
 func TestLinuxMemoryCollector_Collect_FileNotFound(t *testing.T) {
 	collector := NewLinuxMemoryCollector()
-	collector.Path = "testdata/nonexistent"
+	collector.Path = testdataNonExistent
 
 	_, err := collector.Collect()
 	if err == nil {

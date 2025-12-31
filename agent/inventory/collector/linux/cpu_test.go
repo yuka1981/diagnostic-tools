@@ -6,6 +6,8 @@ import (
 	"testing"
 )
 
+const testdataNonExistent = "testdata/nonexistent"
+
 func TestParseCPUInfo(t *testing.T) {
 	file, err := os.Open("testdata/cpuinfo")
 	if err != nil {
@@ -205,7 +207,7 @@ func TestNewLinuxCPUCollector(t *testing.T) {
 
 func TestLinuxCPUCollector_Collect_FileNotFound(t *testing.T) {
 	collector := NewLinuxCPUCollector()
-	collector.Path = "testdata/nonexistent"
+	collector.Path = testdataNonExistent
 
 	_, err := collector.Collect()
 	if err == nil {

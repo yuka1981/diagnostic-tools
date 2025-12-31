@@ -1,6 +1,7 @@
 package model
 
 import (
+	"bytes"
 	"encoding/json"
 	"testing"
 	"time"
@@ -344,9 +345,8 @@ func TestNodeState_JSON(t *testing.T) {
 		}
 
 		// Compare JSON strings
-		if string(data) != string(data2) {
+		if !bytes.Equal(data, data2) {
 			t.Error("round-trip JSON does not match")
 		}
 	})
 }
-

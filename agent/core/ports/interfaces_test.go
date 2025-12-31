@@ -1,6 +1,7 @@
 package ports
 
 import (
+	"bytes"
 	"context"
 	"testing"
 
@@ -149,9 +150,8 @@ func TestMockCommandRunner(t *testing.T) {
 		if err != nil {
 			t.Errorf("expected no error, got %v", err)
 		}
-		if string(output) != string(expectedOutput) {
+		if !bytes.Equal(output, expectedOutput) {
 			t.Errorf("expected output %q, got %q", expectedOutput, output)
 		}
 	})
 }
-
