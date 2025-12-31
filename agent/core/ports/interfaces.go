@@ -1,0 +1,27 @@
+package ports
+
+import (
+	"context"
+
+	"github.com/yuka1981/diagnostic-tools/agent/core/model"
+)
+
+// InventoryCollector defines the interface for collecting node inventory data.
+type InventoryCollector interface {
+	// Collect gathers information about the host and returns a NodeState.
+	Collect(ctx context.Context) (*model.NodeState, error)
+}
+
+// Uploader defines the interface for sending data to a remote server.
+type Uploader interface {
+	// Upload sends the given payload to the configured endpoint.
+	// The payload can be NodeState or BenchmarkRun.
+	Upload(ctx context.Context, payload interface{}) error
+}
+
+// CommandRunner defines the interface for executing system commands.
+// This abstraction allows for mocking command execution in tests.
+type CommandRunner interface {
+	// Run executes a command with the given arguments and returns the combined stdout/stderr output.
+	Run(ctx context.Context, name string, args ...string) (string, error)
+}
