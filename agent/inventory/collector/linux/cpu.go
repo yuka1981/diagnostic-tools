@@ -31,92 +31,59 @@ func (c *LinuxCPUCollector) Collect() (*model.CPUInfo, error) {
 	return ParseCPUInfo(file)
 }
 
-type cpuParsingContext struct {
-	info           *model.CPUInfo
+type cpuParseState struct {
 	physicalIDs    map[string]bool
 	coresPerSocket map[string]int
+	currentPhysID  string
 	processorCount int
-
-	currentPhysicalID string
-	currentCores      int
-	currentModelName  string
-	currentFlags      []string
+	currentCores   int
 }
 
-func newParsingContext() *cpuParsingContext {
-	return &cpuParsingContext{
-		info:           &model.CPUInfo{},
+func newCPUParseState() *cpuParseState {
+	return &cpuParseState{
 		physicalIDs:    make(map[string]bool),
 		coresPerSocket: make(map[string]int),
 	}
 }
 
-// ParseCPUInfo parses the content of /proc/cpuinfo and returns a CPUInfo model.
-func ParseCPUInfo(r io.Reader) (*model.CPUInfo, error) {
-	scanner := bufio.NewScanner(r)
-	ctx := newParsingContext()
-
-	for scanner.Scan() {
-		processLine(scanner.Text(), ctx)
-	}
-
-	if err := scanner.Err(); err != nil {
-		return nil, err
-	}
-
-	return finalizeCPUInfo(ctx), nil
-}
-
-func processLine(line string, ctx *cpuParsingContext) {
-	parts := strings.SplitN(line, ":", 2)
-	if len(parts) != 2 {
-		return
-	}
-
-	key := strings.TrimSpace(parts[0])
-	value := strings.TrimSpace(parts[1])
-
+func (s *cpuParseState) processLine(key, value string, info *model.CPUInfo) {
 	switch key {
 	case "processor":
-		ctx.processorCount++
-		ctx.currentPhysicalID = ""
-		ctx.currentCores = 0
+		s.processorCount++
+		s.currentPhysID = ""
+		s.currentCores = 0
 	case "model name":
-		if ctx.info.ModelName == "" {
-			ctx.info.ModelName = value
+		if info.ModelName == "" {
+			info.ModelName = value
 		}
-		ctx.currentModelName = value
 	case "physical id":
-		ctx.currentPhysicalID = value
-		ctx.physicalIDs[value] = true
+		s.currentPhysID = value
+		s.physicalIDs[value] = true
 	case "cpu cores":
-		cores, err := strconv.Atoi(value)
-		if err == nil {
-			ctx.currentCores = cores
+		if cores, err := strconv.Atoi(value); err == nil {
+			s.currentCores = cores
 		}
 	case "flags":
-		if len(ctx.info.Flags) == 0 {
-			ctx.info.Flags = strings.Fields(value)
+		if len(info.Flags) == 0 {
+			info.Flags = strings.Fields(value)
 		}
-		ctx.currentFlags = strings.Fields(value)
 	}
 
-	if ctx.currentPhysicalID != "" && ctx.currentCores > 0 {
-		ctx.coresPerSocket[ctx.currentPhysicalID] = ctx.currentCores
+	if s.currentPhysID != "" && s.currentCores > 0 {
+		s.coresPerSocket[s.currentPhysID] = s.currentCores
 	}
 }
 
-func finalizeCPUInfo(ctx *cpuParsingContext) *model.CPUInfo {
-	info := ctx.info
-	info.Threads = ctx.processorCount
-	info.Sockets = len(ctx.physicalIDs)
+func (s *cpuParseState) finalizeCPUInfo(info *model.CPUInfo) {
+	info.Threads = s.processorCount
+	info.Sockets = len(s.physicalIDs)
 
 	if info.Sockets == 0 {
 		info.Sockets = 1
 	}
 
 	totalCores := 0
-	for _, cores := range ctx.coresPerSocket {
+	for _, cores := range s.coresPerSocket {
 		totalCores += cores
 	}
 	info.Cores = totalCores
@@ -124,13 +91,31 @@ func finalizeCPUInfo(ctx *cpuParsingContext) *model.CPUInfo {
 	if info.Cores == 0 {
 		info.Cores = info.Threads
 	}
+}
 
-	if info.ModelName == "" && ctx.currentModelName != "" {
-		info.ModelName = ctx.currentModelName
-	}
-	if len(info.Flags) == 0 && len(ctx.currentFlags) > 0 {
-		info.Flags = ctx.currentFlags
+// ParseCPUInfo parses the content of /proc/cpuinfo and returns a CPUInfo model.
+// It extracts model name, flags, and calculates the number of sockets, cores, and threads.
+func ParseCPUInfo(r io.Reader) (*model.CPUInfo, error) {
+	scanner := bufio.NewScanner(r)
+	info := &model.CPUInfo{}
+	state := newCPUParseState()
+
+	for scanner.Scan() {
+		line := scanner.Text()
+		parts := strings.SplitN(line, ":", 2)
+		if len(parts) != 2 {
+			continue
+		}
+
+		key := strings.TrimSpace(parts[0])
+		value := strings.TrimSpace(parts[1])
+		state.processLine(key, value, info)
 	}
 
-	return info
+	if err := scanner.Err(); err != nil {
+		return nil, err
+	}
+
+	state.finalizeCPUInfo(info)
+	return info, nil
 }
