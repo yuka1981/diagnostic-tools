@@ -58,14 +58,13 @@ func ParseDiskInfo(output string) ([]model.DiskInfo, error) {
 		disks = append(disks, model.DiskInfo{
 			Device:     device,
 			Mountpoint: mountpoint,
-			// Fstype is not available in standard df output without -T. 
+			// Fstype is not available in standard df output without -T.
 			// We could add -T to args but sticking to simpler parsing for now or assume -T was passed if we change args.
 			// Let's stick to simple df -B1 for now.
-			Total:      total,
-			Used:       used,
-			Free:       free,
+			Total: total,
+			Used:  used,
+			Free:  free,
 		})
 	}
 	return disks, nil
 }
-

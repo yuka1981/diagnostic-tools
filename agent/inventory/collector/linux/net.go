@@ -55,10 +55,10 @@ func (c *LinuxNetCollector) Collect() ([]model.NetInfo, error) {
 			iface.Speed = speed
 		}
 
-		// IP Addresses would typically require netlink or parsing `ip addr`, 
+		// IP Addresses would typically require netlink or parsing `ip addr`,
 		// but simple sysfs reading is often safer/easier for basic hardware info.
 		// Detailed IP info might be out of scope for "hardware" inventory unless needed.
-		// Let's leave IP extraction for now or use `net` package if needed. 
+		// Let's leave IP extraction for now or use `net` package if needed.
 		// The prompt mentioned /sys/class/net.
 
 		interfaces = append(interfaces, iface)
@@ -74,4 +74,3 @@ func readFile(path string) (string, error) {
 	}
 	return string(content), nil
 }
-

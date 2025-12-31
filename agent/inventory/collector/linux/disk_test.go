@@ -7,8 +7,8 @@ import (
 
 // MockCommandRunner mocks the CommandRunner interface.
 type MockCommandRunner struct {
-	Output string
 	Err    error
+	Output string
 }
 
 func (m *MockCommandRunner) Run(ctx context.Context, name string, args ...string) ([]byte, error) {
@@ -33,20 +33,21 @@ tmpfs          817385472         0 817385472   0% /dev/shm
 	// Check /dev/sda2
 	foundRoot := false
 	for _, d := range disks {
-		if d.Mountpoint == "/" {
-			foundRoot = true
-			if d.Device != "/dev/sda2" {
-				t.Errorf("expected device /dev/sda2 for root, got %s", d.Device)
-			}
-			if d.Total != 263174213 {
-				t.Errorf("expected total 263174213, got %d", d.Total)
-			}
-			if d.Used != 100000000 {
-				t.Errorf("expected used 100000000, got %d", d.Used)
-			}
-			if d.Free != 163174213 {
-				t.Errorf("expected free 163174213, got %d", d.Free)
-			}
+		if d.Mountpoint != "/" {
+			continue
+		}
+		foundRoot = true
+		if d.Device != "/dev/sda2" {
+			t.Errorf("expected device /dev/sda2 for root, got %s", d.Device)
+		}
+		if d.Total != 263174213 {
+			t.Errorf("expected total 263174213, got %d", d.Total)
+		}
+		if d.Used != 100000000 {
+			t.Errorf("expected used 100000000, got %d", d.Used)
+		}
+		if d.Free != 163174213 {
+			t.Errorf("expected free 163174213, got %d", d.Free)
 		}
 	}
 	if !foundRoot {
@@ -74,4 +75,3 @@ func TestLinuxDiskCollector_Collect(t *testing.T) {
 		t.Errorf("expected mountpoint /, got %s", disks[0].Mountpoint)
 	}
 }
-

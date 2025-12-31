@@ -10,7 +10,7 @@ func TestLinuxNetCollector_Collect(t *testing.T) {
 	// Mock the /sys/class/net path by pointing to our testdata directory
 	// In a real implementation, we might inject the base path or interface.
 	// Here we'll use a struct field for the base path.
-	
+
 	collector := NewLinuxNetCollector()
 	collector.SysClassNetPath = "testdata/sys/class/net"
 
@@ -63,6 +63,6 @@ func TestLinuxNetCollector_Collect(t *testing.T) {
 	if lo.Up { // operstate is "unknown" or "down" usually for lo, treating unknown as down or check logic
 		// 'unknown' is common for lo. If logic treats 'up' as strictly "up", then false.
 		// Let's verify logic behavior: unknown != up.
+		t.Error("expected lo to not be Up (operstate unknown/down)")
 	}
 }
-
