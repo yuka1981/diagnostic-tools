@@ -11,6 +11,12 @@ import (
 	"github.com/yuka1981/diagnostic-tools/agent/core/ports"
 )
 
+const (
+	defaultPlatform = "linux"
+	familyDebian    = "debian"
+	familyRhel      = "rhel"
+)
+
 // LinuxHostCollector collects host information on Linux systems.
 type LinuxHostCollector struct {
 	Runner        ports.CommandRunner
@@ -53,7 +59,7 @@ func (c *LinuxHostCollector) getKernelVersion(ctx context.Context) (string, erro
 func (c *LinuxHostCollector) getOSRelease() (platform, version, family string) {
 	f, err := os.Open(c.OSReleasePath)
 	if err != nil {
-		return "linux", "", ""
+		return defaultPlatform, "", ""
 	}
 	defer f.Close()
 
@@ -77,11 +83,11 @@ func (c *LinuxHostCollector) getOSRelease() (platform, version, family string) {
 	if family == "" {
 		// Fallback simple heuristics if ID_LIKE is missing
 		if _, err := os.Stat("/etc/debian_version"); err == nil {
-			family = "debian"
+			family = familyDebian
 		} else if _, err := os.Stat("/etc/redhat-release"); err == nil {
-			family = "rhel"
+			family = familyRhel
 		}
 	}
 
-	return
+	return platform, version, family
 }

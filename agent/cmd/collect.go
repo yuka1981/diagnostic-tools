@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
+
 	"github.com/yuka1981/diagnostic-tools/agent/infrastructure"
 	"github.com/yuka1981/diagnostic-tools/agent/inventory"
 	"github.com/yuka1981/diagnostic-tools/agent/inventory/collector"
