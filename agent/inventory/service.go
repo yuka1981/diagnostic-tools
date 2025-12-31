@@ -4,6 +4,8 @@ import (
 	"context"
 	"time"
 
+	"golang.org/x/sync/errgroup"
+
 	"github.com/yuka1981/diagnostic-tools/agent/core/model"
 	"github.com/yuka1981/diagnostic-tools/agent/core/ports"
 )
@@ -20,28 +22,40 @@ func NewInventoryService(collector ports.SystemCollector) *InventoryService {
 
 // Collect gathers all system information and returns a NodeState.
 func (s *InventoryService) Collect(ctx context.Context) (*model.NodeState, error) {
-	host, err := s.collector.GetHostInfo(ctx)
-	if err != nil {
-		return nil, err
-	}
+	var host *model.HostInfo
+	var cpu *model.CPUInfo
+	var mem *model.MemoryInfo
+	var disk []model.DiskInfo
+	var net []model.NetInfo
 
-	cpu, err := s.collector.GetCPUInfo()
-	if err != nil {
-		return nil, err
-	}
+	g, gCtx := errgroup.WithContext(ctx)
 
-	mem, err := s.collector.GetMemInfo()
-	if err != nil {
-		return nil, err
-	}
+	g.Go(func() (err error) {
+		host, err = s.collector.GetHostInfo(gCtx)
+		return err
+	})
 
-	disk, err := s.collector.GetDiskInfo(ctx)
-	if err != nil {
-		return nil, err
-	}
+	g.Go(func() (err error) {
+		cpu, err = s.collector.GetCPUInfo(gCtx)
+		return err
+	})
 
-	net, err := s.collector.GetNetInfo()
-	if err != nil {
+	g.Go(func() (err error) {
+		mem, err = s.collector.GetMemInfo(gCtx)
+		return err
+	})
+
+	g.Go(func() (err error) {
+		disk, err = s.collector.GetDiskInfo(gCtx)
+		return err
+	})
+
+	g.Go(func() (err error) {
+		net, err = s.collector.GetNetInfo(gCtx)
+		return err
+	})
+
+	if err := g.Wait(); err != nil {
 		return nil, err
 	}
 

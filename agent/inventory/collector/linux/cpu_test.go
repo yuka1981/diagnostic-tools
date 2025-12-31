@@ -1,6 +1,7 @@
 package linux
 
 import (
+	"context"
 	"os"
 	"strings"
 	"testing"
@@ -68,7 +69,7 @@ func TestLinuxCPUCollector_Collect(t *testing.T) {
 	collector := NewLinuxCPUCollector()
 	collector.Path = "testdata/cpuinfo"
 
-	info, err := collector.Collect()
+	info, err := collector.Collect(context.Background())
 	if err != nil {
 		t.Fatalf("Collect returned error: %v", err)
 	}
@@ -209,7 +210,7 @@ func TestLinuxCPUCollector_Collect_FileNotFound(t *testing.T) {
 	collector := NewLinuxCPUCollector()
 	collector.Path = testdataNonExistent
 
-	_, err := collector.Collect()
+	_, err := collector.Collect(context.Background())
 	if err == nil {
 		t.Error("expected error when file not found, got nil")
 	}

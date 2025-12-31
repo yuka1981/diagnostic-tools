@@ -2,6 +2,7 @@ package linux
 
 import (
 	"bufio"
+	"context"
 	"fmt"
 	"io"
 	"os"
@@ -22,7 +23,7 @@ func NewLinuxMemoryCollector() *LinuxMemoryCollector {
 }
 
 // Collect reads and parses the memory info.
-func (c *LinuxMemoryCollector) Collect() (*model.MemoryInfo, error) {
+func (c *LinuxMemoryCollector) Collect(ctx context.Context) (*model.MemoryInfo, error) {
 	file, err := os.Open(c.Path)
 	if err != nil {
 		return nil, err

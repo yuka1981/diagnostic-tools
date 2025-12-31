@@ -1,6 +1,7 @@
 package linux
 
 import (
+	"context"
 	"testing"
 
 	"github.com/yuka1981/diagnostic-tools/agent/core/model"
@@ -14,7 +15,7 @@ func TestLinuxNetCollector_Collect(t *testing.T) {
 	collector := NewLinuxNetCollector()
 	collector.SysClassNetPath = "testdata/sys/class/net"
 
-	nets, err := collector.Collect()
+	nets, err := collector.Collect(context.Background())
 	if err != nil {
 		t.Fatalf("Collect returned error: %v", err)
 	}

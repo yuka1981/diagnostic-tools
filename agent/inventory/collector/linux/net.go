@@ -1,6 +1,7 @@
 package linux
 
 import (
+	"context"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -20,7 +21,7 @@ func NewLinuxNetCollector() *LinuxNetCollector {
 }
 
 // Collect scans /sys/class/net for interfaces.
-func (c *LinuxNetCollector) Collect() ([]model.NetInfo, error) {
+func (c *LinuxNetCollector) Collect(ctx context.Context) ([]model.NetInfo, error) {
 	entries, err := os.ReadDir(c.SysClassNetPath)
 	if err != nil {
 		return nil, err

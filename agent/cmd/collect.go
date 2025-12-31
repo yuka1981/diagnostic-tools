@@ -21,12 +21,12 @@ var collectCmd = &cobra.Command{
 
 		state, err := service.Collect(cmd.Context())
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to collect system inventory: %w", err)
 		}
 
 		output, err := json.MarshalIndent(state, "", "  ")
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to marshal output: %w", err)
 		}
 
 		fmt.Println(string(output))

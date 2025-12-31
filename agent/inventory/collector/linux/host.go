@@ -33,8 +33,14 @@ func NewLinuxHostCollector(runner ports.CommandRunner) *LinuxHostCollector {
 
 // Collect collects host information.
 func (c *LinuxHostCollector) Collect(ctx context.Context) (*model.HostInfo, error) {
-	hostname, _ := os.Hostname()
-	kernel, _ := c.getKernelVersion(ctx)
+	hostname, err := os.Hostname()
+	if err != nil {
+		return nil, err
+	}
+	kernel, err := c.getKernelVersion(ctx)
+	if err != nil {
+		return nil, err
+	}
 	platform, version, family := c.getOSRelease()
 
 	return &model.HostInfo{

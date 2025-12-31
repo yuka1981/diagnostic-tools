@@ -1,6 +1,7 @@
 package linux
 
 import (
+	"context"
 	"os"
 	"strings"
 	"testing"
@@ -77,7 +78,7 @@ func TestLinuxMemoryCollector_Collect(t *testing.T) {
 	collector := NewLinuxMemoryCollector()
 	collector.Path = "testdata/meminfo"
 
-	info, err := collector.Collect()
+	info, err := collector.Collect(context.Background())
 	if err != nil {
 		t.Fatalf("Collect returned error: %v", err)
 	}
@@ -203,7 +204,7 @@ func TestLinuxMemoryCollector_Collect_FileNotFound(t *testing.T) {
 	collector := NewLinuxMemoryCollector()
 	collector.Path = testdataNonExistent
 
-	_, err := collector.Collect()
+	_, err := collector.Collect(context.Background())
 	if err == nil {
 		t.Error("expected error when file not found, got nil")
 	}

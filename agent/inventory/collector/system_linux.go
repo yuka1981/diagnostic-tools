@@ -1,3 +1,5 @@
+//go:build linux
+
 package collector
 
 import (
@@ -34,13 +36,13 @@ func (c *SystemCollector) GetHostInfo(ctx context.Context) (*model.HostInfo, err
 }
 
 // GetCPUInfo collects CPU information.
-func (c *SystemCollector) GetCPUInfo() (*model.CPUInfo, error) {
-	return c.cpu.Collect()
+func (c *SystemCollector) GetCPUInfo(ctx context.Context) (*model.CPUInfo, error) {
+	return c.cpu.Collect(ctx)
 }
 
 // GetMemInfo collects memory information.
-func (c *SystemCollector) GetMemInfo() (*model.MemoryInfo, error) {
-	return c.mem.Collect()
+func (c *SystemCollector) GetMemInfo(ctx context.Context) (*model.MemoryInfo, error) {
+	return c.mem.Collect(ctx)
 }
 
 // GetDiskInfo collects disk information.
@@ -49,6 +51,6 @@ func (c *SystemCollector) GetDiskInfo(ctx context.Context) ([]model.DiskInfo, er
 }
 
 // GetNetInfo collects network information.
-func (c *SystemCollector) GetNetInfo() ([]model.NetInfo, error) {
-	return c.net.Collect()
+func (c *SystemCollector) GetNetInfo(ctx context.Context) ([]model.NetInfo, error) {
+	return c.net.Collect(ctx)
 }
