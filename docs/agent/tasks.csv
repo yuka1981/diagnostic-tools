@@ -3,7 +3,7 @@ Title,Description,Priority,Estimate,Status,Labels
 "[Core] Define Domain Models", "Create structs for NodeState, HostInfo, CPUInfo, MemInfo, NetInfo, BenchmarkRun based on PRD schema.", "High", 1, "Completed", "backend"
 "[Core] Define Interfaces (Ports)", "Define Collector, Uploader, and CommandRunner interfaces to enable TDD.", "High", 1, "Completed", "backend"
 "[Inventory] Implement Linux CPU Collector", "TDD: Write parser test for /proc/cpuinfo -> Implement logic.", "Medium", 2, "Todo", "feature"
-"[Inventory] Implement Linux Mem Collector", "TDD: Write parser test for /proc/meminfo -> Implement logic.", "Medium", 1, "Todo", "feature"
+"[Inventory] Implement Linux Mem Collector", "TDD: Write parser test for /proc/meminfo -> Implement logic.", "Medium", 1, "Completed", "feature"
 "[Inventory] Implement Linux Net/Disk Collector", "TDD: Write parser test for /sys/class/net and df command output -> Implement logic.", "Medium", 2, "Todo", "feature"
 "[CLI] Implement 'agent collect' command", "Wire up Collectors to Cobra command. Output JSON to stdout.", "Medium", 1, "Todo", "feature"
 "[Push] Implement HTTP Uploader", "TDD: Mock API server, test auth header and JSON body. Implement Retry logic.", "Medium", 2, "Todo", "feature"
