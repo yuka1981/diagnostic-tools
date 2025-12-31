@@ -113,7 +113,27 @@ this line has no colon
 MemAvailable: 2000000 kB
 Buffers: 50000 kB
 `
-	info, err := ParseMemInfo(strings.NewReader(malformedInput))
+	_, err := ParseMemInfo(strings.NewReader(malformedInput))
+	
+	t.Run("MalformedInput_ReturnsError", func(t *testing.T) {
+		if err == nil {
+			t.Error("expected error for invalid value, got nil")
+		}
+		// Verify the error message mentions the problematic key
+		if err != nil && !strings.Contains(err.Error(), "MemFree") {
+			t.Errorf("expected error to mention 'MemFree', got: %v", err)
+		}
+	})
+}
+
+func TestParseMemInfo_IgnoresUnknownKeys(t *testing.T) {
+	inputWithUnknownKeys := `MemTotal: 8000000 kB
+UnknownKey: 999999 kB
+MemFree: 1000000 kB
+AnotherUnknown: invalid
+MemAvailable: 2000000 kB
+`
+	info, err := ParseMemInfo(strings.NewReader(inputWithUnknownKeys))
 	if err != nil {
 		t.Fatalf("ParseMemInfo returned error: %v", err)
 	}
@@ -122,19 +142,15 @@ Buffers: 50000 kB
 		return kb * 1024
 	}
 
-	t.Run("MalformedInput_PartialParsing", func(t *testing.T) {
+	t.Run("IgnoresUnknownKeys_ParsesKnownKeys", func(t *testing.T) {
 		if info.Total != toByte(8000000) {
 			t.Errorf("expected Total %d, got %d", toByte(8000000), info.Total)
 		}
-		// MemFree should be 0 because it was invalid
-		if info.Free != 0 {
-			t.Errorf("expected Free 0 (invalid value skipped), got %d", info.Free)
+		if info.Free != toByte(1000000) {
+			t.Errorf("expected Free %d, got %d", toByte(1000000), info.Free)
 		}
 		if info.Available != toByte(2000000) {
 			t.Errorf("expected Available %d, got %d", toByte(2000000), info.Available)
-		}
-		if info.Buffers != toByte(50000) {
-			t.Errorf("expected Buffers %d, got %d", toByte(50000), info.Buffers)
 		}
 	})
 }
