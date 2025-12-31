@@ -57,8 +57,8 @@ type NetInfo struct {
 type NodeState struct {
 	CapturedAt time.Time  `json:"captured_at"`
 	Host       HostInfo   `json:"host"`
-	CPU        CPUInfo    `json:"cpu"`
 	Disks      []DiskInfo `json:"disks"`
 	Network    []NetInfo  `json:"network"`
+	CPU        CPUInfo    `json:"cpu"`
 	Memory     MemoryInfo `json:"memory"`
 }
