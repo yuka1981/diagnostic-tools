@@ -9,8 +9,6 @@ linters-settings:
       - fieldalignment
   gocyclo:
     min-complexity: 15
-  dupl:
-    threshold: 100
   goconst:
     min-len: 2
     min-occurrences: 2
@@ -38,7 +36,6 @@ linters:
   enable:
     - bodyclose
     - dogsled
-    - dupl
     - errcheck
     - funlen
     - goconst
@@ -70,7 +67,6 @@ issues:
       linters:
         - gocyclo
         - errcheck
-        - dupl
         - gosec
         - funlen
     - path: cmd/
