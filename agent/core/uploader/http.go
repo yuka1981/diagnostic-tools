@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"math"
 	"net/http"
 	"time"
@@ -77,15 +78,14 @@ func (u *HTTPUploader) Upload(ctx context.Context, payload interface{}) error {
 			continue
 		}
 
-		// Ensure body is closed
-		resp.Body.Close()
-
 		if resp.StatusCode >= 200 && resp.StatusCode < 300 {
+			resp.Body.Close()
 			return nil
 		}
 
 		// Retry on 5xx and 429
-		if resp.StatusCode >= 500 || resp.StatusCode == 429 {
+		if resp.StatusCode >= 500 || resp.StatusCode == http.StatusTooManyRequests {
+			resp.Body.Close() // Not reading body for retryable errors
 			if i == u.MaxRetries {
 				return fmt.Errorf("server returned error %d after %d retries", resp.StatusCode, u.MaxRetries)
 			}
@@ -93,10 +93,15 @@ func (u *HTTPUploader) Upload(ctx context.Context, payload interface{}) error {
 			continue
 		}
 
-		// Do not retry on other errors (e.g., 400, 401, 403, 404)
-		return fmt.Errorf("server returned error: %d", resp.StatusCode)
+		// Do not retry on other errors (e.g., 400, 401, 403, 404), but include body in error.
+		bodyBytes, readErr := io.ReadAll(resp.Body)
+		resp.Body.Close()
+		if readErr != nil {
+			return fmt.Errorf("server returned error: %d (failed to read response body: %w)", resp.StatusCode, readErr)
+		}
+		return fmt.Errorf("server returned error: %d, body: %s", resp.StatusCode, string(bodyBytes))
 	}
-	return nil
+	return fmt.Errorf("upload failed after %d retries", u.MaxRetries)
 }
 
 func (u *HTTPUploader) backoff(ctx context.Context, attempt int) {
