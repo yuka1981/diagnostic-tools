@@ -114,7 +114,7 @@ MemAvailable: 2000000 kB
 Buffers: 50000 kB
 `
 	_, err := ParseMemInfo(strings.NewReader(malformedInput))
-	
+
 	t.Run("MalformedInput_ReturnsError", func(t *testing.T) {
 		if err == nil {
 			t.Error("expected error for invalid value, got nil")
@@ -208,4 +208,3 @@ func TestLinuxMemoryCollector_Collect_FileNotFound(t *testing.T) {
 		t.Error("expected error when file not found, got nil")
 	}
 }
-
