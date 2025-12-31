@@ -39,20 +39,23 @@ func (c *LinuxNetCollector) Collect() ([]model.NetInfo, error) {
 		}
 
 		// Read Mac Address
-		mac, _ := readFile(filepath.Join(c.SysClassNetPath, name, "address"))
-		iface.MacAddress = strings.TrimSpace(mac)
+		if mac, err := readFile(filepath.Join(c.SysClassNetPath, name, "address")); err == nil {
+			iface.MacAddress = strings.TrimSpace(mac)
+		}
 
 		// Read OperState
-		operstate, _ := readFile(filepath.Join(c.SysClassNetPath, name, "operstate"))
-		if strings.TrimSpace(operstate) == "up" {
-			iface.Up = true
+		if operstate, err := readFile(filepath.Join(c.SysClassNetPath, name, "operstate")); err == nil {
+			if strings.TrimSpace(operstate) == "up" {
+				iface.Up = true
+			}
 		}
 
 		// Read Speed
 		speedStr, err := readFile(filepath.Join(c.SysClassNetPath, name, "speed"))
 		if err == nil {
-			speed, _ := strconv.Atoi(strings.TrimSpace(speedStr))
-			iface.Speed = speed
+			if speed, err := strconv.Atoi(strings.TrimSpace(speedStr)); err == nil {
+				iface.Speed = speed
+			}
 		}
 
 		// IP Addresses would typically require netlink or parsing `ip addr`,

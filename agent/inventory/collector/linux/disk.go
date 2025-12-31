@@ -51,9 +51,12 @@ func ParseDiskInfo(output string) ([]model.DiskInfo, error) {
 			continue
 		}
 
-		total, _ := strconv.ParseUint(fields[1], 10, 64)
-		used, _ := strconv.ParseUint(fields[2], 10, 64)
-		free, _ := strconv.ParseUint(fields[3], 10, 64)
+		total, err1 := strconv.ParseUint(fields[1], 10, 64)
+		used, err2 := strconv.ParseUint(fields[2], 10, 64)
+		free, err3 := strconv.ParseUint(fields[3], 10, 64)
+		if err1 != nil || err2 != nil || err3 != nil {
+			continue
+		}
 
 		disks = append(disks, model.DiskInfo{
 			Device:     device,

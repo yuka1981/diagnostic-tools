@@ -60,9 +60,7 @@ func TestLinuxNetCollector_Collect(t *testing.T) {
 	if lo.MacAddress != "00:00:00:00:00:00" {
 		t.Errorf("expected mac 00:00:00:00:00:00, got %s", lo.MacAddress)
 	}
-	if lo.Up { // operstate is "unknown" or "down" usually for lo, treating unknown as down or check logic
-		// 'unknown' is common for lo. If logic treats 'up' as strictly "up", then false.
-		// Let's verify logic behavior: unknown != up.
-		t.Error("expected lo to not be Up (operstate unknown/down)")
+	if lo.Up {
+		t.Error("expected lo interface to be down, but it was up")
 	}
 }
