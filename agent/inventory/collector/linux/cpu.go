@@ -31,99 +31,106 @@ func (c *LinuxCPUCollector) Collect() (*model.CPUInfo, error) {
 	return ParseCPUInfo(file)
 }
 
+type cpuParsingContext struct {
+	info           *model.CPUInfo
+	physicalIDs    map[string]bool
+	coresPerSocket map[string]int
+	processorCount int
+
+	currentPhysicalID string
+	currentCores      int
+	currentModelName  string
+	currentFlags      []string
+}
+
+func newParsingContext() *cpuParsingContext {
+	return &cpuParsingContext{
+		info:           &model.CPUInfo{},
+		physicalIDs:    make(map[string]bool),
+		coresPerSocket: make(map[string]int),
+	}
+}
+
 // ParseCPUInfo parses the content of /proc/cpuinfo and returns a CPUInfo model.
 func ParseCPUInfo(r io.Reader) (*model.CPUInfo, error) {
 	scanner := bufio.NewScanner(r)
-	info := &model.CPUInfo{}
-
-	// Temporary storage to track unique sockets and cores
-	physicalIDs := make(map[string]bool)
-	coresPerSocket := make(map[string]int)
-	processorCount := 0
-
-	var currentPhysicalID string
-	var currentCores int
-	var currentModelName string
-	var currentFlags []string
+	ctx := newParsingContext()
 
 	for scanner.Scan() {
-		line := scanner.Text()
-		parts := strings.SplitN(line, ":", 2)
-		if len(parts) != 2 {
-			continue
-		}
-
-		key := strings.TrimSpace(parts[0])
-		value := strings.TrimSpace(parts[1])
-
-		switch key {
-		case "processor":
-			processorCount++
-			// Reset per-processor temporary vars if needed
-			currentPhysicalID = ""
-			currentCores = 0
-
-		case "model name":
-			if info.ModelName == "" {
-				info.ModelName = value
-			}
-			currentModelName = value
-
-		case "physical id":
-			currentPhysicalID = value
-			physicalIDs[value] = true
-
-		case "cpu cores":
-			cores, err := strconv.Atoi(value)
-			if err == nil {
-				currentCores = cores
-			}
-
-		case "flags":
-			if len(info.Flags) == 0 {
-				info.Flags = strings.Fields(value)
-			}
-			currentFlags = strings.Fields(value)
-		}
-
-		// Update cores mapping if we have both physical ID and cores count for this block
-		if currentPhysicalID != "" && currentCores > 0 {
-			coresPerSocket[currentPhysicalID] = currentCores
-		}
+		processLine(scanner.Text(), ctx)
 	}
 
 	if err := scanner.Err(); err != nil {
 		return nil, err
 	}
 
-	info.Threads = processorCount
-	info.Sockets = len(physicalIDs)
+	return finalizeCPUInfo(ctx), nil
+}
 
-	// Fallback for Sockets if no physical id found (e.g. some VMs)
+func processLine(line string, ctx *cpuParsingContext) {
+	parts := strings.SplitN(line, ":", 2)
+	if len(parts) != 2 {
+		return
+	}
+
+	key := strings.TrimSpace(parts[0])
+	value := strings.TrimSpace(parts[1])
+
+	switch key {
+	case "processor":
+		ctx.processorCount++
+		ctx.currentPhysicalID = ""
+		ctx.currentCores = 0
+	case "model name":
+		if ctx.info.ModelName == "" {
+			ctx.info.ModelName = value
+		}
+		ctx.currentModelName = value
+	case "physical id":
+		ctx.currentPhysicalID = value
+		ctx.physicalIDs[value] = true
+	case "cpu cores":
+		cores, err := strconv.Atoi(value)
+		if err == nil {
+			ctx.currentCores = cores
+		}
+	case "flags":
+		if len(ctx.info.Flags) == 0 {
+			ctx.info.Flags = strings.Fields(value)
+		}
+		ctx.currentFlags = strings.Fields(value)
+	}
+
+	if ctx.currentPhysicalID != "" && ctx.currentCores > 0 {
+		ctx.coresPerSocket[ctx.currentPhysicalID] = ctx.currentCores
+	}
+}
+
+func finalizeCPUInfo(ctx *cpuParsingContext) *model.CPUInfo {
+	info := ctx.info
+	info.Threads = ctx.processorCount
+	info.Sockets = len(ctx.physicalIDs)
+
 	if info.Sockets == 0 {
 		info.Sockets = 1
 	}
 
-	// Calculate total cores
 	totalCores := 0
-	for _, cores := range coresPerSocket {
+	for _, cores := range ctx.coresPerSocket {
 		totalCores += cores
 	}
 	info.Cores = totalCores
 
-	// Fallback for Cores
 	if info.Cores == 0 {
-		// If 'cpu cores' field was missing, assume 1 core per thread or just equal to threads
 		info.Cores = info.Threads
 	}
 
-	// Ensure we captured ModelName and Flags if they appeared later or simpler format
-	if info.ModelName == "" && currentModelName != "" {
-		info.ModelName = currentModelName
+	if info.ModelName == "" && ctx.currentModelName != "" {
+		info.ModelName = ctx.currentModelName
 	}
-	if len(info.Flags) == 0 && len(currentFlags) > 0 {
-		info.Flags = currentFlags
+	if len(info.Flags) == 0 && len(ctx.currentFlags) > 0 {
+		info.Flags = ctx.currentFlags
 	}
 
-	return info, nil
+	return info
 }
