@@ -8,7 +8,7 @@ Title,Description,Priority,Estimate,Status,Labels
 "[CLI] Implement 'agent collect' command", "Wire up Collectors to Cobra command. Output JSON to stdout.", "Medium", 1, "Completed", "feature"
 "[Push] Implement HTTP Uploader", "TDD: Mock API server, test auth header and JSON body. Implement Retry logic.", "Medium", 2, "Completed", "feature"
 "[CLI] Implement 'agent inventory push' command", "Wire up Collector and Uploader. Handle errors gracefully.", "Medium", 1, "Todo", "feature"
-"[HPCG] Config Generator", "TDD: Input params -> Output hpcg.dat file content. Verify formatting.", "Medium", 1, "Todo", "feature"
+"[HPCG] Config Generator", "TDD: Input params -> Output hpcg.dat file content. Verify formatting.", "Medium", 1, "Completed", "feature"
 "[HPCG] Log Parser", "TDD: Provide sample HPCG logs (pass/fail) -> Parse GFLOPS and status.", "High", 2, "Todo", "feature"
 "[HPCG] Command Runner Adapter", "Implement exec.Command wrapper with context support (timeout handling).", "Medium", 2, "Todo", "backend"
 "[HPCG] Workflow Orchestrator", "Implement the full Build -> Config -> Run -> Parse pipeline logic. Mock the runner steps.", "High", 5, "Todo", "feature"
