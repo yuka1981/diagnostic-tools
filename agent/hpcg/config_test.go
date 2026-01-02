@@ -7,8 +7,8 @@ import (
 func TestGenerateConfig(t *testing.T) {
 	testCases := []struct {
 		name   string
-		params ConfigParams
 		want   string
+		params ConfigParams
 	}{
 		{
 			name: "default values",
