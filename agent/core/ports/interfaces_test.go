@@ -154,4 +154,20 @@ func TestMockCommandRunner(t *testing.T) {
 			t.Errorf("expected output %q, got %q", expectedOutput, output)
 		}
 	})
+
+	t.Run("CustomBehaviorWithDir", func(t *testing.T) {
+		expectedDir := "/tmp"
+		mock := &mockCommandRunner{
+			runFunc: func(ctx context.Context, dir string, name string, args ...string) ([]byte, error) {
+				if dir != expectedDir {
+					t.Errorf("expected dir %q, got %q", expectedDir, dir)
+				}
+				return []byte("output"), nil
+			},
+		}
+		_, err := mock.Run(ctx, expectedDir, "test-cmd")
+		if err != nil {
+			t.Errorf("expected no error, got %v", err)
+		}
+	})
 }
