@@ -75,8 +75,19 @@ func (w *WorkflowOrchestrator) Run(ctx context.Context, params *RunParams) (*mod
 	}
 
 	// 5. Parse
-	// We parse the output to get metrics and confirm status
+	// First try to parse from stdout
 	metrics, parsedStatus, parseErr := ParseHPCGLog(strings.NewReader(string(output)))
+
+	// If stdout parsing failed or produced no metrics, look for generated log file
+	if parseErr != nil || metrics.GFLOPS == 0 {
+		if latestLog, err := w.findLatestLog(start); err == nil {
+			if m, s, e := ParseHPCGLogFile(latestLog); e == nil {
+				metrics = m
+				parsedStatus = s
+				parseErr = nil
+			}
+		}
+	}
 
 	if parseErr == nil {
 		status = parsedStatus
@@ -94,7 +105,7 @@ func (w *WorkflowOrchestrator) Run(ctx context.Context, params *RunParams) (*mod
 		Status:    status,
 	}
 
-	if metrics != nil {
+	if metrics != nil && metrics.GFLOPS > 0 {
 		metricsBytes, err := json.Marshal(metrics)
 		if err != nil {
 			return nil, fmt.Errorf("failed to marshal hpcg metrics: %w", err)
@@ -103,4 +114,35 @@ func (w *WorkflowOrchestrator) Run(ctx context.Context, params *RunParams) (*mod
 	}
 
 	return result, nil
+}
+
+func (w *WorkflowOrchestrator) findLatestLog(startTime time.Time) (string, error) {
+	files, err := os.ReadDir(w.WorkDir)
+	if err != nil {
+		return "", err
+	}
+
+	var latestLog string
+	var latestTime time.Time
+
+	for _, file := range files {
+		if file.IsDir() || !strings.HasPrefix(file.Name(), "HPCG-Benchmark_") || !strings.HasSuffix(file.Name(), ".txt") {
+			continue
+		}
+
+		info, err := file.Info()
+		if err != nil {
+			continue
+		}
+
+		if info.ModTime().After(startTime) && info.ModTime().After(latestTime) {
+			latestTime = info.ModTime()
+			latestLog = filepath.Join(w.WorkDir, file.Name())
+		}
+	}
+
+	if latestLog == "" {
+		return "", fmt.Errorf("no log file found")
+	}
+	return latestLog, nil
 }

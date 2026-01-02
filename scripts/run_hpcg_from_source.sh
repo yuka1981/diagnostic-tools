@@ -26,19 +26,15 @@ else
     echo "HPCG source directory already exists."
 fi
 
-# 3. Create Build Directory inside HPCG source
-mkdir -p "$HPCG_DIR/$BUILD_DIR"
-pushd "$HPCG_DIR/$BUILD_DIR" > /dev/null
+# 3. Use Agent to Build and Run in the source root
+pushd "$HPCG_DIR" > /dev/null
 
-# 4. Use Agent to Build and Run
-# Note: We use 'make' with a generic Linux MPI setup. 
-# Adjust 'Make.Linux_MPI' if your environment requires a different setup from the 'setup' directory.
 echo "Starting HPCG workflow via Agent..."
 
 $AGENT_BIN_PATH hpcg \
     --id "hpcg-source-$(date +%Y%m%d-%H%M)" \
-    --build "cp ../setup/Make.Linux_MPI . && make" \
-    --run "mpirun -np 2 ./xhpcg" \
+    --build "make arch=Linux_Serial" \
+    --run "./bin/xhpcg" \
     --nx 104 --ny 104 --nz 104 \
     --rt 60
 

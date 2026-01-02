@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"io"
+	"os"
 	"regexp"
 	"strconv"
 
@@ -50,3 +51,14 @@ func ParseHPCGLog(r io.Reader) (*model.HPCGMetrics, model.BenchmarkStatus, error
 
 	return metrics, status, nil
 }
+
+// ParseHPCGLogFile opens and parses the specified HPCG log file.
+func ParseHPCGLogFile(path string) (*model.HPCGMetrics, model.BenchmarkStatus, error) {
+	f, err := os.Open(path)
+	if err != nil {
+		return nil, model.BenchmarkStatusError, err
+	}
+	defer f.Close()
+	return ParseHPCGLog(f)
+}
+
