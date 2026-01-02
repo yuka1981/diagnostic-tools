@@ -6,7 +6,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 HPCG_REPO="https://github.com/hpcg-benchmark/hpcg.git"
-HPCG_DIR="$PROJECT_ROOT/hpcg_source"
+HPCG_DIR="$PROJECT_ROOT/agent/hpcg_source"
 AGENT_BIN_PATH="$PROJECT_ROOT/agent/agent"
 
 echo "=== HPCG Build and Run Script ==="
