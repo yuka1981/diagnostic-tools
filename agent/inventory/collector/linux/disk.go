@@ -22,7 +22,7 @@ func NewLinuxDiskCollector(runner ports.CommandRunner) *LinuxDiskCollector {
 
 // Collect executes 'df -B1' and parses the output.
 func (c *LinuxDiskCollector) Collect(ctx context.Context) ([]model.DiskInfo, error) {
-	output, err := c.Runner.Run(ctx, "df", "-B1")
+	output, err := c.Runner.Run(ctx, "", "df", "-B1")
 	if err != nil {
 		return nil, err
 	}
