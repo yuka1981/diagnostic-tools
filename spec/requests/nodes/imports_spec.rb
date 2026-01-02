@@ -11,14 +11,14 @@ RSpec.describe "Nodes::Imports", type: :request do
 
   describe "GET /nodes/import/new" do
     it "returns the modal form" do
-      get new_import_nodes_path
+      get new_node_import_path
 
       expect(response).to have_http_status(:success)
       expect(response.body).to include("Import Nodes")
     end
 
     it "renders within turbo frame" do
-      get new_import_nodes_path
+      get new_node_import_path
 
       expect(response.body).to include("turbo-frame")
       expect(response.body).to include('id="import_modal"')
@@ -43,12 +43,12 @@ RSpec.describe "Nodes::Imports", type: :request do
 
       it "creates new nodes" do
         expect {
-          post import_nodes_path, params: { file: uploaded_file }
+          post node_import_index_path, params: { file: uploaded_file }
         }.to change(Node, :count).by(2)
       end
 
       it "redirects to nodes index with success message" do
-        post import_nodes_path, params: { file: uploaded_file }
+        post node_import_index_path, params: { file: uploaded_file }
 
         expect(response).to redirect_to(nodes_path)
         follow_redirect!
@@ -56,7 +56,7 @@ RSpec.describe "Nodes::Imports", type: :request do
       end
 
       it "returns turbo stream response when requested" do
-        post import_nodes_path, params: { file: uploaded_file }, headers: { "Accept" => "text/vnd.turbo-stream.html" }
+        post node_import_index_path, params: { file: uploaded_file }, headers: { "Accept" => "text/vnd.turbo-stream.html" }
 
         expect(response.media_type).to eq("text/vnd.turbo-stream.html")
       end
@@ -64,7 +64,7 @@ RSpec.describe "Nodes::Imports", type: :request do
 
     context "with missing file" do
       it "returns error" do
-        post import_nodes_path
+        post node_import_index_path
 
         expect(response).to have_http_status(:unprocessable_content)
       end
@@ -86,7 +86,7 @@ RSpec.describe "Nodes::Imports", type: :request do
       end
 
       it "returns error with details" do
-        post import_nodes_path, params: { file: uploaded_file }
+        post node_import_index_path, params: { file: uploaded_file }
 
         expect(response).to have_http_status(:unprocessable_content)
         expect(response.body).to include("Missing required header: hostname")
@@ -110,7 +110,7 @@ RSpec.describe "Nodes::Imports", type: :request do
 
       it "creates valid nodes and reports errors" do
         expect {
-          post import_nodes_path, params: { file: uploaded_file }
+          post node_import_index_path, params: { file: uploaded_file }
         }.to change(Node, :count).by(1)
       end
     end
@@ -122,12 +122,12 @@ RSpec.describe "Nodes::Imports", type: :request do
     end
 
     it "requires authentication for new" do
-      get new_import_nodes_path
+      get new_node_import_path
       expect(response).to redirect_to(new_user_session_path)
     end
 
     it "requires authentication for create" do
-      post import_nodes_path
+      post node_import_index_path
       expect(response).to redirect_to(new_user_session_path)
     end
   end

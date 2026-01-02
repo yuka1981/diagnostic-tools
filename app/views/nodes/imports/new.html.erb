@@ -32,7 +32,7 @@
           <%# Error display area %>
           <div id="import_errors"></div>
 
-          <%= form_with url: import_nodes_path, method: :post, multipart: true do |f| %>
+          <%= form_with url: node_import_index_path, method: :post, multipart: true do |f| %>
             <%# File drop zone %>
             <div class="relative" data-controller="file-drop" data-file-drop-target="zone">
               <input type="file" 

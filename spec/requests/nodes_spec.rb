@@ -92,15 +92,39 @@ RSpec.describe "Nodes", type: :request do
   describe "DELETE /nodes/:id" do
     it "deletes the node" do
       node_to_delete = create(:node)
-      expect do
+      expect {
         delete node_path(node_to_delete)
-      end.to change(Node, :count).by(-1)
+      }.to change(Node, :count).by(-1)
     end
 
     it "returns turbo stream when requested" do
       delete node_path(node), headers: { "Accept" => "text/vnd.turbo-stream.html" }
       expect(response.media_type).to eq("text/vnd.turbo-stream.html")
       expect(response.body).to include("turbo-stream action=\"remove\"")
+    end
+  end
+
+  describe "POST /nodes/:id/test_connection" do
+    let(:service_double) { instance_double(Inventory::TriggerCollectService) }
+
+    before do
+      allow(Inventory::TriggerCollectService).to receive(:new).with(any_args).and_return(service_double)
+    end
+
+    it "returns success message when connection succeeds" do
+      allow(service_double).to receive(:call).and_return(double(success?: true))
+      post test_connection_node_path(node), headers: { "Accept" => "text/vnd.turbo-stream.html" }
+      
+      expect(response).to have_http_status(:success)
+      expect(response.body).to include("Connection to #{node.hostname} successful!")
+    end
+
+    it "returns error message when connection fails" do
+      allow(service_double).to receive(:call).and_return(double(success?: false, error: "Authentication failed"))
+      post test_connection_node_path(node), headers: { "Accept" => "text/vnd.turbo-stream.html" }
+      
+      expect(response).to have_http_status(:success)
+      expect(response.body).to include("Connection to #{node.hostname} failed")
     end
   end
 

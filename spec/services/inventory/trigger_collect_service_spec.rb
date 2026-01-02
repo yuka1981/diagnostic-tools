@@ -52,13 +52,35 @@ RSpec.describe Inventory::TriggerCollectService do
       end
 
       it "executes the direct agent command on the target session" do
-        expect(mock_session).to receive(:exec!).with("agent collect --json")
+        expect(mock_session).to receive(:exec!).with("agent collect --json 2>&1")
+        service.call
+      end
+    end
+
+    context "when node specific jump host is configured" do
+      let(:target_node) { create(:node, jump_host: "node-jump.example.com", jump_user: "node-jumpuser", jump_port: 2223) }
+      let(:gateway) { instance_double(Net::SSH::Gateway) }
+
+      before do
+        allow(Net::SSH::Gateway).to receive(:new).and_return(gateway)
+        allow(gateway).to receive(:ssh).and_yield(mock_session)
+        allow(gateway).to receive(:shutdown!)
+        allow(mock_session).to receive(:exec!).and_return("{}")
+      end
+
+      it "uses node specific jump host settings" do
+        expect(Net::SSH::Gateway).to receive(:new).with(
+          "node-jump.example.com",
+          "node-jumpuser",
+          hash_including(port: 2223)
+        )
+
         service.call
       end
     end
 
     context "when using node specific SSH settings" do
-      let(:target_node) { create(:node, ip: "10.0.0.1", ssh_user: "custom_user", ssh_port: 2222) }
+      let(:target_node) { create(:node, ip: "10.0.0.1", ssh_user: "custom_user", ssh_port: 2222, agent_path: "/custom/agent") }
       subject(:service) { described_class.new(target_node, ssh_config: ssh_config) }
 
       before do
@@ -73,6 +95,11 @@ RSpec.describe Inventory::TriggerCollectService do
           hash_including(port: 2222)
         )
 
+        service.call
+      end
+
+      it "uses node specific agent path" do
+        expect(mock_session).to receive(:exec!).with("/custom/agent collect --json 2>&1")
         service.call
       end
     end
@@ -101,7 +128,7 @@ RSpec.describe Inventory::TriggerCollectService do
       end
 
       it "executes the correct SSH command with escaped arguments" do
-        expected_command = "ssh #{Shellwords.escape(target_node.hostname)} #{Shellwords.escape('agent')} collect --json"
+        expected_command = "agent collect --json 2>&1"
 
         expect(mock_session).to receive(:exec!).with(expected_command)
 
@@ -118,6 +145,54 @@ RSpec.describe Inventory::TriggerCollectService do
 
       it "updates node last_seen_at" do
         expect { service.call }.to change { target_node.reload.last_seen_at }
+      end
+    end
+
+    context "when agent returns an error" do
+      let(:command_output) { "Error: failed to collect inventory: some internal error" }
+
+      before do
+        allow(Net::SSH).to receive(:start).and_yield(mock_session)
+        allow(mock_session).to receive(:exec!).and_return(command_output)
+      end
+
+      it "returns failure with agent error message" do
+        result = service.call
+
+        expect(result.success?).to be false
+        expect(result.error).to include("Agent error: failed to collect inventory")
+      end
+    end
+
+    context "when command is not found" do
+      let(:command_output) { "zsh:1: command not found: agent" }
+
+      before do
+        allow(Net::SSH).to receive(:start).and_yield(mock_session)
+        allow(mock_session).to receive(:exec!).and_return(command_output)
+      end
+
+      it "returns descriptive error about agent missing" do
+        result = service.call
+
+        expect(result.success?).to be false
+        expect(result.error).to include("Agent not found")
+      end
+    end
+
+    context "when permission is denied" do
+      let(:command_output) { "bash: /usr/local/bin/agent: Permission denied" }
+
+      before do
+        allow(Net::SSH).to receive(:start).and_yield(mock_session)
+        allow(mock_session).to receive(:exec!).and_return(command_output)
+      end
+
+      it "returns descriptive error about permissions" do
+        result = service.call
+
+        expect(result.success?).to be false
+        expect(result.error).to include("Permission denied")
       end
     end
 
@@ -193,7 +268,7 @@ RSpec.describe Inventory::TriggerCollectService do
 
   describe "#command" do
     it "builds correct command for target node with escaped arguments" do
-      expect(service.send(:command)).to eq("ssh compute-01 agent collect --json")
+      expect(service.send(:command)).to eq("ssh compute-01 agent collect --json 2>&1")
     end
 
     context "with custom agent path" do
@@ -202,7 +277,7 @@ RSpec.describe Inventory::TriggerCollectService do
       end
 
       it "uses custom agent path escaped" do
-        expect(service.send(:command)).to eq("ssh compute-01 /opt/agent/bin/agent collect --json")
+        expect(service.send(:command)).to eq("ssh compute-01 /opt/agent/bin/agent collect --json 2>&1")
       end
     end
 
@@ -211,7 +286,7 @@ RSpec.describe Inventory::TriggerCollectService do
 
       it "escapes hostname properly" do
         command = service.send(:command)
-        expect(command).to eq("ssh node-with-dash agent collect --json")
+        expect(command).to eq("ssh node-with-dash agent collect --json 2>&1")
       end
     end
 
@@ -245,7 +320,7 @@ RSpec.describe Inventory::TriggerCollectService do
       it "executes agent command directly without ssh prefix" do
         mock_session = instance_double(Net::SSH::Connection::Session)
         allow(Net::SSH).to receive(:start).and_yield(mock_session)
-        expect(mock_session).to receive(:exec!).with("agent collect --json").and_return("{}")
+        expect(mock_session).to receive(:exec!).with("agent collect --json 2>&1").and_return("{}")
 
         service.call
       end

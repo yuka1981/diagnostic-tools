@@ -3,7 +3,7 @@
 class NodesController < ApplicationController
   layout "dashboard"
   before_action :authenticate_user!
-  before_action :set_node, only: %i[show edit update destroy]
+  before_action :set_node, only: %i[show edit update destroy test_connection]
   before_action :authorize_approver!, only: %i[new create edit update destroy]
 
   def index
@@ -11,6 +11,29 @@ class NodesController < ApplicationController
   end
 
   def show; end
+
+  def test_connection
+    service = Inventory::TriggerCollectService.new(@node)
+    result = service.call
+
+    respond_to do |format|
+      format.turbo_stream do
+        if result.success?
+          flash.now[:notice] = "Connection to #{@node.hostname} successful!"
+        else
+          flash.now[:alert] = "Connection to #{@node.hostname} failed: #{result.error}"
+        end
+        render turbo_stream: turbo_stream.update("flash_messages", partial: "shared/flash")
+      end
+    end
+  rescue StandardError => e
+    respond_to do |format|
+      format.turbo_stream do
+        flash.now[:alert] = "Connection error: #{e.message}"
+        render turbo_stream: turbo_stream.update("flash_messages", partial: "shared/flash")
+      end
+    end
+  end
 
   def new
     @node = Node.new
@@ -60,7 +83,7 @@ class NodesController < ApplicationController
   end
 
   def node_params
-    params.require(:node).permit(:hostname, :ip, :arch, :ssh_port, :ssh_user)
+    params.require(:node).permit(:hostname, :ip, :arch, :ssh_port, :ssh_user, :agent_path, :jump_host, :jump_user, :jump_port)
   end
 
   def authorize_approver!
