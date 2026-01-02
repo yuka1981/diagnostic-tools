@@ -11,8 +11,10 @@ import (
 )
 
 var (
-	reValid   = regexp.MustCompile(`Final Summary::HPCG result is VALID with a GFLOP/s rating of=\s*([\d\.]+)`)
-	reInvalid = regexp.MustCompile(`Final Summary::HPCG result is INVALID`)
+	// reValid matches lines like "Final Summary::HPCG result is VALID with a GFLOP/s rating of= 123.456"
+	// and "Final Summary::This result is VALID..."
+	reValid   = regexp.MustCompile(`^Final Summary::.*is VALID with a GFLOP/s rating of=\s*([\d\.]+)`)
+	reInvalid = regexp.MustCompile(`^Final Summary::HPCG result is INVALID\.?`)
 )
 
 // ParseHPCGLog parses the HPCG output log to extract metrics and status.
@@ -26,15 +28,15 @@ func ParseHPCGLog(r io.Reader) (*model.HPCGMetrics, model.BenchmarkStatus, error
 
 		if matches := reValid.FindStringSubmatch(line); len(matches) > 1 {
 			status = model.BenchmarkStatusPass
-			if gflops, err := strconv.ParseFloat(matches[1], 64); err == nil {
-				metrics.GFLOPS = gflops
+			gflops, err := strconv.ParseFloat(matches[1], 64)
+			if err != nil {
+				return nil, model.BenchmarkStatusError, fmt.Errorf("failed to parse GFLOPS value '%s': %w", matches[1], err)
 			}
-			// We could break here if we only care about GFLOPS, but there might be other info.
-			// The log might contain multiple "VALID" lines, usually they are consistent.
-		}
-
-		if reInvalid.MatchString(line) {
+			metrics.GFLOPS = gflops
+			break
+		} else if reInvalid.MatchString(line) {
 			status = model.BenchmarkStatusFail
+			break
 		}
 	}
 

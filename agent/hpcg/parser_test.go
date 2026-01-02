@@ -7,8 +7,17 @@ import (
 	"github.com/yuka1981/diagnostic-tools/agent/core/model"
 )
 
-func TestParseHPCGLog_Valid(t *testing.T) {
-	logContent := `
+func TestParseHPCGLog(t *testing.T) {
+	testCases := []struct {
+		name           string
+		logContent     string
+		expectedStatus model.BenchmarkStatus
+		expectedGFLOPS float64
+		expectError    bool
+	}{
+		{
+			name: "Valid Result",
+			logContent: `
 HPCG-Benchmark
 version 3.1
 ...
@@ -17,51 +26,70 @@ Final Summary::HPCG 2.4 rating for historical reasons is= 130.000
 Final Summary::Reference version of ComputeDotProduct used= 0.000000e+00 time(s)
 Final Summary::This result is VALID with a GFLOP/s rating of= 123.456
 Final Summary::Please send the .yaml file to ...
-`
-	metrics, status, err := ParseHPCGLog(strings.NewReader(logContent))
-	if err != nil {
-		t.Fatalf("ParseHPCGLog failed: %v", err)
-	}
-
-	if status != model.BenchmarkStatusPass {
-		t.Errorf("expected PASS, got %s", status)
-	}
-	if metrics.GFLOPS != 123.456 {
-		t.Errorf("expected GFLOPS 123.456, got %f", metrics.GFLOPS)
-	}
-}
-
-func TestParseHPCGLog_Invalid(t *testing.T) {
-	logContent := `
+`,
+			expectedStatus: model.BenchmarkStatusPass,
+			expectedGFLOPS: 123.456,
+			expectError:    false,
+		},
+		{
+			name: "Invalid Result",
+			logContent: `
 HPCG-Benchmark
 ...
 Final Summary::HPCG result is INVALID.
 Final Summary::Please send the .yaml file to ...
-`
-	metrics, status, err := ParseHPCGLog(strings.NewReader(logContent))
-	if err != nil {
-		t.Fatalf("ParseHPCGLog failed: %v", err)
-	}
-
-	if status != model.BenchmarkStatusFail {
-		t.Errorf("expected FAIL, got %s", status)
-	}
-	if metrics.GFLOPS != 0 {
-		t.Errorf("expected GFLOPS 0, got %f", metrics.GFLOPS)
-	}
-}
-
-func TestParseHPCGLog_NoResult(t *testing.T) {
-	logContent := `
+`,
+			expectedStatus: model.BenchmarkStatusFail,
+			expectedGFLOPS: 0,
+			expectError:    false,
+		},
+		{
+			name: "Incomplete Log",
+			logContent: `
 HPCG-Benchmark
 ...
 (Crash or incomplete)
-`
-	_, status, err := ParseHPCGLog(strings.NewReader(logContent))
-	if err == nil {
-		t.Fatal("expected error for incomplete log, got nil")
+`,
+			expectedStatus: model.BenchmarkStatusError,
+			expectError:    true,
+		},
+		{
+			name: "Malformed GFLOPS",
+			logContent: `
+HPCG-Benchmark
+Final Summary::HPCG result is VALID with a GFLOP/s rating of= not-a-number
+`,
+			expectedStatus: model.BenchmarkStatusError,
+			expectError:    true,
+		},
 	}
-	if status != model.BenchmarkStatusError {
-		t.Errorf("expected ERROR status, got %s", status)
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			metrics, status, err := ParseHPCGLog(strings.NewReader(tc.logContent))
+
+			if tc.expectError {
+				if err == nil {
+					t.Error("expected error, got nil")
+				}
+				// Verify status is Error if that's what we return on error
+				if status != model.BenchmarkStatusError {
+					t.Errorf("expected status ERROR, got %s", status)
+				}
+				return
+			}
+
+			if err != nil {
+				t.Fatalf("ParseHPCGLog failed: %v", err)
+			}
+
+			if status != tc.expectedStatus {
+				t.Errorf("expected status %s, got %s", tc.expectedStatus, status)
+			}
+
+			if metrics != nil && metrics.GFLOPS != tc.expectedGFLOPS {
+				t.Errorf("expected GFLOPS %f, got %f", tc.expectedGFLOPS, metrics.GFLOPS)
+			}
+		})
 	}
 }
