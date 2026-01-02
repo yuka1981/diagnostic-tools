@@ -13,22 +13,25 @@ func TestParseHPCGLog(t *testing.T) {
 		logContent     string
 		expectedStatus model.BenchmarkStatus
 		expectedGFLOPS float64
+		expectedTime   float64
+		expectedRes    float64
 		expectError    bool
 	}{
 		{
-			name: "Valid Result",
+			name: "Valid Result Full",
 			logContent: `
 HPCG-Benchmark
 version 3.1
 ...
+Benchmark Time Summary::Total=51.5755
+Reproducibility Information::Scaled residual mean=4.99963e-08
 Final Summary::HPCG result is VALID with a GFLOP/s rating of= 123.456
-Final Summary::HPCG 2.4 rating for historical reasons is= 130.000
-Final Summary::Reference version of ComputeDotProduct used= 0.000000e+00 time(s)
-Final Summary::This result is VALID with a GFLOP/s rating of= 123.456
-Final Summary::Please send the .yaml file to ...
+Final Summary::Results are valid but execution time (sec) is=51.5755
 `,
 			expectedStatus: model.BenchmarkStatusPass,
 			expectedGFLOPS: 123.456,
+			expectedTime:   51.5755,
+			expectedRes:    4.99963e-08,
 			expectError:    false,
 		},
 		{
@@ -37,27 +40,36 @@ Final Summary::Please send the .yaml file to ...
 HPCG-Benchmark
 ...
 Final Summary::HPCG result is INVALID.
-Final Summary::Please send the .yaml file to ...
 `,
 			expectedStatus: model.BenchmarkStatusFail,
 			expectedGFLOPS: 0,
 			expectError:    false,
 		},
 		{
-			name: "Incomplete Log",
+			name: "Malformed GFLOPS",
 			logContent: `
 HPCG-Benchmark
-...
-(Crash or incomplete)
+Final Summary::HPCG result is VALID with a GFLOP/s rating of= not-a-number
 `,
 			expectedStatus: model.BenchmarkStatusError,
 			expectError:    true,
 		},
 		{
-			name: "Malformed GFLOPS",
+			name: "Malformed Execution Time",
 			logContent: `
 HPCG-Benchmark
-Final Summary::HPCG result is VALID with a GFLOP/s rating of= not-a-number
+Benchmark Time Summary::Total=abc
+Final Summary::HPCG result is VALID with a GFLOP/s rating of= 100.0
+`,
+			expectedStatus: model.BenchmarkStatusError,
+			expectError:    true,
+		},
+		{
+			name: "Malformed Residual",
+			logContent: `
+HPCG-Benchmark
+Reproducibility Information::Scaled residual mean=xyz
+Final Summary::HPCG result is VALID with a GFLOP/s rating of= 100.0
 `,
 			expectedStatus: model.BenchmarkStatusError,
 			expectError:    true,
@@ -72,7 +84,6 @@ Final Summary::HPCG result is VALID with a GFLOP/s rating of= not-a-number
 				if err == nil {
 					t.Error("expected error, got nil")
 				}
-				// Verify status is Error if that's what we return on error
 				if status != model.BenchmarkStatusError {
 					t.Errorf("expected status ERROR, got %s", status)
 				}
@@ -87,8 +98,14 @@ Final Summary::HPCG result is VALID with a GFLOP/s rating of= not-a-number
 				t.Errorf("expected status %s, got %s", tc.expectedStatus, status)
 			}
 
-			if metrics != nil && metrics.GFLOPS != tc.expectedGFLOPS {
+			if metrics.GFLOPS != tc.expectedGFLOPS {
 				t.Errorf("expected GFLOPS %f, got %f", tc.expectedGFLOPS, metrics.GFLOPS)
+			}
+			if metrics.ExecutionTime != tc.expectedTime {
+				t.Errorf("expected Time %f, got %f", tc.expectedTime, metrics.ExecutionTime)
+			}
+			if metrics.Residual != tc.expectedRes {
+				t.Errorf("expected Residual %e, got %e", tc.expectedRes, metrics.Residual)
 			}
 		})
 	}
