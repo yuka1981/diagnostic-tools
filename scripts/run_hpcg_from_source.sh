@@ -2,16 +2,19 @@
 set -e
 
 # Configuration
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+
 HPCG_REPO="https://github.com/hpcg-benchmark/hpcg.git"
-HPCG_DIR="hpcg_source"
+HPCG_DIR="$PROJECT_ROOT/hpcg_source"
 BUILD_DIR="build"
-AGENT_BIN_PATH="$(pwd)/agent/agent"
+AGENT_BIN_PATH="$PROJECT_ROOT/agent/agent"
 
 echo "=== HPCG Build and Run Script ==="
 
 # 1. Build the Agent
 echo "Building the HPC Agent..."
-pushd agent > /dev/null
+pushd "$PROJECT_ROOT/agent" > /dev/null
 go build -o agent .
 popd > /dev/null
 
