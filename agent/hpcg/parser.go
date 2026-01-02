@@ -14,14 +14,14 @@ import (
 var (
 	// reValid matches lines like "Final Summary::HPCG result is VALID with a GFLOP/s rating of= 123.456"
 	// and "Final Summary::This result is VALID..."
-	reValid = regexp.MustCompile(`^Final Summary::.*is VALID with a GFLOP/s rating of=\s*([\d\.]+)`)
+	reValid = regexp.MustCompile(`^Final Summary::.*is VALID with a GFLOP/s rating of=\s*(\S+)`)
 	// reInvalid matches "Final Summary::HPCG result is INVALID"
 	reInvalid = regexp.MustCompile(`^Final Summary::HPCG result is INVALID\.?`)
 	// reTime matches "Final Summary::Results are valid but execution time (sec) is=51.5755"
 	// or "Benchmark Time Summary::Total=51.5755"
-	reTime = regexp.MustCompile(`^(?:Final Summary::.*execution time \(sec\) is=|Benchmark Time Summary::Total=)\s*([\d\.]+)`)
+	reTime = regexp.MustCompile(`^(?:Final Summary::.*execution time \(sec\) is=|Benchmark Time Summary::Total=)\s*(\S+)`)
 	// reResidual matches "Reproducibility Information::Scaled residual mean=4.99963e-08"
-	reResidual = regexp.MustCompile(`^Reproducibility Information::Scaled residual mean=\s*([\d\.eE\-\+]+)`)
+	reResidual = regexp.MustCompile(`^Reproducibility Information::Scaled residual mean=\s*(\S+)`)
 )
 
 // ParseHPCGLog parses the HPCG output log to extract metrics and status.
@@ -46,16 +46,18 @@ func ParseHPCGLog(r io.Reader) (*model.HPCGMetrics, model.BenchmarkStatus, error
 
 		if matches := reTime.FindStringSubmatch(line); len(matches) > 1 {
 			timeVal, err := strconv.ParseFloat(matches[1], 64)
-			if err == nil {
-				metrics.ExecutionTime = timeVal
+			if err != nil {
+				return nil, model.BenchmarkStatusError, fmt.Errorf("failed to parse execution time value '%s': %w", matches[1], err)
 			}
+			metrics.ExecutionTime = timeVal
 		}
 
 		if matches := reResidual.FindStringSubmatch(line); len(matches) > 1 {
 			resVal, err := strconv.ParseFloat(matches[1], 64)
-			if err == nil {
-				metrics.Residual = resVal
+			if err != nil {
+				return nil, model.BenchmarkStatusError, fmt.Errorf("failed to parse residual value '%s': %w", matches[1], err)
 			}
+			metrics.Residual = resVal
 		}
 	}
 

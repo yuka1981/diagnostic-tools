@@ -46,10 +46,30 @@ Final Summary::HPCG result is INVALID.
 			expectError:    false,
 		},
 		{
-			name: "Incomplete Log",
+			name: "Malformed GFLOPS",
 			logContent: `
 HPCG-Benchmark
-...
+Final Summary::HPCG result is VALID with a GFLOP/s rating of= not-a-number
+`,
+			expectedStatus: model.BenchmarkStatusError,
+			expectError:    true,
+		},
+		{
+			name: "Malformed Execution Time",
+			logContent: `
+HPCG-Benchmark
+Benchmark Time Summary::Total=abc
+Final Summary::HPCG result is VALID with a GFLOP/s rating of= 100.0
+`,
+			expectedStatus: model.BenchmarkStatusError,
+			expectError:    true,
+		},
+		{
+			name: "Malformed Residual",
+			logContent: `
+HPCG-Benchmark
+Reproducibility Information::Scaled residual mean=xyz
+Final Summary::HPCG result is VALID with a GFLOP/s rating of= 100.0
 `,
 			expectedStatus: model.BenchmarkStatusError,
 			expectError:    true,
