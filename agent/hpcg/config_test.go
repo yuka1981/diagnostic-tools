@@ -7,9 +7,9 @@ import (
 
 func TestGenerateConfig(t *testing.T) {
 	params := ConfigParams{
-		NX: 104,
-		NY: 104,
-		NZ: 104,
+		NX:             104,
+		NY:             104,
+		NZ:             104,
 		RunTimeSeconds: 60,
 	}
 
@@ -19,7 +19,7 @@ Sandia National Laboratories; University of Tennessee, Knoxville
 60`
 
 	content := GenerateConfig(params)
-	
+
 	// Normalize line endings for comparison
 	content = strings.TrimSpace(content)
 	expectedContent = strings.TrimSpace(expectedContent)
@@ -31,9 +31,9 @@ Sandia National Laboratories; University of Tennessee, Knoxville
 
 func TestGenerateConfig_DifferentValues(t *testing.T) {
 	params := ConfigParams{
-		NX: 128,
-		NY: 128,
-		NZ: 128,
+		NX:             128,
+		NY:             128,
+		NZ:             128,
 		RunTimeSeconds: 120,
 	}
 
