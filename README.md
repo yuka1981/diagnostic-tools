@@ -186,6 +186,42 @@ Runs the HPCG (High Performance Conjugate Gradients) benchmark workflow. This in
 - `--server`: Server URL for uploading results.
 - `--token`: API token for uploading results.
 
+## HPCG Benchmark Guide
+
+The agent supports native compilation and execution of the HPCG benchmark on cluster nodes.
+
+### Prerequisites
+
+- **Toolchain**: A C++ compiler (e.g., GCC, Intel) and an MPI implementation (e.g., OpenMPI, MPICH) must be available on the node.
+- **Modules**: It is recommended to use environment modules (Lmod/Tcl) to manage these dependencies.
+
+### Native Compilation
+
+The agent can compile HPCG on-the-fly before running the benchmark. This ensures the binary is optimized for the specific node architecture.
+
+Use the `--build` flag to specify the command required to compile the benchmark (e.g., `make`).
+
+### Example: Build and Run
+
+To load an MPI module, compile using `make`, and run the benchmark with custom dimensions:
+
+```bash
+./agent hpcg \
+  --module mpi/openmpi-x86_64 \
+  --build "make -f Make.Linux_MPI" \
+  --run "mpirun -np 4 ./xhpcg" \
+  --nx 128 --ny 128 --nz 128 \
+  --rt 60
+```
+
+The workflow performed by the agent:
+1. **Environment Setup**: Loads the specified modules.
+2. **Build**: Executes the build command in the working directory.
+3. **Config**: Generates a valid `hpcg.dat` file based on the provided parameters.
+4. **Run**: Executes the benchmark via the run command.
+5. **Parse**: Analyzes the output logs to extract GFLOPS and residual data.
+6. **Upload**: Sends results to the web application if `--server` and `--token` are provided.
+
 ## Development
 
 ### Running Tests
