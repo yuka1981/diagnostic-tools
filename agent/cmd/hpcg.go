@@ -13,12 +13,12 @@ import (
 )
 
 type hpcgOptions struct {
-	modules    []string
 	runID      string
 	buildCmd   string
 	runCmd     string
 	pushServer string
 	pushToken  string
+	modules    []string
 	nx, ny, nz int
 	rt         int
 }
