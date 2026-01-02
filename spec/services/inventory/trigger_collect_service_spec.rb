@@ -50,6 +50,11 @@ RSpec.describe Inventory::TriggerCollectService do
         expect(gateway).to receive(:shutdown!)
         service.call
       end
+
+      it "executes the direct agent command on the target session" do
+        expect(mock_session).to receive(:exec!).with("agent collect --json")
+        service.call
+      end
     end
 
     context "when using node specific SSH settings" do

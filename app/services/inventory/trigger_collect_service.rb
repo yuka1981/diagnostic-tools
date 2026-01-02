@@ -67,61 +67,63 @@ module Inventory
       end
     end
 
-    def execute_via_gateway
-      gateway_host = SshConfig.jump_host
-      gateway_user = SshConfig.jump_user || @ssh_config[:user]
-      gateway_options = ssh_options.merge(port: SshConfig.jump_port)
-
-      gateway = Net::SSH::Gateway.new(gateway_host, gateway_user, gateway_options)
-
-      begin
-        gateway.ssh(@target_node.ip || @target_node.hostname, target_user, target_options) do |session|
-          session.exec!(command)
+        def execute_via_gateway
+          gateway_host = SshConfig.jump_host
+          gateway_user = SshConfig.jump_user || @ssh_config[:user]
+          gateway_options = ssh_options.merge(port: SshConfig.jump_port)
+    
+          gateway = Net::SSH::Gateway.new(gateway_host, gateway_user, gateway_options)
+          
+          begin
+            gateway.ssh(@target_node.ip || @target_node.hostname, target_user, target_options) do |session|
+              session.exec!(direct_command)
+            end
+          ensure
+            gateway.shutdown!
+          end
         end
-      ensure
-        gateway.shutdown!
-      end
-    end
-
-    def target_user
-      @target_node.ssh_user.presence || @ssh_config[:user]
-    end
-
-    def target_options
-      ssh_options.merge(port: @target_node.ssh_port)
-    end
-
-    def ssh_host
-      @gateway&.ip || @target_node.ip || @target_node.hostname
-    end
-
-    def ssh_options
-      options = {
-        keys: @ssh_config[:keys],
-        timeout: @ssh_config[:timeout],
-        non_interactive: true
-      }
-
-      # Only set verify_host_key if explicitly configured
-      # Default behavior uses :secure (requires known_hosts)
-      if @ssh_config[:verify_host_key]
-        options[:verify_host_key] = @ssh_config[:verify_host_key]
-      end
-
-      options.compact
-    end
-
-    def command
-      if @gateway
-        # Connect through gateway, SSH to target node (Legacy manual proxy)
-        # Use Shellwords.escape to prevent command injection
-        "ssh #{Shellwords.escape(@target_node.hostname)} #{Shellwords.escape(@agent_path)} collect --json"
-      else
-        # Direct connection to target node
-        "#{Shellwords.escape(@agent_path)} collect --json"
-      end
-    end
-
+    
+        def target_user
+          @target_node.ssh_user.presence || @ssh_config[:user]
+        end
+    
+        def target_options
+          ssh_options.merge(port: @target_node.ssh_port)
+        end
+    
+        def ssh_host
+          @gateway&.ip || @target_node.ip || @target_node.hostname
+        end
+    
+        def ssh_options
+          options = {
+            keys: @ssh_config[:keys],
+            timeout: @ssh_config[:timeout],
+            non_interactive: true
+          }
+    
+          # Only set verify_host_key if explicitly configured
+          # Default behavior uses :secure (requires known_hosts)
+          if @ssh_config[:verify_host_key]
+            options[:verify_host_key] = @ssh_config[:verify_host_key]
+          end
+    
+          options.compact
+        end
+    
+        def command
+          if @gateway
+            # Connect through gateway, SSH to target node (Legacy manual proxy)
+            # Use Shellwords.escape to prevent command injection
+            "ssh #{Shellwords.escape(@target_node.hostname)} #{Shellwords.escape(@agent_path)} collect --json"
+          else
+            direct_command
+          end
+        end
+    
+        def direct_command
+          "#{Shellwords.escape(@agent_path)} collect --json"
+        end
     def parse_json(output)
       JSON.parse(output, symbolize_names: true)
     rescue JSON::ParserError => e
