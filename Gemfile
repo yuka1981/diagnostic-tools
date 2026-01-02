@@ -90,3 +90,6 @@ end
 gem "view_component", "~> 4.1"
 
 gem "net-ssh-gateway", "~> 2.0"
+
+gem "ed25519", "~> 1.4"
+gem "bcrypt_pbkdf", "~> 1.1"
