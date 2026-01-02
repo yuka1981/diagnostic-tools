@@ -14,7 +14,10 @@ func NewRealCommandRunner() *RealCommandRunner {
 }
 
 // Run executes a command.
-func (r *RealCommandRunner) Run(ctx context.Context, name string, args ...string) ([]byte, error) {
+func (r *RealCommandRunner) Run(ctx context.Context, dir, name string, args ...string) ([]byte, error) {
 	cmd := exec.CommandContext(ctx, name, args...)
+	if dir != "" {
+		cmd.Dir = dir
+	}
 	return cmd.CombinedOutput() // CombinedOutput captures stderr too which is useful for debug, or just Output
 }

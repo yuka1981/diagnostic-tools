@@ -10,7 +10,7 @@ Title,Description,Priority,Estimate,Status,Labels
 "[CLI] Implement 'agent inventory push' command", "Wire up Collector and Uploader. Handle errors gracefully.", "Medium", 1, "Completed", "feature"
 "[HPCG] Config Generator", "TDD: Input params -> Output hpcg.dat file content. Verify formatting.", "Medium", 1, "Completed", "feature"
 "[HPCG] Log Parser", "TDD: Provide sample HPCG logs (pass/fail) -> Parse GFLOPS and status.", "High", 2, "Completed", "feature"
-"[HPCG] Command Runner Adapter", "Implement exec.Command wrapper with context support (timeout handling).", "Medium", 2, "Todo", "backend"
+"[HPCG] Command Runner Adapter", "Implement exec.Command wrapper with context support (timeout handling).", "Medium", 2, "Completed", "backend"
 "[HPCG] Workflow Orchestrator", "Implement the full Build -> Config -> Run -> Parse pipeline logic. Mock the runner steps.", "High", 5, "Todo", "feature"
 "[CLI] Implement 'agent hpcg' command", "Wire up HPCG workflow to Cobra. Handle CLI flags.", "Medium", 2, "Todo", "feature"
 "[Artifacts] Atomic Write Logic", "Implement write to .tmp and rename to final directory logic.", "Medium", 1, "Todo", "feature"

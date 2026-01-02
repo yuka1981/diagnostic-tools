@@ -55,7 +55,7 @@ func (c *LinuxHostCollector) Collect(ctx context.Context) (*model.HostInfo, erro
 }
 
 func (c *LinuxHostCollector) getKernelVersion(ctx context.Context) (string, error) {
-	out, err := c.Runner.Run(ctx, "uname", "-r")
+	out, err := c.Runner.Run(ctx, "", "uname", "-r")
 	if err != nil {
 		return "", err
 	}

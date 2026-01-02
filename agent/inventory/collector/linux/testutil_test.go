@@ -10,6 +10,6 @@ type MockCommandRunner struct {
 	Output string
 }
 
-func (m *MockCommandRunner) Run(ctx context.Context, name string, args ...string) ([]byte, error) {
+func (m *MockCommandRunner) Run(ctx context.Context, dir, name string, args ...string) ([]byte, error) {
 	return []byte(m.Output), m.Err
 }
