@@ -136,6 +136,56 @@ To import nodes via the UI:
 2. Click the **Import CSV** button.
 3. Upload your CSV file using the form.
 
+## Agent CLI Guide
+
+The HPC Agent is a Go-based CLI tool that runs on cluster nodes to collect system information and execute benchmarks.
+
+### Building the Agent
+
+To build the agent binary (requires Go 1.22+):
+
+```bash
+cd agent
+go build -o agent .
+```
+
+### Commands
+
+#### `agent collect`
+Collects the current node's system information (CPU, Memory, Disk, Network, Host) and outputs it as JSON to stdout.
+
+```bash
+./agent collect
+```
+
+#### `agent inventory push`
+Collects system information and pushes it directly to the web application's API.
+
+```bash
+./agent inventory push --server http://your-app-url --token your-api-token
+```
+
+**Flags:**
+- `--server`: The URL of the web application (default: `http://localhost:3000`).
+- `--token`: Authentication token (required). Can also be set via `AGENT_TOKEN` environment variable.
+
+#### `agent hpcg`
+Runs the HPCG (High Performance Conjugate Gradients) benchmark workflow. This includes environment setup, native compilation, configuration generation, execution, and result parsing.
+
+```bash
+./agent hpcg --id run-001 --module mpi/openmpi --rt 120
+```
+
+**Flags:**
+- `--id`: Unique Run ID (default: `manual-run`).
+- `--module`: Comma-separated list of modules to load.
+- `--build`: Custom build command (e.g., `make`).
+- `--run`: Custom run command (default: `./xhpcg`).
+- `--nx`, `--ny`, `--nz`: Problem dimensions (default: `104`).
+- `--rt`: Runtime in seconds (default: `60`).
+- `--server`: Server URL for uploading results.
+- `--token`: API token for uploading results.
+
 ## Development
 
 ### Running Tests
