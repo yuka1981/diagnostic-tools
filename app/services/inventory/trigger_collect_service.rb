@@ -73,7 +73,7 @@ module Inventory
       gateway_options = ssh_options.merge(port: SshConfig.jump_port)
 
       gateway = Net::SSH::Gateway.new(gateway_host, gateway_user, gateway_options)
-      
+
       begin
         gateway.ssh(@target_node.ip || @target_node.hostname, target_user, target_options) do |session|
           session.exec!(command)
