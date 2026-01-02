@@ -18,7 +18,7 @@ func GenerateConfig(params ConfigParams) string {
 	var sb strings.Builder
 	sb.WriteString("HPCG benchmark input file\n")
 	sb.WriteString("Sandia National Laboratories; University of Tennessee, Knoxville\n")
-	sb.WriteString(fmt.Sprintf("%d %d %d\n", params.NX, params.NY, params.NZ))
-	sb.WriteString(fmt.Sprintf("%d\n", params.RunTimeSeconds))
+	fmt.Fprintf(&sb, "%d %d %d\n", params.NX, params.NY, params.NZ)
+	fmt.Fprintf(&sb, "%d\n", params.RunTimeSeconds)
 	return sb.String()
 }
