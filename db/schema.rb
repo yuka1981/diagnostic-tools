@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2025_12_29_011555) do
+ActiveRecord::Schema[7.2].define(version: 2026_01_02_065307) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -64,6 +64,8 @@ ActiveRecord::Schema[7.2].define(version: 2025_12_29_011555) do
     t.datetime "last_seen_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "ssh_port", default: 22, null: false
+    t.string "ssh_user"
     t.index ["hostname"], name: "index_nodes_on_hostname", unique: true
     t.index ["role"], name: "index_nodes_on_role"
     t.index ["source"], name: "index_nodes_on_source"

@@ -1,0 +1,2 @@
+<%= turbo_stream.append "nodes_tbody", partial: "nodes/node", locals: { node: @node } %>
+<%= turbo_stream.replace "node_modal", turbo_frame_tag("node_modal") %>

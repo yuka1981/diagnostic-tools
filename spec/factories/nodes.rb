@@ -7,6 +7,7 @@ FactoryBot.define do
     arch { %w[x86_64 aarch64].sample }
     role { :compute }
     source { :manual }
+    ssh_port { 22 }
     last_seen_at { nil }
 
     trait :login do

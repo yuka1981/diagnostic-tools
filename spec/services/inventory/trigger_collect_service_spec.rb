@@ -20,6 +20,58 @@ RSpec.describe Inventory::TriggerCollectService do
   describe "#call" do
     let(:mock_session) { instance_double(Net::SSH::Connection::Session) }
 
+    context "when jump host is configured" do
+      let(:gateway) { instance_double(Net::SSH::Gateway) }
+
+      before do
+        allow(SshConfig).to receive(:use_jump_host?).and_return(true)
+        allow(SshConfig).to receive(:jump_host).and_return("jump.example.com")
+        allow(SshConfig).to receive(:jump_user).and_return("jumpuser")
+        allow(SshConfig).to receive(:jump_port).and_return(2222)
+
+        allow(Net::SSH::Gateway).to receive(:new).and_return(gateway)
+        allow(gateway).to receive(:ssh).and_yield(mock_session)
+        allow(gateway).to receive(:shutdown!)
+        allow(mock_session).to receive(:exec!).and_return("{}")
+      end
+
+      it "uses Net::SSH::Gateway to connect" do
+        expect(Net::SSH::Gateway).to receive(:new).with(
+          "jump.example.com",
+          "jumpuser",
+          hash_including(port: 2222)
+        )
+        expect(gateway).to receive(:ssh).with(target_node.ip, any_args)
+
+        service.call
+      end
+
+      it "shuts down the gateway after use" do
+        expect(gateway).to receive(:shutdown!)
+        service.call
+      end
+    end
+
+    context "when using node specific SSH settings" do
+      let(:target_node) { create(:node, ip: "10.0.0.1", ssh_user: "custom_user", ssh_port: 2222) }
+      subject(:service) { described_class.new(target_node, ssh_config: ssh_config) }
+
+      before do
+        allow(Net::SSH).to receive(:start).and_yield(mock_session)
+        allow(mock_session).to receive(:exec!).and_return("{}")
+      end
+
+      it "connects using node specific user and port" do
+        expect(Net::SSH).to receive(:start).with(
+          "10.0.0.1",
+          "custom_user",
+          hash_including(port: 2222)
+        )
+
+        service.call
+      end
+    end
+
     context "when SSH command succeeds" do
       let(:command_output) do
         {

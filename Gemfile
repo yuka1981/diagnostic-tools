@@ -86,3 +86,7 @@ group :development do
   # Use console on exceptions pages [https://github.com/rails/web-console]
   gem "web-console"
 end
+
+gem "view_component", "~> 4.1"
+
+gem "net-ssh-gateway", "~> 2.0"

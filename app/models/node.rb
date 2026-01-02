@@ -15,6 +15,9 @@ class Node < ApplicationRecord
   validates :hostname, presence: true, uniqueness: true, length: { maximum: 255 }
   validates :role, presence: true
   validates :source, presence: true
+  validates :ssh_port, numericality: { only_integer: true, greater_than: 0, less_than: 65536 }
+  validates :ssh_user, length: { maximum: 255 }
+  validates :arch, inclusion: { in: %w[x86_64 aarch64 arm64], allow_blank: true }
 
   # IP address validation using Ruby's IPAddr library
   validates_each :ip do |record, attr, value|
