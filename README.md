@@ -104,7 +104,25 @@ ssh:
   timeout: 10
 ```
 
-#### 2. Agent Installation
+#### 2. SSH Jump Host (Bastion)
+
+If your HPC nodes are located behind a firewall and require a bastion host for access, you can configure a global Jump Host using environment variables. When configured, the application will establish an SSH tunnel through the jump host before connecting to the target node.
+
+| Environment Variable | Description |
+|----------------------|-------------|
+| `JUMP_HOST` | Hostname or IP address of the bastion/jump server |
+| `JUMP_USER` | SSH username for the jump server (optional, defaults to `ssh:user`) |
+| `JUMP_PORT` | SSH port for the jump server (optional, defaults to 22) |
+
+**Example:**
+
+```bash
+export JUMP_HOST="bastion.hpc.cluster"
+export JUMP_USER="jump-admin"
+export JUMP_PORT=2222
+```
+
+#### 3. Agent Installation
 
 The `agent` binary must be available on the target nodes. By default, the service expects the binary to be named `agent` and available in the system PATH.
 
