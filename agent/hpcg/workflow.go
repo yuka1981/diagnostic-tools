@@ -101,7 +101,10 @@ func (w *WorkflowOrchestrator) Run(ctx context.Context, params *RunParams) (*mod
 	}
 
 	if metrics != nil {
-		metricsBytes, _ := json.Marshal(metrics)
+		metricsBytes, err := json.Marshal(metrics)
+		if err != nil {
+			return nil, fmt.Errorf("failed to marshal hpcg metrics: %w", err)
+		}
 		result.Metrics = metricsBytes
 	}
 
