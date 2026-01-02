@@ -53,7 +53,10 @@ func NewHPCGCmd() *cobra.Command {
 
 func runHPCG(cmd *cobra.Command, opts *hpcgOptions) error {
 	ctx := cmd.Context()
-	wd, _ := os.Getwd()
+	wd, err := os.Getwd()
+	if err != nil {
+		return fmt.Errorf("failed to get current working directory: %w", err)
+	}
 
 	runner := infrastructure.NewRealCommandRunner()
 	loader := infrastructure.NewRealModuleLoader(runner)
@@ -81,8 +84,12 @@ func runHPCG(cmd *cobra.Command, opts *hpcgOptions) error {
 	}
 
 	// Output result
-	output, _ := json.MarshalIndent(result, "", "  ")
-	fmt.Fprintln(cmd.OutOrStdout(), string(output))
+	output, err := json.MarshalIndent(result, "", "  ")
+	if err != nil {
+		fmt.Fprintf(cmd.ErrOrStderr(), "Warning: could not marshal result for printing: %v\n", err)
+	} else {
+		fmt.Fprintln(cmd.OutOrStdout(), string(output))
+	}
 
 	// Upload if token provided
 	if opts.pushToken != "" {

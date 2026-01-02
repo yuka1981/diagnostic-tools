@@ -26,21 +26,15 @@ type WorkflowOrchestrator struct {
 }
 
 // RunParams defines parameters for the workflow.
-
 type RunParams struct {
-	RunID string
-
+	RunID    string
 	BuildCmd string // e.g. "make"
-
-	RunCmd string // e.g. "srun ./xhpcg" or "./xhpcg"
-
-	Modules []string
-
-	Config ConfigParams
+	RunCmd   string // e.g. "srun ./xhpcg" or "./xhpcg"
+	Modules  []string
+	Config   ConfigParams
 }
 
 // Run executes the HPCG workflow.
-
 func (w *WorkflowOrchestrator) Run(ctx context.Context, params *RunParams) (*model.BenchmarkRun, error) {
 	// Ensure workdir exists
 	if err := os.MkdirAll(w.WorkDir, 0755); err != nil {
@@ -57,8 +51,8 @@ func (w *WorkflowOrchestrator) Run(ctx context.Context, params *RunParams) (*mod
 	// 2. Build
 	if params.BuildCmd != "" {
 		// Use "bash -c" to allow shell features in build command
-		if _, err := w.Runner.Run(ctx, w.WorkDir, "bash", "-c", params.BuildCmd); err != nil {
-			return nil, fmt.Errorf("build failed: %w", err)
+		if output, err := w.Runner.Run(ctx, w.WorkDir, "bash", "-c", params.BuildCmd); err != nil {
+			return nil, fmt.Errorf("build failed: %w\nOutput:\n%s", err, string(output))
 		}
 	}
 
