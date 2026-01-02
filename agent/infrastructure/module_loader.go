@@ -27,13 +27,12 @@ func (m *RealModuleLoader) Load(ctx context.Context, modules []string) error {
 
 	var allModules []string
 	for _, mod := range modules {
-		// Strip common prefixes if user passed the whole command
-		mod = strings.TrimPrefix(mod, "ml load ")
-		mod = strings.TrimPrefix(mod, "module load ")
-
-		// Handle space-separated modules within a single string
 		fields := strings.Fields(mod)
-		allModules = append(allModules, fields...)
+		if len(fields) >= 3 && (fields[0] == "ml" || fields[0] == "module") && fields[1] == "load" {
+			allModules = append(allModules, fields[2:]...)
+		} else {
+			allModules = append(allModules, fields...)
+		}
 	}
 
 	if len(allModules) == 0 {

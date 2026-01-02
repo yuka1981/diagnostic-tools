@@ -3,6 +3,7 @@ package infrastructure
 import (
 	"context"
 	"os"
+	"reflect"
 	"testing"
 )
 
@@ -25,8 +26,6 @@ func TestRealModuleLoader_Load(t *testing.T) {
 	}
 	loader := NewRealModuleLoader(runner)
 
-	const loadKeyword = "load"
-
 	t.Run("MultipleModules", func(t *testing.T) {
 		modules := []string{"mod1", "mod2", "mod3"}
 		err := loader.Load(context.Background(), modules)
@@ -34,24 +33,9 @@ func TestRealModuleLoader_Load(t *testing.T) {
 			t.Fatalf("Load failed: %v", err)
 		}
 
-		// Verify args passed to modulecmd
-		// expected: bash load mod1 mod2 mod3
-		foundLoad := false
-		modCount := 0
-		for i, arg := range runner.lastArgs {
-			if arg == loadKeyword {
-				foundLoad = true
-				// Count modules after "load"
-				modCount = len(runner.lastArgs) - i - 1
-				break
-			}
-		}
-
-		if !foundLoad {
-			t.Error("expected 'load' in modulecmd args")
-		}
-		if modCount != 3 {
-			t.Errorf("expected 3 modules passed to modulecmd, got %d: %v", modCount, runner.lastArgs)
+		expectedArgs := []string{"bash", "load", "mod1", "mod2", "mod3"}
+		if !reflect.DeepEqual(runner.lastArgs, expectedArgs) {
+			t.Errorf("unexpected args for modulecmd:\n- want: %v\n- got:  %v", expectedArgs, runner.lastArgs)
 		}
 	})
 
@@ -64,16 +48,23 @@ func TestRealModuleLoader_Load(t *testing.T) {
 			t.Fatalf("Load failed: %v", err)
 		}
 
-		modCount := 0
-		for i, arg := range runner.lastArgs {
-			if arg == loadKeyword {
-				modCount = len(runner.lastArgs) - i - 1
-				break
-			}
+		expectedArgs := []string{"bash", "load", "compiler/2025.3.0", "mkl/2025.3", "mpi/2021.17"}
+		if !reflect.DeepEqual(runner.lastArgs, expectedArgs) {
+			t.Errorf("unexpected args for modulecmd:\n- want: %v\n- got:  %v", expectedArgs, runner.lastArgs)
+		}
+	})
+
+	t.Run("MultipleSpacesAndPrefix", func(t *testing.T) {
+		modules := []string{"ml   load  mod1   mod2"}
+
+		err := loader.Load(context.Background(), modules)
+		if err != nil {
+			t.Fatalf("Load failed: %v", err)
 		}
 
-		if modCount != 3 {
-			t.Errorf("expected 3 modules extracted, got %d: %v", modCount, runner.lastArgs)
+		expectedArgs := []string{"bash", "load", "mod1", "mod2"}
+		if !reflect.DeepEqual(runner.lastArgs, expectedArgs) {
+			t.Errorf("unexpected args for modulecmd:\n- want: %v\n- got:  %v", expectedArgs, runner.lastArgs)
 		}
 	})
 
@@ -84,16 +75,9 @@ func TestRealModuleLoader_Load(t *testing.T) {
 			t.Fatalf("Load failed: %v", err)
 		}
 
-		modCount := 0
-		for i, arg := range runner.lastArgs {
-			if arg == loadKeyword {
-				modCount = len(runner.lastArgs) - i - 1
-				break
-			}
-		}
-
-		if modCount != 6 {
-			t.Errorf("expected 6 modules passed, got %d", modCount)
+		expectedArgs := []string{"bash", "load", "m1", "m2", "m3", "m4", "m5", "m6"}
+		if !reflect.DeepEqual(runner.lastArgs, expectedArgs) {
+			t.Errorf("unexpected args for modulecmd:\n- want: %v\n- got:  %v", expectedArgs, runner.lastArgs)
 		}
 	})
 }
