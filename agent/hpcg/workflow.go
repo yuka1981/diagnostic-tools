@@ -42,67 +42,39 @@ func (w *WorkflowOrchestrator) Run(ctx context.Context, params *RunParams) (*mod
 	}
 
 	// 1. Environment Setup
-	if w.ModuleLoader != nil && len(params.Modules) > 0 {
-		if err := w.ModuleLoader.Load(ctx, params.Modules); err != nil {
-			return nil, fmt.Errorf("failed to load modules: %w", err)
-		}
+	if err := w.setupEnvironment(ctx, params.Modules); err != nil {
+		return nil, err
 	}
 
 	// 2. Build
-	if params.BuildCmd != "" {
-		// Use "bash -c" to allow shell features in build command
-		if output, err := w.Runner.Run(ctx, w.WorkDir, "bash", "-c", params.BuildCmd); err != nil {
-			return nil, fmt.Errorf("build failed: %w\nOutput:\n%s", err, string(output))
-		}
+	if err := w.build(ctx, params.BuildCmd); err != nil {
+		return nil, err
 	}
 
 	// 3. Config
-	hpcgDat := GenerateConfig(params.Config)
-	if err := os.WriteFile(filepath.Join(w.WorkDir, "hpcg.dat"), []byte(hpcgDat), 0600); err != nil {
-		return nil, fmt.Errorf("failed to write hpcg.dat: %w", err)
+	if err := w.writeConfig(params.Config); err != nil {
+		return nil, err
 	}
 
 	// 4. Run
 	start := time.Now()
-	// Use "bash -c" to allow shell features in run command
-	output, err := w.Runner.Run(ctx, w.WorkDir, "bash", "-c", params.RunCmd)
+	output, execErr := w.Runner.Run(ctx, w.WorkDir, "bash", "-c", params.RunCmd)
 	end := time.Now()
 
-	status := model.BenchmarkStatusPass
-	if err != nil {
-		// Execution failed (exit code != 0)
-		status = model.BenchmarkStatusFail
+	execStatus := model.BenchmarkStatusPass
+	if execErr != nil {
+		execStatus = model.BenchmarkStatusFail
 	}
 
 	// 5. Parse
-	// First try to parse from stdout
-	metrics, parsedStatus, parseErr := ParseHPCGLog(strings.NewReader(string(output)))
-
-	// If stdout parsing failed or produced no metrics, look for generated log file
-	if parseErr != nil || metrics.GFLOPS == 0 {
-		if latestLog, err := w.findLatestLog(start); err == nil {
-			if m, s, e := ParseHPCGLogFile(latestLog); e == nil {
-				metrics = m
-				parsedStatus = s
-				parseErr = nil
-			}
-		}
-	}
-
-	if parseErr == nil {
-		status = parsedStatus
-	} else if status == model.BenchmarkStatusPass {
-		// If execution was successful but parsing failed, it's an error (e.g. unknown output format)
-		// But if execution failed, we stick to Fail.
-		status = model.BenchmarkStatusError
-	}
+	metrics, finalStatus := w.parseResults(output, start, execStatus)
 
 	result := &model.BenchmarkRun{
 		RunID:     params.RunID,
 		RecipeID:  "hpcg",
 		StartTime: start,
 		EndTime:   end,
-		Status:    status,
+		Status:    finalStatus,
 	}
 
 	if metrics != nil && metrics.GFLOPS > 0 {
@@ -114,6 +86,65 @@ func (w *WorkflowOrchestrator) Run(ctx context.Context, params *RunParams) (*mod
 	}
 
 	return result, nil
+}
+
+func (w *WorkflowOrchestrator) setupEnvironment(ctx context.Context, modules []string) error {
+	if w.ModuleLoader != nil && len(modules) > 0 {
+		if err := w.ModuleLoader.Load(ctx, modules); err != nil {
+			return fmt.Errorf("failed to load modules: %w", err)
+		}
+	}
+	return nil
+}
+
+func (w *WorkflowOrchestrator) build(ctx context.Context, buildCmd string) error {
+	if buildCmd == "" {
+		return nil
+	}
+	if output, err := w.Runner.Run(ctx, w.WorkDir, "bash", "-c", buildCmd); err != nil {
+		return fmt.Errorf("build failed: %w\nOutput:\n%s", err, string(output))
+	}
+	return nil
+}
+
+func (w *WorkflowOrchestrator) writeConfig(params ConfigParams) error {
+	hpcgDat := GenerateConfig(params)
+	if err := os.WriteFile(filepath.Join(w.WorkDir, "hpcg.dat"), []byte(hpcgDat), 0600); err != nil {
+		return fmt.Errorf("failed to write hpcg.dat: %w", err)
+	}
+	return nil
+}
+
+func (w *WorkflowOrchestrator) parseResults(
+	output []byte,
+	startTime time.Time,
+	execStatus model.BenchmarkStatus,
+) (*model.HPCGMetrics, model.BenchmarkStatus) {
+	// First try to parse from stdout
+	metrics, parsedStatus, parseErr := ParseHPCGLog(strings.NewReader(string(output)))
+
+	// If stdout parsing failed or produced no metrics, look for generated log file
+	if parseErr != nil || metrics.GFLOPS == 0 {
+		if latestLog, err := w.findLatestLog(startTime); err == nil {
+			if m, s, e := ParseHPCGLogFile(latestLog); e == nil {
+				metrics = m
+				parsedStatus = s
+				parseErr = nil
+			} else {
+				// record error for easier debugging
+				fmt.Fprintf(os.Stderr, "failed to parse log file %s: %v\n", latestLog, e)
+			}
+		}
+	}
+
+	finalStatus := execStatus
+	if parseErr == nil {
+		finalStatus = parsedStatus
+	} else if execStatus == model.BenchmarkStatusPass {
+		finalStatus = model.BenchmarkStatusError
+	}
+
+	return metrics, finalStatus
 }
 
 func (w *WorkflowOrchestrator) findLatestLog(startTime time.Time) (string, error) {

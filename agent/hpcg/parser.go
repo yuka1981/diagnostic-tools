@@ -61,4 +61,3 @@ func ParseHPCGLogFile(path string) (*model.HPCGMetrics, model.BenchmarkStatus, e
 	defer f.Close()
 	return ParseHPCGLog(f)
 }
-

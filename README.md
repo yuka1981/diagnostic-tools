@@ -186,7 +186,7 @@ Runs the HPCG (High Performance Conjugate Gradients) benchmark workflow. This in
 - `--server`: Server URL for uploading results.
 - `--token`: API token for uploading results.
 
-6. **Upload**: Sends results to the web application if `--server` and `--token` are provided.
+**Upload**: Sends results to the web application if `--server` and `--token` are provided.
 
 ### Building from Source
 
