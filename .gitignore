@@ -56,4 +56,5 @@ Thumbs.db
 
 .gemini/settings.json
 .gemini/
-/agent/agent/agent/hpcg_source
+/agent/agent
+/agent/hpcg_source
