@@ -3,7 +3,7 @@
 require "rails_helper"
 
 RSpec.describe "Nodes", type: :request do
-  let(:user) { create(:user) }
+  let(:user) { create(:user, :approver) }
   let(:node) { create(:node) }
 
   before do
@@ -50,9 +50,9 @@ RSpec.describe "Nodes", type: :request do
     end
 
     it "creates a new node" do
-      expect {
+      expect do
         post nodes_path, params: valid_params
-      }.to change(Node, :count).by(1)
+      end.to change(Node, :count).by(1)
     end
 
     it "redirects to nodes index" do
@@ -92,15 +92,53 @@ RSpec.describe "Nodes", type: :request do
   describe "DELETE /nodes/:id" do
     it "deletes the node" do
       node_to_delete = create(:node)
-      expect {
+      expect do
         delete node_path(node_to_delete)
-      }.to change(Node, :count).by(-1)
+      end.to change(Node, :count).by(-1)
     end
 
     it "returns turbo stream when requested" do
       delete node_path(node), headers: { "Accept" => "text/vnd.turbo-stream.html" }
       expect(response.media_type).to eq("text/vnd.turbo-stream.html")
       expect(response.body).to include("turbo-stream action=\"remove\"")
+    end
+  end
+
+  describe "authorization" do
+    let(:regular_user) { create(:user, :viewer) }
+
+    before do
+      sign_in regular_user
+    end
+
+    it "denies access to new node" do
+      get new_node_path
+      expect(response).to redirect_to(nodes_path)
+      expect(flash[:alert]).to be_present
+    end
+
+    it "denies access to create node" do
+      post nodes_path, params: { node: { hostname: "denied" } }
+      expect(response).to redirect_to(nodes_path)
+      expect(flash[:alert]).to be_present
+    end
+
+    it "denies access to edit node" do
+      get edit_node_path(node)
+      expect(response).to redirect_to(nodes_path)
+      expect(flash[:alert]).to be_present
+    end
+
+    it "denies access to update node" do
+      patch node_path(node), params: { node: { hostname: "denied" } }
+      expect(response).to redirect_to(nodes_path)
+      expect(flash[:alert]).to be_present
+    end
+
+    it "denies access to delete node" do
+      delete node_path(node)
+      expect(response).to redirect_to(nodes_path)
+      expect(flash[:alert]).to be_present
     end
   end
 
