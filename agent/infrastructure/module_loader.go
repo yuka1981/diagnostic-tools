@@ -25,6 +25,20 @@ func (m *RealModuleLoader) Load(ctx context.Context, modules []string) error {
 		return nil
 	}
 
+	var allModules []string
+	for _, mod := range modules {
+		fields := strings.Fields(mod)
+		if len(fields) >= 3 && (fields[0] == "ml" || fields[0] == "module") && fields[1] == "load" {
+			allModules = append(allModules, fields[2:]...)
+		} else {
+			allModules = append(allModules, fields...)
+		}
+	}
+
+	if len(allModules) == 0 {
+		return nil
+	}
+
 	// Determine module command. LMOD_CMD is standard for Lmod.
 	// Fallback to "modulecmd" if not set.
 	cmd := os.Getenv("LMOD_CMD")
@@ -33,7 +47,7 @@ func (m *RealModuleLoader) Load(ctx context.Context, modules []string) error {
 	}
 
 	// Prepare arguments: bash load <modules...>
-	args := append([]string{"bash", "load"}, modules...)
+	args := append([]string{"bash", "load"}, allModules...)
 
 	outputBytes, err := m.Runner.Run(ctx, "", cmd, args...)
 	if err != nil {
