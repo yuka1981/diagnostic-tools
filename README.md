@@ -186,6 +186,21 @@ Runs the HPCG (High Performance Conjugate Gradients) benchmark workflow. This in
 - `--server`: Server URL for uploading results.
 - `--token`: API token for uploading results.
 
+6. **Upload**: Sends results to the web application if `--server` and `--token` are provided.
+
+### Building from Source
+
+A helper script is provided to automate cloning the HPCG repository and running the benchmark using the agent:
+
+```bash
+./scripts/run_hpcg_from_source.sh
+```
+
+This script:
+1. Builds the `agent` binary.
+2. Clones the official HPCG repository.
+3. Uses the `agent hpcg` command to compile (`make`) and run (`mpirun`) the benchmark.
+
 ## Development
 
 ### Running Tests
