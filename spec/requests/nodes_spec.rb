@@ -114,7 +114,7 @@ RSpec.describe "Nodes", type: :request do
     it "returns success message when connection succeeds" do
       allow(service_double).to receive(:call).and_return(double(success?: true))
       post test_connection_node_path(node), headers: { "Accept" => "text/vnd.turbo-stream.html" }
-      
+
       expect(response).to have_http_status(:success)
       expect(response.body).to include("Connection to #{node.hostname} successful!")
     end
@@ -122,7 +122,7 @@ RSpec.describe "Nodes", type: :request do
     it "returns error message when connection fails" do
       allow(service_double).to receive(:call).and_return(double(success?: false, error: "Authentication failed"))
       post test_connection_node_path(node), headers: { "Accept" => "text/vnd.turbo-stream.html" }
-      
+
       expect(response).to have_http_status(:success)
       expect(response.body).to include("Connection to #{node.hostname} failed")
     end
