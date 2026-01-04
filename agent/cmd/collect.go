@@ -11,6 +11,8 @@ import (
 	"github.com/yuka1981/diagnostic-tools/agent/inventory/collector"
 )
 
+var collectOutputJSON bool
+
 var collectCmd = &cobra.Command{
 	Use:   "collect",
 	Short: "Collect system inventory and output JSON to stdout",
@@ -29,11 +31,12 @@ var collectCmd = &cobra.Command{
 			return fmt.Errorf("failed to marshal output: %w", err)
 		}
 
-		fmt.Println(string(output))
+		fmt.Fprintln(cmd.OutOrStdout(), string(output))
 		return nil
 	},
 }
 
 func init() {
+	collectCmd.Flags().BoolVar(&collectOutputJSON, "json", true, "Output in JSON format (default)")
 	rootCmd.AddCommand(collectCmd)
 }
