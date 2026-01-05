@@ -36,14 +36,23 @@ module Benchmark
     private
 
     def direct_command
-      cmd = "#{Shellwords.escape(@agent_path)} hpcg --id #{Shellwords.escape(generate_run_id)}"
+      # We assume the environment has HPCG_DIR and other variables if needed,
+      # but we'll use a more standard approach of cd into the source directory.
+      # The requested command specifically mentions running in the source root.
+      cmd = "cd hpcg_source && "
+      cmd += "#{Shellwords.escape(@agent_path)} hpcg"
+      cmd += " --id #{Shellwords.escape(generate_run_id)}"
+      cmd += " --build #{Shellwords.escape("make arch=Linux_Serial")}"
+      cmd += " --run #{Shellwords.escape("./bin/xhpcg")}"
+      cmd += " --nx 104 --ny 104 --nz 104"
+      cmd += " --rt 60"
       cmd += " --log-path #{Shellwords.escape(@log_path)}" if @log_path.present?
       cmd += " 2>&1"
       cmd
     end
 
     def generate_run_id
-      "web-run-#{Time.now.to_i}"
+      "hpcg-source-#{Time.current.strftime("%Y%m%d-%H%M")}"
     end
   end
 end

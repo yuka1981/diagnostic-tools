@@ -43,7 +43,7 @@ class SshExecutionService
     output = Net::SSH.start(host, user, options) do |session|
       session.exec!(cmd)
     end
-    
+
     Result.new(success: true, output: output)
   end
 

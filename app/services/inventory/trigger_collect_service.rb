@@ -41,16 +41,16 @@ module Inventory
         # configured jump hosts, but this legacy gateway is passed explicitly.
         # Ideally, we should migrate legacy usage to the standard jump host config.
         # For now, we wrap it.
-        
+
         # We need to construct the ssh command string to run on the gateway
         ssh_cmd = "ssh #{Shellwords.escape(@target_node.hostname)} #{cmd}"
-        
+
         # We temporarily swap target_node to gateway to reuse base logic for connection
         original_node = @target_node
         @target_node = @gateway
-        
+
         result = super(ssh_cmd)
-        
+
         @target_node = original_node # Restore
         result
       else

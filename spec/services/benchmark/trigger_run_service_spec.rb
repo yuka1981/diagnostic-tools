@@ -14,7 +14,7 @@ RSpec.describe Benchmark::TriggerRunService do
 
   describe "#call" do
     it "executes the benchmark command via SSH" do
-      expect(ssh_client).to receive(:exec!).with(/agent hpcg --id/)
+      expect(ssh_client).to receive(:exec!).with(/cd hpcg_source && agent hpcg --id hpcg-source-\d{8}-\d{4} --build make.*arch.*Linux_Serial --run .*bin\/xhpcg --nx 104 --ny 104 --nz 104 --rt 60 2>&1/)
       result = service.call
       expect(result.success?).to be true
       expect(result.output).to eq("Benchmark started")

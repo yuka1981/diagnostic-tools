@@ -277,6 +277,7 @@ RSpec.describe Inventory::TriggerCollectService do
 
     context "with custom agent path" do
       let(:agent_path) { "/opt/agent/bin/agent" }
+      subject(:service) { described_class.new(target_node, agent_path: agent_path, ssh_config: ssh_config) }
 
       it "uses custom agent path escaped" do
         expect(service.send(:command)).to eq("/opt/agent/bin/agent collect --json 2>&1")
@@ -288,7 +289,7 @@ RSpec.describe Inventory::TriggerCollectService do
 
       it "escapes hostname properly" do
         # The command itself doesn't contain the hostname anymore (SSH handles it)
-        expect(command).to eq("agent collect --json 2>&1")
+        expect(service.send(:command)).to eq("agent collect --json 2>&1")
       end
     end
 
@@ -297,7 +298,7 @@ RSpec.describe Inventory::TriggerCollectService do
 
       it "escapes dangerous characters" do
         # Just checking the command is safe/standard
-        expect(command).to eq("agent collect --json 2>&1")
+        expect(service.send(:command)).to eq("agent collect --json 2>&1")
       end
     end
   end
