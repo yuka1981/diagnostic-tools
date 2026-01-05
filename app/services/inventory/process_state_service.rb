@@ -59,10 +59,11 @@ module Inventory
 
     def build_state_data
       {
-        cpu_info: @raw_json[:cpu_info] || {},
-        mem_info: @raw_json[:mem_info] || {},
-        disk_info: @raw_json[:disk_info] || [],
-        net_info: @raw_json[:net_info] || []
+        host_info: @raw_json[:host] || {},
+        cpu_info: @raw_json[:cpu] || {},
+        mem_info: @raw_json[:memory] || {},
+        disk_info: @raw_json[:disks] || [],
+        net_info: @raw_json[:network] || []
       }
     end
 

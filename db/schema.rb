@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_01_02_083925) do
+ActiveRecord::Schema[7.2].define(version: 2026_01_04_235238) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -50,6 +50,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_02_083925) do
     t.datetime "captured_at", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.jsonb "host_info", default: {}
     t.index ["captured_at"], name: "index_node_states_on_captured_at"
     t.index ["node_id", "captured_at"], name: "index_node_states_on_node_id_and_captured_at", order: { captured_at: :desc }
     t.index ["node_id"], name: "index_node_states_on_node_id"

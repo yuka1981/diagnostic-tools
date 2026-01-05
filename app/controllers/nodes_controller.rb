@@ -3,8 +3,8 @@
 class NodesController < ApplicationController
   layout "dashboard"
   before_action :authenticate_user!
-  before_action :set_node, only: %i[show edit update destroy test_connection]
-  before_action :authorize_approver!, only: %i[new create edit update destroy]
+  before_action :set_node, only: %i[show edit update destroy test_connection collect]
+  before_action :authorize_approver!, only: %i[new create edit update destroy test_connection collect]
 
   def index
     @nodes = Node.order(:hostname)
@@ -32,6 +32,38 @@ class NodesController < ApplicationController
         flash.now[:alert] = "Connection error: #{e.message}"
         render turbo_stream: turbo_stream.update("flash_messages", partial: "shared/flash")
       end
+    end
+  end
+
+  def collect
+    trigger_service = Inventory::TriggerCollectService.new(@node)
+    trigger_result = trigger_service.call
+
+    if trigger_result.success?
+      process_service = Inventory::ProcessStateService.new(node_id: @node.id, raw_json: trigger_result.output)
+      process_result = process_service.call
+
+      if process_result.success?
+        flash.now[:notice] = "System information collected successfully for #{@node.hostname}."
+      else
+        flash.now[:alert] = "Collected data but failed to process: #{process_result.error}"
+      end
+    else
+      flash.now[:alert] = "Failed to collect information from #{@node.hostname}: #{trigger_result.error}"
+    end
+
+    @node.reload
+    respond_to do |format|
+      format.turbo_stream
+      format.html { redirect_to @node }
+    end
+  rescue StandardError => e
+    respond_to do |format|
+      format.turbo_stream do
+        flash.now[:alert] = "Collection error: #{e.message}"
+        render turbo_stream: turbo_stream.update("flash_messages", partial: "shared/flash")
+      end
+      format.html { redirect_to @node, alert: "Collection error: #{e.message}" }
     end
   end
 

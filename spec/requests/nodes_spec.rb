@@ -128,6 +128,34 @@ RSpec.describe "Nodes", type: :request do
     end
   end
 
+  describe "POST /nodes/:id/collect" do
+    let(:trigger_double) { instance_double(Inventory::TriggerCollectService) }
+    let(:process_double) { instance_double(Inventory::ProcessStateService) }
+
+    before do
+      allow(Inventory::TriggerCollectService).to receive(:new).with(node).and_return(trigger_double)
+    end
+
+    it "returns success message and updates data when collection succeeds" do
+      allow(trigger_double).to receive(:call).and_return(double(success?: true, output: { host: { hostname: node.hostname } }))
+      allow(Inventory::ProcessStateService).to receive(:new).and_return(process_double)
+      allow(process_double).to receive(:call).and_return(double(success?: true, state_created: true, node_state: build(:node_state)))
+
+      post collect_node_path(node), headers: { "Accept" => "text/vnd.turbo-stream.html" }
+
+      expect(response).to have_http_status(:success)
+      expect(response.body).to include("System information collected successfully")
+    end
+
+    it "returns error message when collection fails" do
+      allow(trigger_double).to receive(:call).and_return(double(success?: false, error: "Agent not found"))
+      post collect_node_path(node), headers: { "Accept" => "text/vnd.turbo-stream.html" }
+
+      expect(response).to have_http_status(:success)
+      expect(response.body).to include("Agent not found")
+    end
+  end
+
   describe "authorization" do
     let(:regular_user) { create(:user, :viewer) }
 
@@ -161,6 +189,18 @@ RSpec.describe "Nodes", type: :request do
 
     it "denies access to delete node" do
       delete node_path(node)
+      expect(response).to redirect_to(nodes_path)
+      expect(flash[:alert]).to be_present
+    end
+
+    it "denies access to test connection" do
+      post test_connection_node_path(node)
+      expect(response).to redirect_to(nodes_path)
+      expect(flash[:alert]).to be_present
+    end
+
+    it "denies access to collect" do
+      post collect_node_path(node)
       expect(response).to redirect_to(nodes_path)
       expect(flash[:alert]).to be_present
     end

@@ -9,7 +9,8 @@ module Api
         return if performed?
 
         # Validate required identifier
-        hostname = parsed_body[:hostname]
+        # Agent sends hostname inside 'host' object
+        hostname = parsed_body.dig(:host, :hostname) || parsed_body[:hostname]
         node_id = parsed_body[:node_id]
 
         unless hostname.present? || node_id.present?
@@ -53,7 +54,7 @@ module Api
       end
 
       def build_raw_json(parsed_body)
-        parsed_body.slice(:cpu_info, :mem_info, :disk_info, :net_info)
+        parsed_body.slice(:host, :cpu, :memory, :disks, :network)
       end
 
       def handle_service_error(result)

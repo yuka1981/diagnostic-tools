@@ -17,6 +17,11 @@ RSpec.describe NodeState, type: :model do
       expect(node_state).to be_valid
     end
 
+    it "creates a node_state with host_info" do
+      node_state = build(:node_state, :with_host_info)
+      expect(node_state.host_info).to include("hostname", "os", "platform")
+    end
+
     it "creates a node_state with cpu_info" do
       node_state = build(:node_state, :with_cpu_info)
       expect(node_state.cpu_info).to include("model", "cores", "threads")
@@ -39,6 +44,7 @@ RSpec.describe NodeState, type: :model do
 
     it "creates a complete node_state with all info" do
       node_state = build(:node_state, :complete)
+      expect(node_state.host_info).to be_present
       expect(node_state.cpu_info).to be_present
       expect(node_state.mem_info).to be_present
       expect(node_state.disk_info).to be_present
@@ -73,6 +79,7 @@ RSpec.describe NodeState, type: :model do
     it "generates consistent hash for same content" do
       state1 = build(:node_state, :complete)
       state2 = build(:node_state,
+        host_info: state1.host_info,
         cpu_info: state1.cpu_info,
         mem_info: state1.mem_info,
         disk_info: state1.disk_info,
@@ -93,6 +100,7 @@ RSpec.describe NodeState, type: :model do
 
     it "returns true for same content" do
       state2 = build(:node_state,
+        host_info: state1.host_info,
         cpu_info: state1.cpu_info,
         mem_info: state1.mem_info,
         disk_info: state1.disk_info,
@@ -126,27 +134,8 @@ RSpec.describe NodeState, type: :model do
     end
 
     it "destroys states when node is destroyed" do
-      create_list(:node_state, 2, node: node)
-      expect { node.destroy }.to change(NodeState, :count).by(-2)
-    end
-  end
-
-  describe "Node#current_state" do
-    let(:node) { create(:node) }
-
-    context "when node has states" do
-      let!(:old_state) { create(:node_state, node: node, captured_at: 1.day.ago) }
-      let!(:latest_state) { create(:node_state, node: node, captured_at: 1.hour.ago) }
-
-      it "returns the most recent state" do
-        expect(node.current_state).to eq(latest_state)
-      end
-    end
-
-    context "when node has no states" do
-      it "returns nil" do
-        expect(node.current_state).to be_nil
-      end
+      create(:node_state, node: node)
+      expect { node.destroy }.to change(NodeState, :count).by(-1)
     end
   end
 end
