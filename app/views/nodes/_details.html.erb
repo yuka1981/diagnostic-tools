@@ -175,6 +175,14 @@
               <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">NUMA node(s)</dt>
               <dd class="text-sm font-semibold text-gray-900 dark:text-white"><%= state.cpu_info["numa_nodes"] || "—" %></dd>
             </div>
+            <% if state.cpu_info["numa_info"].present? %>
+              <% state.cpu_info["numa_info"].sort.each do |node_id, cpu_list| %>
+                <div>
+                  <dt class="text-[10px] font-medium text-gray-400 dark:text-slate-500 uppercase">NUMA node<%= node_id %> CPU(s)</dt>
+                  <dd class="text-xs font-mono text-gray-900 dark:text-white break-all"><%= cpu_list %></dd>
+                </div>
+              <% end %>
+            <% end %>
           </dl>
         </div>
       </div>

@@ -34,9 +34,10 @@ type CPUInfo struct {
 	L1dCache       string   `json:"l1d_cache"`
 	L1iCache       string   `json:"l1i_cache"`
 	L2Cache        string   `json:"l2_cache"`
-	L3Cache        string   `json:"l3_cache"`
-	NUMANodes      int      `json:"numa_nodes"`
-	Flags          []string `json:"flags"`
+	L3Cache        string            `json:"l3_cache"`
+	NUMANodes      int               `json:"numa_nodes"`
+	NUMAInfo       map[string]string `json:"numa_info"` // node ID -> CPU list
+	Flags          []string          `json:"flags"`
 }
 
 // MemoryInfo represents memory statistics in bytes.

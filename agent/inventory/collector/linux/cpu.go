@@ -59,9 +59,15 @@ func (c *LinuxCPUCollector) collectSysInfo(info *model.CPUInfo) {
 	// NUMA Nodes
 	if files, err := os.ReadDir("/sys/devices/system/node"); err == nil {
 		count := 0
+		info.NUMAInfo = make(map[string]string)
 		for _, f := range files {
 			if strings.HasPrefix(f.Name(), "node") {
 				count++
+				nodeID := strings.TrimPrefix(f.Name(), "node")
+				cpuListPath := "/sys/devices/system/node/" + f.Name() + "/cpulist"
+				if content, err := os.ReadFile(cpuListPath); err == nil {
+					info.NUMAInfo[nodeID] = strings.TrimSpace(string(content))
+				}
 			}
 		}
 		info.NUMANodes = count
