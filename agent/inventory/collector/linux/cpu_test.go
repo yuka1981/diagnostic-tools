@@ -207,6 +207,30 @@ func TestParseCPUInfo_AArch64(t *testing.T) {
 		t.Fatalf("ParseCPUInfo returned error: %v", err)
 	}
 
+	t.Run("Architecture", func(t *testing.T) {
+		if info.Architecture != "8" {
+			t.Errorf("expected Architecture '8', got %q", info.Architecture)
+		}
+	})
+
+	t.Run("VendorID", func(t *testing.T) {
+		if info.VendorID != "0x41" {
+			t.Errorf("expected VendorID '0x41', got %q", info.VendorID)
+		}
+	})
+
+	t.Run("Topology", func(t *testing.T) {
+		if info.CPUs != 2 {
+			t.Errorf("expected CPUs 2, got %d", info.CPUs)
+		}
+		if info.ThreadsPerCore != 1 {
+			t.Errorf("expected ThreadsPerCore 1, got %d", info.ThreadsPerCore)
+		}
+		if info.CoresPerSocket != 2 {
+			t.Errorf("expected CoresPerSocket 2, got %d", info.CoresPerSocket)
+		}
+	})
+
 	t.Run("ModelName_Fallback", func(t *testing.T) {
 		if info.ModelName == "" {
 			t.Error("expected ModelName to be set (even if fallback)")

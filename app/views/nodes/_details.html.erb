@@ -102,22 +102,42 @@
         <h3 class="text-lg font-semibold text-gray-900 dark:text-white">CPU Information</h3>
       </div>
       <dl class="grid grid-cols-1 gap-x-4 gap-y-4 sm:grid-cols-2">
+        <div>
+          <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">Architecture</dt>
+          <dd class="mt-1 text-sm text-gray-900 dark:text-white"><%= state.host_info["arch"] || state.cpu_info["architecture"] || "—" %></dd>
+        </div>
+        <div>
+          <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">Vendor ID</dt>
+          <dd class="mt-1 text-sm text-gray-900 dark:text-white"><%= state.cpu_info["vendor_id"] || "—" %></dd>
+        </div>
         <div class="sm:col-span-2">
-          <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">Model</dt>
+          <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">Model name</dt>
           <dd class="mt-1 text-sm text-gray-900 dark:text-white"><%= state.cpu_info["model_name"] || "—" %></dd>
         </div>
         <div>
-          <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">Topology</dt>
-          <dd class="mt-1 text-sm text-gray-900 dark:text-white">
-            <%= state.cpu_info["sockets"] %> Sockets, <%= state.cpu_info["cores"] %> Cores, <%= state.cpu_info["threads"] %> Threads
-          </dd>
+          <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">CPU(s)</dt>
+          <dd class="mt-1 text-sm text-gray-900 dark:text-white"><%= state.cpu_info["cpus"] || state.cpu_info["threads"] %></dd>
         </div>
         <div>
+          <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">Thread(s) per core</dt>
+          <dd class="mt-1 text-sm text-gray-900 dark:text-white"><%= state.cpu_info["threads_per_core"] || "—" %></dd>
+        </div>
+        <div>
+          <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">Core(s) per socket</dt>
+          <dd class="mt-1 text-sm text-gray-900 dark:text-white"><%= state.cpu_info["cores_per_socket"] || "—" %></dd>
+        </div>
+        <div>
+          <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">Socket(s)</dt>
+          <dd class="mt-1 text-sm text-gray-900 dark:text-white"><%= state.cpu_info["sockets"] %></dd>
+        </div>
+        <div class="sm:col-span-2">
           <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">Flags</dt>
-          <dd class="mt-1 text-sm text-gray-900 dark:text-white">
-            <span class="inline-block truncate max-w-xs" title="<%= state.cpu_info["flags"]&.join(", ") %>">
-              <%= state.cpu_info["flags"]&.size || 0 %> flags available
-            </span>
+          <dd class="mt-1">
+            <div class="flex flex-wrap gap-1 max-h-32 overflow-y-auto p-2 bg-gray-50 dark:bg-slate-900 rounded border border-gray-100 dark:border-white/5">
+              <% (state.cpu_info["flags"] || []).each do |flag| %>
+                <span class="px-1.5 py-0.5 rounded bg-white dark:bg-white/5 text-[10px] font-mono text-gray-600 dark:text-slate-400 border border-gray-100 dark:border-white/5"><%= flag %></span>
+              <% end %>
+            </div>
           </dd>
         </div>
       </dl>

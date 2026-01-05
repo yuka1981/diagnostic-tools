@@ -15,11 +15,16 @@ type HostInfo struct {
 
 // CPUInfo represents processor details.
 type CPUInfo struct {
-	ModelName string   `json:"model_name"`
-	Flags     []string `json:"flags"`
-	Cores     int      `json:"cores"`
-	Threads   int      `json:"threads"`
-	Sockets   int      `json:"sockets"`
+	Architecture   string   `json:"architecture"`
+	VendorID       string   `json:"vendor_id"`
+	ModelName      string   `json:"model_name"`
+	CPUs           int      `json:"cpus"`
+	ThreadsPerCore int      `json:"threads_per_core"`
+	CoresPerSocket int      `json:"cores_per_socket"`
+	Sockets        int      `json:"sockets"`
+	Cores          int      `json:"cores"`
+	Threads        int      `json:"threads"`
+	Flags          []string `json:"flags"`
 }
 
 // MemoryInfo represents memory statistics in bytes.

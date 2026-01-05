@@ -37,17 +37,22 @@ func (c *LinuxCPUCollector) Collect(ctx context.Context) (*model.CPUInfo, error)
 type cpuParseState struct {
 	physicalIDs    map[string]bool
 	coresPerSocket map[string]int
+	threadsPerCore map[string]int
 	currentPhysID  string
+	currentCoreID  string
 	processorCount int
 	currentCores   int
 	implementer    string
 	part           string
+	vendorID       string
+	architecture   string
 }
 
 func newCPUParseState() *cpuParseState {
 	return &cpuParseState{
 		physicalIDs:    make(map[string]bool),
 		coresPerSocket: make(map[string]int),
+		threadsPerCore: make(map[string]int),
 	}
 }
 
@@ -56,14 +61,21 @@ func (s *cpuParseState) processLine(key, value string, info *model.CPUInfo) {
 	case "processor":
 		s.processorCount++
 		s.currentPhysID = ""
+		s.currentCoreID = ""
 		s.currentCores = 0
 	case "model name":
 		if info.ModelName == "" {
 			info.ModelName = value
 		}
+	case "vendor_id", "CPU implementer":
+		if s.vendorID == "" {
+			s.vendorID = value
+		}
 	case "physical id":
 		s.currentPhysID = value
 		s.physicalIDs[value] = true
+	case "core id":
+		s.currentCoreID = value
 	case "cpu cores":
 		if cores, err := strconv.Atoi(value); err == nil {
 			s.currentCores = cores
@@ -72,10 +84,8 @@ func (s *cpuParseState) processLine(key, value string, info *model.CPUInfo) {
 		if len(info.Flags) == 0 {
 			info.Flags = strings.Fields(value)
 		}
-	case "CPU implementer":
-		if s.implementer == "" {
-			s.implementer = value
-		}
+	case "CPU architecture":
+		s.architecture = value
 	case "CPU part":
 		if s.part == "" {
 			s.part = value
@@ -89,6 +99,7 @@ func (s *cpuParseState) processLine(key, value string, info *model.CPUInfo) {
 
 func (s *cpuParseState) finalizeCPUInfo(info *model.CPUInfo) {
 	info.Threads = s.processorCount
+	info.CPUs = s.processorCount
 	info.Sockets = len(s.physicalIDs)
 
 	if info.Sockets == 0 {
@@ -105,11 +116,25 @@ func (s *cpuParseState) finalizeCPUInfo(info *model.CPUInfo) {
 		info.Cores = info.Threads
 	}
 
+	// Calculate topology details
+	if info.Sockets > 0 {
+		info.CoresPerSocket = info.Cores / info.Sockets
+	}
+	if info.Cores > 0 {
+		info.ThreadsPerCore = info.Threads / info.Cores
+	}
+
+	// Vendor and Architecture
+	info.VendorID = s.vendorID
+	if s.architecture != "" {
+		info.Architecture = s.architecture
+	}
+
 	// Fallback for ModelName on ARM systems
-	if info.ModelName == "" && (s.implementer != "" || s.part != "") {
+	if info.ModelName == "" && (s.vendorID != "" || s.part != "") {
 		info.ModelName = "AArch64 Processor"
-		if s.implementer != "" && s.part != "" {
-			info.ModelName = "AArch64 Processor (" + s.implementer + ":" + s.part + ")"
+		if s.vendorID != "" && s.part != "" {
+			info.ModelName = "AArch64 Processor (" + s.vendorID + ":" + s.part + ")"
 		}
 	}
 }
