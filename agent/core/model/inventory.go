@@ -15,6 +15,14 @@ type HostInfo struct {
 
 // CPUInfo represents processor details.
 type CPUInfo struct {
+	NUMAInfo       map[string]string `json:"numa_info"` // node ID -> CPU list
+	CPUs           int               `json:"cpus"`
+	ThreadsPerCore int               `json:"threads_per_core"`
+	CoresPerSocket int               `json:"cores_per_socket"`
+	Sockets        int               `json:"sockets"`
+	Cores          int               `json:"cores"`
+	Threads        int               `json:"threads"`
+	NUMANodes      int               `json:"numa_nodes"`
 	Flags          []string          `json:"flags"`
 	Architecture   string            `json:"architecture"`
 	OpModes        string            `json:"op_modes"`
@@ -30,14 +38,6 @@ type CPUInfo struct {
 	L1iCache       string            `json:"l1i_cache"`
 	L2Cache        string            `json:"l2_cache"`
 	L3Cache        string            `json:"l3_cache"`
-	NUMAInfo       map[string]string `json:"numa_info"` // node ID -> CPU list
-	CPUs           int               `json:"cpus"`
-	ThreadsPerCore int               `json:"threads_per_core"`
-	CoresPerSocket int               `json:"cores_per_socket"`
-	Sockets        int               `json:"sockets"`
-	Cores          int               `json:"cores"`
-	Threads        int               `json:"threads"`
-	NUMANodes      int               `json:"numa_nodes"`
 }
 
 // MemoryInfo represents memory statistics in bytes.
