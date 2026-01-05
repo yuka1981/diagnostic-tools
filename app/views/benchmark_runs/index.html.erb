@@ -95,6 +95,7 @@
               <th scope="col" class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-slate-400">Hostname</th>
               <th scope="col" class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-slate-400">Log Path</th>
               <th scope="col" class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-slate-400">Benchmarking Status</th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-slate-400">Created At</th>
               <th scope="col" class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-slate-400">Started</th>
               <th scope="col" class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-slate-400">Execute Time</th>
               <th scope="col" class="relative px-6 py-3">
@@ -102,7 +103,7 @@
               </th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-gray-200 dark:divide-white/5">
+          <tbody id="benchmark_runs_tbody" class="divide-y divide-gray-200 dark:divide-white/5">
             <% @benchmark_runs.each do |run| %>
               <%= render "benchmark_runs/run_row", run: run %>
             <% end %>
