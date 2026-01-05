@@ -31,8 +31,8 @@ func TestHTTPUploader_Upload_NodeState(t *testing.T) {
 		if r.Method != "POST" {
 			t.Errorf("expected POST method, got %s", r.Method)
 		}
-		if r.URL.Path != "/api/v1/inventory" {
-			t.Errorf("expected path /api/v1/inventory, got %s", r.URL.Path)
+		if r.URL.Path != "/api/v1/inventory/push" {
+			t.Errorf("expected path /api/v1/inventory/push, got %s", r.URL.Path)
 		}
 
 		// Verify Body

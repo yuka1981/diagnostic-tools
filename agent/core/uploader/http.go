@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	endpointInventory     = "/api/v1/inventory"
+	endpointInventory     = "/api/v1/inventory/push"
 	endpointBenchmarkRuns = "/api/v1/benchmark_runs"
 )
 
