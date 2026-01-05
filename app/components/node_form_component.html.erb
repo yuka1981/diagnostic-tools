@@ -1,0 +1,94 @@
+<%= form_with(model: @node, class: "space-y-6") do |f| %>
+  <% if @node.errors.any? %>
+    <div id="error_explanation" class="rounded-lg bg-red-50 p-4 text-sm text-red-700 dark:bg-red-900/20 dark:text-red-400">
+      <h2 class="font-bold"><%= pluralize(@node.errors.count, "error") %> prohibited this node from being saved:</h2>
+      <ul class="list-disc list-inside mt-2">
+        <% @node.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+    <div>
+      <%= f.label :hostname, class: "block text-sm font-medium text-gray-700 dark:text-slate-300" %>
+      <%= f.text_field :hostname, required: true,
+          placeholder: "node-001",
+          class: "mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-slate-800 dark:border-white/10 dark:text-white sm:text-sm" %>
+    </div>
+
+    <div>
+      <%= f.label :ip, "IP Address", class: "block text-sm font-medium text-gray-700 dark:text-slate-300" %>
+      <%= f.text_field :ip,
+          placeholder: "10.0.0.1",
+          class: "mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-slate-800 dark:border-white/10 dark:text-white sm:text-sm" %>
+    </div>
+
+    <div>
+      <%= f.label :role, class: "block text-sm font-medium text-gray-700 dark:text-slate-300" %>
+      <%= f.select :role, Node.roles.keys.map { |r| [r.humanize, r] }, {},
+          class: "mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-slate-800 dark:border-white/10 dark:text-white sm:text-sm" %>
+    </div>
+
+    <div>
+      <%= f.label :arch, "Architecture", class: "block text-sm font-medium text-gray-700 dark:text-slate-300" %>
+      <%= f.select :arch, [["x86_64", "x86_64"], ["aarch64/arm64", "aarch64"]], { include_blank: "Select Architecture" },
+          class: "mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-slate-800 dark:border-white/10 dark:text-white sm:text-sm" %>
+    </div>
+
+    <div>
+      <%= f.label :ssh_port, "SSH Port", class: "block text-sm font-medium text-gray-700 dark:text-slate-300" %>
+      <%= f.number_field :ssh_port, min: 1, max: 65535,
+          class: "mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-slate-800 dark:border-white/10 dark:text-white sm:text-sm" %>
+    </div>
+
+    <div>
+      <%= f.label :ssh_user, "SSH User", class: "block text-sm font-medium text-gray-700 dark:text-slate-300" %>
+      <%= f.text_field :ssh_user,
+          placeholder: "root",
+          class: "mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-slate-800 dark:border-white/10 dark:text-white sm:text-sm" %>
+    </div>
+
+    <div class="sm:col-span-2">
+      <%= f.label :agent_path, "Agent Binary Path", class: "block text-sm font-medium text-gray-700 dark:text-slate-300" %>
+      <%= f.text_field :agent_path,
+          placeholder: "/usr/local/bin/agent (default: agent)",
+          class: "mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-slate-800 dark:border-white/10 dark:text-white sm:text-sm" %>
+      <p class="mt-1 text-xs text-gray-500 dark:text-slate-400">Specify the full path to the agent binary if it's not in the system PATH.</p>
+    </div>
+  </div>
+
+  <div class="border-t border-gray-200 pt-6 dark:border-white/10">
+    <h4 class="text-sm font-semibold text-gray-900 dark:text-white mb-4">SSH Jump Host (Optional)</h4>
+    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+      <div class="sm:col-span-2">
+        <%= f.label :jump_host, "Jump Host", class: "block text-sm font-medium text-gray-700 dark:text-slate-300" %>
+        <%= f.text_field :jump_host,
+            placeholder: "bastion.example.com",
+            class: "mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-slate-800 dark:border-white/10 dark:text-white sm:text-sm" %>
+      </div>
+
+      <div>
+        <%= f.label :jump_user, "Jump User", class: "block text-sm font-medium text-gray-700 dark:text-slate-300" %>
+        <%= f.text_field :jump_user,
+            placeholder: "jumpuser",
+            class: "mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-slate-800 dark:border-white/10 dark:text-white sm:text-sm" %>
+      </div>
+
+      <div>
+        <%= f.label :jump_port, "Jump Port", class: "block text-sm font-medium text-gray-700 dark:text-slate-300" %>
+        <%= f.number_field :jump_port, min: 1, max: 65535, placeholder: "22",
+            class: "mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-slate-800 dark:border-white/10 dark:text-white sm:text-sm" %>
+      </div>
+    </div>
+  </div>
+
+  <div class="mt-6 flex items-center justify-end gap-3">
+    <%= link_to "Cancel", nodes_path,
+        class: "rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:bg-slate-800 dark:border-white/10 dark:text-slate-300 dark:hover:bg-slate-700",
+        data: { turbo_frame: "node_modal" } %>
+    <%= f.submit "Save Node",
+        class: "rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 shadow-lg shadow-blue-500/20" %>
+  </div>
+<% end %>

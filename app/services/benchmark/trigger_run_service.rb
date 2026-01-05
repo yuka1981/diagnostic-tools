@@ -4,8 +4,8 @@ require "net/ssh"
 require "net/ssh/gateway"
 require "shellwords"
 
-module Inventory
-  class TriggerCollectService
+module Benchmark
+  class TriggerRunService
     Result = Struct.new(:success, :output, :error, keyword_init: true) do
       def success?
         success
@@ -13,38 +13,32 @@ module Inventory
     end
 
     DEFAULT_AGENT_PATH = "agent"
-    DEFAULT_TIMEOUT = 30
+    DEFAULT_TIMEOUT = 300 # Longer timeout for benchmarks
 
     # Initialize the service
-    # @param target_node [Node] The node to collect data from
-    # @param gateway [Node, nil] Optional gateway/admin node to connect through (Legacy manual proxy)
+    # @param target_node [Node] The node to run benchmark on
     # @param ssh_config [Hash] SSH configuration (user, keys, timeout, verify_host_key)
     # @param agent_path [String, nil] Optional override for path to the agent binary
-    def initialize(target_node, gateway: nil, ssh_config: {}, agent_path: nil)
+    def initialize(target_node, ssh_config: {}, agent_path: nil)
       @target_node = target_node
-      @gateway = gateway
       @ssh_config = build_ssh_config(ssh_config)
       @agent_path = agent_path || @target_node.try(:effective_agent_path) || DEFAULT_AGENT_PATH
     end
 
-    # Execute the SSH command to collect data from the target node
-    # @return [Result] Success result with parsed JSON output, or error result
-    # @raise [Net::SSH::ConnectionTimeout] When connection times out (retriable)
-    # @raise [Net::SSH::AuthenticationFailed] When authentication fails (non-retriable)
-    # @raise [Net::SSH::HostKeyMismatch] When host key verification fails (non-retriable)
+    # Execute the SSH command to run benchmark
+    # @return [Result] Success result or error result
     def call
       output = execute_ssh_command
 
       return error_result("Command returned empty output") if output.blank?
 
-      parsed_output = parse_json(output)
-      return parsed_output if parsed_output.is_a?(Result) # Error result
-
-      @target_node.touch_last_seen
-
-      Result.new(success: true, output: parsed_output)
-    rescue JSON::ParserError => e
-      error_result("JSON parse error: #{e.message}")
+      # Parse output if needed, or just return success if the agent handles upload
+      # For now, we assume the agent handles the upload logic internally if token is present
+      Result.new(success: true, output: output)
+    rescue Net::SSH::Exception => e
+      error_result("SSH error: #{e.message}")
+    rescue StandardError => e
+      error_result("Unexpected error: #{e.message}")
     end
 
     private
@@ -58,7 +52,7 @@ module Inventory
     end
 
     def use_jump_host?
-      @target_node.use_jump_host? || SshConfig.use_jump_host?
+      @target_node.use_jump_host? || ::SshConfig.use_jump_host?
     end
 
     def execute_direct
@@ -72,9 +66,9 @@ module Inventory
     end
 
     def execute_via_gateway
-      gateway_host = @target_node.jump_host.presence || SshConfig.jump_host
-      gateway_user = @target_node.jump_user.presence || SshConfig.jump_user || @ssh_config[:user]
-      gateway_port = @target_node.jump_port || SshConfig.jump_port
+      gateway_host = @target_node.jump_host.presence || ::SshConfig.jump_host
+      gateway_user = @target_node.jump_user.presence || ::SshConfig.jump_user || @ssh_config[:user]
+      gateway_port = @target_node.jump_port || ::SshConfig.jump_port
       gateway_options = ssh_options.merge(port: gateway_port)
 
       gateway = Net::SSH::Gateway.new(gateway_host, gateway_user, gateway_options)
@@ -97,7 +91,7 @@ module Inventory
     end
 
     def ssh_host
-      @gateway&.ip || @target_node.ip || @target_node.hostname
+      @target_node.ip || @target_node.hostname
     end
 
     def ssh_options
@@ -107,8 +101,6 @@ module Inventory
         non_interactive: true
       }
 
-      # Only set verify_host_key if explicitly configured
-      # Default behavior uses :secure (requires known_hosts)
       if @ssh_config[:verify_host_key]
         options[:verify_host_key] = @ssh_config[:verify_host_key]
       end
@@ -116,38 +108,16 @@ module Inventory
       options.compact
     end
 
-    def command
-      if @gateway
-        # Connect through gateway, SSH to target node (Legacy manual proxy)
-        # Use Shellwords.escape to prevent command injection
-        "ssh #{Shellwords.escape(@target_node.hostname)} #{Shellwords.escape(@agent_path)} collect --json 2>&1"
-      else
-        direct_command
-      end
-    end
-
     def direct_command
-      "#{Shellwords.escape(@agent_path)} collect --json 2>&1"
+      # Construct the command with the correct flags
+      # We rely on the agent having the server URL and token if configured via env vars on the host
+      # Or we could pass them explicitly here if we had them available safely
+      # For this iteration, we'll assume a basic run command
+      "#{Shellwords.escape(@agent_path)} hpcg --id #{Shellwords.escape(generate_run_id)} 2>&1"
     end
 
-    def parse_json(output)
-      # Check for common shell errors first
-      if output.include?("command not found")
-        return error_result("Agent not found at '#{@agent_path}'. Please check if it's installed and in the PATH.")
-      end
-
-      if output.include?("Permission denied")
-        return error_result("Permission denied when executing agent. Please check file permissions.")
-      end
-
-      # Check if output starts with "Error:" which is a common prefix for CLI errors
-      if output.start_with?("Error:")
-        return error_result("Agent error: #{output.sub("Error:", "").strip}")
-      end
-
-      JSON.parse(output, symbolize_names: true)
-    rescue JSON::ParserError => e
-      error_result("JSON parse error: #{e.message}. Raw output: #{output.truncate(200)}")
+    def generate_run_id
+      "web-run-#{Time.now.to_i}"
     end
 
     def build_ssh_config(config)
@@ -173,8 +143,6 @@ module Inventory
     end
 
     def default_verify_host_key
-      # Default to nil (uses net-ssh default :secure behavior)
-      # Can be overridden via credentials or env var for specific use cases
       config_value = Rails.application.credentials.dig(:ssh, :verify_host_key) || ENV.fetch("SSH_VERIFY_HOST_KEY", nil)
       config_value&.to_sym
     end

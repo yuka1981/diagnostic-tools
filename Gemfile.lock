@@ -79,6 +79,7 @@ GEM
     ast (2.4.3)
     base64 (0.3.0)
     bcrypt (3.1.20)
+    bcrypt_pbkdf (1.1.2)
     benchmark (0.5.0)
     bigdecimal (4.0.1)
     bindex (0.8.1)
@@ -118,6 +119,7 @@ GEM
     diff-lcs (1.6.2)
     docile (1.4.1)
     drb (2.2.3)
+    ed25519 (1.4.0)
     erb (6.0.1)
     erubi (1.13.1)
     factory_bot (6.5.6)
@@ -184,6 +186,8 @@ GEM
     net-smtp (0.5.1)
       net-protocol
     net-ssh (7.3.0)
+    net-ssh-gateway (2.0.0)
+      net-ssh (>= 4.0.0)
     nio4r (2.7.5)
     nokogiri (1.18.10-aarch64-linux-gnu)
       racc (~> 1.4)
@@ -371,6 +375,10 @@ GEM
       unicode-emoji (~> 4.1)
     unicode-emoji (4.2.0)
     useragent (0.16.11)
+    view_component (4.1.1)
+      actionview (>= 7.1.0, < 8.2)
+      activesupport (>= 7.1.0, < 8.2)
+      concurrent-ruby (~> 1)
     warden (1.2.9)
       rack (>= 2.0.9)
     web-console (4.2.1)
@@ -399,6 +407,7 @@ PLATFORMS
   x86_64-linux-musl
 
 DEPENDENCIES
+  bcrypt_pbkdf (~> 1.1)
   bootsnap
   brakeman
   capybara (~> 3.40)
@@ -406,12 +415,14 @@ DEPENDENCIES
   database_cleaner-active_record (~> 2.2)
   debug
   devise (~> 4.9)
+  ed25519 (~> 1.4)
   factory_bot_rails (~> 6.4)
   faker (~> 3.4)
   importmap-rails
   jbuilder
   kaminari (~> 1.2)
   net-ssh (~> 7.2)
+  net-ssh-gateway (~> 2.0)
   pg (~> 1.6)
   puma (>= 5.0)
   rails (~> 7.2.3)
@@ -425,6 +436,7 @@ DEPENDENCIES
   tailwindcss-rails
   turbo-rails
   tzinfo-data
+  view_component (~> 4.1)
   web-console
 
 BUNDLED WITH

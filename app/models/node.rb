@@ -15,6 +15,11 @@ class Node < ApplicationRecord
   validates :hostname, presence: true, uniqueness: true, length: { maximum: 255 }
   validates :role, presence: true
   validates :source, presence: true
+  validates :ssh_port, numericality: { only_integer: true, greater_than: 0, less_than: 65536 }
+  validates :ssh_user, length: { maximum: 255 }
+  validates :agent_path, length: { maximum: 4096 }
+  validates :jump_port, numericality: { only_integer: true, greater_than: 0, less_than: 65536 }, allow_nil: true
+  validates :arch, inclusion: { in: %w[x86_64 aarch64 arm64], allow_blank: true }
 
   # IP address validation using Ruby's IPAddr library
   validates_each :ip do |record, attr, value|
@@ -29,6 +34,7 @@ class Node < ApplicationRecord
 
   # Constants
   ONLINE_THRESHOLD = 5.minutes
+  DEFAULT_AGENT_PATH = "agent"
 
   # Scopes
   scope :online, -> { where(last_seen_at: ONLINE_THRESHOLD.ago..) }
@@ -47,5 +53,13 @@ class Node < ApplicationRecord
   # Returns the most recent NodeState for this node
   def current_state
     node_states.latest_first.first
+  end
+
+  def effective_agent_path
+    agent_path.presence || DEFAULT_AGENT_PATH
+  end
+
+  def use_jump_host?
+    jump_host.present?
   end
 end

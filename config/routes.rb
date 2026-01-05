@@ -12,10 +12,14 @@ Rails.application.routes.draw do
   get "dashboard", to: "dashboard#index", as: :dashboard
 
   # Resource routes
-  resources :nodes, only: %i[index show] do
+  resources :nodes do
+    member do
+      post :test_connection
+      post :collect
+      post :run_benchmark
+    end
     collection do
-      get "import/new", to: "nodes/imports#new", as: :new_import
-      post "import", to: "nodes/imports#create", as: :import
+      resources :imports, only: %i[new create], controller: "nodes/imports", as: :node_import
     end
   end
   resources :benchmark_runs, only: %i[index show]

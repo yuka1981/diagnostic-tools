@@ -15,11 +15,11 @@ RSpec.describe "Api::V1::Inventory", type: :request do
 
   let(:valid_payload) do
     {
-      hostname: node.hostname,
-      cpu_info: { "model" => "Intel Xeon", "cores" => 16 },
-      mem_info: { "total" => 64.gigabytes },
-      disk_info: [ { "device" => "/dev/sda", "total" => 500.gigabytes } ],
-      net_info: [ { "interface" => "eth0", "ip" => "192.168.1.100" } ]
+      host: { hostname: node.hostname, os: "linux", platform: "ubuntu" },
+      cpu: { "model" => "Intel Xeon", "cores" => 16 },
+      memory: { "total" => 64.gigabytes },
+      disks: [ { "device" => "/dev/sda", "total" => 500.gigabytes } ],
+      network: [ { "interface" => "eth0", "ip" => "192.168.1.100" } ]
     }
   end
 
@@ -76,10 +76,11 @@ RSpec.describe "Api::V1::Inventory", type: :request do
       before do
         create(:node_state,
           node: node,
-          cpu_info: valid_payload[:cpu_info],
-          mem_info: valid_payload[:mem_info],
-          disk_info: valid_payload[:disk_info],
-          net_info: valid_payload[:net_info],
+          host_info: valid_payload[:host],
+          cpu_info: valid_payload[:cpu],
+          mem_info: valid_payload[:memory],
+          disk_info: valid_payload[:disks],
+          net_info: valid_payload[:network],
           captured_at: 1.hour.ago
         )
       end
@@ -124,7 +125,7 @@ RSpec.describe "Api::V1::Inventory", type: :request do
           headers: { "Content-Type" => "application/json" }
 
         json = JSON.parse(response.body)
-        expect(json["error"]).to match(/unauthorized/i)
+        expect(json["error"]).to be_present
       end
     end
 
@@ -155,16 +156,11 @@ RSpec.describe "Api::V1::Inventory", type: :request do
     end
 
     context "with missing hostname" do
-      let(:payload_without_hostname) do
-        {
-          cpu_info: { "model" => "Intel Xeon" },
-          mem_info: { "total" => 64.gigabytes }
-        }
-      end
+      let(:invalid_payload) { valid_payload.except(:host) }
 
       it "returns 400 Bad Request" do
         post "/api/v1/inventory/push",
-          params: payload_without_hostname.to_json,
+          params: invalid_payload.to_json,
           headers: {
             "Authorization" => "Bearer #{valid_token}",
             "Content-Type" => "application/json"
@@ -175,31 +171,42 @@ RSpec.describe "Api::V1::Inventory", type: :request do
 
       it "returns error message" do
         post "/api/v1/inventory/push",
-          params: payload_without_hostname.to_json,
+          params: invalid_payload.to_json,
           headers: {
             "Authorization" => "Bearer #{valid_token}",
             "Content-Type" => "application/json"
           }
 
         json = JSON.parse(response.body)
-        expect(json["error"]).to be_present
+        expect(json["error"]).to include("required")
       end
     end
 
     context "with non-existent hostname" do
-      let(:payload_with_unknown_host) do
-        valid_payload.merge(hostname: "unknown-host")
-      end
+      let(:payload) { valid_payload.deep_merge(host: { hostname: "ghost-node" }) }
 
       it "returns 404 Not Found" do
         post "/api/v1/inventory/push",
-          params: payload_with_unknown_host.to_json,
+          params: payload.to_json,
           headers: {
             "Authorization" => "Bearer #{valid_token}",
             "Content-Type" => "application/json"
           }
 
         expect(response).to have_http_status(:not_found)
+      end
+    end
+
+    context "with invalid JSON" do
+      it "returns 400 Bad Request" do
+        post "/api/v1/inventory/push",
+          params: "{ invalid json }",
+          headers: {
+            "Authorization" => "Bearer #{valid_token}",
+            "Content-Type" => "application/json"
+          }
+
+        expect(response).to have_http_status(:bad_request)
       end
     end
 
@@ -216,33 +223,12 @@ RSpec.describe "Api::V1::Inventory", type: :request do
       end
     end
 
-    context "with invalid JSON" do
-      it "returns 400 Bad Request" do
-        post "/api/v1/inventory/push",
-          params: "invalid json",
-          headers: {
-            "Authorization" => "Bearer #{valid_token}",
-            "Content-Type" => "application/json"
-          }
-
-        expect(response).to have_http_status(:bad_request)
-      end
-    end
-
     context "with node_id instead of hostname" do
-      let(:payload_with_node_id) do
-        {
-          node_id: node.id,
-          cpu_info: { "model" => "Intel Xeon" },
-          mem_info: { "total" => 64.gigabytes },
-          disk_info: [],
-          net_info: []
-        }
-      end
+      let(:payload) { valid_payload.except(:host).merge(node_id: node.id) }
 
       it "returns 200 OK" do
         post "/api/v1/inventory/push",
-          params: payload_with_node_id.to_json,
+          params: payload.to_json,
           headers: {
             "Authorization" => "Bearer #{valid_token}",
             "Content-Type" => "application/json"

@@ -2,12 +2,136 @@
 
 class NodesController < ApplicationController
   layout "dashboard"
+  before_action :authenticate_user!
+  before_action :set_node, only: %i[show edit update destroy test_connection collect run_benchmark]
+  before_action :authorize_approver!, only: %i[new create edit update destroy test_connection collect run_benchmark]
 
   def index
     @nodes = Node.order(:hostname)
   end
 
-  def show
+  def show; end
+
+  def test_connection
+    service = Inventory::TriggerCollectService.new(@node)
+    result = service.call
+
+    respond_to do |format|
+      format.turbo_stream do
+        if result.success?
+          flash.now[:notice] = "Connection to #{@node.hostname} successful!"
+        else
+          flash.now[:alert] = "Connection to #{@node.hostname} failed: #{result.error}"
+        end
+        render turbo_stream: turbo_stream.update("flash_messages", partial: "shared/flash")
+      end
+    end
+  rescue StandardError => e
+    respond_to do |format|
+      format.turbo_stream do
+        flash.now[:alert] = "Connection error: #{e.message}"
+        render turbo_stream: turbo_stream.update("flash_messages", partial: "shared/flash")
+      end
+    end
+  end
+
+  def collect
+    trigger_service = Inventory::TriggerCollectService.new(@node)
+    trigger_result = trigger_service.call
+
+    if trigger_result.success?
+      process_service = Inventory::ProcessStateService.new(node_id: @node.id, raw_json: trigger_result.output)
+      process_result = process_service.call
+
+      if process_result.success?
+        flash.now[:notice] = "System information collected successfully for #{@node.hostname}."
+      else
+        flash.now[:alert] = "Collected data but failed to process: #{process_result.error}"
+      end
+    else
+      flash.now[:alert] = "Failed to collect information from #{@node.hostname}: #{trigger_result.error}"
+    end
+
+    @node.reload
+    respond_to do |format|
+      format.turbo_stream
+      format.html { redirect_to @node }
+    end
+  rescue StandardError => e
+    respond_to do |format|
+      format.turbo_stream do
+        flash.now[:alert] = "Collection error: #{e.message}"
+        render turbo_stream: turbo_stream.update("flash_messages", partial: "shared/flash")
+      end
+      format.html { redirect_to @node, alert: "Collection error: #{e.message}" }
+    end
+  end
+
+  def run_benchmark
+    trigger_service = Benchmark::TriggerRunService.new(@node)
+    result = trigger_service.call
+
+    if result.success?
+      redirect_to benchmark_runs_path(node_id: @node.id), notice: "Benchmark triggered successfully. Results will appear here shortly."
+    else
+      redirect_to @node, alert: "Failed to trigger benchmark: #{result.error}"
+    end
+  end
+
+  def new
+    @node = Node.new
+  end
+
+  def create
+    @node = Node.new(node_params)
+    @node.role = params[:node][:role] if params[:node][:role].present?
+    @node.source = :manual
+
+    if @node.save
+      respond_to do |format|
+        format.html { redirect_to nodes_path, notice: "Node was successfully created." }
+        format.turbo_stream
+      end
+    else
+      render :new, status: :unprocessable_entity
+    end
+  end
+
+  def edit; end
+
+  def update
+    @node.role = params[:node][:role] if params[:node][:role].present?
+    if @node.update(node_params)
+      respond_to do |format|
+        format.html { redirect_to nodes_path, notice: "Node was successfully updated." }
+        format.turbo_stream
+      end
+    else
+      render :edit, status: :unprocessable_entity
+    end
+  end
+
+  def destroy
+    @node.destroy
+    respond_to do |format|
+      format.html { redirect_to nodes_path, notice: "Node was successfully deleted." }
+      format.turbo_stream
+    end
+  end
+
+  private
+
+  def set_node
     @node = Node.find(params[:id])
+  end
+
+  def node_params
+    params.require(:node).permit(:hostname, :ip, :arch, :ssh_port, :ssh_user, :agent_path, :jump_host, :jump_user, :jump_port)
+  end
+
+  def authorize_approver!
+    return if current_user.approver?
+
+    redirect_to nodes_path, alert: "You are not authorized to manage nodes."
   end
 end

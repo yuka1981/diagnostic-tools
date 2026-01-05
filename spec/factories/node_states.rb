@@ -3,11 +3,25 @@
 FactoryBot.define do
   factory :node_state do
     association :node
+    host_info { {} }
     cpu_info { {} }
     mem_info { {} }
     disk_info { [] }
     net_info { [] }
     captured_at { Time.current }
+
+    trait :with_host_info do
+      host_info do
+        {
+          "hostname" => "node-001",
+          "os" => "linux",
+          "platform" => "ubuntu",
+          "platform_version" => "22.04",
+          "kernel" => "5.15.0-101-generic",
+          "arch" => "x86_64"
+        }
+      end
+    end
 
     trait :with_cpu_info do
       cpu_info do
@@ -71,6 +85,7 @@ FactoryBot.define do
     end
 
     trait :complete do
+      with_host_info
       with_cpu_info
       with_mem_info
       with_disk_info

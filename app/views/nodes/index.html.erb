@@ -6,7 +6,18 @@
     <p class="mt-1 text-sm text-gray-500 dark:text-slate-400">Manage your HPC cluster nodes</p>
   </div>
   <div class="flex items-center gap-3">
-    <%= link_to new_import_nodes_path, 
+    <% if current_user.approver? %>
+      <%= link_to new_node_path,
+          class: "inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white shadow-lg shadow-blue-500/20 transition-all hover:bg-blue-700",
+          data: { turbo_frame: "node_modal" } do %>
+        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+        </svg>
+        Add Node
+      <% end %>
+    <% end %>
+
+    <%= link_to new_node_import_path,
         class: "inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-emerald-500 to-green-600 px-4 py-2.5 text-sm font-medium text-white shadow-lg shadow-emerald-500/20 transition-all hover:from-emerald-600 hover:to-green-700",
         data: { turbo_frame: "import_modal" } do %>
       <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -22,5 +33,6 @@
   <%= render "nodes/table", nodes: @nodes %>
 </div>
 
-<%# Import modal turbo frame (empty by default, filled when modal opens) %>
+<%# Modals turbo frames %>
+<%= turbo_frame_tag "node_modal" %>
 <%= turbo_frame_tag "import_modal" %>
