@@ -195,6 +195,64 @@ cpu cores: 4
 	})
 }
 
+func TestParseCPUInfo_AArch64(t *testing.T) {
+	file, err := os.Open("testdata/cpuinfo_aarch64")
+	if err != nil {
+		t.Fatalf("failed to open test data: %v", err)
+	}
+	defer file.Close()
+
+	info, err := ParseCPUInfo(file)
+	if err != nil {
+		t.Fatalf("ParseCPUInfo returned error: %v", err)
+	}
+
+	t.Run("ModelName_Fallback", func(t *testing.T) {
+		if info.ModelName == "" {
+			t.Error("expected ModelName to be set (even if fallback)")
+		}
+		if !strings.Contains(info.ModelName, "AArch64") && !strings.Contains(info.ModelName, "0x41") {
+			t.Errorf("expected ModelName to contain 'AArch64' or implementer ID, got %q", info.ModelName)
+		}
+	})
+
+	t.Run("Sockets_DefaultsToOne", func(t *testing.T) {
+		if info.Sockets != 1 {
+			t.Errorf("expected Sockets 1 (default), got %d", info.Sockets)
+		}
+	})
+
+	t.Run("Threads", func(t *testing.T) {
+		if info.Threads != 2 {
+			t.Errorf("expected Threads 2, got %d", info.Threads)
+		}
+	})
+
+	t.Run("Cores_FallbackToThreads", func(t *testing.T) {
+		if info.Cores != 2 {
+			t.Errorf("expected Cores 2 (default), got %d", info.Cores)
+		}
+	})
+
+	t.Run("Flags_Features", func(t *testing.T) {
+		if len(info.Flags) == 0 {
+			t.Fatal("expected Flags to be non-empty (from Features)")
+		}
+
+		expectedFlag := "asimd"
+		found := false
+		for _, f := range info.Flags {
+			if f == expectedFlag {
+				found = true
+				break
+			}
+		}
+		if !found {
+			t.Errorf("expected flag %q not found in Features", expectedFlag)
+		}
+	})
+}
+
 func TestNewLinuxCPUCollector(t *testing.T) {
 	collector := NewLinuxCPUCollector()
 

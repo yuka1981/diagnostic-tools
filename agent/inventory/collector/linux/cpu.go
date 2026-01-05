@@ -40,6 +40,8 @@ type cpuParseState struct {
 	currentPhysID  string
 	processorCount int
 	currentCores   int
+	implementer    string
+	part           string
 }
 
 func newCPUParseState() *cpuParseState {
@@ -66,9 +68,17 @@ func (s *cpuParseState) processLine(key, value string, info *model.CPUInfo) {
 		if cores, err := strconv.Atoi(value); err == nil {
 			s.currentCores = cores
 		}
-	case "flags":
+	case "flags", "Features":
 		if len(info.Flags) == 0 {
 			info.Flags = strings.Fields(value)
+		}
+	case "CPU implementer":
+		if s.implementer == "" {
+			s.implementer = value
+		}
+	case "CPU part":
+		if s.part == "" {
+			s.part = value
 		}
 	}
 
@@ -93,6 +103,14 @@ func (s *cpuParseState) finalizeCPUInfo(info *model.CPUInfo) {
 
 	if info.Cores == 0 {
 		info.Cores = info.Threads
+	}
+
+	// Fallback for ModelName on ARM systems
+	if info.ModelName == "" && (s.implementer != "" || s.part != "") {
+		info.ModelName = "AArch64 Processor"
+		if s.implementer != "" && s.part != "" {
+			info.ModelName = "AArch64 Processor (" + s.implementer + ":" + s.part + ")"
+		}
 	}
 }
 
