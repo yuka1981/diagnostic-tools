@@ -71,7 +71,7 @@ module Runs
 
       search_term = "%#{search_query}%"
       scope.joins(:node, :benchmark_recipe)
-           .where("nodes.hostname ILIKE :term OR benchmark_recipes.name ILIKE :term", term: search_term)
+           .where("nodes.hostname ILIKE :term OR benchmark_recipes.name ILIKE :term OR benchmark_runs.log_path ILIKE :term", term: search_term)
     end
   end
 end

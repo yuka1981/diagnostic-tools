@@ -109,6 +109,18 @@ RSpec.describe "Benchmark Runs Filtering", type: :system do
         expect(page).not_to have_content("STREAM")
       end
     end
+
+    it "searches runs by log path" do
+      create(:benchmark_run, :success, node: node1, benchmark_recipe: recipe1, log_path: "/var/log/hpcg_custom.log")
+      visit benchmark_runs_path
+
+      fill_in "Search", with: "custom.log"
+      click_button "Search"
+
+      within("tbody") do
+        expect(page).to have_content("/var/log/hpcg_custom.log", wait: 5)
+      end
+    end
   end
 
   describe "clearing filters", :js do

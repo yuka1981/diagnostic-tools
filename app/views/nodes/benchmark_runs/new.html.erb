@@ -27,7 +27,7 @@
                   Configure and start a new HPCG benchmark run on <strong><%= @node.hostname %></strong>.
                 </p>
                 
-                <%= form_with model: @form, url: node_benchmark_runs_path(@node), method: :post, class: "mt-4 space-y-4" do |f| %>
+                <%= form_with model: @form, url: node_benchmark_runs_path(@node), method: :post, data: { turbo_frame: "_top" }, class: "mt-4 space-y-4" do |f| %>
                   <% if @form.errors.any? %>
                     <div class="rounded-md bg-red-50 p-4 dark:bg-red-900/20">
                       <div class="flex">
