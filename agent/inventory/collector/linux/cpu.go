@@ -3,6 +3,7 @@ package linux
 import (
 	"bufio"
 	"context"
+	"fmt"
 	"io"
 	"os"
 	"strconv"
@@ -31,7 +32,40 @@ func (c *LinuxCPUCollector) Collect(ctx context.Context) (*model.CPUInfo, error)
 	}
 	defer file.Close()
 
-	return ParseCPUInfo(file)
+	info, err := ParseCPUInfo(file)
+	if err != nil {
+		return nil, err
+	}
+
+	// Supplement with info from /sys
+	c.collectSysInfo(info)
+
+	return info, nil
+}
+
+func (c *LinuxCPUCollector) collectSysInfo(info *model.CPUInfo) {
+	// CPU Frequency
+	if max, err := os.ReadFile("/sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_max_freq"); err == nil {
+		if freq, err := strconv.ParseFloat(strings.TrimSpace(string(max)), 64); err == nil {
+			info.CPUMaxMHz = fmt.Sprintf("%.4f", freq/1000.0)
+		}
+	}
+	if min, err := os.ReadFile("/sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_min_freq"); err == nil {
+		if freq, err := strconv.ParseFloat(strings.TrimSpace(string(min)), 64); err == nil {
+			info.CPUMinMHz = fmt.Sprintf("%.4f", freq/1000.0)
+		}
+	}
+
+	// NUMA Nodes
+	if files, err := os.ReadDir("/sys/devices/system/node"); err == nil {
+		count := 0
+		for _, f := range files {
+			if strings.HasPrefix(f.Name(), "node") {
+				count++
+			}
+		}
+		info.NUMANodes = count
+	}
 }
 
 type cpuParseState struct {
