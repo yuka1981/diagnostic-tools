@@ -44,8 +44,10 @@ type cpuParseState struct {
 	currentCores   int
 	implementer    string
 	part           string
+	revision       string
 	vendorID       string
 	architecture   string
+	bogomips       string
 }
 
 func newCPUParseState() *cpuParseState {
@@ -90,6 +92,14 @@ func (s *cpuParseState) processLine(key, value string, info *model.CPUInfo) {
 		if s.part == "" {
 			s.part = value
 		}
+	case "CPU revision":
+		if s.revision == "" {
+			s.revision = value
+		}
+	case "bogomips", "BogoMIPS":
+		if s.bogomips == "" {
+			s.bogomips = value
+		}
 	}
 
 	if s.currentPhysID != "" && s.currentCores > 0 {
@@ -124,11 +134,13 @@ func (s *cpuParseState) finalizeCPUInfo(info *model.CPUInfo) {
 		info.ThreadsPerCore = info.Threads / info.Cores
 	}
 
-	// Vendor and Architecture
+	// Vendor, Architecture, Stepping, BogoMIPS
 	info.VendorID = s.vendorID
 	if s.architecture != "" {
 		info.Architecture = s.architecture
 	}
+	info.Stepping = s.revision
+	info.BogoMIPS = s.bogomips
 
 	// Fallback for ModelName on ARM systems
 	if info.ModelName == "" && (s.vendorID != "" || s.part != "") {

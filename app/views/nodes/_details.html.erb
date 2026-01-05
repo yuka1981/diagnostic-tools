@@ -101,46 +101,87 @@
         </svg>
         <h3 class="text-lg font-semibold text-gray-900 dark:text-white">CPU Information</h3>
       </div>
-      <dl class="grid grid-cols-1 gap-x-4 gap-y-4 sm:grid-cols-2 lg:grid-cols-4">
-        <div>
-          <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">Architecture</dt>
-          <dd class="mt-1 text-sm text-gray-900 dark:text-white"><%= state.host_info["arch"] || state.cpu_info["architecture"] || "—" %></dd>
-        </div>
-        <div>
-          <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">Vendor ID</dt>
-          <dd class="mt-1 text-sm text-gray-900 dark:text-white"><%= state.cpu_info["vendor_id"] || "—" %></dd>
-        </div>
-        <div class="lg:col-span-2">
-          <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">Model name</dt>
-          <dd class="mt-1 text-sm text-gray-900 dark:text-white"><%= state.cpu_info["model_name"] || "—" %></dd>
-        </div>
-        <div>
-          <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">CPU(s)</dt>
-          <dd class="mt-1 text-sm text-gray-900 dark:text-white"><%= state.cpu_info["cpus"] || state.cpu_info["threads"] %></dd>
-        </div>
-        <div>
-          <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">Thread(s) per core</dt>
-          <dd class="mt-1 text-sm text-gray-900 dark:text-white"><%= state.cpu_info["threads_per_core"] || "—" %></dd>
-        </div>
-        <div>
-          <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">Core(s) per socket</dt>
-          <dd class="mt-1 text-sm text-gray-900 dark:text-white"><%= state.cpu_info["cores_per_socket"] || "—" %></dd>
-        </div>
-        <div>
-          <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">Socket(s)</dt>
-          <dd class="mt-1 text-sm text-gray-900 dark:text-white"><%= state.cpu_info["sockets"] %></dd>
-        </div>
-        <div class="sm:col-span-2 lg:col-span-4">
-          <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">Flags</dt>
-          <dd class="mt-1">
-            <div class="flex flex-wrap gap-1 max-h-32 overflow-y-auto p-2 bg-gray-50 dark:bg-slate-900 rounded border border-gray-100 dark:border-white/5">
-              <% (state.cpu_info["flags"] || []).each do |flag| %>
-                <span class="px-1.5 py-0.5 rounded bg-white dark:bg-white/5 text-[10px] font-mono text-gray-600 dark:text-slate-400 border border-gray-100 dark:border-white/5"><%= flag %></span>
-              <% end %>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <%# Basic Specs %>
+        <div class="space-y-4">
+          <h4 class="text-[10px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-widest">Base Specifications</h4>
+          <dl class="grid grid-cols-1 gap-y-3">
+            <div>
+              <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">Architecture</dt>
+              <dd class="text-sm font-semibold text-gray-900 dark:text-white"><%= state.host_info["arch"] || state.cpu_info["architecture"] || "—" %></dd>
             </div>
-          </dd>
+            <div>
+              <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">Vendor ID</dt>
+              <dd class="text-sm font-semibold text-gray-900 dark:text-white"><%= state.cpu_info["vendor_id"] || "—" %></dd>
+            </div>
+            <div>
+              <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">Model Name</dt>
+              <dd class="text-sm font-semibold text-gray-900 dark:text-white"><%= state.cpu_info["model_name"] || "—" %></dd>
+            </div>
+            <div>
+              <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">Stepping</dt>
+              <dd class="text-sm font-semibold text-gray-900 dark:text-white"><%= state.cpu_info["stepping"] || "—" %></dd>
+            </div>
+          </dl>
         </div>
-      </dl>
+
+        <%# Topology %>
+        <div class="space-y-4">
+          <h4 class="text-[10px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-widest">Topology</h4>
+          <dl class="grid grid-cols-1 gap-y-3">
+            <div>
+              <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">CPU(s)</dt>
+              <dd class="text-sm font-semibold text-gray-900 dark:text-white"><%= state.cpu_info["cpus"] || state.cpu_info["threads"] %></dd>
+            </div>
+            <div>
+              <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">Socket(s)</dt>
+              <dd class="text-sm font-semibold text-gray-900 dark:text-white"><%= state.cpu_info["sockets"] %></dd>
+            </div>
+            <div>
+              <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">Core(s) per socket</dt>
+              <dd class="text-sm font-semibold text-gray-900 dark:text-white"><%= state.cpu_info["cores_per_socket"] || "—" %></dd>
+            </div>
+            <div>
+              <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">Thread(s) per core</dt>
+              <dd class="text-sm font-semibold text-gray-900 dark:text-white"><%= state.cpu_info["threads_per_core"] || "—" %></dd>
+            </div>
+          </dl>
+        </div>
+
+        <%# Frequency & Cache %>
+        <div class="space-y-4">
+          <h4 class="text-[10px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-widest">Performance & Cache</h4>
+          <dl class="grid grid-cols-1 gap-y-3">
+            <div>
+              <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">BogoMIPS</dt>
+              <dd class="text-sm font-semibold text-gray-900 dark:text-white"><%= state.cpu_info["bogomips"] || "—" %></dd>
+            </div>
+            <% if state.cpu_info["l3_cache"].present? %>
+              <div>
+                <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">L3 Cache</dt>
+                <dd class="text-sm font-semibold text-gray-900 dark:text-white"><%= state.cpu_info["l3_cache"] %></dd>
+              </div>
+            <% end %>
+            <% if state.cpu_info["numa_nodes"].to_i > 0 %>
+              <div>
+                <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">NUMA node(s)</dt>
+                <dd class="text-sm font-semibold text-gray-900 dark:text-white"><%= state.cpu_info["numa_nodes"] %></dd>
+              </div>
+            <% end %>
+          </dl>
+        </div>
+      </div>
+
+      <%# Flags %>
+      <div class="mt-8 border-t border-gray-50 pt-6 dark:border-white/5">
+        <h4 class="text-[10px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-widest mb-3">Flags / Features</h4>
+        <div class="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto p-3 bg-gray-50 dark:bg-slate-900/50 rounded-xl border border-gray-100 dark:border-white/5">
+          <% (state.cpu_info["flags"] || []).each do |flag| %>
+            <span class="px-2 py-0.5 rounded bg-white dark:bg-white/5 text-[10px] font-mono text-gray-600 dark:text-slate-400 border border-gray-100 dark:border-white/5 shadow-sm hover:border-indigo-300 dark:hover:border-indigo-500/50 transition-colors"><%= flag %></span>
+          <% end %>
+        </div>
+      </div>
     </div>
 
     <%# Memory Information %>
