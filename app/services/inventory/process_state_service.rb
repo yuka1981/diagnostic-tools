@@ -58,9 +58,13 @@ module Inventory
     end
 
     def build_state_data
+      cpu_data = (@raw_json[:cpu] || {}).to_h
+      # Include specific fields if they are missing from the top-level :cpu but present in :raw_json
+      # (Though the agent now nests them under :cpu)
+
       {
         host_info: @raw_json[:host] || {},
-        cpu_info: @raw_json[:cpu] || {},
+        cpu_info: cpu_data,
         mem_info: @raw_json[:memory] || {},
         disk_info: @raw_json[:disks] || [],
         net_info: @raw_json[:network] || []

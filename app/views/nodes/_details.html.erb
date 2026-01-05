@@ -64,7 +64,7 @@
 <% if node.current_state %>
   <% state = node.current_state %>
   
-  <div class="mt-8 space-y-8">
+  <div class="mt-8 flex flex-col gap-8">
     <%# Host Information %>
     <div class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-200 dark:bg-slate-800/50 dark:ring-white/10">
       <div class="mb-4 flex items-center gap-2 border-b border-gray-100 pb-4 dark:border-white/5">
@@ -102,15 +102,21 @@
         <h3 class="text-lg font-semibold text-gray-900 dark:text-white">CPU Information</h3>
       </div>
       
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      <div class="flex flex-col gap-8">
         <%# Basic Specs %>
         <div class="space-y-4">
           <h4 class="text-[10px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-widest">Base Specifications</h4>
-          <dl class="grid grid-cols-1 gap-y-3">
+          <dl class="grid grid-cols-1 gap-y-3 sm:grid-cols-2 lg:grid-cols-4">
             <div>
               <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">Architecture</dt>
               <dd class="text-sm font-semibold text-gray-900 dark:text-white"><%= state.host_info["arch"] || state.cpu_info["architecture"] || "—" %></dd>
             </div>
+            <% if state.cpu_info["op_modes"].present? %>
+              <div>
+                <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">CPU op-mode(s)</dt>
+                <dd class="text-sm font-semibold text-gray-900 dark:text-white"><%= state.cpu_info["op_modes"] %></dd>
+              </div>
+            <% end %>
             <div>
               <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">Vendor ID</dt>
               <dd class="text-sm font-semibold text-gray-900 dark:text-white"><%= state.cpu_info["vendor_id"] || "—" %></dd>
@@ -127,9 +133,9 @@
         </div>
 
         <%# Topology %>
-        <div class="space-y-4">
+        <div class="space-y-4 pt-6 border-t border-gray-50 dark:border-white/5">
           <h4 class="text-[10px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-widest">Topology</h4>
-          <dl class="grid grid-cols-1 gap-y-3">
+          <dl class="grid grid-cols-1 gap-x-4 gap-y-4 sm:grid-cols-2 lg:grid-cols-4">
             <div>
               <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">CPU(s)</dt>
               <dd class="text-sm font-semibold text-gray-900 dark:text-white"><%= state.cpu_info["cpus"] || state.cpu_info["threads"] %></dd>
@@ -146,13 +152,27 @@
               <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">Thread(s) per core</dt>
               <dd class="text-sm font-semibold text-gray-900 dark:text-white"><%= state.cpu_info["threads_per_core"] || "—" %></dd>
             </div>
+            <div class="sm:col-span-2 lg:col-span-4">
+              <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">NUMA node(s)</dt>
+              <dd class="text-sm font-semibold text-gray-900 dark:text-white mb-2"><%= state.cpu_info["numa_nodes"] || "—" %></dd>
+              <% if state.cpu_info["numa_info"].present? %>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                  <% state.cpu_info["numa_info"].sort.each do |node_id, cpu_list| %>
+                    <div class="rounded-lg bg-gray-50 dark:bg-slate-900/50 p-2 border border-gray-100 dark:border-white/5">
+                      <dt class="text-[10px] font-medium text-gray-400 dark:text-slate-500 uppercase">NUMA node<%= node_id %> CPU(s)</dt>
+                      <dd class="text-xs font-mono text-gray-900 dark:text-white break-all"><%= cpu_list %></dd>
+                    </div>
+                  <% end %>
+                </div>
+              <% end %>
+            </div>
           </dl>
         </div>
 
         <%# Frequency & Cache %>
-        <div class="space-y-4">
+        <div class="space-y-4 pt-6 border-t border-gray-50 dark:border-white/5">
           <h4 class="text-[10px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-widest">Performance & Cache</h4>
-          <dl class="grid grid-cols-1 gap-y-3">
+          <dl class="grid grid-cols-1 gap-x-4 gap-y-4 sm:grid-cols-2 lg:grid-cols-4">
             <div>
               <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">CPU max MHz</dt>
               <dd class="text-sm font-semibold text-gray-900 dark:text-white"><%= state.cpu_info["cpu_max_mhz"] || "—" %></dd>
@@ -170,18 +190,6 @@
                 <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">L3 Cache</dt>
                 <dd class="text-sm font-semibold text-gray-900 dark:text-white"><%= state.cpu_info["l3_cache"] %></dd>
               </div>
-            <% end %>
-            <div>
-              <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">NUMA node(s)</dt>
-              <dd class="text-sm font-semibold text-gray-900 dark:text-white"><%= state.cpu_info["numa_nodes"] || "—" %></dd>
-            </div>
-            <% if state.cpu_info["numa_info"].present? %>
-              <% state.cpu_info["numa_info"].sort.each do |node_id, cpu_list| %>
-                <div>
-                  <dt class="text-[10px] font-medium text-gray-400 dark:text-slate-500 uppercase">NUMA node<%= node_id %> CPU(s)</dt>
-                  <dd class="text-xs font-mono text-gray-900 dark:text-white break-all"><%= cpu_list %></dd>
-                </div>
-              <% end %>
             <% end %>
           </dl>
         </div>
