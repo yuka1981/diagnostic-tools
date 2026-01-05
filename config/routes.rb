@@ -5,6 +5,7 @@ Rails.application.routes.draw do
   namespace :api do
     namespace :v1 do
       post "inventory/push", to: "inventory#push"
+      resources :benchmark_runs, only: [ :create, :update ]
     end
   end
 

@@ -15,12 +15,23 @@ module Nodes
       @form = Benchmark::RunForm.new(run_params)
 
       if @form.valid?
-        trigger_service = Benchmark::TriggerRunService.new(@node, log_path: @form.log_path)
+        # Ensure recipe exists
+        recipe = BenchmarkRecipe.find_or_create_by!(name: "HPCG", version: "3.1")
+
+        # Create run record
+        run = @node.benchmark_runs.create!(
+          benchmark_recipe: recipe,
+          log_path: @form.log_path,
+          status: :pending
+        )
+
+        trigger_service = Benchmark::TriggerRunService.new(@node, log_path: @form.log_path, run_id: run.uuid)
         result = trigger_service.call
 
         if result.success?
           redirect_to benchmark_runs_path(node_id: @node.id), notice: "Benchmark triggered successfully."
         else
+          run.update!(status: :failed, error_message: result.error)
           flash.now[:alert] = "Failed to trigger benchmark: #{result.error}"
           render :new, status: :unprocessable_entity
         end

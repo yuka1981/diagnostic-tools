@@ -1,12 +1,15 @@
 package cmd
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/spf13/cobra"
 
+	"github.com/yuka1981/diagnostic-tools/agent/core/model"
 	"github.com/yuka1981/diagnostic-tools/agent/core/uploader"
 	"github.com/yuka1981/diagnostic-tools/agent/hpcg"
 	"github.com/yuka1981/diagnostic-tools/agent/infrastructure"
@@ -81,30 +84,51 @@ func runHPCG(cmd *cobra.Command, opts *hpcgOptions) error {
 	}
 
 	fmt.Fprintln(cmd.OutOrStdout(), "Starting HPCG workflow...")
+
+	// Send initial status update
+	_ = uploadBenchmarkStatus(ctx, opts.pushServer, opts.pushToken, opts.runID, model.BenchmarkStatusRunning)
+
 	result, err := orchestrator.Run(ctx, &params)
 	if err != nil {
 		return fmt.Errorf("HPCG workflow failed: %w", err)
 	}
 
-	// Output result
-	output, err := json.MarshalIndent(result, "", "  ")
-	if err != nil {
-		fmt.Fprintf(cmd.ErrOrStderr(), "Warning: could not marshal result for printing: %v\n", err)
-	} else {
-		fmt.Fprintln(cmd.OutOrStdout(), string(output))
-	}
+	// Output result to stdout
+	output, _ := json.MarshalIndent(result, "", "  ")
+	fmt.Fprintln(cmd.OutOrStdout(), string(output))
 
-	// Upload if token provided
+	// Upload final result
 	if opts.pushToken != "" {
-		up := uploader.NewHTTPUploader(opts.pushServer, opts.pushToken)
 		fmt.Fprintln(cmd.OutOrStdout(), "Uploading result...")
-		if err := up.Upload(ctx, result); err != nil {
+		if err := uploadBenchmarkResult(ctx, opts.pushServer, opts.pushToken, result); err != nil {
 			return fmt.Errorf("upload failed: %w", err)
 		}
 		fmt.Fprintln(cmd.OutOrStdout(), "Upload successful.")
 	}
 
 	return nil
+}
+
+func uploadBenchmarkStatus(ctx context.Context, server, token, runID string, status model.BenchmarkStatus) error {
+	if token == "" {
+		return nil
+	}
+	up := uploader.NewHTTPUploader(server, token)
+	run := &model.BenchmarkRun{
+		RunID:     runID,
+		RecipeID:  "hpcg",
+		Status:    status,
+		StartTime: time.Now(),
+	}
+	return up.Upload(ctx, run)
+}
+
+func uploadBenchmarkResult(ctx context.Context, server, token string, result *model.BenchmarkRun) error {
+	if token == "" {
+		return nil
+	}
+	up := uploader.NewHTTPUploader(server, token)
+	return up.Upload(ctx, result)
 }
 
 func init() {

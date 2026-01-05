@@ -10,6 +10,7 @@ type BenchmarkStatus string
 
 const (
 	BenchmarkStatusUnknown BenchmarkStatus = "UNKNOWN"
+	BenchmarkStatusRunning BenchmarkStatus = "RUNNING"
 	BenchmarkStatusPass    BenchmarkStatus = "PASS"
 	BenchmarkStatusFail    BenchmarkStatus = "FAIL"
 	BenchmarkStatusError   BenchmarkStatus = "ERROR"

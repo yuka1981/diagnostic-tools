@@ -21,7 +21,7 @@ RSpec.describe "Nodes::BenchmarkRuns", type: :request do
     let(:trigger_service) { instance_double(Benchmark::TriggerRunService) }
 
     before do
-      allow(Benchmark::TriggerRunService).to receive(:new).with(an_instance_of(Node), log_path: anything).and_return(trigger_service)
+      allow(Benchmark::TriggerRunService).to receive(:new).with(an_instance_of(Node), hash_including(log_path: anything)).and_return(trigger_service)
     end
 
     context "with valid params" do
