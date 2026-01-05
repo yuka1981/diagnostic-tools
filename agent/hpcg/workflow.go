@@ -141,9 +141,17 @@ func (w *WorkflowOrchestrator) parseResults(
 	if parseErr != nil || metrics.GFLOPS == 0 {
 		var logToRead string
 		if customLogPath != "" {
-			logToRead = customLogPath
-		} else if latestLog, err := w.findLatestLog(startTime); err == nil {
-			logToRead = latestLog
+			// If custom log path provided, check if it was actually created/moved
+			if _, err := os.Stat(customLogPath); err == nil {
+				logToRead = customLogPath
+			}
+		}
+
+		// Fallback to searching if custom path not found or not provided
+		if logToRead == "" {
+			if latestLog, err := w.findLatestLog(startTime); err == nil {
+				logToRead = latestLog
+			}
 		}
 
 		if logToRead != "" {
@@ -177,6 +185,9 @@ func (w *WorkflowOrchestrator) findLatestLog(startTime time.Time) (string, error
 	var latestLog string
 	var latestTime time.Time
 
+	// Add 1 second grace period for start time to account for filesystem precision
+	graceStartTime := startTime.Add(-1 * time.Second)
+
 	for _, file := range files {
 		if file.IsDir() || !strings.HasPrefix(file.Name(), "HPCG-Benchmark_") || !strings.HasSuffix(file.Name(), ".txt") {
 			continue
@@ -187,14 +198,14 @@ func (w *WorkflowOrchestrator) findLatestLog(startTime time.Time) (string, error
 			continue
 		}
 
-		if info.ModTime().After(startTime) && info.ModTime().After(latestTime) {
+		if !info.ModTime().Before(graceStartTime) && !info.ModTime().Before(latestTime) {
 			latestTime = info.ModTime()
 			latestLog = filepath.Join(w.WorkDir, file.Name())
 		}
 	}
 
 	if latestLog == "" {
-		return "", fmt.Errorf("no log file found")
+		return "", fmt.Errorf("no log file found in %s", w.WorkDir)
 	}
 	return latestLog, nil
 }

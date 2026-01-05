@@ -25,7 +25,13 @@ module Nodes
           status: :pending
         )
 
-        trigger_service = Benchmark::TriggerRunService.new(@node, log_path: @form.log_path, run_id: run.uuid)
+        trigger_service = Benchmark::TriggerRunService.new(
+          @node,
+          log_path: @form.log_path,
+          run_id: run.uuid,
+          server_url: request.base_url,
+          agent_token: Rails.application.credentials.dig(:api, :agent_token) || ENV["API_AGENT_TOKEN"]
+        )
         result = trigger_service.call
 
         if result.success?
