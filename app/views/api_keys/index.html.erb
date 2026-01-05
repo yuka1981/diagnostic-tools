@@ -1,0 +1,86 @@
+<% content_for(:page_title) { "API Key Management" } %>
+
+<div class="flex items-center justify-between mb-6">
+  <div>
+    <h2 class="text-2xl font-bold text-gray-900 dark:text-white">API Key Management</h2>
+    <p class="mt-1 text-sm text-gray-500 dark:text-slate-400">Manage keys for agent authentication</p>
+  </div>
+  <%= link_to new_api_key_path,
+      class: "inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white shadow-lg shadow-indigo-500/20 transition-all hover:bg-indigo-700" do %>
+    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+    </svg>
+    Generate New Key
+  <% end %>
+</div>
+
+<div class="rounded-2xl bg-white shadow-sm ring-1 ring-gray-200 dark:bg-slate-800/50 dark:ring-white/10 overflow-hidden">
+  <% if @api_keys.any? %>
+    <table class="min-w-full divide-y divide-gray-200 dark:divide-white/5">
+      <thead class="bg-gray-50 dark:bg-white/5">
+        <tr>
+          <th scope="col" class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-slate-400">Name</th>
+          <th scope="col" class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-slate-400">Token</th>
+          <th scope="col" class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-slate-400">Status</th>
+          <th scope="col" class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-slate-400">Last Used</th>
+          <th scope="col" class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-slate-400">Created</th>
+          <th scope="col" class="relative px-6 py-3">
+            <span class="sr-only">Actions</span>
+          </th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-200 dark:divide-white/5">
+        <% @api_keys.each do |key| %>
+          <tr class="hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
+            <td class="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900 dark:text-white">
+              <%= key.name %>
+            </td>
+            <td class="whitespace-nowrap px-6 py-4 text-xs font-mono text-gray-500 dark:text-slate-400">
+              <% if key.active? %>
+                <span class="blur-sm hover:blur-none transition-all cursor-pointer" title="Hover to reveal">
+                  <%= key.token.truncate(12) %>...
+                </span>
+              <% else %>
+                <span class="line-through text-gray-400"><%= key.token.truncate(12) %>...</span>
+              <% end %>
+            </td>
+            <td class="whitespace-nowrap px-6 py-4">
+              <% if key.active? %>
+                <span class="inline-flex items-center rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-medium text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400">
+                  Active
+                </span>
+              <% else %>
+                <span class="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-700 dark:bg-white/10 dark:text-slate-400">
+                  Revoked
+                </span>
+              <% end %>
+            </td>
+            <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500 dark:text-slate-400">
+              <%= key.last_used_at ? time_ago_in_words(key.last_used_at) + " ago" : "Never" %>
+            </td>
+            <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500 dark:text-slate-400">
+              <%= key.created_at.strftime("%Y-%m-%d") %>
+            </td>
+            <td class="whitespace-nowrap px-6 py-4 text-right text-sm">
+              <% if key.active? %>
+                <%= button_to "Revoke", 
+                    revoke_api_key_path(key), 
+                    method: :patch,
+                    data: { confirm: "Are you sure you want to revoke this API key?" },
+                    class: "text-red-600 hover:text-red-500 dark:text-red-400 dark:hover:text-red-300 font-medium" %>
+              <% end %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% else %>
+    <div class="flex flex-col items-center justify-center py-12 text-center">
+      <svg class="h-12 w-12 text-gray-300 dark:text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+      </svg>
+      <p class="mt-4 text-sm font-medium text-gray-500 dark:text-slate-400">No API keys found</p>
+      <p class="mt-1 text-xs text-gray-400 dark:text-slate-500">Generate a key to allow agents to push benchmarking results</p>
+    </div>
+  <% end %>
+</div>

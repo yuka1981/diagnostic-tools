@@ -22,12 +22,20 @@ func (m *mockInventoryCollector) Collect(ctx context.Context) (*model.NodeState,
 }
 
 type mockUploader struct {
-	uploadFunc func(ctx context.Context, payload interface{}) error
+	uploadFunc    func(ctx context.Context, payload interface{}) error
+	checkAuthFunc func(ctx context.Context) error
 }
 
 func (m *mockUploader) Upload(ctx context.Context, payload interface{}) error {
 	if m.uploadFunc != nil {
 		return m.uploadFunc(ctx, payload)
+	}
+	return nil
+}
+
+func (m *mockUploader) CheckAuth(ctx context.Context) error {
+	if m.checkAuthFunc != nil {
+		return m.checkAuthFunc(ctx)
 	}
 	return nil
 }

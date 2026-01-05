@@ -14,6 +14,7 @@ RSpec.describe "Api::V1::BenchmarkRuns", type: :request do
   end
 
   describe "POST /api/v1/benchmark_runs" do
+    let(:api_key) { create(:api_key) }
     let(:valid_payload) do
       {
         run_id: run.uuid,
@@ -22,6 +23,24 @@ RSpec.describe "Api::V1::BenchmarkRuns", type: :request do
         start_time: Time.current.iso8601,
         end_time: (Time.current + 1.hour).iso8601
       }
+    end
+
+    it "authenticates using a database-backed API Key" do
+      post "/api/v1/benchmark_runs",
+           params: valid_payload.to_json,
+           headers: { "Authorization" => "Bearer #{api_key.token}", "Content-Type" => "application/json" }
+
+      expect(response).to have_http_status(:success)
+      expect(api_key.reload.last_used_at).to be_present
+    end
+
+    it "denies access with a revoked API Key" do
+      api_key.revoked!
+      post "/api/v1/benchmark_runs",
+           params: valid_payload.to_json,
+           headers: { "Authorization" => "Bearer #{api_key.token}", "Content-Type" => "application/json" }
+
+      expect(response).to have_http_status(:unauthorized)
     end
 
     it "updates the benchmark run status and metrics" do

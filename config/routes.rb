@@ -13,6 +13,12 @@ Rails.application.routes.draw do
   get "dashboard", to: "dashboard#index", as: :dashboard
 
   # Resource routes
+  resources :api_keys, only: [:index, :new, :create] do
+    member do
+      patch :revoke
+    end
+  end
+
   resources :nodes do
     member do
       post :test_connection
