@@ -31,8 +31,9 @@ RSpec.describe ApplicationHelper, type: :helper do
   end
 
   describe "#format_megabits" do
-    it "formats zero or nil" do
+    it "formats zero, negative or nil" do
       expect(helper.format_megabits(0)).to eq("—")
+      expect(helper.format_megabits(-1)).to eq("—")
       expect(helper.format_megabits(nil)).to eq("—")
     end
 

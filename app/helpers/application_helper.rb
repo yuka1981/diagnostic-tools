@@ -12,7 +12,7 @@ module ApplicationHelper
   end
 
   def format_megabits(mbps)
-    return "—" if mbps.blank? || mbps.to_i.zero?
+    return "—" if mbps.blank? || mbps.to_i <= 0
 
     if mbps.to_i >= 1000
       sprintf("%.1f Gbps", mbps.to_f / 1000)
