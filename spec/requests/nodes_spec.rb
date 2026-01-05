@@ -156,30 +156,6 @@ RSpec.describe "Nodes", type: :request do
     end
   end
 
-  describe "POST /nodes/:id/run_benchmark" do
-    let(:user) { create(:user, :approver) }
-    let(:benchmark_service) { instance_double(Benchmark::TriggerRunService) }
-
-    before do
-      sign_in user
-      allow(Benchmark::TriggerRunService).to receive(:new).with(an_instance_of(Node)).and_return(benchmark_service)
-    end
-
-    it "triggers benchmark and redirects on success" do
-      allow(benchmark_service).to receive(:call).and_return(double(success?: true))
-      post run_benchmark_node_path(node)
-      expect(response).to redirect_to(benchmark_runs_path(node_id: node.id))
-      expect(flash[:notice]).to be_present
-    end
-
-    it "redirects with alert on failure" do
-      allow(benchmark_service).to receive(:call).and_return(double(success?: false, error: "SSH Error"))
-      post run_benchmark_node_path(node)
-      expect(response).to redirect_to(node_path(node))
-      expect(flash[:alert]).to include("SSH Error")
-    end
-  end
-
   describe "authorization" do
     let(:regular_user) { create(:user, :viewer) }
 

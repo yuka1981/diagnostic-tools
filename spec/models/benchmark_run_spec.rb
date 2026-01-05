@@ -10,6 +10,11 @@ RSpec.describe BenchmarkRun, type: :model do
 
   describe "validations" do
     it { is_expected.to validate_presence_of(:status) }
+
+    it "can have a log path" do
+      run = build(:benchmark_run, log_path: "/tmp/hpcg.log")
+      expect(run.log_path).to eq("/tmp/hpcg.log")
+    end
   end
 
   describe "enums" do

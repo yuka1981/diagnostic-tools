@@ -19,10 +19,12 @@ module Benchmark
     # @param target_node [Node] The node to run benchmark on
     # @param ssh_config [Hash] SSH configuration (user, keys, timeout, verify_host_key)
     # @param agent_path [String, nil] Optional override for path to the agent binary
-    def initialize(target_node, ssh_config: {}, agent_path: nil)
+    # @param log_path [String, nil] Optional path for the benchmark log file
+    def initialize(target_node, ssh_config: {}, agent_path: nil, log_path: nil)
       @target_node = target_node
       @ssh_config = build_ssh_config(ssh_config)
       @agent_path = agent_path || @target_node.try(:effective_agent_path) || DEFAULT_AGENT_PATH
+      @log_path = log_path
     end
 
     # Execute the SSH command to run benchmark
@@ -109,11 +111,10 @@ module Benchmark
     end
 
     def direct_command
-      # Construct the command with the correct flags
-      # We rely on the agent having the server URL and token if configured via env vars on the host
-      # Or we could pass them explicitly here if we had them available safely
-      # For this iteration, we'll assume a basic run command
-      "#{Shellwords.escape(@agent_path)} hpcg --id #{Shellwords.escape(generate_run_id)} 2>&1"
+      cmd = "#{Shellwords.escape(@agent_path)} hpcg --id #{Shellwords.escape(generate_run_id)}"
+      cmd += " --log-path #{Shellwords.escape(@log_path)}" if @log_path.present?
+      cmd += " 2>&1"
+      cmd
     end
 
     def generate_run_id

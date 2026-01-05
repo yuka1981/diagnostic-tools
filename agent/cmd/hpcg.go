@@ -18,6 +18,7 @@ type hpcgOptions struct {
 	runCmd     string
 	pushServer string
 	pushToken  string
+	logPath    string
 	modules    []string
 	nx, ny, nz int
 	rt         int
@@ -28,6 +29,7 @@ func (o *hpcgOptions) addFlags(cmd *cobra.Command) {
 	cmd.Flags().StringSliceVar(&o.modules, "module", nil, "Modules to load")
 	cmd.Flags().StringVar(&o.buildCmd, "build", "", "Build command (e.g. 'make')")
 	cmd.Flags().StringVar(&o.runCmd, "run", "./xhpcg", "Run command")
+	cmd.Flags().StringVar(&o.logPath, "log-path", "", "Custom path for the log file")
 	cmd.Flags().IntVar(&o.nx, "nx", 104, "NX")
 	cmd.Flags().IntVar(&o.ny, "ny", 104, "NY")
 	cmd.Flags().IntVar(&o.nz, "nz", 104, "NZ")
@@ -72,6 +74,7 @@ func runHPCG(cmd *cobra.Command, opts *hpcgOptions) error {
 		Modules:  opts.modules,
 		BuildCmd: opts.buildCmd,
 		RunCmd:   opts.runCmd,
+		LogPath:  opts.logPath,
 		Config: hpcg.ConfigParams{
 			NX: opts.nx, NY: opts.ny, NZ: opts.nz, RunTimeSeconds: opts.rt,
 		},

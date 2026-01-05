@@ -1,0 +1,70 @@
+<%= turbo_frame_tag "modal" do %>
+  <div class="relative z-10" aria-labelledby="modal-title" role="dialog" aria-modal="true" data-controller="modal" data-action="keyup@window->modal#closeWithKeyboard">
+    <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"></div>
+
+    <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
+      <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+        <div class="relative transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6 dark:bg-slate-800">
+          <div class="absolute right-0 top-0 hidden pr-4 pt-4 sm:block">
+            <button type="button" class="rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:bg-slate-800 dark:text-slate-400 dark:hover:text-slate-300" data-action="modal#close">
+              <span class="sr-only">Close</span>
+              <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+          
+          <div class="sm:flex sm:items-start">
+            <div class="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-indigo-100 sm:mx-0 sm:h-10 sm:w-10 dark:bg-indigo-500/20">
+              <svg class="h-6 w-6 text-indigo-600 dark:text-indigo-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
+              </svg>
+            </div>
+            <div class="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left w-full">
+              <h3 class="text-base font-semibold leading-6 text-gray-900 dark:text-white" id="modal-title">Run Benchmark</h3>
+              <div class="mt-2">
+                <p class="text-sm text-gray-500 dark:text-slate-400">
+                  Configure and start a new HPCG benchmark run on <strong><%= @node.hostname %></strong>.
+                </p>
+                
+                <%= form_with model: @form, url: node_benchmark_runs_path(@node), method: :post, class: "mt-4 space-y-4" do |f| %>
+                  <% if @form.errors.any? %>
+                    <div class="rounded-md bg-red-50 p-4 dark:bg-red-900/20">
+                      <div class="flex">
+                        <div class="ml-3">
+                          <h3 class="text-sm font-medium text-red-800 dark:text-red-400">There were errors with your submission</h3>
+                          <div class="mt-2 text-sm text-red-700 dark:text-red-300">
+                            <ul role="list" class="list-disc pl-5 space-y-1">
+                              <% @form.errors.full_messages.each do |msg| %>
+                                <li><%= msg %></li>
+                              <% end %>
+                            </ul>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  <% end %>
+
+                  <div>
+                    <%= f.label :log_path, "Log File Path (Optional)", class: "block text-sm font-medium leading-6 text-gray-900 dark:text-slate-300" %>
+                    <div class="mt-2">
+                      <%= f.text_field :log_path, class: "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 dark:bg-slate-700 dark:text-white dark:ring-white/10", placeholder: "/tmp/hpcg.log" %>
+                      <p class="mt-1 text-xs text-gray-500 dark:text-slate-400">
+                        Leave blank to use the default generated log file.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div class="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+                    <%= f.submit "Start Benchmark", class: "inline-flex w-full justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 sm:ml-3 sm:w-auto" %>
+                    <button type="button" class="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto dark:bg-slate-700 dark:text-white dark:ring-white/10 dark:hover:bg-slate-600" data-action="modal#close">Cancel</button>
+                  </div>
+                <% end %>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+<% end %>

@@ -92,6 +92,7 @@
             <tr>
               <th scope="col" class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-slate-400">Recipe</th>
               <th scope="col" class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-slate-400">Node</th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-slate-400">Log Path</th>
               <th scope="col" class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-slate-400">Status</th>
               <th scope="col" class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-slate-400">Started</th>
               <th scope="col" class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-slate-400">Duration</th>
@@ -109,6 +110,9 @@
                 </td>
                 <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-700 dark:text-slate-300">
                   <%= run.node.hostname %>
+                </td>
+                <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500 dark:text-slate-400 font-mono">
+                  <%= run.log_path.presence || "—" %>
                 </td>
                 <td class="whitespace-nowrap px-6 py-4">
                   <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium <%= status_badge_class(run.status) %>">

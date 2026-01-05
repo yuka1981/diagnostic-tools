@@ -30,6 +30,7 @@ type RunParams struct {
 	RunID    string
 	BuildCmd string // e.g. "make"
 	RunCmd   string // e.g. "srun ./xhpcg" or "./xhpcg"
+	LogPath  string // Optional: custom path for the log file
 	Modules  []string
 	Config   ConfigParams
 }
@@ -67,7 +68,19 @@ func (w *WorkflowOrchestrator) Run(ctx context.Context, params *RunParams) (*mod
 	}
 
 	// 5. Parse
-	metrics, finalStatus := w.parseResults(output, start, execStatus)
+	// Handle custom log path
+	if params.LogPath != "" {
+		if latestLog, err := w.findLatestLog(start); err == nil {
+			// Ensure destination directory exists
+			if err := os.MkdirAll(filepath.Dir(params.LogPath), 0755); err == nil {
+				if err := os.Rename(latestLog, params.LogPath); err != nil {
+					fmt.Fprintf(os.Stderr, "warning: failed to move log file to %s: %v\n", params.LogPath, err)
+				}
+			}
+		}
+	}
+
+	metrics, finalStatus := w.parseResults(output, start, execStatus, params.LogPath)
 
 	result := &model.BenchmarkRun{
 		RunID:     params.RunID,
@@ -119,20 +132,28 @@ func (w *WorkflowOrchestrator) parseResults(
 	output []byte,
 	startTime time.Time,
 	execStatus model.BenchmarkStatus,
+	customLogPath string,
 ) (*model.HPCGMetrics, model.BenchmarkStatus) {
 	// First try to parse from stdout
 	metrics, parsedStatus, parseErr := ParseHPCGLog(strings.NewReader(string(output)))
 
 	// If stdout parsing failed or produced no metrics, look for generated log file
 	if parseErr != nil || metrics.GFLOPS == 0 {
-		if latestLog, err := w.findLatestLog(startTime); err == nil {
-			if m, s, e := ParseHPCGLogFile(latestLog); e == nil {
+		var logToRead string
+		if customLogPath != "" {
+			logToRead = customLogPath
+		} else if latestLog, err := w.findLatestLog(startTime); err == nil {
+			logToRead = latestLog
+		}
+
+		if logToRead != "" {
+			if m, s, e := ParseHPCGLogFile(logToRead); e == nil {
 				metrics = m
 				parsedStatus = s
 				parseErr = nil
 			} else {
 				// record error for easier debugging
-				fmt.Fprintf(os.Stderr, "failed to parse log file %s: %v\n", latestLog, e)
+				fmt.Fprintf(os.Stderr, "failed to parse log file %s: %v\n", logToRead, e)
 			}
 		}
 	}
