@@ -3,8 +3,8 @@
 class NodesController < ApplicationController
   layout "dashboard"
   before_action :authenticate_user!
-  before_action :set_node, only: %i[show edit update destroy test_connection collect]
-  before_action :authorize_approver!, only: %i[new create edit update destroy test_connection collect]
+  before_action :set_node, only: %i[show edit update destroy test_connection collect run_benchmark]
+  before_action :authorize_approver!, only: %i[new create edit update destroy test_connection collect run_benchmark]
 
   def index
     @nodes = Node.order(:hostname)
@@ -64,6 +64,17 @@ class NodesController < ApplicationController
         render turbo_stream: turbo_stream.update("flash_messages", partial: "shared/flash")
       end
       format.html { redirect_to @node, alert: "Collection error: #{e.message}" }
+    end
+  end
+
+  def run_benchmark
+    trigger_service = Benchmark::TriggerRunService.new(@node)
+    result = trigger_service.call
+
+    if result.success?
+      redirect_to benchmark_runs_path(node_id: @node.id), notice: "Benchmark triggered successfully. Results will appear here shortly."
+    else
+      redirect_to @node, alert: "Failed to trigger benchmark: #{result.error}"
     end
   end
 

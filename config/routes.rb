@@ -16,6 +16,7 @@ Rails.application.routes.draw do
     member do
       post :test_connection
       post :collect
+      post :run_benchmark
     end
     collection do
       resources :imports, only: %i[new create], controller: "nodes/imports", as: :node_import
