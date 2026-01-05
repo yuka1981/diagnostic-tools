@@ -169,10 +169,10 @@
           </dl>
         </div>
 
-        <%# Frequency & Cache %>
-        <div class="space-y-4">
-          <h4 class="text-[10px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-widest">Performance & Cache</h4>
-          <dl class="grid grid-cols-1 gap-y-3">
+        <%# Frequency & Performance %>
+        <div class="space-y-4 pt-6 border-t border-gray-50 dark:border-white/5">
+          <h4 class="text-[10px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-widest">Performance</h4>
+          <dl class="grid grid-cols-1 gap-x-4 gap-y-4 sm:grid-cols-2 lg:grid-cols-4">
             <div>
               <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">CPU max MHz</dt>
               <dd class="text-sm font-semibold text-gray-900 dark:text-white"><%= state.cpu_info["cpu_max_mhz"] || "—" %></dd>
@@ -185,39 +185,41 @@
               <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">BogoMIPS</dt>
               <dd class="text-sm font-semibold text-gray-900 dark:text-white"><%= state.cpu_info["bogomips"] || "—" %></dd>
             </div>
-            <% if state.cpu_info["l1d_cache"].present? || state.cpu_info["l1i_cache"].present? || state.cpu_info["l2_cache"].present? || state.cpu_info["l3_cache"].present? %>
-              <div class="pt-2 border-t border-gray-50 dark:border-white/5">
-                <dt class="text-[10px] font-bold text-gray-400 dark:text-slate-500 uppercase mb-2">Caches (sum of all)</dt>
-                <dl class="space-y-1">
-                  <% if state.cpu_info["l1d_cache"].present? %>
-                    <div class="flex justify-between">
-                      <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">L1d</dt>
-                      <dd class="text-xs font-mono text-gray-900 dark:text-white"><%= state.cpu_info["l1d_cache"] %></dd>
-                    </div>
-                  <% end %>
-                  <% if state.cpu_info["l1i_cache"].present? %>
-                    <div class="flex justify-between">
-                      <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">L1i</dt>
-                      <dd class="text-xs font-mono text-gray-900 dark:text-white"><%= state.cpu_info["l1i_cache"] %></dd>
-                    </div>
-                  <% end %>
-                  <% if state.cpu_info["l2_cache"].present? %>
-                    <div class="flex justify-between">
-                      <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">L2</dt>
-                      <dd class="text-xs font-mono text-gray-900 dark:text-white"><%= state.cpu_info["l2_cache"] %></dd>
-                    </div>
-                  <% end %>
-                  <% if state.cpu_info["l3_cache"].present? %>
-                    <div class="flex justify-between">
-                      <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">L3</dt>
-                      <dd class="text-xs font-mono text-gray-900 dark:text-white"><%= state.cpu_info["l3_cache"] %></dd>
-                    </div>
-                  <% end %>
-                </dl>
-              </div>
-            <% end %>
           </dl>
         </div>
+
+        <%# Caches %>
+        <% if state.cpu_info["l1d_cache"].present? || state.cpu_info["l1i_cache"].present? || state.cpu_info["l2_cache"].present? || state.cpu_info["l3_cache"].present? %>
+          <div class="space-y-4 pt-6 border-t border-gray-50 dark:border-white/5">
+            <h4 class="text-[10px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-widest">Caches (sum of all)</h4>
+            <dl class="grid grid-cols-1 gap-x-4 gap-y-4 sm:grid-cols-2 lg:grid-cols-4">
+              <% if state.cpu_info["l1d_cache"].present? %>
+                <div>
+                  <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">L1d</dt>
+                  <dd class="text-sm font-semibold text-gray-900 dark:text-white font-mono"><%= state.cpu_info["l1d_cache"] %></dd>
+                </div>
+              <% end %>
+              <% if state.cpu_info["l1i_cache"].present? %>
+                <div>
+                  <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">L1i</dt>
+                  <dd class="text-sm font-semibold text-gray-900 dark:text-white font-mono"><%= state.cpu_info["l1i_cache"] %></dd>
+                </div>
+              <% end %>
+              <% if state.cpu_info["l2_cache"].present? %>
+                <div>
+                  <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">L2</dt>
+                  <dd class="text-sm font-semibold text-gray-900 dark:text-white font-mono"><%= state.cpu_info["l2_cache"] %></dd>
+                </div>
+              <% end %>
+              <% if state.cpu_info["l3_cache"].present? %>
+                <div>
+                  <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">L3</dt>
+                  <dd class="text-sm font-semibold text-gray-900 dark:text-white font-mono"><%= state.cpu_info["l3_cache"] %></dd>
+                </div>
+              <% end %>
+            </dl>
+          </div>
+        <% end %>
       </div>
 
       <%# Flags %>
