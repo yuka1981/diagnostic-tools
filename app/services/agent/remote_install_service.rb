@@ -104,7 +104,7 @@ module Agent
         After=network.target
 
         [Service]
-        ExecStart=#{TARGET_BIN_PATH} push --server "#{@server_url}" --token "#{@agent_token}"
+        ExecStart=#{TARGET_BIN_PATH} inventory push --server "#{@server_url}" --token "#{@agent_token}"
         Restart=always
         User=root
 

@@ -62,15 +62,15 @@ RSpec.describe "Node Management", type: :system, js: true do
     within "#uninstall_modal" do
       expect(page).to have_content("Remove Agent")
       expect(page).to have_field("Target Hostname/IP", with: "uninstall-target", readonly: true)
-      
+
       fill_in "Sudo Password (Required)", with: "sudo-secret"
-      
+
       # Mock the background job behavior
       uninstaller = instance_double(Agent::RemoteUninstallService, call: true)
       allow(Agent::RemoteUninstallService).to receive(:new).and_return(uninstaller)
 
       click_button "Confirm Removal"
-      
+
       # Wait for the "Removing hpc-agent..." processing state
       expect(page).to have_content("Removing hpc-agent...")
     end
@@ -86,7 +86,7 @@ RSpec.describe "Node Management", type: :system, js: true do
     # Verify the successful state arrived via Turbo Stream
     expect(page).to have_content("Uninstallation Successful")
     click_link "Done"
-    
+
     expect(page).to have_current_path(nodes_path)
   end
 end

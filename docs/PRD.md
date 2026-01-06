@@ -51,8 +51,8 @@ Changes: Added Node Configuration Versioning & History View features.
 ## **4\. 核心決策 (Core Decisions)**
 
 * **執行模型**: **Hybrid (Push & Pull)**  
-  * **Inventory (Pull via Gateway)**: Server 端 Collector 建立 SSH 連線至 **Admin Node**，再由 Admin Node 透過內部網路 (SSH/PDSH/Slurm) 觸發 Compute Node 的 agent collect。  
-  * **Inventory (Push)**: Agent 可透過 cron 或啟動腳本執行 agent inventory push 主動回報 (適用於自動註冊/定期更新，需確保 Compute Node 可訪問 Web API)。  
+  * **Inventory (Pull via Gateway)**: Server 端 Collector 建立 SSH 連線至 **Admin Node**，再由 Admin Node 透過內部網路 (SSH/PDSH/Slurm) 觸發 Compute Node 的 `hpc-agent collect`。  
+  * **Inventory (Push)**: Agent 可透過 cron 或啟動腳本執行 `hpc-agent inventory push` 主動回報 (適用於自動註冊/定期更新，需確保 Compute Node 可訪問 Web API)。  
   * **Benchmark (Push)**: Slurm Job 內的 Agent 主動執行並回報 DB，Artifacts 直寫 Shared Storage。  
 * **Nodes 來源**: **Web UI 匯入 (CSV)** \+ 靜態清單 \+ Agent 主動註冊。  
 * **Benchmark 環境**: **Native Compilation** (on-the-fly compile using modules/toolchain).  
@@ -198,7 +198,7 @@ V1 Agent 功能定義：
 
 ## **7\. 非功能需求 (Non-Functional Requirements)**
 
-* **Performance**: Agent collect \< 1s.  
+* **Performance**: `hpc-agent collect` \< 1s.  
 * **Reliability**: API Idempotency.  
 * **Security**: HTTPS only, Token-based Agent Auth.  
 * **UX**: 符合 Apple HIG，支援 Dark/Light Mode 自動切換 (Tailwind dark: variant)，並於 Navigation Bar 提供手動切換按鈕。  
