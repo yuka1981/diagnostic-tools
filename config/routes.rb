@@ -28,6 +28,7 @@ Rails.application.routes.draw do
     collection do
       resources :imports, only: %i[new create], controller: "nodes/imports", as: :node_import
       resources :installs, only: %i[new create], controller: "nodes/installs", as: :node_install
+      resources :uninstalls, only: %i[new create], controller: "nodes/uninstalls", as: :node_uninstall
     end
   end
   resources :benchmark_runs, only: %i[index show]
