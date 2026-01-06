@@ -24,7 +24,7 @@ module Nodes
         arch: install_params[:arch],
         bastion_user: install_params[:bastion_user],
         credentials_cache_key: cache_key,
-        server_url: request.base_url
+        server_url: install_params[:server_url].presence || request.base_url
       )
 
       respond_to do |format|
@@ -42,7 +42,7 @@ module Nodes
     end
 
     def install_params
-      params.require(:install).permit(:hostname, :arch, :bastion_user, :bastion_password, :sudo_password)
+      params.require(:install).permit(:hostname, :arch, :server_url, :bastion_user, :bastion_password, :sudo_password)
     end
   end
 end
