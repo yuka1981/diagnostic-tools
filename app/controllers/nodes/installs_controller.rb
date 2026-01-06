@@ -11,12 +11,19 @@ module Nodes
     end
 
     def create
+      # Store sensitive credentials in a short-lived cache to avoid passing them as job arguments
+      cache_key = SecureRandom.hex(16)
+      credentials = {
+        bastion_password: install_params[:bastion_password],
+        sudo_password: install_params[:sudo_password]
+      }
+      Rails.cache.write("install_creds_#{cache_key}", credentials, expires_in: 5.minutes)
+
       Agent::InstallJob.perform_later(
         target_host: install_params[:hostname],
         arch: install_params[:arch],
         bastion_user: install_params[:bastion_user],
-        bastion_password: install_params[:bastion_password],
-        sudo_password: install_params[:sudo_password],
+        credentials_cache_key: cache_key,
         server_url: request.base_url
       )
 

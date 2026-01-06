@@ -32,10 +32,15 @@ RSpec.describe "Nodes::Installs", type: :request do
       }
     end
 
-    it "enqueues an Agent::InstallJob" do
+    it "enqueues an Agent::InstallJob without passing passwords" do
       expect {
         post node_install_index_path, params: { install: install_params }
-      }.to enqueue_job(Agent::InstallJob).with(hash_including(target_host: "compute-001"))
+      }.to enqueue_job(Agent::InstallJob).with(
+        hash_including(
+          target_host: "compute-001",
+          credentials_cache_key: kind_of(String)
+        )
+      )
 
       expect(response).to redirect_to(nodes_path)
     end

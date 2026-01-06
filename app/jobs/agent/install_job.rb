@@ -4,7 +4,16 @@ module Agent
   class InstallJob < ApplicationJob
     queue_as :default
 
-    def perform(target_host:, arch:, bastion_user:, bastion_password:, sudo_password:, server_url:)
+    def perform(target_host:, arch:, bastion_user:, credentials_cache_key:, server_url:)
+      # Retrieve sensitive credentials from cache
+      credentials = Rails.cache.read("install_creds_#{credentials_cache_key}")
+      unless credentials
+        raise "Installation failed: Credentials expired or not found. Please try again."
+      end
+
+      # Ensure credentials are cleaned up
+      Rails.cache.delete("install_creds_#{credentials_cache_key}")
+
       # 1. Compile Agent
       compiler = Agent::CompilerService.new(arch)
       local_binary_path = compiler.call
@@ -14,8 +23,8 @@ module Agent
         target_host: target_host,
         arch: arch,
         bastion_user: bastion_user,
-        bastion_password: bastion_password,
-        sudo_password: sudo_password,
+        bastion_password: credentials[:bastion_password],
+        sudo_password: credentials[:sudo_password],
         local_binary_path: local_binary_path,
         server_url: server_url
       )

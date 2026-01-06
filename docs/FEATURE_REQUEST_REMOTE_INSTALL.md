@@ -91,12 +91,13 @@
 > 1. Inputs: `target_host`, `arch`, `bastion_user`, `bastion_password`, `sudo_password`.
 > 2. **Phase 1 (Upload to Bastion)**: Use `Net::SCP` to upload the compiled binary to `/tmp/agent_bin` on the Bastion Host.
 > 3. **Phase 2 (Bastion to Target)**: Use `Net::SSH` to connect to Bastion.
->    * Execute a command that uses `sudo` to SCP the file from Bastion to Target.
->    * Pattern: `echo '<sudo_password>' | sudo -S scp -i /root/.ssh/id_rsa /tmp/agent_bin root@<target_host>:/usr/local/bin/agent`
->    * *Note*: Handle the `-S` flag for sudo to read password from stdin.
-> 4. **Phase 3 (Remote Config)**: Similarly, use `sudo ssh` to execute installation commands on Target:
+>    * Execute a command that uses `sudo -S` to SCP the file from Bastion to Target.
+>    * **Secure Practice**: Avoid piping passwords via `echo`. Instead, write the password directly to the command's standard input over the SSH channel.
+>    * Pattern: `sudo -S scp -o StrictHostKeyChecking=no /tmp/agent_bin root@<target_host>:/usr/local/bin/agent`
+>    * *Note*: All dynamic arguments (especially `<target_host>`) must be validated and escaped using `Shellwords.escape`.
+> 4. **Phase 3 (Remote Config)**: Similarly, use `sudo -S ssh` to execute installation commands on Target:
 >    * `chmod +x /usr/local/bin/agent`
->    * Create `/etc/systemd/system/hpc-agent.service` content.
+>    * Create `/etc/systemd/system/hpc-agent.service` content (ensure arguments are quoted).
 >    * `systemctl daemon-reload && systemctl enable --now hpc-agent`"
 
 ### Step 3: Web UI Integration

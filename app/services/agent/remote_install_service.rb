@@ -12,6 +12,8 @@ module Agent
 
     def initialize(target_host:, arch:, bastion_user:, bastion_password: nil, sudo_password:, local_binary_path:, server_url: nil, agent_token: nil)
       @target_host = target_host
+      validate_target_host!
+
       @arch = arch
       @bastion_host = SshConfig.jump_host
       @bastion_user = bastion_user
@@ -36,41 +38,42 @@ module Agent
         # Use sudo -S to scp from bastion to target.
         # We assume bastion root has passwordless SSH access to target nodes as per PRD.
         Rails.logger.info "Transferring binary from bastion to target: #{@target_host}"
-        scp_cmd = "echo '#{@sudo_password}' | sudo -S scp -o StrictHostKeyChecking=no #{BASTION_TMP_PATH} root@#{@target_host}:#{TARGET_BIN_PATH}"
-        execute_remote_command(ssh, scp_cmd)
+        scp_cmd = "sudo -S scp -o StrictHostKeyChecking=no #{BASTION_TMP_PATH} root@#{Shellwords.escape(@target_host)}:#{TARGET_BIN_PATH}"
+        execute_remote_command(ssh, scp_cmd, password: @sudo_password)
 
         # Phase 3: Remote Config on Target
         Rails.logger.info "Configuring agent on target: #{@target_host}"
 
         # 3.1: chmod +x
-        chmod_cmd = "echo '#{@sudo_password}' | sudo -S ssh -o StrictHostKeyChecking=no root@#{@target_host} 'chmod +x #{TARGET_BIN_PATH}'"
-        execute_remote_command(ssh, chmod_cmd)
+        chmod_cmd = "sudo -S ssh -o StrictHostKeyChecking=no root@#{Shellwords.escape(@target_host)} 'chmod +x #{TARGET_BIN_PATH}'"
+        execute_remote_command(ssh, chmod_cmd, password: @sudo_password)
 
         # 3.2: Create systemd service
         service_content = <<~SERVICE
-[Unit]
-Description=HPC Diagnostic Agent
-After=network.target
+          [Unit]
+          Description=HPC Diagnostic Agent
+          After=network.target
 
-[Service]
-ExecStart=#{TARGET_BIN_PATH} push --server #{@server_url} --token #{@agent_token}
-Restart=always
-User=root
+          [Service]
+          ExecStart=#{TARGET_BIN_PATH} push --server "#{@server_url}" --token "#{@agent_token}"
+          Restart=always
+          User=root
 
-[Install]
-WantedBy=multi-user.target
-SERVICE
+          [Install]
+          WantedBy=multi-user.target
+        SERVICE
 
         service_file_path = "/etc/systemd/system/hpc-agent.service"
         # Write content to temp file on bastion
+        # Escape the content for bash cat
         ssh.exec!("cat << 'EOF' > /tmp/hpc-agent.service\n#{service_content}\nEOF")
 
-        transfer_service_cmd = "echo '#{@sudo_password}' | sudo -S scp -o StrictHostKeyChecking=no /tmp/hpc-agent.service root@#{@target_host}:#{service_file_path}"
-        execute_remote_command(ssh, transfer_service_cmd)
+        transfer_service_cmd = "sudo -S scp -o StrictHostKeyChecking=no /tmp/hpc-agent.service root@#{Shellwords.escape(@target_host)}:#{service_file_path}"
+        execute_remote_command(ssh, transfer_service_cmd, password: @sudo_password)
 
         # 3.3: systemctl enable --now
-        systemd_cmd = "echo '#{@sudo_password}' | sudo -S ssh -o StrictHostKeyChecking=no root@#{@target_host} 'systemctl daemon-reload && systemctl enable --now hpc-agent'"
-        execute_remote_command(ssh, systemd_cmd)
+        systemd_cmd = "sudo -S ssh -o StrictHostKeyChecking=no root@#{Shellwords.escape(@target_host)} 'systemctl daemon-reload && systemctl enable --now hpc-agent'"
+        execute_remote_command(ssh, systemd_cmd, password: @sudo_password)
       end
 
       true
@@ -81,17 +84,30 @@ SERVICE
 
     private
 
-    def execute_remote_command(ssh, cmd)
+    def validate_target_host!
+      # Basic validation for hostname or IP address
+      unless @target_host =~ /\A[a-zA-Z0-9.-]+\z/
+        raise InstallError, "Invalid target host format: #{@target_host}"
+      end
+    end
+
+    def execute_remote_command(ssh, cmd, password: nil)
       stdout = ""
       stderr = ""
       exit_code = nil
 
       ssh.open_channel do |ch|
-        ch.exec(cmd) do |_path, success|
+        ch.exec(cmd) do |channel, success|
           raise InstallError, "Could not execute command: #{cmd}" unless success
-          ch.on_data { |_c, data| stdout += data }
-          ch.on_extended_data { |_c, _type, data| stderr += data }
-          ch.on_request("exit-status") { |_c, data| exit_code = data.read_long }
+
+          if password.present?
+            # Send password to sudo -S
+            channel.send_data("#{password}\n")
+          end
+
+          channel.on_data { |_c, data| stdout += data }
+          channel.on_extended_data { |_c, _type, data| stderr += data }
+          channel.on_request("exit-status") { |_c, data| exit_code = data.read_long }
         end
       end
       ssh.loop

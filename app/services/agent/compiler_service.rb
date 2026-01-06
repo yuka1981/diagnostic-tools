@@ -9,16 +9,10 @@ module Agent
       "arm64" => "arm64"
     }.freeze
 
-    def initialize(arch)
-      # Strictly validate and map arch to prevent command injection
-      @arch = case arch
-      when "x86_64", "amd64" then "amd64"
-      when "arm64", "aarch64" then "arm64"
-      else
-                raise ArgumentError, "Unsupported architecture: #{arch}"
-      end
-    end
-
+        def initialize(arch)
+          @arch = ARCH_MAP[arch]
+          raise ArgumentError, "Unsupported architecture: #{arch.inspect}" unless @arch
+        end
     def call
       tmp_dir = Rails.root.join("tmp").to_s
       FileUtils.mkdir_p(tmp_dir)
