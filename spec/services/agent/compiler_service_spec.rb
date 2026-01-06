@@ -8,6 +8,7 @@ RSpec.describe Agent::CompilerService do
     let(:service) { described_class.new(arch) }
 
     it "executes go build command and returns path" do
+      allow(service).to receive(:system).with("command -v go >/dev/null 2>&1").and_return(true)
       expect(Open3).to receive(:capture3)
         .with(hash_including("GOARCH" => "amd64"), "go", "build", "-o", anything, ".", hash_including(chdir: /agent\z/))
         .and_return([ "", "", double(success?: true) ])
@@ -18,17 +19,37 @@ RSpec.describe Agent::CompilerService do
       expect(path).to include("tmp/agent_amd64_")
     end
 
-    it "raises error if compilation fails" do
-      allow(Open3).to receive(:capture3).and_return([ "", "error message", double(success?: false) ])
+        it "raises error if compilation fails" do
+          allow(service).to receive(:system).with("command -v go >/dev/null 2>&1").and_return(true)
 
-      expect { service.call }.to raise_error(Agent::CompilerService::CompilationError, /Failed to compile/)
-    end
+          allow(Open3).to receive(:capture3).and_return([ "", "error message", double(success?: false) ])
 
-    context "with arm64" do
-      let(:arch) { "arm64" }
 
-      it "uses arm64 GOARCH" do
-        expect(Open3).to receive(:capture3)
+
+          expect { service.call }.to raise_error(Agent::CompilerService::CompilationError, /Failed to compile/)
+        end
+
+
+
+        it "raises error if go is not installed" do
+          allow(service).to receive(:system).with("command -v go >/dev/null 2>&1").and_return(false)
+
+
+
+          expect { service.call }.to raise_error(Agent::CompilerService::CompilationError, /Go toolchain.*not installed/)
+        end
+
+
+
+        context "with arm64" do
+          let(:arch) { "arm64" }
+
+
+
+          it "uses arm64 GOARCH" do
+            allow(service).to receive(:system).with("command -v go >/dev/null 2>&1").and_return(true)
+
+            expect(Open3).to receive(:capture3)
           .with(hash_including("GOARCH" => "arm64"), "go", "build", "-o", anything, ".", hash_including(chdir: /agent\z/))
           .and_return([ "", "", double(success?: true) ])
 

@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "resolv"
+
 module Agent
   class InstallJob < ApplicationJob
     queue_as :default
@@ -45,9 +47,18 @@ module Agent
 
       installer.call
 
-      # 3. Success Broadcast
+      # 3. Create or update Node record
+      Rails.logger.debug "[Agent::InstallJob] Ensuring Node record exists for #{target_host}"
+      node = Node.find_or_initialize_by(hostname: target_host)
+      node.arch = arch
+      node.source = :agent_push
+      # Use the target_host as IP if it looks like one, otherwise leave blank
+      node.ip = target_host if target_host =~ Regexp.union(Resolv::IPv4::Regex, Resolv::IPv6::Regex)
+      node.save!
+
+      # 4. Success Broadcast
       Rails.logger.debug "[Agent::InstallJob] Installation Successful"
-      broadcast_status(target_host, "success", "Agent installed successfully")
+      broadcast_status(target_host, "success", "Agent installed successfully and node record created")
     rescue => e
       Rails.logger.error "[Agent::InstallJob] Error: #{e.message}"
       Rails.logger.error e.backtrace.first(10).join("\n")

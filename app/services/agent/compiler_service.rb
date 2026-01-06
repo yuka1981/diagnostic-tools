@@ -14,6 +14,8 @@ module Agent
           raise ArgumentError, "Unsupported architecture: #{arch.inspect}" unless @arch
         end
     def call
+      ensure_go_installed!
+
       tmp_dir = Rails.root.join("tmp").to_s
       FileUtils.mkdir_p(tmp_dir)
 
@@ -44,6 +46,13 @@ module Agent
       FileUtils.mv(static_build_path, final_output_path)
       Rails.logger.debug "[CompilerService] Result moved to #{final_output_path}"
       final_output_path.to_s
+    end
+    private
+
+    def ensure_go_installed!
+      return if system("command -v go >/dev/null 2>&1")
+
+      raise CompilationError, "Go toolchain (go) is not installed on the server. Please install Go to enable remote agent installation."
     end
   end
 end
