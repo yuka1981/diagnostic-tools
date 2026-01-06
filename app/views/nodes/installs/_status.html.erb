@@ -1,4 +1,7 @@
 <div class="px-6 py-12 text-center" id="agent_install_status_<%= target_host.parameterize %>">
+  <%# Maintain subscription for real-time updates %>
+  <%= turbo_stream_from "agent_install_#{target_host.parameterize}" %>
+
   <div class="flex flex-col items-center justify-center">
     <% if status == "success" %>
       <div class="h-16 w-16 rounded-full bg-emerald-100 flex items-center justify-center mb-4 dark:bg-emerald-500/20">

@@ -85,16 +85,16 @@ module Agent
     def configure_target(ssh, via_ssh: false)
       report_progress "Configuring agent service on target"
 
-      # Prefix for commands if we are going through bastion via SSH to target
-      # If direct, we run commands on the current session
-      ssh_prefix = if via_ssh
-                     "sudo -S ssh -o StrictHostKeyChecking=no root@#{Shellwords.escape(@target_host)} "
+      # 3.1: chmod +x
+      # We construct the inner command first
+      inner_chmod = "chmod +x #{TARGET_BIN_PATH}"
+
+      chmod_cmd = if via_ssh
+                    "sudo -S ssh -o StrictHostKeyChecking=no root@#{Shellwords.escape(@target_host)} #{Shellwords.escape(inner_chmod)}"
       else
-                     "sudo -S "
+                    "sudo -S #{inner_chmod}"
       end
 
-      # 3.1: chmod +x
-      chmod_cmd = "#{ssh_prefix}'chmod +x #{TARGET_BIN_PATH}'"
       execute_remote_command(ssh, chmod_cmd, password: @sudo_password)
 
       # 3.2: Create systemd service
@@ -113,22 +113,33 @@ module Agent
       SERVICE
 
       service_file_path = "/etc/systemd/system/hpc-agent.service"
+      tmp_service_path = "/tmp/hpc-agent.service"
+
+      # Write content to temp file on the current session (bastion or target)
+      # We use a simple heredoc. Shellwords.escape isn't ideal for whole files,
+      # but we trust our own service_content.
+      ssh.exec!("cat << 'EOF' > #{tmp_service_path}\n#{service_content}EOF")
 
       if via_ssh
-        # Write content to temp file on bastion, then SCP to target
-        ssh.exec!("cat << 'EOF' > /tmp/hpc-agent.service\n#{service_content}\nEOF")
-        transfer_service_cmd = "sudo -S scp -o StrictHostKeyChecking=no /tmp/hpc-agent.service root@#{Shellwords.escape(@target_host)}:#{service_file_path}"
+        # Transfer from bastion to target
+        transfer_service_cmd = "sudo -S scp -o StrictHostKeyChecking=no #{tmp_service_path} root@#{Shellwords.escape(@target_host)}:#{service_file_path}"
         execute_remote_command(ssh, transfer_service_cmd, password: @sudo_password)
       else
-        # Write directly to target via a temp file
-        ssh.exec!("cat << 'EOF' > /tmp/hpc-agent.service\n#{service_content}\nEOF")
-        mv_service_cmd = "sudo -S mv /tmp/hpc-agent.service #{service_file_path}"
+        # Move directly on target
+        mv_service_cmd = "sudo -S mv #{tmp_service_path} #{service_file_path}"
         execute_remote_command(ssh, mv_service_cmd, password: @sudo_password)
       end
 
       # 3.3: systemctl enable --now
       report_progress "Starting agent service"
-      systemd_cmd = "#{ssh_prefix}'systemctl daemon-reload && systemctl enable --now hpc-agent'"
+
+      inner_systemd = "systemctl daemon-reload && systemctl enable --now hpc-agent"
+      systemd_cmd = if via_ssh
+                      "sudo -S ssh -o StrictHostKeyChecking=no root@#{Shellwords.escape(@target_host)} #{Shellwords.escape(inner_systemd)}"
+      else
+                      "sudo -S bash -c #{Shellwords.escape(inner_systemd)}"
+      end
+
       execute_remote_command(ssh, systemd_cmd, password: @sudo_password)
     end
 
