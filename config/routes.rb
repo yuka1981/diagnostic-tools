@@ -27,6 +27,7 @@ Rails.application.routes.draw do
     resources :benchmark_runs, only: %i[new create], controller: "nodes/benchmark_runs"
     collection do
       resources :imports, only: %i[new create], controller: "nodes/imports", as: :node_import
+      resources :installs, only: %i[new create], controller: "nodes/installs", as: :node_install
     end
   end
   resources :benchmark_runs, only: %i[index show]

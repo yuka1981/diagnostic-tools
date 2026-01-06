@@ -1,0 +1,48 @@
+# frozen_string_literal: true
+
+require "rails_helper"
+
+RSpec.describe Agent::InstallJob, type: :job do
+  let(:params) do
+    {
+      target_host: "compute-001",
+      arch: "x86_64",
+      bastion_user: "admin",
+      bastion_password: "password",
+      sudo_password: "sudo_password",
+      server_url: "http://test.com"
+    }
+  end
+
+  let(:compiler) { instance_double(Agent::CompilerService, call: "/tmp/agent") }
+  let(:installer) { instance_double(Agent::RemoteInstallService, call: true) }
+
+  before do
+    allow(Agent::CompilerService).to receive(:new).and_return(compiler)
+    allow(Agent::RemoteInstallService).to receive(:new).and_return(installer)
+    allow(FileUtils).to receive(:rm_f)
+    allow(Turbo::StreamsChannel).to receive(:broadcast_replace_to)
+  end
+
+  it "compiles and installs the agent" do
+    described_class.perform_now(**params)
+
+    expect(compiler).to have_received(:call)
+    expect(installer).to have_received(:call)
+    expect(Turbo::StreamsChannel).to have_received(:broadcast_replace_to).with(
+      "agent_install_compute-001",
+      hash_including(locals: hash_including(status: "success"))
+    )
+  end
+
+  it "broadcasts error if installation fails" do
+    allow(installer).to receive(:call).and_raise(Agent::RemoteInstallService::InstallError, "Failed")
+
+    described_class.perform_now(**params)
+
+    expect(Turbo::StreamsChannel).to have_received(:broadcast_replace_to).with(
+      "agent_install_compute-001",
+      hash_including(locals: hash_including(status: "error", message: "Failed"))
+    )
+  end
+end

@@ -7,6 +7,15 @@
   </div>
   <div class="flex items-center gap-3">
     <% if current_user.approver? %>
+      <%= link_to new_node_install_path,
+          class: "inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white shadow-lg shadow-indigo-500/20 transition-all hover:bg-indigo-700",
+          data: { turbo_frame: "install_modal" } do %>
+        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+        </svg>
+        Install Agent
+      <% end %>
+
       <%= link_to new_node_path,
           class: "inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white shadow-lg shadow-blue-500/20 transition-all hover:bg-blue-700",
           data: { turbo_frame: "node_modal" } do %>
@@ -36,3 +45,4 @@
 <%# Modals turbo frames %>
 <%= turbo_frame_tag "node_modal" %>
 <%= turbo_frame_tag "import_modal" %>
+<%= turbo_frame_tag "install_modal" %>

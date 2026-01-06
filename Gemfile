@@ -43,6 +43,7 @@ gem "devise", "~> 4.9"
 
 # SSH client for remote command execution [https://github.com/net-ssh/net-ssh]
 gem "net-ssh", "~> 7.2"
+gem "net-scp", "~> 4.0"
 
 # Pagination [https://github.com/kaminari/kaminari]
 gem "kaminari", "~> 1.2"
