@@ -4,7 +4,7 @@ module Agent
   class InstallJob < ApplicationJob
     queue_as :default
 
-    def perform(target_host:, arch:, bastion_user:, credentials_cache_key:, server_url:)
+    def perform(target_host:, arch:, bastion_host: nil, bastion_user:, credentials_cache_key:, server_url:)
       Rails.logger.debug "[Agent::InstallJob] Starting install for #{target_host} (arch: #{arch})"
       
       # Retrieve sensitive credentials from cache
@@ -31,6 +31,7 @@ module Agent
       installer = Agent::RemoteInstallService.new(
         target_host: target_host,
         arch: arch,
+        bastion_host: bastion_host,
         bastion_user: bastion_user,
         bastion_password: credentials[:bastion_password],
         sudo_password: credentials[:sudo_password],

@@ -56,6 +56,16 @@ RSpec.describe "Nodes::Installs", type: :request do
       )
     end
 
+    it "enqueues an Agent::InstallJob with custom bastion_host if provided" do
+      expect {
+        post node_install_index_path, params: { install: install_params.merge(bastion_host: "10.0.0.5") }
+      }.to enqueue_job(Agent::InstallJob).with(
+        hash_including(
+          bastion_host: "10.0.0.5"
+        )
+      )
+    end
+
     it "returns turbo stream if requested" do
       post node_install_index_path, params: { install: install_params }, as: :turbo_stream
       expect(response.media_type).to eq("text/vnd.turbo-stream.html")

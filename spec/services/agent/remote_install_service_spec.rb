@@ -11,6 +11,7 @@ RSpec.describe Agent::RemoteInstallService do
     described_class.new(
       target_host: target_host,
       arch: "x86_64",
+      bastion_host: "bastion.example.com",
       bastion_user: bastion_user,
       sudo_password: sudo_password,
       local_binary_path: local_path

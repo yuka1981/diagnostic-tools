@@ -14,6 +14,7 @@ RSpec.describe Agent::InstallJob, type: :job do
     {
       target_host: "compute-001",
       arch: "x86_64",
+      bastion_host: "10.0.0.1",
       bastion_user: "admin",
       credentials_cache_key: cache_key,
       server_url: "http://test.com"
@@ -28,6 +29,7 @@ RSpec.describe Agent::InstallJob, type: :job do
     allow(Agent::RemoteInstallService).to receive(:new).and_return(installer)
     allow(FileUtils).to receive(:rm_f)
     allow(Turbo::StreamsChannel).to receive(:broadcast_replace_to)
+    allow(File).to receive(:exist?).and_return(true)
     Rails.cache.write("install_creds_#{cache_key}", credentials)
   end
 
@@ -36,6 +38,7 @@ RSpec.describe Agent::InstallJob, type: :job do
 
     expect(compiler).to have_received(:call)
     expect(Agent::RemoteInstallService).to have_received(:new).with(hash_including(
+                                                                     bastion_host: "10.0.0.1",
                                                                      bastion_password: "password",
                                                                      sudo_password: "sudo_password"
                                                                    ))

@@ -23,6 +23,7 @@ module Nodes
       Agent::InstallJob.perform_later(
         target_host: install_params[:hostname],
         arch: install_params[:arch],
+        bastion_host: install_params[:bastion_host],
         bastion_user: install_params[:bastion_user],
         credentials_cache_key: cache_key,
         server_url: install_params[:server_url].presence || request.base_url
@@ -43,7 +44,7 @@ module Nodes
     end
 
     def install_params
-      params.require(:install).permit(:hostname, :arch, :server_url, :bastion_user, :bastion_password, :sudo_password)
+      params.require(:install).permit(:hostname, :arch, :server_url, :bastion_host, :bastion_user, :bastion_password, :sudo_password)
     end
   end
 end

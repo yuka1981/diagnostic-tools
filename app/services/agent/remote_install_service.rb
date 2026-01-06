@@ -10,12 +10,12 @@ module Agent
     BASTION_TMP_PATH = "/tmp/agent_bin"
     TARGET_BIN_PATH = "/usr/local/bin/agent"
 
-    def initialize(target_host:, arch:, bastion_user:, bastion_password: nil, sudo_password:, local_binary_path:, server_url: nil, agent_token: nil, on_progress: nil)
+    def initialize(target_host:, arch:, bastion_user:, bastion_host: nil, bastion_password: nil, sudo_password:, local_binary_path:, server_url: nil, agent_token: nil, on_progress: nil)
       @target_host = target_host
       validate_target_host!
 
       @arch = arch
-      @bastion_host = SshConfig.jump_host
+      @bastion_host = bastion_host.presence || SshConfig.jump_host
       @bastion_user = bastion_user
       @bastion_password = bastion_password
       @sudo_password = sudo_password
