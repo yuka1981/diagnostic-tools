@@ -96,7 +96,17 @@ RSpec.describe "Node Management", type: :system, js: true do
     
         within "tr", text: "already-installed" do
           expect(page).to have_css("span[title='hpc-agent is already installed']", text: "Install")
-          expect(page).not_to have_link("Install")
-        end
-      end
-    end
+                expect(page).not_to have_link("Install")
+              end
+            end
+          
+            it "disables the Uninstall button if the agent is not installed" do
+              create(:node, hostname: "not-installed", source: :manual)
+              visit nodes_path
+          
+              within "tr", text: "not-installed" do
+                expect(page).to have_css("span[title='hpc-agent is not installed']", text: "Uninstall")
+                expect(page).not_to have_link("Uninstall")
+              end
+            end
+          end
