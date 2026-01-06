@@ -78,6 +78,7 @@ func runHPCG(cmd *cobra.Command, opts *hpcgOptions) error {
 		BuildCmd: opts.buildCmd,
 		RunCmd:   opts.runCmd,
 		LogPath:  opts.logPath,
+		LogDir:   "/tmp/hpc-diagnostics-log",
 		Config: hpcg.ConfigParams{
 			NX: opts.nx, NY: opts.ny, NZ: opts.nz, RunTimeSeconds: opts.rt,
 		},

@@ -31,6 +31,7 @@ type RunParams struct {
 	BuildCmd string // e.g. "make"
 	RunCmd   string // e.g. "srun ./xhpcg" or "./xhpcg"
 	LogPath  string // Optional: custom path for the log file
+	LogDir   string // Optional: directory to store logs if LogPath is not set
 	Modules  []string
 	Config   ConfigParams
 }
@@ -68,19 +69,9 @@ func (w *WorkflowOrchestrator) Run(ctx context.Context, params *RunParams) (*mod
 	}
 
 	// 5. Parse
-	// Handle custom log path
-	if params.LogPath != "" {
-		if latestLog, err := w.findLatestLog(start); err == nil {
-			// Ensure destination directory exists
-			if err := os.MkdirAll(filepath.Dir(params.LogPath), 0755); err == nil {
-				if err := os.Rename(latestLog, params.LogPath); err != nil {
-					fmt.Fprintf(os.Stderr, "warning: failed to move log file to %s: %v\n", params.LogPath, err)
-				}
-			}
-		}
-	}
+	targetLogPath := w.handleLogStorage(params, start)
 
-	metrics, finalStatus := w.parseResults(output, start, execStatus, params.LogPath)
+	metrics, finalStatus := w.parseResults(output, start, execStatus, targetLogPath)
 
 	result := &model.BenchmarkRun{
 		RunID:     params.RunID,
@@ -99,6 +90,42 @@ func (w *WorkflowOrchestrator) Run(ctx context.Context, params *RunParams) (*mod
 	}
 
 	return result, nil
+}
+
+func (w *WorkflowOrchestrator) handleLogStorage(params *RunParams, startTime time.Time) string {
+	var targetLogPath string
+	if params.LogPath != "" {
+		targetLogPath = params.LogPath
+	} else if params.LogDir != "" {
+		// Ensure log dir exists
+		if err := os.MkdirAll(params.LogDir, 0755); err != nil {
+			fmt.Fprintf(os.Stderr, "warning: failed to create log dir %s: %v\n", params.LogDir, err)
+		} else {
+			// Find latest log to get the name
+			if latestLog, err := w.findLatestLog(startTime); err == nil {
+				targetLogPath = filepath.Join(params.LogDir, filepath.Base(latestLog))
+			}
+		}
+	}
+
+	if targetLogPath != "" {
+		if latestLog, err := w.findLatestLog(startTime); err == nil {
+			// Ensure destination directory exists (for LogPath case)
+			if err := os.MkdirAll(filepath.Dir(targetLogPath), 0755); err != nil {
+				fmt.Fprintf(os.Stderr, "warning: failed to create directory for %s: %v\n", targetLogPath, err)
+			} else {
+				// If target is same as source, skip
+				absSource, _ := filepath.Abs(latestLog)
+				absTarget, _ := filepath.Abs(targetLogPath)
+				if absSource != "" && absTarget != "" && absTarget != absSource {
+					if err := os.Rename(latestLog, targetLogPath); err != nil {
+						fmt.Fprintf(os.Stderr, "warning: failed to move log file to %s: %v\n", targetLogPath, err)
+					}
+				}
+			}
+		}
+	}
+	return targetLogPath
 }
 
 func (w *WorkflowOrchestrator) setupEnvironment(ctx context.Context, modules []string) error {
