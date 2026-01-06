@@ -71,4 +71,38 @@ RSpec.describe "Api::V1::BenchmarkRuns", type: :request do
       expect(response).to have_http_status(:not_found)
     end
   end
+
+  describe "PATCH /api/v1/runs/:id/progress" do
+    let(:headers) { { "Authorization" => "Bearer #{valid_token}", "Content-Type" => "application/json" } }
+
+    it "updates status, phase, and heartbeat" do
+      started = Time.current
+
+      patch "/api/v1/runs/#{run.uuid}/progress",
+            params: { status: "building", phase: "Compiling Source" }.to_json,
+            headers: headers
+
+      expect(response).to have_http_status(:success)
+      run.reload
+      expect(run.status).to eq("building")
+      expect(run.current_phase).to eq("Compiling Source")
+      expect(run.last_heartbeat_at).to be_within(1.second).of(started)
+    end
+
+    it "returns 400 for invalid status" do
+      patch "/api/v1/runs/#{run.uuid}/progress",
+            params: { status: "unknown" }.to_json,
+            headers: headers
+
+      expect(response).to have_http_status(:bad_request)
+    end
+
+    it "returns 404 for unknown run" do
+      patch "/api/v1/runs/#{SecureRandom.uuid}/progress",
+            params: { status: "running" }.to_json,
+            headers: headers
+
+      expect(response).to have_http_status(:not_found)
+    end
+  end
 end

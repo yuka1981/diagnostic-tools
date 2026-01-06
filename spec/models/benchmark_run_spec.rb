@@ -19,13 +19,16 @@ RSpec.describe BenchmarkRun, type: :model do
 
   describe "enums" do
     describe "status" do
-      it "defines pending, running, success, and failed statuses" do
+      it "defines progress-aware statuses" do
         expect(BenchmarkRun.statuses).to eq({
           "pending" => 0,
-          "running" => 1,
-          "success" => 2,
-          "failed" => 3,
-          "cancelled" => 4
+          "preparing" => 1,
+          "building" => 2,
+          "running" => 3,
+          "uploading" => 4,
+          "success" => 5,
+          "failed" => 6,
+          "lost" => 7
         })
       end
 
@@ -68,23 +71,28 @@ RSpec.describe BenchmarkRun, type: :model do
     let(:recipe) { create(:benchmark_recipe) }
     let!(:pending_run) { create(:benchmark_run, node: node, benchmark_recipe: recipe, status: :pending) }
     let!(:running_run) { create(:benchmark_run, :running, node: node, benchmark_recipe: recipe) }
+    let!(:building_run) { create(:benchmark_run, :building, node: node, benchmark_recipe: recipe) }
     let!(:success_run) { create(:benchmark_run, :success, node: node, benchmark_recipe: recipe) }
     let!(:failed_run) { create(:benchmark_run, :failed, node: node, benchmark_recipe: recipe) }
+    let!(:lost_run) { create(:benchmark_run, :lost, node: node, benchmark_recipe: recipe) }
 
     describe ".recent" do
       it "orders by created_at descending" do
         runs = BenchmarkRun.recent.to_a
-        # failed_run (created last) > success_run > running_run > pending_run (created first)
-        expect(runs.first).to eq(failed_run)
+        expect(runs.first).to eq(lost_run)
         expect(runs.last).to eq(pending_run)
       end
     end
 
     describe ".completed" do
-      let!(:cancelled_run) { create(:benchmark_run, :cancelled, node: node, benchmark_recipe: recipe) }
+      it "returns success, failed, and lost runs" do
+        expect(BenchmarkRun.completed).to contain_exactly(success_run, failed_run, lost_run)
+      end
+    end
 
-      it "returns success, failed, and cancelled runs" do
-        expect(BenchmarkRun.completed).to contain_exactly(success_run, failed_run, cancelled_run)
+    describe ".active" do
+      it "returns runs in progress states" do
+        expect(BenchmarkRun.active).to contain_exactly(running_run, building_run)
       end
     end
 
@@ -99,7 +107,7 @@ RSpec.describe BenchmarkRun, type: :model do
       let!(:other_run) { create(:benchmark_run, node: other_node, benchmark_recipe: recipe) }
 
       it "returns runs for the specified node" do
-        expect(BenchmarkRun.for_node(node)).to contain_exactly(pending_run, running_run, success_run, failed_run)
+        expect(BenchmarkRun.for_node(node)).to contain_exactly(pending_run, running_run, building_run, success_run, failed_run, lost_run)
         expect(BenchmarkRun.for_node(node)).not_to include(other_run)
       end
     end
@@ -109,7 +117,7 @@ RSpec.describe BenchmarkRun, type: :model do
 
       it "returns runs started within the last 24 hours" do
         recent_runs = BenchmarkRun.in_last_24_hours
-        expect(recent_runs).to include(running_run, success_run, failed_run)
+        expect(recent_runs).to include(building_run, running_run, success_run, failed_run, lost_run)
         expect(recent_runs).not_to include(old_run)
       end
     end
@@ -145,8 +153,8 @@ RSpec.describe BenchmarkRun, type: :model do
       expect(run.completed?).to be true
     end
 
-    it "returns true for cancelled status" do
-      run = build(:benchmark_run, status: :cancelled)
+    it "returns true for lost status" do
+      run = build(:benchmark_run, status: :lost)
       expect(run.completed?).to be true
     end
 
@@ -157,6 +165,11 @@ RSpec.describe BenchmarkRun, type: :model do
 
     it "returns false for running status" do
       run = build(:benchmark_run, status: :running)
+      expect(run.completed?).to be false
+    end
+
+    it "returns false for building status" do
+      run = build(:benchmark_run, status: :building)
       expect(run.completed?).to be false
     end
   end

@@ -12,6 +12,7 @@ import (
 
 	"github.com/yuka1981/diagnostic-tools/agent/core/model"
 	"github.com/yuka1981/diagnostic-tools/agent/core/ports"
+	"github.com/yuka1981/diagnostic-tools/agent/internal/reporter"
 )
 
 // ModuleLoader defines interface for loading environment modules.
@@ -35,6 +36,9 @@ type RunParams struct {
 	LogDir   string // Optional: directory to store logs if LogPath is not set
 	Modules  []string
 	Config   ConfigParams
+	Reporter *reporter.Reporter
+	// OnHeartbeatStart receives the cancel function when the heartbeat loop starts.
+	OnHeartbeatStart func(context.CancelFunc)
 }
 
 // Run executes the HPCG workflow.
@@ -50,6 +54,7 @@ func (w *WorkflowOrchestrator) Run(ctx context.Context, params *RunParams) (*mod
 	}
 
 	// 2. Build
+	w.reportProgress(params.Reporter, "building", "Compiling Source")
 	if err := w.build(ctx, params.BuildCmd); err != nil {
 		return nil, err
 	}
@@ -60,13 +65,20 @@ func (w *WorkflowOrchestrator) Run(ctx context.Context, params *RunParams) (*mod
 	}
 
 	// 4. Run
+	heartbeatCancel := w.startHeartbeat(ctx, params)
 	start := time.Now()
 	output, execErr := w.Runner.Run(ctx, w.WorkDir, "bash", "-c", params.RunCmd)
 	end := time.Now()
 
+	if execErr != nil && heartbeatCancel != nil {
+		heartbeatCancel()
+	}
+
+	var runErr error
 	execStatus := model.BenchmarkStatusPass
 	if execErr != nil {
 		execStatus = model.BenchmarkStatusFail
+		runErr = fmt.Errorf("benchmark execution failed: %w", execErr)
 	}
 
 	// 5. Parse
@@ -90,7 +102,33 @@ func (w *WorkflowOrchestrator) Run(ctx context.Context, params *RunParams) (*mod
 		result.Metrics = metricsBytes
 	}
 
-	return result, nil
+	return result, runErr
+}
+
+func (w *WorkflowOrchestrator) startHeartbeat(ctx context.Context, params *RunParams) context.CancelFunc {
+	if params.Reporter == nil {
+		return nil
+	}
+
+	w.reportProgress(params.Reporter, "running", "Executing Benchmark")
+
+	hbCtx, cancel := context.WithCancel(ctx)
+	if params.OnHeartbeatStart != nil {
+		params.OnHeartbeatStart(cancel)
+	}
+	params.Reporter.StartHeartbeat(hbCtx)
+
+	return cancel
+}
+
+func (w *WorkflowOrchestrator) reportProgress(rep *reporter.Reporter, status, phase string) {
+	if rep == nil {
+		return
+	}
+
+	if err := rep.ReportState(status, phase); err != nil {
+		fmt.Fprintf(os.Stderr, "progress update failed: %v\n", err)
+	}
 }
 
 func (w *WorkflowOrchestrator) handleLogStorage(params *RunParams, startTime time.Time) string {
@@ -227,9 +265,9 @@ func (w *WorkflowOrchestrator) parseResults(
 	}
 
 	finalStatus := execStatus
-	if parseErr == nil {
+	if parseErr == nil && execStatus == model.BenchmarkStatusPass {
 		finalStatus = parsedStatus
-	} else if execStatus == model.BenchmarkStatusPass {
+	} else if parseErr != nil && execStatus == model.BenchmarkStatusPass {
 		finalStatus = model.BenchmarkStatusError
 	}
 

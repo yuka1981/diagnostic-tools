@@ -8,10 +8,13 @@ class BenchmarkRun < ApplicationRecord
   # Enums
   enum :status, {
     pending: 0,
-    running: 1,
-    success: 2,
-    failed: 3,
-    cancelled: 4
+    preparing: 1,
+    building: 2,
+    running: 3,
+    uploading: 4,
+    success: 5,
+    failed: 6,
+    lost: 7
   }, default: :pending
 
   # Validations
@@ -26,8 +29,9 @@ class BenchmarkRun < ApplicationRecord
   # Scopes
   # Note: Sorting by created_at to align with latest task creation
   scope :recent, -> { order(created_at: :desc) }
-  scope :completed, -> { where(status: %i[success failed cancelled]) }
+  scope :completed, -> { where(status: %i[success failed lost]) }
   scope :successful, -> { where(status: :success) }
+  scope :active, -> { where(status: %i[preparing building running]) }
   scope :for_node, ->(node) { where(node: node) }
   scope :in_last_24_hours, -> { where(started_at: 24.hours.ago..) }
 
@@ -39,7 +43,7 @@ class BenchmarkRun < ApplicationRecord
   end
 
   def completed?
-    success? || failed? || cancelled?
+    success? || failed? || lost?
   end
 
   private

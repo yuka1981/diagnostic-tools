@@ -97,7 +97,7 @@ RSpec.describe Dashboard::MetricsService do
         # Create runs in last 24 hours
         create_list(:benchmark_run, 3, :success, node: node, benchmark_recipe: recipe, started_at: 2.hours.ago)
         create_list(:benchmark_run, 2, :failed, node: node, benchmark_recipe: recipe, started_at: 4.hours.ago)
-        create(:benchmark_run, :cancelled, node: node, benchmark_recipe: recipe, started_at: 6.hours.ago)
+        create(:benchmark_run, :lost, node: node, benchmark_recipe: recipe, started_at: 6.hours.ago)
 
         # Create runs outside 24 hours (should not be counted)
         create(:benchmark_run, :success, node: node, benchmark_recipe: recipe, started_at: 25.hours.ago)
@@ -105,7 +105,7 @@ RSpec.describe Dashboard::MetricsService do
 
       it "returns correct total completed runs count" do
         result = service.call
-        # 3 success + 2 failed + 1 cancelled = 6
+        # 3 success + 2 failed + 1 lost = 6
         expect(result.total_runs_24h).to eq(6)
       end
 
@@ -116,7 +116,7 @@ RSpec.describe Dashboard::MetricsService do
 
       it "returns correct failed runs count" do
         result = service.call
-        expect(result.failed_runs_24h).to eq(2)
+        expect(result.failed_runs_24h).to eq(3)
       end
 
       it "calculates success rate correctly" do
@@ -172,7 +172,7 @@ RSpec.describe Dashboard::MetricsService do
     before do
       create_list(:benchmark_run, 5, :success, node: node, benchmark_recipe: recipe, started_at: 2.hours.ago)
       create_list(:benchmark_run, 3, :failed, node: node, benchmark_recipe: recipe, started_at: 4.hours.ago)
-      create_list(:benchmark_run, 2, :cancelled, node: node, benchmark_recipe: recipe, started_at: 6.hours.ago)
+      create_list(:benchmark_run, 2, :lost, node: node, benchmark_recipe: recipe, started_at: 6.hours.ago)
     end
 
     it "returns runs grouped by status" do
@@ -181,7 +181,7 @@ RSpec.describe Dashboard::MetricsService do
       expect(result.runs_by_status).to be_a(Hash)
       expect(result.runs_by_status[:success]).to eq(5)
       expect(result.runs_by_status[:failed]).to eq(3)
-      expect(result.runs_by_status[:cancelled]).to eq(2)
+      expect(result.runs_by_status[:lost]).to eq(2)
     end
   end
 

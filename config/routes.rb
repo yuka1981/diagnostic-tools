@@ -6,6 +6,7 @@ Rails.application.routes.draw do
     namespace :v1 do
       post "inventory/push", to: "inventory#push"
       resources :benchmark_runs, only: [ :create, :update ]
+      patch "runs/:id/progress", to: "benchmark_runs#progress"
     end
   end
 

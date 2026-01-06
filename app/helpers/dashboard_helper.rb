@@ -5,16 +5,22 @@ module DashboardHelper
     "success" => "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400",
     "failed" => "bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400",
     "running" => "bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400",
-    "pending" => "bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400",
-    "cancelled" => "bg-gray-100 text-gray-700 dark:bg-gray-500/20 dark:text-gray-400"
+    "building" => "bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400",
+    "preparing" => "bg-indigo-100 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-300",
+    "uploading" => "bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-300",
+    "pending" => "bg-slate-100 text-slate-700 dark:bg-slate-500/20 dark:text-slate-200",
+    "lost" => "bg-gray-100 text-gray-700 dark:bg-gray-500/20 dark:text-gray-400"
   }.freeze
 
   STATUS_BG_CLASSES = {
     "success" => "bg-emerald-100 dark:bg-emerald-500/20",
     "failed" => "bg-red-100 dark:bg-red-500/20",
     "running" => "bg-blue-100 dark:bg-blue-500/20",
-    "pending" => "bg-amber-100 dark:bg-amber-500/20",
-    "cancelled" => "bg-gray-100 dark:bg-gray-500/20"
+    "building" => "bg-amber-100 dark:bg-amber-500/20",
+    "preparing" => "bg-indigo-100 dark:bg-indigo-500/20",
+    "uploading" => "bg-purple-100 dark:bg-purple-500/20",
+    "pending" => "bg-slate-100 dark:bg-slate-500/20",
+    "lost" => "bg-gray-100 dark:bg-gray-500/20"
   }.freeze
 
   ROLE_BADGE_CLASSES = {
@@ -57,6 +63,26 @@ module DashboardHelper
     STATUS_BG_CLASSES.fetch(status.to_s, DEFAULT_BG_CLASS)
   end
 
+  def status_label(status)
+    case status.to_s
+    when "building" then "Building..."
+    when "running" then "Running..."
+    when "preparing" then "Preparing..."
+    when "uploading" then "Uploading..."
+    when "lost" then "Lost Connection"
+    else
+      status.to_s.humanize
+    end
+  end
+
+  def benchmark_status_badge(status, size: :default)
+    badge_size_classes = size == :small ? "px-2 py-0.5 text-[10px]" : "px-2.5 py-0.5 text-xs"
+
+    content_tag(:span, class: "inline-flex items-center gap-1 rounded-full font-medium #{badge_size_classes} #{status_badge_class(status)}") do
+      safe_join([status_spinner(status), status_label(status)].compact, " ")
+    end
+  end
+
   def role_badge_class(role)
     ROLE_BADGE_CLASSES.fetch(role.to_s, DEFAULT_BADGE_CLASS)
   end
@@ -67,18 +93,30 @@ module DashboardHelper
       success_icon
     when "failed"
       failed_icon
+    when "lost"
+      lost_icon
+    when "building"
+      pending_icon
     when "running"
+      running_icon
+    when "preparing"
+      pending_icon
+    when "uploading"
       running_icon
     when "pending"
       pending_icon
-    when "cancelled"
-      cancelled_icon
     else
       unknown_icon
     end
   end
 
   private
+
+  def status_spinner(status)
+    return unless status.to_s == "running"
+
+    content_tag(:span, "", class: "inline-block h-3 w-3 rounded-full border-2 border-current border-t-transparent animate-spin")
+  end
 
   def success_icon
     content_tag(:svg, class: "h-5 w-5 text-emerald-600 dark:text-emerald-400", fill: "none", stroke: "currentColor", viewBox: "0 0 24 24") do
@@ -108,10 +146,10 @@ module DashboardHelper
     end
   end
 
-  def cancelled_icon
+  def lost_icon
     content_tag(:svg, class: "h-5 w-5 text-gray-600 dark:text-gray-400", fill: "none", stroke: "currentColor", viewBox: "0 0 24 24") do
       content_tag(:path, nil, "stroke-linecap": "round", "stroke-linejoin": "round", "stroke-width": "2",
-        d: "M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636")
+        d: "M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m6.364 6.364h.01")
     end
   end
 

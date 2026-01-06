@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"time"
 
 	"github.com/spf13/cobra"
 
@@ -13,6 +12,7 @@ import (
 	"github.com/yuka1981/diagnostic-tools/agent/core/uploader"
 	"github.com/yuka1981/diagnostic-tools/agent/hpcg"
 	"github.com/yuka1981/diagnostic-tools/agent/infrastructure"
+	"github.com/yuka1981/diagnostic-tools/agent/internal/reporter"
 )
 
 type hpcgOptions struct {
@@ -82,15 +82,27 @@ func runHPCG(cmd *cobra.Command, opts *hpcgOptions) error {
 		Config: hpcg.ConfigParams{
 			NX: opts.nx, NY: opts.ny, NZ: opts.nz, RunTimeSeconds: opts.rt,
 		},
+		Reporter: reporter.NewReporter(opts.runID, opts.pushServer, opts.pushToken),
+	}
+
+	var heartbeatCancel context.CancelFunc
+	stopHeartbeat := func() {
+		if heartbeatCancel != nil {
+			heartbeatCancel()
+			heartbeatCancel = nil
+		}
+	}
+
+	params.OnHeartbeatStart = func(cancel context.CancelFunc) {
+		heartbeatCancel = cancel
 	}
 
 	fmt.Fprintln(cmd.OutOrStdout(), "Starting HPCG workflow...")
 
-	// Send initial status update
-	_ = uploadBenchmarkStatus(ctx, opts.pushServer, opts.pushToken, opts.runID, model.BenchmarkStatusRunning)
-
 	result, err := orchestrator.Run(ctx, &params)
 	if err != nil {
+		stopHeartbeat()
+		_ = params.Reporter.ReportState("failed", err.Error())
 		return fmt.Errorf("HPCG workflow failed: %w", err)
 	}
 
@@ -98,30 +110,32 @@ func runHPCG(cmd *cobra.Command, opts *hpcgOptions) error {
 	output, _ := json.MarshalIndent(result, "", "  ")
 	fmt.Fprintln(cmd.OutOrStdout(), string(output))
 
+	if result.Status != model.BenchmarkStatusPass {
+		stopHeartbeat()
+		_ = params.Reporter.ReportState("failed", fmt.Sprintf("Benchmark status: %s", result.Status))
+	}
+
 	// Upload final result
 	if opts.pushToken != "" {
+		_ = params.Reporter.ReportState("uploading", "Syncing Artifacts")
 		fmt.Fprintln(cmd.OutOrStdout(), "Uploading result...")
 		if err := uploadBenchmarkResult(ctx, opts.pushServer, opts.pushToken, result); err != nil {
+			stopHeartbeat()
+			_ = params.Reporter.ReportState("failed", err.Error())
 			return fmt.Errorf("upload failed: %w", err)
 		}
 		fmt.Fprintln(cmd.OutOrStdout(), "Upload successful.")
 	}
 
-	return nil
-}
+	if result.Status == model.BenchmarkStatusPass {
+		stopHeartbeat()
+		_ = params.Reporter.ReportState("success", "")
+	} else {
+		stopHeartbeat()
+		return fmt.Errorf("benchmark finished with status %s", result.Status)
+	}
 
-func uploadBenchmarkStatus(ctx context.Context, server, token, runID string, status model.BenchmarkStatus) error {
-	if token == "" {
-		return nil
-	}
-	up := uploader.NewHTTPUploader(server, token)
-	run := &model.BenchmarkRun{
-		RunID:     runID,
-		RecipeID:  "hpcg",
-		Status:    status,
-		StartTime: time.Now(),
-	}
-	return up.Upload(ctx, run)
+	return nil
 }
 
 func uploadBenchmarkResult(ctx context.Context, server, token string, result *model.BenchmarkRun) error {

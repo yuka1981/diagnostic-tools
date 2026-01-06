@@ -17,9 +17,7 @@
     <div class="flex-1">
       <div class="flex items-center gap-3">
         <h2 class="text-2xl font-bold text-gray-900 dark:text-white"><%= @benchmark_run.benchmark_recipe.display_name %></h2>
-        <span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium <%= status_badge_class(@benchmark_run.status) %>">
-          <%= @benchmark_run.status.humanize %>
-        </span>
+        <%= benchmark_status_badge(@benchmark_run.status) %>
       </div>
       <div class="mt-4 grid grid-cols-2 gap-6 sm:grid-cols-4">
         <div>
@@ -69,4 +67,3 @@
     </div>
   <% end %>
 </div>
-

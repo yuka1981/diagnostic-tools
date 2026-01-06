@@ -36,7 +36,7 @@ module Dashboard
         availability_percentage: calculate_availability,
         total_runs_24h: calculate_total_completed_runs,
         successful_runs_24h: run_status_counts[:success].to_i,
-        failed_runs_24h: run_status_counts[:failed].to_i,
+        failed_runs_24h: failed_and_lost_runs_count,
         success_rate_24h: calculate_success_rate,
         runs_by_status: symbolized_run_status_counts,
         nodes_by_role: symbolized_node_role_counts
@@ -90,6 +90,10 @@ module Dashboard
 
     def calculate_total_completed_runs
       run_status_counts.values.sum
+    end
+
+    def failed_and_lost_runs_count
+      run_status_counts.values_at(:failed, :lost).compact.sum
     end
 
     def calculate_success_rate

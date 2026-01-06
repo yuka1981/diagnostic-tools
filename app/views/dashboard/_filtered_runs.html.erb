@@ -43,9 +43,7 @@
                 <% end %>
               </p>
             </div>
-            <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium <%= status_badge_class(run.status) %>">
-              <%= run.status.humanize %>
-            </span>
+            <%= benchmark_status_badge(run.status, size: :small) %>
           </div>
         <% end %>
       </div>
@@ -80,4 +78,3 @@
     <% end %>
   </div>
 <% end %>
-
