@@ -23,7 +23,7 @@ module Api
 
       def valid_token?(token)
         api_key = ApiKey.active.find_by(token: token)
-        
+
         if api_key
           api_key.touch_last_used
           return true

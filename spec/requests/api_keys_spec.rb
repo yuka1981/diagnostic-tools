@@ -51,4 +51,38 @@ RSpec.describe "ApiKeys", type: :request do
       expect(api_key.reload.status).to eq("revoked")
     end
   end
+
+  describe "DELETE /api_keys/:id" do
+    let!(:active_key) { create(:api_key, status: :active) }
+    let!(:revoked_key) { create(:api_key, status: :revoked) }
+
+    context "when authenticated as approver" do
+      before { sign_in approver }
+
+      it "deletes a revoked api key" do
+        expect {
+          delete api_key_path(revoked_key)
+        }.to change(ApiKey, :count).by(-1)
+        expect(response).to redirect_to(api_keys_path)
+        expect(flash[:notice]).to include("successfully deleted")
+      end
+
+      it "does not delete an active api key" do
+        expect {
+          delete api_key_path(active_key)
+        }.not_to change(ApiKey, :count)
+        expect(response).to redirect_to(api_keys_path)
+        expect(flash[:alert]).to include("Only revoked API keys can be deleted")
+      end
+    end
+
+    context "when authenticated as viewer" do
+      before { sign_in viewer }
+
+      it "redirects to root" do
+        delete api_key_path(revoked_key)
+        expect(response).to redirect_to(root_path)
+      end
+    end
+  end
 end

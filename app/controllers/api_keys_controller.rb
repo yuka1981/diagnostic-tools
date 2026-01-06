@@ -4,7 +4,7 @@ class ApiKeysController < ApplicationController
   layout "dashboard"
   before_action :authenticate_user!
   before_action :authorize_approver!
-  before_action :set_api_key, only: [:revoke]
+  before_action :set_api_key, only: [ :revoke, :destroy ]
 
   def index
     @api_keys = ApiKey.order(created_at: :desc)
@@ -27,6 +27,15 @@ class ApiKeysController < ApplicationController
   def revoke
     @api_key.revoked!
     redirect_to api_keys_path, notice: "API Key was successfully revoked."
+  end
+
+  def destroy
+    if @api_key.revoked?
+      @api_key.destroy
+      redirect_to api_keys_path, notice: "API Key was successfully deleted."
+    else
+      redirect_to api_keys_path, alert: "Only revoked API keys can be deleted."
+    end
   end
 
   private
