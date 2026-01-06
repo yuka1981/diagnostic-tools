@@ -70,12 +70,12 @@ func runHPCG(cmd *cobra.Command, opts *hpcgOptions) error {
 	}
 
 	params, stopHeartbeat := setupRunParams(opts)
+	defer stopHeartbeat()
 
 	fmt.Fprintln(cmd.OutOrStdout(), "Starting HPCG workflow...")
 
 	result, err := orchestrator.Run(ctx, params)
 	if err != nil {
-		stopHeartbeat()
 		_ = params.Reporter.ReportState("failed", err.Error())
 		return fmt.Errorf("HPCG workflow failed: %w", err)
 	}
@@ -84,7 +84,7 @@ func runHPCG(cmd *cobra.Command, opts *hpcgOptions) error {
 	output, _ := json.MarshalIndent(result, "", "  ")
 	fmt.Fprintln(cmd.OutOrStdout(), string(output))
 
-	return handleBenchmarkResult(ctx, cmd, opts, params, result, stopHeartbeat)
+	return handleBenchmarkResult(ctx, cmd, opts, params, result)
 }
 
 func setupRunParams(opts *hpcgOptions) (params *hpcg.RunParams, stopHeartbeat func()) {
@@ -122,31 +122,27 @@ func handleBenchmarkResult(
 	opts *hpcgOptions,
 	params *hpcg.RunParams,
 	result *model.BenchmarkRun,
-	stopHeartbeat func(),
 ) error {
+	// If benchmark execution failed, report and exit early
 	if result.Status != model.BenchmarkStatusPass {
-		stopHeartbeat()
 		_ = params.Reporter.ReportState("failed", fmt.Sprintf("Benchmark status: %s", result.Status))
+		return fmt.Errorf("benchmark finished with status %s", result.Status)
 	}
 
-	// Upload final result
+	// Upload final result if token is present
 	if opts.pushToken != "" {
 		_ = params.Reporter.ReportState("uploading", "Syncing Artifacts")
 		fmt.Fprintln(cmd.OutOrStdout(), "Uploading result...")
 		if err := uploadBenchmarkResult(ctx, opts.pushServer, opts.pushToken, result); err != nil {
-			stopHeartbeat()
 			_ = params.Reporter.ReportState("failed", err.Error())
 			return fmt.Errorf("upload failed: %w", err)
 		}
 		fmt.Fprintln(cmd.OutOrStdout(), "Upload successful.")
 	}
 
-	stopHeartbeat()
-	if result.Status == model.BenchmarkStatusPass {
-		_ = params.Reporter.ReportState("success", "")
-		return nil
-	}
-	return fmt.Errorf("benchmark finished with status %s", result.Status)
+	// Report final success
+	_ = params.Reporter.ReportState("success", "")
+	return nil
 }
 
 func uploadBenchmarkResult(ctx context.Context, server, token string, result *model.BenchmarkRun) error {

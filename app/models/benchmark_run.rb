@@ -31,7 +31,7 @@ class BenchmarkRun < ApplicationRecord
   scope :recent, -> { order(created_at: :desc) }
   scope :completed, -> { where(status: %i[success failed lost]) }
   scope :successful, -> { where(status: :success) }
-  scope :active, -> { where(status: %i[preparing building running]) }
+  scope :active, -> { where(status: %i[preparing building running uploading]) }
   scope :for_node, ->(node) { where(node: node) }
   scope :in_last_24_hours, -> { where(started_at: 24.hours.ago..) }
 

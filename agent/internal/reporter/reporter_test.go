@@ -40,7 +40,7 @@ func TestReportStateSendsPatchRequest(t *testing.T) {
 	if capturedMethod != http.MethodPatch {
 		t.Fatalf("expected PATCH method, got %s", capturedMethod)
 	}
-	if capturedPath != "/api/v1/runs/run-123/progress" {
+	if capturedPath != "/api/v1/benchmark_runs/run-123/progress" {
 		t.Fatalf("unexpected path: %s", capturedPath)
 	}
 	if capturedAuth != "Bearer secret-token" {

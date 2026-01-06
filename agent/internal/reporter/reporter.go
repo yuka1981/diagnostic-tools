@@ -79,7 +79,10 @@ func (r *Reporter) ReportState(status, phase string) error {
 		return nil
 	}
 
-	respBody, _ := io.ReadAll(resp.Body)
+	respBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return fmt.Errorf("progress update failed with status %d (also failed to read response body: %w)", resp.StatusCode, err)
+	}
 	return fmt.Errorf("progress update failed with status %d: %s", resp.StatusCode, string(respBody))
 }
 
@@ -112,7 +115,7 @@ func (r *Reporter) StartHeartbeat(ctx context.Context) {
 }
 
 func (r *Reporter) progressEndpoint() string {
-	path := fmt.Sprintf("/api/v1/runs/%s/progress", url.PathEscape(r.RunID))
+	path := fmt.Sprintf("/api/v1/benchmark_runs/%s/progress", url.PathEscape(r.RunID))
 	return r.APIUrl + path
 }
 

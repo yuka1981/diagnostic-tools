@@ -72,13 +72,13 @@ RSpec.describe "Api::V1::BenchmarkRuns", type: :request do
     end
   end
 
-  describe "PATCH /api/v1/runs/:id/progress" do
+  describe "PATCH /api_v1_benchmark_runs/:id/progress" do
     let(:headers) { { "Authorization" => "Bearer #{valid_token}", "Content-Type" => "application/json" } }
 
     it "updates status, phase, and heartbeat" do
       started = Time.current
 
-      patch "/api/v1/runs/#{run.uuid}/progress",
+      patch "/api/v1/benchmark_runs/#{run.uuid}/progress",
             params: { status: "building", phase: "Compiling Source" }.to_json,
             headers: headers
 
@@ -90,7 +90,7 @@ RSpec.describe "Api::V1::BenchmarkRuns", type: :request do
     end
 
     it "returns 400 for invalid status" do
-      patch "/api/v1/runs/#{run.uuid}/progress",
+      patch "/api/v1/benchmark_runs/#{run.uuid}/progress",
             params: { status: "unknown" }.to_json,
             headers: headers
 
@@ -98,7 +98,7 @@ RSpec.describe "Api::V1::BenchmarkRuns", type: :request do
     end
 
     it "returns 404 for unknown run" do
-      patch "/api/v1/runs/#{SecureRandom.uuid}/progress",
+      patch "/api/v1/benchmark_runs/#{SecureRandom.uuid}/progress",
             params: { status: "running" }.to_json,
             headers: headers
 
