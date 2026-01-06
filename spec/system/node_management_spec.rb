@@ -3,6 +3,7 @@
 require "rails_helper"
 
 RSpec.describe "Node Management", type: :system, js: true do
+  include ActionView::RecordIdentifier
   let(:user) { create(:user, :approver) }
 
   let!(:initial_node) { create(:node, hostname: "initial-node") }
@@ -48,5 +49,44 @@ RSpec.describe "Node Management", type: :system, js: true do
     expect(node.ssh_port).to eq(22)
     expect(node.ssh_user).to eq("deploy")
     # Virtual attributes are not persisted, so we can't check them on the model after reload
+  end
+
+  it "allows an approver to remove an agent" do
+    node = create(:node, hostname: "uninstall-target", source: :agent_push)
+    visit nodes_path
+
+    within "tr##{dom_id(node)}" do
+      click_link "Uninstall"
+    end
+
+    within "#uninstall_modal" do
+      expect(page).to have_content("Remove Agent")
+      expect(page).to have_field("Target Hostname/IP", with: "uninstall-target", readonly: true)
+      
+      fill_in "Sudo Password (Required)", with: "sudo-secret"
+      
+      # Mock the background job behavior
+      uninstaller = instance_double(Agent::RemoteUninstallService, call: true)
+      allow(Agent::RemoteUninstallService).to receive(:new).and_return(uninstaller)
+
+      click_button "Confirm Removal"
+      
+      # Wait for the "Removing hpc-agent..." processing state
+      expect(page).to have_content("Removing hpc-agent...")
+    end
+
+    # The job is async, but we can simulate the broadcast that the job would do
+    Turbo::StreamsChannel.broadcast_replace_to(
+      "agent_uninstall_uninstall-target",
+      target: "agent_uninstall_status_uninstall-target",
+      partial: "nodes/uninstalls/status",
+      locals: { status: "success", message: "Agent uninstalled successfully", target_host: "uninstall-target" }
+    )
+
+    # Verify the successful state arrived via Turbo Stream
+    expect(page).to have_content("Uninstallation Successful")
+    click_link "Done"
+    
+    expect(page).to have_current_path(nodes_path)
   end
 end
