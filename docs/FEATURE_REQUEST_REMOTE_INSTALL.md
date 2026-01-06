@@ -76,8 +76,8 @@
 > "Act as a Rails Backend Developer. Create a Service class `AgentCompilerService`.
 >
 > 1. It accepts `arch` (amd64/arm64) as an argument.
-> 2. It executes a shell command to cross-compile the Go agent code located in `../agent`.
->    * Command: `GOOS=linux GOARCH=<arch> go build -o <temp_path> ../agent/cmd/agent`
+> 2. It executes a shell command to cross-compile the Go agent code located in `./agent`.
+>    * Command: `GOOS=linux GOARCH=<arch> go build -o <temp_path> .` (executed in `./agent` directory)
 > 3. Return the path to the compiled binary.
 > 4. Ensure error handling if `go build` fails."
 
