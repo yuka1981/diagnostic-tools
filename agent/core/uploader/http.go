@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	endpointInventory     = "/api/v1/inventory"
+	endpointInventory     = "/api/v1/inventory/push"
 	endpointBenchmarkRuns = "/api/v1/benchmark_runs"
 )
 
@@ -102,6 +102,39 @@ func (u *HTTPUploader) Upload(ctx context.Context, payload interface{}) error {
 		return fmt.Errorf("server returned error: %d, body: %s", resp.StatusCode, string(bodyBytes))
 	}
 	return fmt.Errorf("upload failed after %d retries", u.MaxRetries)
+}
+
+// CheckAuth verifies if the configured credentials are valid.
+func (u *HTTPUploader) CheckAuth(ctx context.Context) error {
+	// We use the inventory endpoint with an empty body.
+	// If the token is valid, we expect a 400 Bad Request (missing fields) or 200 OK (if empty body is allowed).
+	// If the token is invalid, we expect 401 Unauthorized.
+	url := u.BaseURL + endpointInventory
+	emptyBody := []byte("{}")
+
+	req, err := http.NewRequestWithContext(ctx, "POST", url, bytes.NewBuffer(emptyBody))
+	if err != nil {
+		return fmt.Errorf("failed to create request: %w", err)
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	if u.Token != "" {
+		req.Header.Set("Authorization", "Bearer "+u.Token)
+	}
+
+	resp, err := u.Client.Do(req)
+	if err != nil {
+		return fmt.Errorf("failed to send request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode == http.StatusUnauthorized {
+		return fmt.Errorf("invalid API key (401 Unauthorized)")
+	}
+
+	// Any other status code (even 400 or 404 or 500) implies that the auth middleware passed.
+	// We only care about 401.
+	return nil
 }
 
 func (u *HTTPUploader) backoff(ctx context.Context, attempt int) {

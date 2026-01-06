@@ -26,6 +26,9 @@ type Uploader interface {
 	// Upload sends the given payload to the configured endpoint.
 	// The payload can be NodeState or BenchmarkRun.
 	Upload(ctx context.Context, payload interface{}) error
+
+	// CheckAuth verifies if the configured credentials are valid.
+	CheckAuth(ctx context.Context) error
 }
 
 // CommandRunner defines the interface for executing system commands.

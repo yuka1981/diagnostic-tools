@@ -1,17 +1,7 @@
 # frozen_string_literal: true
 
-require "net/ssh"
-require "net/ssh/gateway"
-require "shellwords"
-
 module Benchmark
-  class TriggerRunService
-    Result = Struct.new(:success, :output, :error, keyword_init: true) do
-      def success?
-        success
-      end
-    end
-
+  class TriggerRunService < ::SshExecutionService
     DEFAULT_AGENT_PATH = "agent"
     DEFAULT_TIMEOUT = 300 # Longer timeout for benchmarks
 
@@ -19,22 +9,33 @@ module Benchmark
     # @param target_node [Node] The node to run benchmark on
     # @param ssh_config [Hash] SSH configuration (user, keys, timeout, verify_host_key)
     # @param agent_path [String, nil] Optional override for path to the agent binary
-    def initialize(target_node, ssh_config: {}, agent_path: nil)
-      @target_node = target_node
-      @ssh_config = build_ssh_config(ssh_config)
+    # @param log_path [String, nil] Optional path for the benchmark log file
+    # @param run_id [String, nil] Optional ID for the benchmark run
+    # @param server_url [String, nil] Optional server URL for status updates
+    # @param agent_token [String, nil] Optional agent token for status updates
+    def initialize(target_node, ssh_config: {}, agent_path: nil, log_path: nil, run_id: nil, server_url: nil, agent_token: nil)
+      super(target_node, ssh_config: ssh_config)
       @agent_path = agent_path || @target_node.try(:effective_agent_path) || DEFAULT_AGENT_PATH
+      @log_path = log_path
+      @run_id = run_id
+      @server_url = server_url
+      @agent_token = agent_token
     end
 
     # Execute the SSH command to run benchmark
     # @return [Result] Success result or error result
     def call
-      output = execute_ssh_command
+      result = execute_ssh_command(direct_command)
 
-      return error_result("Command returned empty output") if output.blank?
+      return result unless result.success?
 
-      # Parse output if needed, or just return success if the agent handles upload
+      # Since we run in background, we might have empty output, but we expect "Benchmark started"
+      if result.output.blank?
+        return error_result("Command returned empty output")
+      end
+
       # For now, we assume the agent handles the upload logic internally if token is present
-      Result.new(success: true, output: output)
+      Result.new(success: true, output: result.output)
     rescue Net::SSH::Exception => e
       error_result("SSH error: #{e.message}")
     rescue StandardError => e
@@ -43,112 +44,38 @@ module Benchmark
 
     private
 
-    def execute_ssh_command
-      if use_jump_host?
-        execute_via_gateway
-      else
-        execute_direct
-      end
-    end
-
-    def use_jump_host?
-      @target_node.use_jump_host? || ::SshConfig.use_jump_host?
-    end
-
-    def execute_direct
-      host = ssh_host
-      user = target_user
-      options = target_options
-
-      Net::SSH.start(host, user, options) do |session|
-        session.exec!(direct_command)
-      end
-    end
-
-    def execute_via_gateway
-      gateway_host = @target_node.jump_host.presence || ::SshConfig.jump_host
-      gateway_user = @target_node.jump_user.presence || ::SshConfig.jump_user || @ssh_config[:user]
-      gateway_port = @target_node.jump_port || ::SshConfig.jump_port
-      gateway_options = ssh_options.merge(port: gateway_port)
-
-      gateway = Net::SSH::Gateway.new(gateway_host, gateway_user, gateway_options)
-
-      begin
-        gateway.ssh(@target_node.ip || @target_node.hostname, target_user, target_options) do |session|
-          session.exec!(direct_command)
-        end
-      ensure
-        gateway.shutdown!
-      end
-    end
-
-    def target_user
-      @target_node.ssh_user.presence || @ssh_config[:user]
-    end
-
-    def target_options
-      ssh_options.merge(port: @target_node.ssh_port)
-    end
-
-    def ssh_host
-      @target_node.ip || @target_node.hostname
-    end
-
-    def ssh_options
-      options = {
-        keys: @ssh_config[:keys],
-        timeout: @ssh_config[:timeout],
-        non_interactive: true
-      }
-
-      if @ssh_config[:verify_host_key]
-        options[:verify_host_key] = @ssh_config[:verify_host_key]
-      end
-
-      options.compact
-    end
-
     def direct_command
-      # Construct the command with the correct flags
-      # We rely on the agent having the server URL and token if configured via env vars on the host
-      # Or we could pass them explicitly here if we had them available safely
-      # For this iteration, we'll assume a basic run command
-      "#{Shellwords.escape(@agent_path)} hpcg --id #{Shellwords.escape(generate_run_id)} 2>&1"
+      # Run in background with nohup to ensure it survives SSH disconnect
+      # We use bash -c to handle complex command with redirects and backgrounding
+
+      # Heuristic: If agent_path is just "agent", it's likely in the parent dir of hpcg_source
+      # as seen in scripts/run_hpcg_from_source.sh.
+      # If it is a relative path but not just "agent", we assume it is relative to the root.
+      # If it is absolute, we use it as is.
+      agent_bin = if @agent_path == "agent"
+                    "../agent"
+      elsif @agent_path.start_with?("/")
+                    @agent_path
+      else
+                    "../#{@agent_path}"
+      end
+
+      agent_cmd = "#{Shellwords.escape(agent_bin)} hpcg"
+      agent_cmd += " --id #{Shellwords.escape(@run_id || generate_run_id)}"
+      agent_cmd += " --build #{Shellwords.escape("make arch=Linux_Serial")}"
+      agent_cmd += " --run #{Shellwords.escape("./bin/xhpcg")}"
+      agent_cmd += " --nx 104 --ny 104 --nz 104 --rt 60"
+      agent_cmd += " --log-path #{Shellwords.escape(@log_path)}" if @log_path.present?
+      agent_cmd += " --server #{Shellwords.escape(@server_url)}" if @server_url.present?
+      agent_cmd += " --token #{Shellwords.escape(@agent_token)}" if @agent_token.present?
+
+      # Wrap in bash -c and ensure we CD into the correct directory first.
+      # The echo is for the service to confirm the command was accepted.
+      "bash -c 'cd hpcg_source && nohup #{agent_cmd} > /dev/null 2>&1 &' && echo 'Benchmark started'"
     end
 
     def generate_run_id
-      "web-run-#{Time.now.to_i}"
-    end
-
-    def build_ssh_config(config)
-      {
-        user: config[:user] || default_ssh_user,
-        keys: Array(config[:keys] || default_ssh_keys),
-        timeout: config[:timeout] || default_ssh_timeout,
-        verify_host_key: config[:verify_host_key] || default_verify_host_key
-      }
-    end
-
-    def default_ssh_user
-      Rails.application.credentials.dig(:ssh, :user) || ENV.fetch("SSH_USER", nil)
-    end
-
-    def default_ssh_keys
-      key_path = Rails.application.credentials.dig(:ssh, :key_path) || ENV.fetch("SSH_KEY_PATH", nil)
-      key_path ? [ key_path ] : []
-    end
-
-    def default_ssh_timeout
-      Rails.application.credentials.dig(:ssh, :timeout) || ENV.fetch("SSH_TIMEOUT", DEFAULT_TIMEOUT).to_i
-    end
-
-    def default_verify_host_key
-      config_value = Rails.application.credentials.dig(:ssh, :verify_host_key) || ENV.fetch("SSH_VERIFY_HOST_KEY", nil)
-      config_value&.to_sym
-    end
-
-    def error_result(message)
-      Result.new(success: false, output: nil, error: message)
+      @run_id || "hpcg-source-#{Time.current.strftime("%Y%m%d-%H%M")}"
     end
   end
 end

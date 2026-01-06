@@ -5,6 +5,7 @@ Rails.application.routes.draw do
   namespace :api do
     namespace :v1 do
       post "inventory/push", to: "inventory#push"
+      resources :benchmark_runs, only: [ :create, :update ]
     end
   end
 
@@ -12,12 +13,18 @@ Rails.application.routes.draw do
   get "dashboard", to: "dashboard#index", as: :dashboard
 
   # Resource routes
+  resources :api_keys, only: [ :index, :new, :create, :destroy ] do
+    member do
+      patch :revoke
+    end
+  end
+
   resources :nodes do
     member do
       post :test_connection
       post :collect
-      post :run_benchmark
     end
+    resources :benchmark_runs, only: %i[new create], controller: "nodes/benchmark_runs"
     collection do
       resources :imports, only: %i[new create], controller: "nodes/imports", as: :node_import
     end

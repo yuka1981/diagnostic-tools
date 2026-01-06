@@ -51,10 +51,10 @@
           <p class="mt-1 text-sm font-semibold text-gray-900 dark:text-white"><%= node.arch || "—" %></p>
         </div>
         <div>
-          <p class="text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-slate-400">Last Seen</p>
-          <p class="mt-1 text-sm font-semibold text-gray-900 dark:text-white">
-            <%= node.last_seen_at ? time_ago_in_words(node.last_seen_at) + " ago" : "Never" %>
-          </p>
+          <p class="text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-slate-400">Latest Benchmark</p>
+          <div class="mt-1">
+            <%= render "nodes/latest_benchmark", node: node %>
+          </div>
         </div>
       </div>
     </div>

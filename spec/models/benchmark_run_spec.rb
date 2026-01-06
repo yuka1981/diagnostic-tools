@@ -10,6 +10,11 @@ RSpec.describe BenchmarkRun, type: :model do
 
   describe "validations" do
     it { is_expected.to validate_presence_of(:status) }
+
+    it "can have a log path" do
+      run = build(:benchmark_run, log_path: "/tmp/hpcg.log")
+      expect(run.log_path).to eq("/tmp/hpcg.log")
+    end
   end
 
   describe "enums" do
@@ -67,10 +72,10 @@ RSpec.describe BenchmarkRun, type: :model do
     let!(:failed_run) { create(:benchmark_run, :failed, node: node, benchmark_recipe: recipe) }
 
     describe ".recent" do
-      it "orders by started_at descending with nulls last" do
+      it "orders by created_at descending" do
         runs = BenchmarkRun.recent.to_a
-        # running_run (10 min ago) > success_run (1 hour ago) > failed_run (1 hour ago) > pending_run (nil)
-        expect(runs.first).to eq(running_run)
+        # failed_run (created last) > success_run > running_run > pending_run (created first)
+        expect(runs.first).to eq(failed_run)
         expect(runs.last).to eq(pending_run)
       end
     end

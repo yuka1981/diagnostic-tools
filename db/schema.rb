@@ -10,9 +10,19 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_01_04_235238) do
+ActiveRecord::Schema[7.2].define(version: 2026_01_05_082609) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
+
+  create_table "api_keys", force: :cascade do |t|
+    t.string "name", null: false
+    t.string "token", null: false
+    t.integer "status", default: 0, null: false
+    t.datetime "last_used_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["token"], name: "index_api_keys_on_token", unique: true
+  end
 
   create_table "benchmark_recipes", force: :cascade do |t|
     t.string "name", limit: 100, null: false
@@ -34,11 +44,14 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_04_235238) do
     t.text "error_message"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "log_path"
+    t.uuid "uuid", default: -> { "gen_random_uuid()" }, null: false
     t.index ["benchmark_recipe_id"], name: "index_benchmark_runs_on_benchmark_recipe_id"
     t.index ["node_id", "started_at"], name: "index_benchmark_runs_on_node_id_and_started_at", order: { started_at: :desc }
     t.index ["node_id"], name: "index_benchmark_runs_on_node_id"
     t.index ["started_at"], name: "index_benchmark_runs_on_started_at"
     t.index ["status"], name: "index_benchmark_runs_on_status"
+    t.index ["uuid"], name: "index_benchmark_runs_on_uuid", unique: true
   end
 
   create_table "node_states", force: :cascade do |t|

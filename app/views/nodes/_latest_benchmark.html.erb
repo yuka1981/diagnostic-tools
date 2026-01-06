@@ -1,0 +1,16 @@
+<div id="<%= dom_id(node, :latest_benchmark) %>">
+  <% run = node.benchmark_runs.recent.first %>
+
+  <% if run %>
+    <div class="flex items-center gap-2">
+      <span class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium <%= status_badge_class(run.status) %>">
+        <%= run.status.humanize %>
+      </span>
+      <span class="text-[10px] text-gray-500 dark:text-slate-400">
+        <%= time_ago_in_words(run.created_at) %> ago
+      </span>
+    </div>
+  <% else %>
+    <p class="text-sm font-semibold text-gray-900 dark:text-white">—</p>
+  <% end %>
+</div>

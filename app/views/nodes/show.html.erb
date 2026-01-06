@@ -1,5 +1,7 @@
 <% content_for(:page_title) { @node.hostname } %>
 
+<%= turbo_stream_from @node %>
+
 <div class="mb-6 flex items-center justify-between">
   <%= link_to nodes_path, class: "inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 dark:text-slate-400 dark:hover:text-slate-300" do %>
     <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -9,10 +11,9 @@
   <% end %>
 
   <% if current_user.approver? %>
-    <%= button_to run_benchmark_node_path(@node), 
-        method: :post,
+    <%= link_to new_node_benchmark_run_path(@node),
         class: "inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 transition-all",
-        data: { turbo: false } do %>
+        data: { turbo_frame: "modal" } do %>
       <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
       </svg>
@@ -24,3 +25,5 @@
 <div id="<%= dom_id(@node, :details) %>">
   <%= render "nodes/details", node: @node %>
 </div>
+
+<%= turbo_frame_tag "modal" %>

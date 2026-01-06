@@ -16,10 +16,16 @@ class BenchmarkRun < ApplicationRecord
 
   # Validations
   validates :status, presence: true
+  validates :uuid, presence: true, uniqueness: true
+
+  # Callbacks
+  before_validation :generate_uuid, on: :create
+  after_create_commit :broadcast_new_run
+  after_update_commit :broadcast_status_update
 
   # Scopes
-  # Note: Using Arel.sql for NULLS LAST as Rails doesn't have native syntax for this
-  scope :recent, -> { order(Arel.sql("started_at DESC NULLS LAST")) }
+  # Note: Sorting by created_at to align with latest task creation
+  scope :recent, -> { order(created_at: :desc) }
   scope :completed, -> { where(status: %i[success failed cancelled]) }
   scope :successful, -> { where(status: :success) }
   scope :for_node, ->(node) { where(node: node) }
@@ -34,5 +40,43 @@ class BenchmarkRun < ApplicationRecord
 
   def completed?
     success? || failed? || cancelled?
+  end
+
+  private
+
+  def generate_uuid
+    self.uuid ||= SecureRandom.uuid
+  end
+
+  def broadcast_new_run
+    broadcast_prepend_to(
+      "benchmark_runs",
+      target: "benchmark_runs_tbody",
+      partial: "benchmark_runs/run_row",
+      locals: { run: self }
+    )
+
+    broadcast_replace_to(
+      node,
+      target: "latest_benchmark_node_#{node.id}",
+      partial: "nodes/latest_benchmark",
+      locals: { node: node }
+    )
+  end
+
+  def broadcast_status_update
+    broadcast_replace_to(
+      "benchmark_runs",
+      target: "benchmark_run_#{id}",
+      partial: "benchmark_runs/run_row",
+      locals: { run: self }
+    )
+
+    broadcast_replace_to(
+      node,
+      target: "latest_benchmark_node_#{node.id}",
+      partial: "nodes/latest_benchmark",
+      locals: { node: node }
+    )
   end
 end

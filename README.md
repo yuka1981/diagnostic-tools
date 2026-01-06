@@ -152,7 +152,7 @@ go build -o agent .
 ### Commands
 
 #### `agent collect`
-Collects the current node's system information (CPU, Memory, Disk, Network, Host) and outputs it as JSON to stdout.
+Collects the current node's detailed system information (CPU architecture/topology/cache, Memory, Disk, Network, Host) and outputs it as JSON to stdout.
 
 ```bash
 ./agent collect
@@ -173,7 +173,7 @@ Collects system information and pushes it directly to the web application's API.
 Runs the HPCG (High Performance Conjugate Gradients) benchmark workflow. This includes environment setup, native compilation, configuration generation, execution, and result parsing.
 
 ```bash
-./agent hpcg --id run-001 --module mpi/openmpi --rt 120
+./agent hpcg --id run-001 --module mpi/openmpi --rt 120 --log-path /var/log/hpcg/run-001.txt
 ```
 
 **Flags:**
@@ -183,6 +183,7 @@ Runs the HPCG (High Performance Conjugate Gradients) benchmark workflow. This in
 - `--run`: Custom run command (default: `./xhpcg`).
 - `--nx`, `--ny`, `--nz`: Problem dimensions (default: `104`).
 - `--rt`: Runtime in seconds (default: `60`).
+- `--log-path`: Custom path to save the benchmark log file.
 - `--server`: Server URL for uploading results.
 - `--token`: API token for uploading results.
 
