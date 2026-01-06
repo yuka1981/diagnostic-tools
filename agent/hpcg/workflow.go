@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -118,7 +119,7 @@ func (w *WorkflowOrchestrator) handleLogStorage(params *RunParams, startTime tim
 				absSource, _ := filepath.Abs(latestLog)
 				absTarget, _ := filepath.Abs(targetLogPath)
 				if absSource != "" && absTarget != "" && absTarget != absSource {
-					if err := os.Rename(latestLog, targetLogPath); err != nil {
+					if err := w.moveFile(latestLog, targetLogPath); err != nil {
 						fmt.Fprintf(os.Stderr, "warning: failed to move log file to %s: %v\n", targetLogPath, err)
 					}
 				}
@@ -126,6 +127,38 @@ func (w *WorkflowOrchestrator) handleLogStorage(params *RunParams, startTime tim
 		}
 	}
 	return targetLogPath
+}
+
+func (w *WorkflowOrchestrator) moveFile(sourcePath, destPath string) error {
+	// Try rename first
+	err := os.Rename(sourcePath, destPath)
+	if err == nil {
+		return nil
+	}
+
+	// If rename fails (e.g. cross-device link), fallback to copy + delete
+	input, err := os.Open(sourcePath)
+	if err != nil {
+		return err
+	}
+	defer input.Close()
+
+	output, err := os.Create(destPath)
+	if err != nil {
+		return err
+	}
+	defer output.Close()
+
+	_, err = io.Copy(output, input)
+	if err != nil {
+		return err
+	}
+
+	// Close files before removing source
+	input.Close()
+	output.Close()
+
+	return os.Remove(sourcePath)
 }
 
 func (w *WorkflowOrchestrator) setupEnvironment(ctx context.Context, modules []string) error {
