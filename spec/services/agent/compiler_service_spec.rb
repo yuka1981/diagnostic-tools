@@ -9,8 +9,10 @@ RSpec.describe Agent::CompilerService do
 
     it "executes go build command and returns path" do
       expect(Open3).to receive(:capture3)
-        .with(/GOOS=linux GOARCH=amd64 go build -o .*tmp\/agent_amd64_.* \.\/agent/)
+        .with(hash_including("GOARCH" => "amd64"), "go", "build", "-o", anything, "./agent")
         .and_return([ "", "", double(success?: true) ])
+
+      expect(FileUtils).to receive(:mv).with(anything, anything)
 
       path = service.call
       expect(path).to include("tmp/agent_amd64_")
@@ -27,8 +29,10 @@ RSpec.describe Agent::CompilerService do
 
       it "uses arm64 GOARCH" do
         expect(Open3).to receive(:capture3)
-          .with(/GOARCH=arm64/)
+          .with(hash_including("GOARCH" => "arm64"), anything, anything, anything, anything, anything)
           .and_return([ "", "", double(success?: true) ])
+
+        expect(FileUtils).to receive(:mv).with(anything, anything)
 
         service.call
       end
