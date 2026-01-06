@@ -81,6 +81,7 @@ Rails.application.configure do
 
   config.hosts = [
     "8d986bdb7825.ngrok-free.app",
+    "localhost",
     /.*\.ngrok-free\.app/     # Allow requests from ngrok subdomains
     # /.*\.example\.com/ # Allow requests from subdomains like `www.example.com`
   ]

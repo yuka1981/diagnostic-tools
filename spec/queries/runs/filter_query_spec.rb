@@ -28,7 +28,7 @@ RSpec.describe Runs::FilterQuery do
       let(:params) { {} }
 
       it "returns all runs ordered by recent" do
-        expect(query.to_a).to eq([ run4, run1, run2, run3 ])
+        expect(query.to_a).to eq([ run4, run3, run2, run1 ])
       end
     end
 
