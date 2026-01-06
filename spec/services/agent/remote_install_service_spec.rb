@@ -46,6 +46,21 @@ RSpec.describe Agent::RemoteInstallService do
     expect(service.call).to be true
   end
 
+  it "generates a service file with the correct server URL" do
+    custom_url = "https://custom-hpc.qct.ai"
+    service_with_custom_url = described_class.new(
+      target_host: target_host,
+      arch: "x86_64",
+      bastion_user: bastion_user,
+      sudo_password: sudo_password,
+      local_binary_path: local_path,
+      server_url: custom_url
+    )
+
+    expect(ssh_session).to receive(:exec!).with(/ExecStart=.*push --server "#{custom_url}"/)
+    service_with_custom_url.call
+  end
+
   it "raises error if a command fails" do
     allow(channel).to receive(:on_request).with("exit-status").and_yield(nil, double(read_long: 1))
 
