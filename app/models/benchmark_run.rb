@@ -55,6 +55,13 @@ class BenchmarkRun < ApplicationRecord
       partial: "benchmark_runs/run_row",
       locals: { run: self }
     )
+
+    broadcast_replace_to(
+      node,
+      target: "latest_benchmark_node_#{node.id}",
+      partial: "nodes/latest_benchmark",
+      locals: { node: node }
+    )
   end
 
   def broadcast_status_update
@@ -63,6 +70,13 @@ class BenchmarkRun < ApplicationRecord
       target: "benchmark_run_#{id}",
       partial: "benchmark_runs/run_row",
       locals: { run: self }
+    )
+
+    broadcast_replace_to(
+      node,
+      target: "latest_benchmark_node_#{node.id}",
+      partial: "nodes/latest_benchmark",
+      locals: { node: node }
     )
   end
 end

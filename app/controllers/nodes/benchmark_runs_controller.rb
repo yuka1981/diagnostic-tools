@@ -25,22 +25,14 @@ module Nodes
           status: :pending
         )
 
-        trigger_service = Benchmark::TriggerRunService.new(
+        Benchmark::TriggerJob.perform_later(
           @node,
-          log_path: @form.log_path,
-          run_id: run.uuid,
-          server_url: request.base_url,
-          agent_token: Rails.application.credentials.dig(:api, :agent_token) || ENV["API_AGENT_TOKEN"]
+          run,
+          request.base_url,
+          Rails.application.credentials.dig(:api, :agent_token) || ENV["API_AGENT_TOKEN"]
         )
-        result = trigger_service.call
 
-        if result.success?
-          redirect_to benchmark_runs_path(node_id: @node.id), notice: "Benchmark triggered successfully."
-        else
-          run.update!(status: :failed, error_message: result.error)
-          flash.now[:alert] = "Failed to trigger benchmark: #{result.error}"
-          render :new, status: :unprocessable_entity
-        end
+        redirect_to node_path(@node), notice: "Benchmark triggered successfully."
       else
         render :new, status: :unprocessable_entity
       end

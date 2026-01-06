@@ -37,6 +37,6 @@ RSpec.describe "Benchmark Run Feature", type: :system do
     click_button "Start Benchmark"
 
     expect(page).to have_content("Benchmark triggered successfully")
-    expect(page).to have_current_path(benchmark_runs_path(node_id: node.id))
+    expect(page).to have_current_path(node_path(node))
   end
 end

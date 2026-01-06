@@ -18,19 +18,15 @@ RSpec.describe "Nodes::BenchmarkRuns", type: :request do
   end
 
   describe "POST /nodes/:node_id/benchmark_runs" do
-    let(:trigger_service) { instance_double(Benchmark::TriggerRunService) }
-
-    before do
-      allow(Benchmark::TriggerRunService).to receive(:new).with(an_instance_of(Node), hash_including(log_path: anything)).and_return(trigger_service)
-    end
+    include ActiveJob::TestHelper
 
     context "with valid params" do
-      it "triggers benchmark and redirects" do
-        allow(trigger_service).to receive(:call).and_return(double(success?: true))
+      it "triggers benchmark job and redirects to node show" do
+        expect {
+          post node_benchmark_runs_path(node), params: { benchmark_run_form: { log_path: "/tmp/test.log" } }
+        }.to enqueue_job(Benchmark::TriggerJob)
 
-        post node_benchmark_runs_path(node), params: { benchmark_run_form: { log_path: "/tmp/test.log" } }
-
-        expect(response).to redirect_to(benchmark_runs_path(node_id: node.id))
+        expect(response).to redirect_to(node_path(node))
         expect(flash[:notice]).to be_present
       end
     end
@@ -39,17 +35,6 @@ RSpec.describe "Nodes::BenchmarkRuns", type: :request do
       it "renders new on form validation error" do
         post node_benchmark_runs_path(node), params: { benchmark_run_form: { log_path: "invalid path" } }
         expect(response).to have_http_status(:unprocessable_entity)
-      end
-    end
-
-    context "when trigger fails" do
-      it "renders new with alert" do
-        allow(trigger_service).to receive(:call).and_return(double(success?: false, error: "SSH error"))
-
-        post node_benchmark_runs_path(node), params: { benchmark_run_form: { log_path: "/tmp/test.log" } }
-
-        expect(response).to have_http_status(:unprocessable_entity)
-        expect(flash[:alert]).to include("SSH error")
       end
     end
   end
