@@ -16,14 +16,13 @@ import (
 
 // Reporter sends progress updates for a benchmark run.
 type Reporter struct {
-	RunID     string
-	APIUrl    string
-	APIToken  string
-	client    *http.Client
-	mu        sync.Mutex
-	lastState string
-
+	client            *http.Client
+	RunID             string
+	APIUrl            string
+	APIToken          string
+	lastState         string
 	heartbeatInterval time.Duration
+	mu                sync.Mutex
 }
 
 // NewReporter constructs a reporter with sane defaults.
@@ -39,7 +38,7 @@ func NewReporter(runID, apiURL, token string) *Reporter {
 
 // ReportState sends a progress update with the given status and phase.
 // It also records the status to be reused by the heartbeat loop.
-func (r *Reporter) ReportState(status string, phase string) error {
+func (r *Reporter) ReportState(status, phase string) error {
 	// No-op if reporting is not configured
 	if r == nil || r.RunID == "" || r.APIUrl == "" || r.APIToken == "" {
 		return nil
@@ -85,7 +84,7 @@ func (r *Reporter) ReportState(status string, phase string) error {
 }
 
 // StartHeartbeat begins a ticker loop that refreshes the heartbeat using the latest status.
-// It stops automatically when the provided context is cancelled.
+// It stops automatically when the provided context is canceled.
 func (r *Reporter) StartHeartbeat(ctx context.Context) {
 	if r == nil || r.RunID == "" || r.APIUrl == "" || r.APIToken == "" {
 		return

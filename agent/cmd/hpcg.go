@@ -63,16 +63,32 @@ func runHPCG(cmd *cobra.Command, opts *hpcgOptions) error {
 		return fmt.Errorf("failed to get current working directory: %w", err)
 	}
 
-	runner := infrastructure.NewRealCommandRunner()
-	loader := infrastructure.NewRealModuleLoader(runner)
-
 	orchestrator := &hpcg.WorkflowOrchestrator{
-		Runner:       runner,
-		ModuleLoader: loader,
+		Runner:       infrastructure.NewRealCommandRunner(),
+		ModuleLoader: infrastructure.NewRealModuleLoader(infrastructure.NewRealCommandRunner()),
 		WorkDir:      wd,
 	}
 
-	params := hpcg.RunParams{
+	params, stopHeartbeat := setupRunParams(opts)
+
+	fmt.Fprintln(cmd.OutOrStdout(), "Starting HPCG workflow...")
+
+	result, err := orchestrator.Run(ctx, params)
+	if err != nil {
+		stopHeartbeat()
+		_ = params.Reporter.ReportState("failed", err.Error())
+		return fmt.Errorf("HPCG workflow failed: %w", err)
+	}
+
+	// Output result to stdout
+	output, _ := json.MarshalIndent(result, "", "  ")
+	fmt.Fprintln(cmd.OutOrStdout(), string(output))
+
+	return handleBenchmarkResult(ctx, cmd, opts, params, result, stopHeartbeat)
+}
+
+func setupRunParams(opts *hpcgOptions) (params *hpcg.RunParams, stopHeartbeat func()) {
+	params = &hpcg.RunParams{
 		RunID:    opts.runID,
 		Modules:  opts.modules,
 		BuildCmd: opts.buildCmd,
@@ -86,7 +102,7 @@ func runHPCG(cmd *cobra.Command, opts *hpcgOptions) error {
 	}
 
 	var heartbeatCancel context.CancelFunc
-	stopHeartbeat := func() {
+	stopHeartbeat = func() {
 		if heartbeatCancel != nil {
 			heartbeatCancel()
 			heartbeatCancel = nil
@@ -97,19 +113,17 @@ func runHPCG(cmd *cobra.Command, opts *hpcgOptions) error {
 		heartbeatCancel = cancel
 	}
 
-	fmt.Fprintln(cmd.OutOrStdout(), "Starting HPCG workflow...")
+	return params, stopHeartbeat
+}
 
-	result, err := orchestrator.Run(ctx, &params)
-	if err != nil {
-		stopHeartbeat()
-		_ = params.Reporter.ReportState("failed", err.Error())
-		return fmt.Errorf("HPCG workflow failed: %w", err)
-	}
-
-	// Output result to stdout
-	output, _ := json.MarshalIndent(result, "", "  ")
-	fmt.Fprintln(cmd.OutOrStdout(), string(output))
-
+func handleBenchmarkResult(
+	ctx context.Context,
+	cmd *cobra.Command,
+	opts *hpcgOptions,
+	params *hpcg.RunParams,
+	result *model.BenchmarkRun,
+	stopHeartbeat func(),
+) error {
 	if result.Status != model.BenchmarkStatusPass {
 		stopHeartbeat()
 		_ = params.Reporter.ReportState("failed", fmt.Sprintf("Benchmark status: %s", result.Status))
@@ -127,15 +141,12 @@ func runHPCG(cmd *cobra.Command, opts *hpcgOptions) error {
 		fmt.Fprintln(cmd.OutOrStdout(), "Upload successful.")
 	}
 
+	stopHeartbeat()
 	if result.Status == model.BenchmarkStatusPass {
-		stopHeartbeat()
 		_ = params.Reporter.ReportState("success", "")
-	} else {
-		stopHeartbeat()
-		return fmt.Errorf("benchmark finished with status %s", result.Status)
+		return nil
 	}
-
-	return nil
+	return fmt.Errorf("benchmark finished with status %s", result.Status)
 }
 
 func uploadBenchmarkResult(ctx context.Context, server, token string, result *model.BenchmarkRun) error {

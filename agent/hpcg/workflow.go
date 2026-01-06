@@ -29,16 +29,15 @@ type WorkflowOrchestrator struct {
 
 // RunParams defines parameters for the workflow.
 type RunParams struct {
-	RunID    string
-	BuildCmd string // e.g. "make"
-	RunCmd   string // e.g. "srun ./xhpcg" or "./xhpcg"
-	LogPath  string // Optional: custom path for the log file
-	LogDir   string // Optional: directory to store logs if LogPath is not set
-	Modules  []string
-	Config   ConfigParams
-	Reporter *reporter.Reporter
-	// OnHeartbeatStart receives the cancel function when the heartbeat loop starts.
+	Reporter         *reporter.Reporter
 	OnHeartbeatStart func(context.CancelFunc)
+	RunID            string
+	BuildCmd         string // e.g. "make"
+	RunCmd           string // e.g. "srun ./xhpcg" or "./xhpcg"
+	LogPath          string // Optional: custom path for the log file
+	LogDir           string // Optional: directory to store logs if LogPath is not set
+	Modules          []string
+	Config           ConfigParams
 }
 
 // Run executes the HPCG workflow.
