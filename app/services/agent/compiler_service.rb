@@ -29,9 +29,10 @@ module Agent
 
       Rails.logger.debug "[CompilerService] Starting build for #{@arch} to #{static_build_path}"
 
-      # Note: static_build_path is still a variable, but maybe Brakeman likes it better
-      # if we don't interpolate into it.
-      stdout, stderr, status = Open3.capture3(env, "go", "build", "-o", static_build_path, "./agent")
+      # Use array form of capture3 with explicit env and arguments to avoid shell execution
+      # We must run this from the 'agent' directory to correctly pick up the go.mod file
+      agent_dir = Rails.root.join("agent").to_s
+      stdout, stderr, status = Open3.capture3(env, "go", "build", "-o", static_build_path, ".", chdir: agent_dir)
 
       if status.success?
         Rails.logger.debug "[CompilerService] Build successful"
