@@ -8,6 +8,7 @@ module Nodes
 
     def new
       @target_host = params[:hostname]
+      @arch = params[:arch]
     end
 
     def create

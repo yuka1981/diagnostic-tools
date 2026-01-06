@@ -15,9 +15,10 @@ RSpec.describe "Nodes::Installs", type: :request do
       expect(response).to have_http_status(:success)
     end
 
-    it "sets target_host from params" do
-      get new_node_install_path(hostname: "compute-001")
+    it "sets target_host and arch from params" do
+      get new_node_install_path(hostname: "compute-001", arch: "arm64")
       expect(response.body).to include('value="compute-001"')
+      expect(response.body).to include('selected="selected" value="arm64"')
     end
   end
 

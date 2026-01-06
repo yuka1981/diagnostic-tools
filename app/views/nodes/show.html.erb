@@ -12,7 +12,7 @@
 
   <% if current_user.approver? %>
     <div class="flex gap-2">
-      <%= link_to new_node_install_path(hostname: @node.hostname),
+      <%= link_to new_node_install_path(hostname: @node.hostname, arch: @node.arch),
           class: "inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 transition-all",
           data: { turbo_frame: "install_modal" } do %>
         <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
