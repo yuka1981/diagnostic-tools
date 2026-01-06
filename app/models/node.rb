@@ -35,7 +35,7 @@ class Node < ApplicationRecord
 
   # Constants
   ONLINE_THRESHOLD = 5.minutes
-  DEFAULT_AGENT_PATH = "agent"
+  DEFAULT_AGENT_PATH = "hpc-agent"
 
   # Scopes
   scope :online, -> { where(last_seen_at: ONLINE_THRESHOLD.ago..) }

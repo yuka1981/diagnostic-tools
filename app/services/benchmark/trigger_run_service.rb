@@ -2,7 +2,7 @@
 
 module Benchmark
   class TriggerRunService < ::SshExecutionService
-    DEFAULT_AGENT_PATH = "agent"
+    DEFAULT_AGENT_PATH = "hpc-agent"
     DEFAULT_TIMEOUT = 300 # Longer timeout for benchmarks
 
     # Initialize the service
@@ -48,18 +48,17 @@ module Benchmark
       # Run in background with nohup to ensure it survives SSH disconnect
       # We use bash -c to handle complex command with redirects and backgrounding
 
-      # Heuristic: If agent_path is just "agent", it's likely in the parent dir of hpcg_source
+      # Heuristic: If agent_path is just "hpc-agent", it's likely in the parent dir of hpcg_source
       # as seen in scripts/run_hpcg_from_source.sh.
-      # If it is a relative path but not just "agent", we assume it is relative to the root.
+      # If it is a relative path but not just "hpc-agent", we assume it is relative to the root.
       # If it is absolute, we use it as is.
-      agent_bin = if @agent_path == "agent"
-                    "../agent"
-      elsif @agent_path.start_with?("/")
+      agent_bin = if @agent_path == "hpc-agent"
+                    "../hpc-agent"
+                  elsif @agent_path.start_with?("/")
                     @agent_path
-      else
+                  else
                     "../#{@agent_path}"
-      end
-
+                  end
       agent_cmd = "#{Shellwords.escape(agent_bin)} hpcg"
       agent_cmd += " --id #{Shellwords.escape(@run_id || generate_run_id)}"
       agent_cmd += " --build #{Shellwords.escape("make arch=Linux_Serial")}"

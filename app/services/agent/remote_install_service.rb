@@ -8,7 +8,7 @@ module Agent
     class InstallError < StandardError; end
 
     BASTION_TMP_PATH = "/tmp/agent_bin"
-    TARGET_BIN_PATH = "/usr/local/bin/agent"
+    TARGET_BIN_PATH = "/usr/local/bin/hpc-agent"
 
     def initialize(target_host:, arch:, bastion_user: nil, bastion_host: nil, bastion_password: nil, sudo_password:, local_binary_path:, server_url: nil, agent_token: nil, on_progress: nil)
       @target_host = target_host

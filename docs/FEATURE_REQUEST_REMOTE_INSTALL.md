@@ -18,7 +18,7 @@
 **Q2: 預設的安裝路徑與執行權限為何？**
 
 * **A:** **System-level Installation**。
-* **路徑:** `/usr/local/bin/agent`。
+* **路徑:** `/usr/local/bin/hpc-agent`。
 * **機制:** 註冊 systemd service 實現開機自啟 (Auto-start)。
 * **權限:** 需要 Root 權限寫入檔案與設定服務。
 
@@ -56,11 +56,11 @@
 
 * **Compilation**: 呼叫 Go Toolchain 編譯出暫存 Binary。
 * **File Transfer Chain**:
-    1. **Step 1**: `scp` Local Binary -> Admin Node (`/tmp/agent_pkg`).
-    2. **Step 2**: `ssh` to Admin Node, execute `sudo scp` -> Target Node (`/usr/local/bin/agent`).
+    1. **Step 1**: `scp` Local Binary -> Admin Node (`/tmp/hpc-agent_pkg`)。
+    2. **Step 2**: `ssh` to Admin Node, execute `sudo scp` -> Target Node (`/usr/local/bin/hpc-agent`)。
 * **Installation Command**:
     1. `ssh` to Admin Node, execute `sudo ssh root@target` to run setup script.
-    2. Setup script actions: `chmod +x`, generate `systemd` unit file, `systemctl enable --now agent`.
+    2. Setup script actions: `chmod +x`, generate `systemd` unit file, `systemctl enable --now hpc-agent`.
 
 ---
 
@@ -89,14 +89,14 @@
 > "Act as a Ruby/DevOps Expert. Create a Service class `RemoteInstallService`.
 >
 > 1. Inputs: `target_host`, `arch`, `bastion_user`, `bastion_password`, `sudo_password`.
-> 2. **Phase 1 (Upload to Bastion)**: Use `Net::SCP` to upload the compiled binary to `/tmp/agent_bin` on the Bastion Host.
+> 2. **Phase 1 (Upload to Bastion)**: Use `Net::SCP` to upload the compiled binary to `/tmp/hpc-agent_bin` on the Bastion Host.
 > 3. **Phase 2 (Bastion to Target)**: Use `Net::SSH` to connect to Bastion.
 >    * Execute a command that uses `sudo -S` to SCP the file from Bastion to Target.
 >    * **Secure Practice**: Avoid piping passwords via `echo`. Instead, write the password directly to the command's standard input over the SSH channel.
->    * Pattern: `sudo -S scp -o StrictHostKeyChecking=no /tmp/agent_bin root@<target_host>:/usr/local/bin/agent`
+>    * Pattern: `sudo -S scp -o StrictHostKeyChecking=no /tmp/hpc-agent_bin root@<target_host>:/usr/local/bin/hpc-agent`
 >    * *Note*: All dynamic arguments (especially `<target_host>`) must be validated and escaped using `Shellwords.escape`.
 > 4. **Phase 3 (Remote Config)**: Similarly, use `sudo -S ssh` to execute installation commands on Target:
->    * `chmod +x /usr/local/bin/agent`
+>    * `chmod +x /usr/local/bin/hpc-agent`
 >    * Create `/etc/systemd/system/hpc-agent.service` content (ensure arguments are quoted).
 >    * `systemctl daemon-reload && systemctl enable --now hpc-agent`"
 

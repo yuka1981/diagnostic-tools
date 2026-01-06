@@ -54,7 +54,7 @@ RSpec.describe Inventory::TriggerCollectService do
       end
 
       it "executes the direct agent command on the target session" do
-        expect(mock_session).to receive(:exec!).with("agent collect --json 2>&1")
+        expect(mock_session).to receive(:exec!).with("hpc-agent collect --json 2>&1")
         service.call
       end
     end
@@ -84,7 +84,7 @@ RSpec.describe Inventory::TriggerCollectService do
     end
 
     context "when using node specific SSH settings" do
-      let(:target_node) { create(:node, ip: "10.0.0.1", ssh_user: "custom_user", ssh_port: 2222, agent_path: "/custom/agent") }
+      let(:target_node) { create(:node, ip: "10.0.0.1", ssh_user: "custom_user", ssh_port: 2222, agent_path: "/custom/hpc-agent") }
       subject(:service) { described_class.new(target_node, ssh_config: ssh_config) }
 
       before do
@@ -103,7 +103,7 @@ RSpec.describe Inventory::TriggerCollectService do
       end
 
       it "uses node specific agent path" do
-        expect(mock_session).to receive(:exec!).with("/custom/agent collect --json 2>&1")
+        expect(mock_session).to receive(:exec!).with("/custom/hpc-agent collect --json 2>&1")
         service.call
       end
     end
@@ -132,7 +132,7 @@ RSpec.describe Inventory::TriggerCollectService do
       end
 
       it "executes the correct SSH command with escaped arguments" do
-        expected_command = "ssh compute-01 agent collect --json 2>&1"
+        expected_command = "ssh compute-01 hpc-agent collect --json 2>&1"
 
         expect(mock_session).to receive(:exec!).with(expected_command)
 
@@ -169,7 +169,7 @@ RSpec.describe Inventory::TriggerCollectService do
     end
 
     context "when command is not found" do
-      let(:command_output) { "zsh:1: command not found: agent" }
+      let(:command_output) { "zsh:1: command not found: hpc-agent" }
 
       before do
         allow(Net::SSH).to receive(:start).and_yield(mock_session)
@@ -185,7 +185,7 @@ RSpec.describe Inventory::TriggerCollectService do
     end
 
     context "when permission is denied" do
-      let(:command_output) { "bash: /usr/local/bin/agent: Permission denied" }
+      let(:command_output) { "bash: /usr/local/bin/hpc-agent: Permission denied" }
 
       before do
         allow(Net::SSH).to receive(:start).and_yield(mock_session)
@@ -272,15 +272,15 @@ RSpec.describe Inventory::TriggerCollectService do
 
   describe "#command" do
     it "builds correct command for target node with escaped arguments" do
-      expect(service.send(:command)).to eq("agent collect --json 2>&1")
+      expect(service.send(:command)).to eq("hpc-agent collect --json 2>&1")
     end
 
     context "with custom agent path" do
-      let(:agent_path) { "/opt/agent/bin/agent" }
+      let(:agent_path) { "/opt/hpc-agent/bin/hpc-agent" }
       subject(:service) { described_class.new(target_node, agent_path: agent_path, ssh_config: ssh_config) }
 
       it "uses custom agent path escaped" do
-        expect(service.send(:command)).to eq("/opt/agent/bin/agent collect --json 2>&1")
+        expect(service.send(:command)).to eq("/opt/hpc-agent/bin/hpc-agent collect --json 2>&1")
       end
     end
 
@@ -289,7 +289,7 @@ RSpec.describe Inventory::TriggerCollectService do
 
       it "escapes hostname properly" do
         # The command itself doesn't contain the hostname anymore (SSH handles it)
-        expect(service.send(:command)).to eq("agent collect --json 2>&1")
+        expect(service.send(:command)).to eq("hpc-agent collect --json 2>&1")
       end
     end
 
@@ -298,7 +298,7 @@ RSpec.describe Inventory::TriggerCollectService do
 
       it "escapes dangerous characters" do
         # Just checking the command is safe/standard
-        expect(service.send(:command)).to eq("agent collect --json 2>&1")
+        expect(service.send(:command)).to eq("hpc-agent collect --json 2>&1")
       end
     end
   end
@@ -320,7 +320,7 @@ RSpec.describe Inventory::TriggerCollectService do
       it "executes agent command directly without ssh prefix" do
         mock_session = instance_double(Net::SSH::Connection::Session)
         allow(Net::SSH).to receive(:start).and_yield(mock_session)
-        expect(mock_session).to receive(:exec!).with("agent collect --json 2>&1").and_return("{}")
+        expect(mock_session).to receive(:exec!).with("hpc-agent collect --json 2>&1").and_return("{}")
 
         service.call
       end

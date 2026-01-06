@@ -6,7 +6,7 @@ module Agent
   class RemoteUninstallService
     class UninstallError < StandardError; end
 
-    TARGET_BIN_PATH = "/usr/local/bin/agent"
+    TARGET_BIN_PATH = "/usr/local/bin/hpc-agent"
     SERVICE_FILE_PATH = "/etc/systemd/system/hpc-agent.service"
 
     def initialize(target_host:, bastion_user: nil, bastion_host: nil, bastion_password: nil, sudo_password:, on_progress: nil)

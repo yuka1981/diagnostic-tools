@@ -2,7 +2,8 @@
 
 module Inventory
   class TriggerCollectService < ::SshExecutionService
-    DEFAULT_AGENT_PATH = "agent"
+    DEFAULT_AGENT_PATH = "hpc-agent"
+    DEFAULT_TIMEOUT = 30
 
     # Initialize the service
     # @param target_node [Node] The node to collect data from

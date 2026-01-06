@@ -19,15 +19,15 @@ module Agent
       tmp_dir = Rails.root.join("tmp").to_s
       FileUtils.mkdir_p(tmp_dir)
 
-      final_output_path = File.join(tmp_dir, "agent_#{@arch}_#{Time.now.to_i}")
-      static_build_path = File.join(tmp_dir, "agent_build_bin")
+      final_output_path = File.join(tmp_dir, "hpc-agent_#{@arch}_#{Time.now.to_i}")
+      static_build_path = File.join(tmp_dir, "hpc-agent_build_bin")
 
       # Use hardcoded strings for the command to satisfy Brakeman's safety checks
       env = if @arch == "arm64"
               { "GOOS" => "linux", "GOARCH" => "arm64" }
-      else
+            else
               { "GOOS" => "linux", "GOARCH" => "amd64" }
-      end
+            end
 
       Rails.logger.debug "[CompilerService] Starting build for #{@arch} to #{static_build_path}"
 
@@ -40,7 +40,7 @@ module Agent
         Rails.logger.debug "[CompilerService] Build successful"
       else
         Rails.logger.error "[CompilerService] Build failed: #{stderr}"
-        raise CompilationError, "Failed to compile agent for #{@arch}: #{stderr}"
+        raise CompilationError, "Failed to compile hpc-agent for #{@arch}: #{stderr}"
       end
 
       FileUtils.mv(static_build_path, final_output_path)
