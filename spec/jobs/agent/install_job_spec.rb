@@ -40,6 +40,13 @@ RSpec.describe Agent::InstallJob, type: :job do
                                                                      sudo_password: "sudo_password"
                                                                    ))
     expect(installer).to have_received(:call)
+
+    # Verify intermediate broadcasts
+    expect(Turbo::StreamsChannel).to have_received(:broadcast_replace_to).with(
+      "agent_install_compute-001",
+      hash_including(locals: hash_including(status: "processing", message: "Compiling Go agent for x86_64"))
+    )
+
     expect(Turbo::StreamsChannel).to have_received(:broadcast_replace_to).with(
       "agent_install_compute-001",
       hash_including(locals: hash_including(status: "success"))

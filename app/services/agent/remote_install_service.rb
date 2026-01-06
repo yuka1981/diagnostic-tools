@@ -10,7 +10,7 @@ module Agent
     BASTION_TMP_PATH = "/tmp/agent_bin"
     TARGET_BIN_PATH = "/usr/local/bin/agent"
 
-    def initialize(target_host:, arch:, bastion_user:, bastion_password: nil, sudo_password:, local_binary_path:, server_url: nil, agent_token: nil)
+    def initialize(target_host:, arch:, bastion_user:, bastion_password: nil, sudo_password:, local_binary_path:, server_url: nil, agent_token: nil, on_progress: nil)
       @target_host = target_host
       validate_target_host!
 
@@ -22,6 +22,7 @@ module Agent
       @local_binary_path = local_binary_path
       @server_url = server_url || ENV.fetch("APP_URL", "http://localhost:3000")
       @agent_token = agent_token || Rails.application.credentials.dig(:api, :agent_token) || ENV["AGENT_TOKEN"]
+      @on_progress = on_progress
     end
 
     def call
@@ -31,17 +32,20 @@ module Agent
 
       Net::SSH.start(@bastion_host, @bastion_user, ssh_options) do |ssh|
         # Phase 1: Upload to Bastion
+        report_progress "Uploading binary to bastion host"
         Rails.logger.info "Uploading binary to bastion: #{@bastion_host}"
         ssh.scp.upload!(@local_binary_path, BASTION_TMP_PATH)
 
         # Phase 2: Bastion to Target
         # Use sudo -S to scp from bastion to target.
         # We assume bastion root has passwordless SSH access to target nodes as per PRD.
+        report_progress "Transferring binary to target node (#{@target_host})"
         Rails.logger.info "Transferring binary from bastion to target: #{@target_host}"
         scp_cmd = "sudo -S scp -o StrictHostKeyChecking=no #{BASTION_TMP_PATH} root@#{Shellwords.escape(@target_host)}:#{TARGET_BIN_PATH}"
         execute_remote_command(ssh, scp_cmd, password: @sudo_password)
 
         # Phase 3: Remote Config on Target
+        report_progress "Configuring agent service on target"
         Rails.logger.info "Configuring agent on target: #{@target_host}"
 
         # 3.1: chmod +x
@@ -61,7 +65,7 @@ module Agent
 
           [Install]
           WantedBy=multi-user.target
-        SERVICE
+SERVICE
 
         service_file_path = "/etc/systemd/system/hpc-agent.service"
         # Write content to temp file on bastion
@@ -72,6 +76,7 @@ module Agent
         execute_remote_command(ssh, transfer_service_cmd, password: @sudo_password)
 
         # 3.3: systemctl enable --now
+        report_progress "Starting agent service"
         systemd_cmd = "sudo -S ssh -o StrictHostKeyChecking=no root@#{Shellwords.escape(@target_host)} 'systemctl daemon-reload && systemctl enable --now hpc-agent'"
         execute_remote_command(ssh, systemd_cmd, password: @sudo_password)
       end
@@ -83,6 +88,10 @@ module Agent
     end
 
     private
+
+    def report_progress(message)
+      @on_progress&.call(message)
+    end
 
     def validate_target_host!
       # Basic validation for hostname or IP address

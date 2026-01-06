@@ -25,6 +25,11 @@
         <%= link_to "Retry", new_node_install_path(hostname: target_host), class: "rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-indigo-700", data: { turbo_frame: "install_modal" } %>
         <%= link_to "Close", nodes_path, class: "rounded-lg bg-gray-100 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-200 dark:bg-white/10 dark:text-slate-300", data: { turbo_frame: "install_modal" } %>
       </div>
+    <% else %>
+      <%# Processing state %>
+      <div class="h-12 w-12 rounded-full border-4 border-indigo-500 border-t-transparent animate-spin mb-4"></div>
+      <h4 class="text-lg font-medium text-gray-900 dark:text-white">Installing Agent...</h4>
+      <p class="text-sm text-gray-500 dark:text-slate-400 mt-2"><%= message %></p>
     <% end %>
   </div>
 </div>

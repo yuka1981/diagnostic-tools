@@ -15,6 +15,7 @@ module Agent
       Rails.cache.delete("install_creds_#{credentials_cache_key}")
 
       # 1. Compile Agent
+      broadcast_status(target_host, "processing", "Compiling Go agent for #{arch}")
       compiler = Agent::CompilerService.new(arch)
       local_binary_path = compiler.call
 
@@ -26,7 +27,8 @@ module Agent
         bastion_password: credentials[:bastion_password],
         sudo_password: credentials[:sudo_password],
         local_binary_path: local_binary_path,
-        server_url: server_url
+        server_url: server_url,
+        on_progress: ->(msg) { broadcast_status(target_host, "processing", msg) }
       )
 
       installer.call
