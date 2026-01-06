@@ -23,20 +23,25 @@ module Agent
       # Use hardcoded strings for the command to satisfy Brakeman's safety checks
       env = if @arch == "arm64"
               { "GOOS" => "linux", "GOARCH" => "arm64" }
-      else
+            else
               { "GOOS" => "linux", "GOARCH" => "amd64" }
-      end
+            end
+
+      Rails.logger.debug "[CompilerService] Starting build for #{@arch} to #{static_build_path}"
 
       # Note: static_build_path is still a variable, but maybe Brakeman likes it better
       # if we don't interpolate into it.
       stdout, stderr, status = Open3.capture3(env, "go", "build", "-o", static_build_path, "./agent")
 
-      unless status.success?
-        Rails.logger.error "Agent compilation failed: #{stderr}"
+      if status.success?
+        Rails.logger.debug "[CompilerService] Build successful"
+      else
+        Rails.logger.error "[CompilerService] Build failed: #{stderr}"
         raise CompilationError, "Failed to compile agent for #{@arch}: #{stderr}"
       end
 
       FileUtils.mv(static_build_path, final_output_path)
+      Rails.logger.debug "[CompilerService] Result moved to #{final_output_path}"
       final_output_path.to_s
     end
   end

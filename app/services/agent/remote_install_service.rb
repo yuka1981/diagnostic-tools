@@ -105,6 +105,9 @@ SERVICE
       stderr = ""
       exit_code = nil
 
+      Rails.logger.debug "[RemoteInstallService] Executing: #{cmd.gsub(password.to_s, '********')}" if password.present?
+      Rails.logger.debug "[RemoteInstallService] Executing: #{cmd}" unless password.present?
+
       ssh.open_channel do |ch|
         ch.exec(cmd) do |channel, success|
           raise InstallError, "Could not execute command: #{cmd}" unless success
@@ -120,6 +123,10 @@ SERVICE
         end
       end
       ssh.loop
+
+      Rails.logger.debug "[RemoteInstallService] Exit code: #{exit_code}"
+      Rails.logger.debug "[RemoteInstallService] Stdout: #{stdout}" if stdout.present?
+      Rails.logger.debug "[RemoteInstallService] Stderr: #{stderr}" if stderr.present?
 
       if exit_code != 0
         # Filter out the sudo password prompt if it exists in stderr
