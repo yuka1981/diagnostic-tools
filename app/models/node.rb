@@ -3,6 +3,9 @@
 require "ipaddr"
 
 class Node < ApplicationRecord
+  # Virtual attributes for form
+  attr_accessor :ssh_key, :password
+
   # Associations
   has_many :node_states, dependent: :destroy
   has_many :benchmark_runs, dependent: :destroy
@@ -17,8 +20,6 @@ class Node < ApplicationRecord
   validates :source, presence: true
   validates :ssh_port, numericality: { only_integer: true, greater_than: 0, less_than: 65536 }
   validates :ssh_user, length: { maximum: 255 }
-  validates :agent_path, length: { maximum: 4096 }
-  validates :jump_port, numericality: { only_integer: true, greater_than: 0, less_than: 65536 }, allow_nil: true
   validates :arch, inclusion: { in: %w[x86_64 aarch64 arm64], allow_blank: true }
 
   # IP address validation using Ruby's IPAddr library

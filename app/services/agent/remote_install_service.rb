@@ -10,13 +10,13 @@ module Agent
     BASTION_TMP_PATH = "/tmp/agent_bin"
     TARGET_BIN_PATH = "/usr/local/bin/agent"
 
-    def initialize(target_host:, arch:, bastion_user:, bastion_host: nil, bastion_password: nil, sudo_password:, local_binary_path:, server_url: nil, agent_token: nil, on_progress: nil)
+    def initialize(target_host:, arch:, bastion_user: nil, bastion_host: nil, bastion_password: nil, sudo_password:, local_binary_path:, server_url: nil, agent_token: nil, on_progress: nil)
       @target_host = target_host
       validate_target_host!
 
       @arch = arch
       @bastion_host = bastion_host.presence
-      @bastion_user = bastion_user
+      @bastion_user = bastion_user.presence || "root"
       @bastion_password = bastion_password
       @sudo_password = sudo_password
       @local_binary_path = local_binary_path
@@ -89,9 +89,9 @@ module Agent
       # If direct, we run commands on the current session
       ssh_prefix = if via_ssh
                      "sudo -S ssh -o StrictHostKeyChecking=no root@#{Shellwords.escape(@target_host)} "
-                   else
+      else
                      "sudo -S "
-                   end
+      end
 
       # 3.1: chmod +x
       chmod_cmd = "#{ssh_prefix}'chmod +x #{TARGET_BIN_PATH}'"

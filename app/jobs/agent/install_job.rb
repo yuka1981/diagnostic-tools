@@ -6,7 +6,7 @@ module Agent
 
     def perform(target_host:, arch:, bastion_host: nil, bastion_user:, credentials_cache_key:, server_url:)
       Rails.logger.debug "[Agent::InstallJob] Starting install for #{target_host} (arch: #{arch})"
-      
+
       # Retrieve sensitive credentials from cache
       credentials = Rails.cache.read("install_creds_#{credentials_cache_key}")
       unless credentials
@@ -37,9 +37,9 @@ module Agent
         sudo_password: credentials[:sudo_password],
         local_binary_path: local_binary_path,
         server_url: server_url,
-        on_progress: ->(msg) { 
+        on_progress: ->(msg) {
           Rails.logger.debug "[Agent::InstallJob] Progress: #{msg}"
-          broadcast_status(target_host, "processing", msg) 
+          broadcast_status(target_host, "processing", msg)
         }
       )
 

@@ -53,7 +53,7 @@ RSpec.describe Agent::RemoteInstallService do
 
   it "performs a direct installation when bastion_host is missing" do
     allow(SshConfig).to receive(:jump_host).and_return(nil)
-    
+
     direct_service = described_class.new(
       target_host: target_host,
       arch: "x86_64",
@@ -66,7 +66,7 @@ RSpec.describe Agent::RemoteInstallService do
     # Should connect to target instead of bastion
     expect(Net::SSH).to receive(:start).with(target_host, bastion_user, any_args).and_yield(ssh_session)
     expect(scp_handler).to receive(:upload!).with(local_path, "/tmp/agent_bin_install")
-    
+
     # Should run commands directly without jump host SSH prefix
     expect(channel).to receive(:exec).with(/sudo -S mv \/tmp\/agent_bin_install \/usr\/local\/bin\/agent/).at_least(:once)
     expect(channel).to receive(:exec).with(/sudo -S 'systemctl daemon-reload && systemctl enable --now hpc-agent'/).at_least(:once)
@@ -90,6 +90,21 @@ RSpec.describe Agent::RemoteInstallService do
     allow(Net::SSH).to receive(:start).and_yield(ssh_session)
     expect(ssh_session).to receive(:exec!).with(/ExecStart=.*push --server "#{custom_url}"/)
     service_with_custom_url.call
+  end
+
+  it "defaults bastion_user to root if not provided" do
+    allow(SshConfig).to receive(:jump_host).and_return(nil)
+    service_no_user = described_class.new(
+      target_host: target_host,
+      arch: "x86_64",
+      bastion_host: nil,
+      bastion_user: nil,
+      sudo_password: sudo_password,
+      local_binary_path: local_path
+    )
+
+    expect(Net::SSH).to receive(:start).with(target_host, "root", any_args).and_yield(ssh_session)
+    service_no_user.call
   end
 
   it "raises error if a command fails" do

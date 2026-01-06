@@ -44,7 +44,9 @@ RSpec.describe "Nodes", type: :request do
           role: "compute",
           arch: "x86_64",
           ssh_port: 22,
-          ssh_user: "root"
+          ssh_user: "root",
+          ssh_key: "ssh-rsa ...",
+          password: "password123"
         }
       }
     end

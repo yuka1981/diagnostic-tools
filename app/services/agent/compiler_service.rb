@@ -23,9 +23,9 @@ module Agent
       # Use hardcoded strings for the command to satisfy Brakeman's safety checks
       env = if @arch == "arm64"
               { "GOOS" => "linux", "GOARCH" => "arm64" }
-            else
+      else
               { "GOOS" => "linux", "GOARCH" => "amd64" }
-            end
+      end
 
       Rails.logger.debug "[CompilerService] Starting build for #{@arch} to #{static_build_path}"
 
