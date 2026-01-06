@@ -79,7 +79,7 @@ module DashboardHelper
     badge_size_classes = size == :small ? "px-2 py-0.5 text-[10px]" : "px-2.5 py-0.5 text-xs"
 
     content_tag(:span, class: "inline-flex items-center gap-1 rounded-full font-medium #{badge_size_classes} #{status_badge_class(status)}") do
-      safe_join([status_spinner(status), status_label(status)].compact, " ")
+      safe_join([ status_spinner(status), status_label(status) ].compact, " ")
     end
   end
 
