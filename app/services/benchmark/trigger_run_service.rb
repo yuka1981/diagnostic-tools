@@ -54,11 +54,11 @@ module Benchmark
       # If it is absolute, we use it as is.
       agent_bin = if @agent_path == "agent"
                     "../agent"
-                  elsif @agent_path.start_with?("/")
+      elsif @agent_path.start_with?("/")
                     @agent_path
-                  else
+      else
                     "../#{@agent_path}"
-                  end
+      end
 
       agent_cmd = "#{Shellwords.escape(agent_bin)} hpcg"
       agent_cmd += " --id #{Shellwords.escape(@run_id || generate_run_id)}"

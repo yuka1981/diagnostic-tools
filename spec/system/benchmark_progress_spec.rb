@@ -41,7 +41,7 @@ RSpec.describe "Benchmark Progress", type: :system, js: true do
     # Simulate agent reporting back "RUNNING" via DB update
     run = BenchmarkRun.last
     run.update!(status: :running, started_at: Time.current)
-    
+
     # Wait for Turbo Stream update on node show page
     within "##{dom_id(node, :latest_benchmark)}" do
       expect(page).to have_content("Running")
