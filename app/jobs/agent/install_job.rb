@@ -39,6 +39,7 @@ module Agent
         sudo_password: credentials[:sudo_password],
         local_binary_path: local_binary_path,
         server_url: server_url,
+        agent_token: credentials[:agent_token], # Use the selected token if available
         on_progress: ->(msg) {
           Rails.logger.debug "[Agent::InstallJob] Progress: #{msg}"
           broadcast_status(target_host, "processing", msg)

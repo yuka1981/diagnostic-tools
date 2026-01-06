@@ -103,6 +103,9 @@ module Agent
       stderr = ""
       exit_code = nil
 
+      Rails.logger.debug "[RemoteUninstallService] Executing: #{cmd.gsub(password.to_s, '********')}" if password.present?
+      Rails.logger.debug "[RemoteUninstallService] Executing: #{cmd}" unless password.present?
+
       ssh.open_channel do |ch|
         ch.exec(cmd) do |channel, success|
           raise UninstallError, "Could not execute command: #{cmd}" unless success
@@ -117,6 +120,10 @@ module Agent
         end
       end
       ssh.loop
+
+      Rails.logger.debug "[RemoteUninstallService] Exit code: #{exit_code}"
+      Rails.logger.debug "[RemoteUninstallService] Stdout: #{stdout}" if stdout.present?
+      Rails.logger.debug "[RemoteUninstallService] Stderr: #{stderr}" if stderr.present?
 
       if exit_code != 0
         clean_stderr = stderr.gsub(/\\[sudo\\] password for .*: /, "").strip

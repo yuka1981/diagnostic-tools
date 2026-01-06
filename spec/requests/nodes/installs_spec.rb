@@ -76,6 +76,13 @@ RSpec.describe "Nodes::Installs", type: :request do
       )
     end
 
+    it "enqueues an Agent::InstallJob with selected api_key_id" do
+      api_key = create(:api_key, name: "Deploy Key")
+      expect {
+        post node_install_index_path, params: { install: install_params.merge(api_key_id: api_key.id) }
+      }.to enqueue_job(Agent::InstallJob)
+    end
+
     it "returns turbo stream if requested" do
       post node_install_index_path, params: { install: install_params }, as: :turbo_stream
       expect(response.media_type).to eq("text/vnd.turbo-stream.html")

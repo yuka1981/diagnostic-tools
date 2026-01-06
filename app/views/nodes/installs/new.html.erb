@@ -46,6 +46,15 @@
                 <p class="mt-1 text-xs text-gray-500 dark:text-slate-400">The URL agent will use to send data back to this server.</p>
               </div>
 
+              <div>
+                <%= f.label :api_key_id, "API Key", class: "block text-sm font-medium text-gray-700 dark:text-slate-300" %>
+                <%= f.select :api_key_id, 
+                    options_from_collection_for_select(@api_keys, :id, :name), 
+                    { include_blank: "Use system default token" }, 
+                    class: "mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-slate-700 dark:border-white/10 dark:text-white sm:text-sm" %>
+                <p class="mt-1 text-xs text-gray-500 dark:text-slate-400">Select an active API key for agent authentication.</p>
+              </div>
+
               <div class="pt-4 border-t border-gray-100 dark:border-white/5">
                 <h4 class="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-3">Bastion Server Configuration (Optional)</h4>
                 

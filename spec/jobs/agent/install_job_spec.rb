@@ -61,8 +61,20 @@ RSpec.describe Agent::InstallJob, type: :job do
         "agent_install_compute-001",
         hash_including(locals: hash_including(status: "success"))
       )
-      expect(Rails.cache.read("install_creds_#{cache_key}")).to be_nil
-    end
+    expect(Rails.cache.read("install_creds_#{cache_key}")).to be_nil
+  end
+
+  it "uses custom agent_token from credentials if provided" do
+    credentials_with_token = credentials.merge(agent_token: "custom-token-123")
+    Rails.cache.write("install_creds_#{cache_key}", credentials_with_token)
+
+    described_class.perform_now(**params)
+
+    expect(Agent::RemoteInstallService).to have_received(:new).with(hash_including(
+                                                                     agent_token: "custom-token-123"
+                                                                   ))
+  end
+
   it "broadcasts error if installation fails" do
     allow(installer).to receive(:call).and_raise(Agent::RemoteInstallService::InstallError, "Failed")
 
