@@ -4,7 +4,7 @@ require "rails_helper"
 
 RSpec.describe "Benchmark Run Feature", type: :system do
   let(:approver) { create(:user, :approver) }
-  let(:node) { create(:node) }
+  let(:node) { create(:node, source: :agent_push) }
 
   before do
     sign_in approver

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_01_05_082609) do
+ActiveRecord::Schema[7.2].define(version: 2026_01_07_023444) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -22,6 +22,16 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_05_082609) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["token"], name: "index_api_keys_on_token", unique: true
+  end
+
+  create_table "artifact_indices", force: :cascade do |t|
+    t.bigint "benchmark_run_id", null: false
+    t.string "path"
+    t.string "file_type"
+    t.bigint "size"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["benchmark_run_id"], name: "index_artifact_indices_on_benchmark_run_id"
   end
 
   create_table "benchmark_recipes", force: :cascade do |t|
@@ -46,6 +56,8 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_05_082609) do
     t.datetime "updated_at", null: false
     t.string "log_path"
     t.uuid "uuid", default: -> { "gen_random_uuid()" }, null: false
+    t.datetime "last_heartbeat_at"
+    t.string "current_phase"
     t.index ["benchmark_recipe_id"], name: "index_benchmark_runs_on_benchmark_recipe_id"
     t.index ["node_id", "started_at"], name: "index_benchmark_runs_on_node_id_and_started_at", order: { started_at: :desc }
     t.index ["node_id"], name: "index_benchmark_runs_on_node_id"
@@ -84,9 +96,21 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_05_082609) do
     t.string "jump_user"
     t.integer "jump_port"
     t.string "agent_path"
+    t.string "uuid"
+    t.integer "ssh_connect_method"
     t.index ["hostname"], name: "index_nodes_on_hostname", unique: true
     t.index ["role"], name: "index_nodes_on_role"
     t.index ["source"], name: "index_nodes_on_source"
+    t.index ["uuid"], name: "index_nodes_on_uuid"
+  end
+
+  create_table "ssh_settings", force: :cascade do |t|
+    t.string "bastion_host"
+    t.string "bastion_user"
+    t.integer "bastion_port", default: 22
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.string "server_url"
   end
 
   create_table "users", force: :cascade do |t|
@@ -103,6 +127,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_05_082609) do
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
   end
 
+  add_foreign_key "artifact_indices", "benchmark_runs"
   add_foreign_key "benchmark_runs", "benchmark_recipes"
   add_foreign_key "benchmark_runs", "nodes"
   add_foreign_key "node_states", "nodes"

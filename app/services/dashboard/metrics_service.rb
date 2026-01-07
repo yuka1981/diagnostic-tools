@@ -12,6 +12,10 @@ module Dashboard
       :success_rate_24h,
       :runs_by_status,
       :nodes_by_role,
+      :queue_running,
+      :queue_pending,
+      :total_storage_bytes,
+      :used_storage_bytes,
       keyword_init: true
     )
 
@@ -30,6 +34,8 @@ module Dashboard
     def call(refresh: false)
       return @result if @result && !refresh
 
+      storage = calculate_cluster_storage
+
       @result = Result.new(
         total_nodes: calculate_total_nodes,
         online_nodes: calculate_online_nodes,
@@ -39,11 +45,35 @@ module Dashboard
         failed_runs_24h: run_status_counts[:failed].to_i,
         success_rate_24h: calculate_success_rate,
         runs_by_status: symbolized_run_status_counts,
-        nodes_by_role: symbolized_node_role_counts
+        nodes_by_role: symbolized_node_role_counts,
+        queue_running: BenchmarkRun.running.count,
+        queue_pending: BenchmarkRun.pending.count,
+        total_storage_bytes: storage[:total],
+        used_storage_bytes: storage[:used]
       )
     end
 
     private
+
+    def calculate_cluster_storage
+      total = 0
+      used = 0
+
+      # Aggregate root disk info from all nodes' latest states
+      Node.includes(:node_states).find_each do |node|
+        state = node.current_state
+        next unless state&.disk_info.present?
+
+        # We focus on the root mount point or the first disk as a heuristic for "system storage"
+        # In a real HPC environment, we might want to track specific shared mounts (NFS/Lustre)
+        root_disk = state.disk_info.find { |d| d["mountpoint"] == "/" } || state.disk_info.first
+
+        total += root_disk["total"].to_i
+        used += root_disk["used"].to_i
+      end
+
+      { total: total, used: used }
+    end
 
     # Node metrics
     def calculate_total_nodes

@@ -1,0 +1,103 @@
+# frozen_string_literal: true
+
+require "rails_helper"
+
+RSpec.describe "Nodes::Installs", type: :request do
+  let(:user) { create(:user, :approver) }
+
+  before do
+    sign_in user
+  end
+
+  describe "GET /nodes/installs/new" do
+    it "returns http success" do
+      get new_node_install_path
+      expect(response).to have_http_status(:success)
+    end
+
+    it "sets target_host and arch from params" do
+      get new_node_install_path(hostname: "compute-001", arch: "arm64")
+      expect(response.body).to include('value="compute-001"')
+      expect(response.body).to include('selected="selected" value="arm64"')
+    end
+
+    it "preloads global SSH settings and node specific user" do
+      SshSetting.current.update(bastion_host: "bastion.global", bastion_user: "global-user")
+      create(:node, hostname: "preloaded-node", ssh_user: "node-user")
+
+      get new_node_install_path(hostname: "preloaded-node")
+      expect(response.body).to include('value="bastion.global"')
+      # It prioritizes (global_user.presence || node_user.presence || "root")
+      expect(response.body).to include('value="global-user"')
+    end
+  end
+
+  describe "POST /nodes/installs" do
+    let(:install_params) do
+      {
+        hostname: "compute-001",
+        arch: "x86_64",
+        bastion_user: "admin",
+        bastion_password: "password",
+        sudo_password: "sudo_password"
+      }
+    end
+
+    it "enqueues an Agent::InstallJob without passing passwords" do
+      expect {
+        post node_install_index_path, params: { install: install_params }
+      }.to enqueue_job(Agent::InstallJob).with(
+        hash_including(
+          target_host: "compute-001",
+          credentials_cache_key: kind_of(String)
+        )
+      )
+
+      expect(response).to redirect_to(nodes_path)
+    end
+
+    it "enqueues an Agent::InstallJob with custom server_url if provided" do
+      expect {
+        post node_install_index_path, params: { install: install_params.merge(server_url: "https://custom-server.com") }
+      }.to enqueue_job(Agent::InstallJob).with(
+        hash_including(
+          server_url: "https://custom-server.com"
+        )
+      )
+    end
+
+    it "enqueues an Agent::InstallJob with custom bastion_host if provided" do
+      expect {
+        post node_install_index_path, params: { install: install_params.merge(bastion_host: "10.0.0.5") }
+      }.to enqueue_job(Agent::InstallJob).with(
+        hash_including(
+          bastion_host: "10.0.0.5"
+        )
+      )
+    end
+
+    it "enqueues an Agent::InstallJob with optional bastion_user if provided" do
+      expect {
+        post node_install_index_path, params: { install: install_params.merge(bastion_user: "custom-admin") }
+      }.to enqueue_job(Agent::InstallJob).with(
+        hash_including(
+          bastion_user: "custom-admin"
+        )
+      )
+    end
+
+    it "enqueues an Agent::InstallJob with selected api_key_id" do
+      api_key = create(:api_key, name: "Deploy Key")
+      expect {
+        post node_install_index_path, params: { install: install_params.merge(api_key_id: api_key.id) }
+      }.to enqueue_job(Agent::InstallJob)
+    end
+
+    it "returns turbo stream if requested" do
+      post node_install_index_path, params: { install: install_params }, as: :turbo_stream
+      expect(response.media_type).to eq("text/vnd.turbo-stream.html")
+      expect(response.body).to include("turbo-stream")
+      expect(response.body).to include('id="agent_install_status_compute-001"')
+    end
+  end
+end

@@ -19,6 +19,11 @@ Rails.application.routes.draw do
     end
   end
 
+  namespace :settings do
+    resource :ssh, only: [ :show, :update ], controller: :ssh
+    resource :agent, only: [ :show, :update ], controller: :agents
+  end
+
   resources :nodes do
     member do
       post :test_connection
@@ -27,6 +32,8 @@ Rails.application.routes.draw do
     resources :benchmark_runs, only: %i[new create], controller: "nodes/benchmark_runs"
     collection do
       resources :imports, only: %i[new create], controller: "nodes/imports", as: :node_import
+      resources :installs, only: %i[new create], controller: "nodes/installs", as: :node_install
+      resources :uninstalls, only: %i[new create], controller: "nodes/uninstalls", as: :node_uninstall
     end
   end
   resources :benchmark_runs, only: %i[index show]

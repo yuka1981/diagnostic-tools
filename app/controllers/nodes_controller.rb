@@ -10,7 +10,13 @@ class NodesController < ApplicationController
     @nodes = Node.order(:hostname)
   end
 
-  def show; end
+  def show
+    @selected_state = if params[:state_id].present?
+                        @node.node_states.find(params[:state_id])
+    else
+                        @node.current_state
+    end
+  end
 
   def test_connection
     service = Inventory::TriggerCollectService.new(@node)
@@ -126,7 +132,7 @@ class NodesController < ApplicationController
   end
 
   def node_params
-    params.require(:node).permit(:hostname, :ip, :arch, :ssh_port, :ssh_user, :agent_path, :jump_host, :jump_user, :jump_port)
+    params.require(:node).permit(:hostname, :ip, :arch, :ssh_port, :ssh_user, :ssh_key, :password, :ssh_connect_method, :jump_host, :jump_user, :jump_port)
   end
 
   def authorize_approver!

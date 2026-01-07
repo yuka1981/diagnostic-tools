@@ -9,6 +9,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/yuka1981/diagnostic-tools/agent/core/identity"
 	"github.com/yuka1981/diagnostic-tools/agent/core/model"
 	"github.com/yuka1981/diagnostic-tools/agent/core/uploader"
 	"github.com/yuka1981/diagnostic-tools/agent/hpcg"
@@ -21,6 +22,7 @@ type hpcgOptions struct {
 	runCmd     string
 	pushServer string
 	pushToken  string
+	configDir  string
 	logPath    string
 	modules    []string
 	nx, ny, nz int
@@ -40,6 +42,7 @@ func (o *hpcgOptions) addFlags(cmd *cobra.Command) {
 
 	cmd.Flags().StringVar(&o.pushServer, "server", "http://localhost:3000", "Server URL")
 	cmd.Flags().StringVar(&o.pushToken, "token", os.Getenv("AGENT_TOKEN"), "Authentication token")
+	cmd.Flags().StringVar(&o.configDir, "config", "/etc/hpc-agent", "Configuration directory")
 }
 
 // NewHPCGCmd creates the hpcg command.
@@ -61,6 +64,12 @@ func runHPCG(cmd *cobra.Command, opts *hpcgOptions) error {
 	wd, err := os.Getwd()
 	if err != nil {
 		return fmt.Errorf("failed to get current working directory: %w", err)
+	}
+
+	// 0. Identity
+	nodeID, err := identity.GetOrGenerateNodeID(opts.configDir)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Warning: failed to get node identity: %v\n", err)
 	}
 
 	runner := infrastructure.NewRealCommandRunner()
@@ -87,7 +96,7 @@ func runHPCG(cmd *cobra.Command, opts *hpcgOptions) error {
 	fmt.Fprintln(cmd.OutOrStdout(), "Starting HPCG workflow...")
 
 	// Send initial status update
-	_ = uploadBenchmarkStatus(ctx, opts.pushServer, opts.pushToken, opts.runID, model.BenchmarkStatusRunning)
+	_ = uploadBenchmarkStatus(ctx, opts.pushServer, opts.pushToken, nodeID, opts.runID, model.BenchmarkStatusRunning)
 
 	result, err := orchestrator.Run(ctx, &params)
 	if err != nil {
@@ -101,7 +110,7 @@ func runHPCG(cmd *cobra.Command, opts *hpcgOptions) error {
 	// Upload final result
 	if opts.pushToken != "" {
 		fmt.Fprintln(cmd.OutOrStdout(), "Uploading result...")
-		if err := uploadBenchmarkResult(ctx, opts.pushServer, opts.pushToken, result); err != nil {
+		if err := uploadBenchmarkResult(ctx, opts.pushServer, opts.pushToken, nodeID, result); err != nil {
 			return fmt.Errorf("upload failed: %w", err)
 		}
 		fmt.Fprintln(cmd.OutOrStdout(), "Upload successful.")
@@ -110,11 +119,14 @@ func runHPCG(cmd *cobra.Command, opts *hpcgOptions) error {
 	return nil
 }
 
-func uploadBenchmarkStatus(ctx context.Context, server, token, runID string, status model.BenchmarkStatus) error {
+func uploadBenchmarkStatus(ctx context.Context, server, token, nodeID, runID string, status model.BenchmarkStatus) error {
 	if token == "" {
 		return nil
 	}
 	up := uploader.NewHTTPUploader(server, token)
+	if nodeID != "" {
+		up.SetNodeID(nodeID)
+	}
 	run := &model.BenchmarkRun{
 		RunID:     runID,
 		RecipeID:  "hpcg",
@@ -124,11 +136,14 @@ func uploadBenchmarkStatus(ctx context.Context, server, token, runID string, sta
 	return up.Upload(ctx, run)
 }
 
-func uploadBenchmarkResult(ctx context.Context, server, token string, result *model.BenchmarkRun) error {
+func uploadBenchmarkResult(ctx context.Context, server, token, nodeID string, result *model.BenchmarkRun) error {
 	if token == "" {
 		return nil
 	}
 	up := uploader.NewHTTPUploader(server, token)
+	if nodeID != "" {
+		up.SetNodeID(nodeID)
+	}
 	return up.Upload(ctx, result)
 }
 

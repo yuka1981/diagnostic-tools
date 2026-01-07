@@ -8,7 +8,7 @@ import (
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "agent",
+	Use:   "hpc-agent",
 	Short: "HPC Agent",
 	Long:  `HPC System Detection & Benchmark Agent`,
 }

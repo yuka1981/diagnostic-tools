@@ -3,6 +3,9 @@
 require "ipaddr"
 
 class Node < ApplicationRecord
+  # Virtual attributes for form
+  attr_accessor :ssh_key, :password
+
   # Associations
   has_many :node_states, dependent: :destroy
   has_many :benchmark_runs, dependent: :destroy
@@ -10,15 +13,15 @@ class Node < ApplicationRecord
   # Enums
   enum :role, { compute: 0, login: 1, admin: 2 }, default: :compute
   enum :source, { manual: 0, csv: 1, agent_push: 2 }, default: :manual
+  enum :ssh_connect_method, { global_bastion: 0, custom_bastion: 1, direct: 2 }, default: :global_bastion
 
   # Validations
   validates :hostname, presence: true, uniqueness: true, length: { maximum: 255 }
+  validates :uuid, uniqueness: true, allow_blank: true
   validates :role, presence: true
   validates :source, presence: true
   validates :ssh_port, numericality: { only_integer: true, greater_than: 0, less_than: 65536 }
   validates :ssh_user, length: { maximum: 255 }
-  validates :agent_path, length: { maximum: 4096 }
-  validates :jump_port, numericality: { only_integer: true, greater_than: 0, less_than: 65536 }, allow_nil: true
   validates :arch, inclusion: { in: %w[x86_64 aarch64 arm64], allow_blank: true }
 
   # IP address validation using Ruby's IPAddr library
@@ -34,7 +37,7 @@ class Node < ApplicationRecord
 
   # Constants
   ONLINE_THRESHOLD = 5.minutes
-  DEFAULT_AGENT_PATH = "agent"
+  DEFAULT_AGENT_PATH = "hpc-agent"
 
   # Scopes
   scope :online, -> { where(last_seen_at: ONLINE_THRESHOLD.ago..) }

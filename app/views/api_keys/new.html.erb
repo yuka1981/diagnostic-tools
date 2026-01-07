@@ -15,7 +15,7 @@
     
     <%= form_with model: @api_key, class: "space-y-6" do |f| %>
       <% if @api_key.errors.any? %>
-        <div class="rounded-md bg-red-50 p-4 dark:bg-red-900/20">
+        <div class="rounded-none bg-red-50 p-4 dark:bg-red-900/20">
           <div class="flex">
             <div class="ml-3">
               <h3 class="text-sm font-medium text-red-800 dark:text-red-400">There were errors with your submission</h3>
@@ -35,7 +35,7 @@
         <%= f.label :name, "Key Name", class: "block text-sm font-medium text-gray-700 dark:text-slate-300" %>
         <div class="mt-1">
           <%= f.text_field :name, 
-              class: "block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-slate-700 dark:border-white/10 dark:text-white sm:text-sm", 
+              class: "block w-full rounded-none border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-slate-700 dark:border-white/10 dark:text-white sm:text-sm", 
               placeholder: "e.g., Compute Cluster Alpha" %>
         </div>
         <p class="mt-2 text-xs text-gray-500 dark:text-slate-400">Give this key a descriptive name to identify which agent/node will use it.</p>
@@ -43,7 +43,7 @@
 
       <div class="pt-4">
         <%= f.submit "Generate API Key", 
-            class: "inline-flex justify-center rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 transition-all cursor-pointer" %>
+            class: "inline-flex justify-center rounded-none bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 transition-all cursor-pointer" %>
       </div>
     <% end %>
   </div>

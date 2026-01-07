@@ -19,28 +19,35 @@ module Inventory
       end
     end
 
-    def initialize(node_id: nil, hostname: nil, raw_json:)
-      raise ArgumentError, "Either node_id or hostname must be provided" if node_id.blank? && hostname.blank?
+    def initialize(node_id: nil, hostname: nil, uuid: nil, raw_json:)
+      raise ArgumentError, "Either node_id, hostname or uuid must be provided" if node_id.blank? && hostname.blank? && uuid.blank?
 
       @node_id = node_id
       @hostname = hostname
+      @uuid = uuid
       @raw_json = raw_json&.with_indifferent_access
     end
 
     def call
       return error_result("Raw JSON is empty", :bad_request) if @raw_json.nil?
 
-      node = find_node
-      return error_result("Node not found", :not_found) unless node
+      node = find_or_create_node
+      return error_result("Node not found and could not be registered", :not_found) unless node
 
       process_state(node)
     end
 
     private
 
-    def find_node
+    def find_or_create_node
       if @node_id.present?
         Node.find_by(id: @node_id)
+      elsif @uuid.present?
+        Node.find_or_create_by(uuid: @uuid) do |n|
+          n.hostname = @hostname || "node-#{@uuid[0..7]}"
+          n.ip = @raw_json&.dig(:host, :ip)
+          n.source = :agent_push
+        end
       elsif @hostname.present?
         Node.find_by(hostname: @hostname)
       end

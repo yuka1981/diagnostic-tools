@@ -44,7 +44,7 @@ type CommandRunner interface {
 * **Config**: 讀取 config.yaml 或環境變數 (API Endpoint, Token)。  
 * **Logger**: 結構化日誌 (slog or zap)。
 
-### **3.2 系統資訊收集 (Inventory) \- agent collect**
+### **3.2 系統資訊收集 (Inventory) - hpc-agent collect**
 
 **TDD 流程**:
 
@@ -57,10 +57,10 @@ type CommandRunner interface {
 
 **驗收標準**:
 
-* 執行 agent collect 輸出之 JSON 需符合 JSON Schema 驗證。  
-* 執行時間 \< 1s。
+* 執行 `hpc-agent collect` 輸出之 JSON 需符合 JSON Schema 驗證。  
+* 執行時間 < 1s。
 
-### **3.3 主動回報 (Push) \- agent inventory push**
+### **3.3 主動回報 (Push) - hpc-agent inventory push**
 
 **TDD 流程**:
 
@@ -68,7 +68,7 @@ type CommandRunner interface {
 2. **Test**: 呼叫 Push 方法，驗證 Request Body 是否包含 Token 與正確的 JSON。  
 3. **Test**: 模擬 API 500 錯誤，驗證是否重試 (Retry with Exponential Backoff) 或優雅失敗。
 
-### **3.4 HPCG Benchmark \- agent benchmark hpcg**
+### **3.4 HPCG Benchmark - hpc-agent benchmark hpcg**
 
 這是最複雜的模組，需拆解為子任務測試。
 

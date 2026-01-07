@@ -24,7 +24,7 @@
           <%= f.text_field :q, 
               value: @filter.search_query,
               placeholder: "Search by node or recipe...",
-              class: "block w-full rounded-lg border-0 bg-gray-50 py-2 pl-10 pr-3 text-sm text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-cyan-600 dark:bg-slate-700 dark:text-white dark:ring-white/10 dark:placeholder:text-slate-500" %>
+              class: "block w-full rounded-none border-0 bg-gray-50 py-2 pl-10 pr-3 text-sm text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-cyan-600 dark:bg-slate-700 dark:text-white dark:ring-white/10 dark:placeholder:text-slate-500" %>
         </div>
       </div>
 
@@ -34,7 +34,7 @@
         <%= f.select :status, 
             options_for_select([["All Statuses", ""]] + BenchmarkRun.statuses.keys.map { |s| [s.humanize, s] }, @filter.status),
             {},
-            class: "block w-full rounded-lg border-0 bg-gray-50 py-2 pl-3 pr-10 text-sm text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-cyan-600 dark:bg-slate-700 dark:text-white dark:ring-white/10",
+            class: "block w-full rounded-none border-0 bg-gray-50 py-2 pl-3 pr-10 text-sm text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-cyan-600 dark:bg-slate-700 dark:text-white dark:ring-white/10",
             data: { action: "change->autosubmit#submit" } %>
       </div>
 
@@ -44,7 +44,7 @@
         <%= f.select :node_id,
             options_for_select([["All Nodes", ""]] + @nodes.map { |n| [n.hostname, n.id] }, @filter.node_id),
             {},
-            class: "block w-full rounded-lg border-0 bg-gray-50 py-2 pl-3 pr-10 text-sm text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-cyan-600 dark:bg-slate-700 dark:text-white dark:ring-white/10",
+            class: "block w-full rounded-none border-0 bg-gray-50 py-2 pl-3 pr-10 text-sm text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-cyan-600 dark:bg-slate-700 dark:text-white dark:ring-white/10",
             data: { action: "change->autosubmit#submit" } %>
       </div>
 
@@ -54,19 +54,19 @@
         <%= f.select :recipe_id,
             options_for_select([["All Recipes", ""]] + @recipes.map { |r| [r.name, r.id] }, @filter.recipe_id),
             {},
-            class: "block w-full rounded-lg border-0 bg-gray-50 py-2 pl-3 pr-10 text-sm text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-cyan-600 dark:bg-slate-700 dark:text-white dark:ring-white/10",
+            class: "block w-full rounded-none border-0 bg-gray-50 py-2 pl-3 pr-10 text-sm text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-cyan-600 dark:bg-slate-700 dark:text-white dark:ring-white/10",
             data: { action: "change->autosubmit#submit" } %>
       </div>
 
       <%# Actions %>
       <div class="flex items-center gap-2">
         <%= f.submit "Search",
-            class: "inline-flex items-center rounded-lg bg-cyan-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900 transition-colors cursor-pointer" %>
+            class: "inline-flex items-center rounded-none bg-cyan-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900 transition-colors cursor-pointer" %>
         
         <% if @filter.filtered? %>
           <%= link_to "Clear filters", benchmark_runs_path,
               data: { turbo_frame: "runs_list" },
-              class: "inline-flex items-center rounded-lg px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 dark:text-slate-400 dark:hover:text-white dark:hover:bg-white/10 transition-colors" %>
+              class: "inline-flex items-center rounded-none px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 dark:text-slate-400 dark:hover:text-white dark:hover:bg-white/10 transition-colors" %>
         <% end %>
       </div>
     <% end %>

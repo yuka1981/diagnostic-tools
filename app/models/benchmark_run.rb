@@ -4,6 +4,7 @@ class BenchmarkRun < ApplicationRecord
   # Associations
   belongs_to :node
   belongs_to :benchmark_recipe
+  has_many :artifact_indices, dependent: :destroy
 
   # Enums
   enum :status, {

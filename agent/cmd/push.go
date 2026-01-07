@@ -6,6 +6,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/yuka1981/diagnostic-tools/agent/core/identity"
 	"github.com/yuka1981/diagnostic-tools/agent/core/ports"
 	"github.com/yuka1981/diagnostic-tools/agent/core/uploader"
 	"github.com/yuka1981/diagnostic-tools/agent/infrastructure"
@@ -18,6 +19,7 @@ import (
 func NewPushCmd(col ports.InventoryCollector, upFactory func(url, token string) ports.Uploader) *cobra.Command {
 	var pushServer string
 	var pushToken string
+	var configDir string
 
 	cmd := &cobra.Command{
 		Use:   "push",
@@ -25,6 +27,12 @@ func NewPushCmd(col ports.InventoryCollector, upFactory func(url, token string) 
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if pushToken == "" {
 				return fmt.Errorf("token is required (use --token or AGENT_TOKEN env var)")
+			}
+
+			// 0. Identity
+			nodeID, err := identity.GetOrGenerateNodeID(configDir)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "Warning: failed to get node identity: %v\n", err)
 			}
 
 			// 1. Collect Inventory
@@ -46,7 +54,11 @@ func NewPushCmd(col ports.InventoryCollector, upFactory func(url, token string) 
 			if upFactory != nil {
 				up = upFactory(pushServer, pushToken)
 			} else {
-				up = uploader.NewHTTPUploader(pushServer, pushToken)
+				httpUp := uploader.NewHTTPUploader(pushServer, pushToken)
+				if nodeID != "" {
+					httpUp.SetNodeID(nodeID)
+				}
+				up = httpUp
 			}
 
 			fmt.Fprintf(cmd.OutOrStdout(), "Pushing inventory to %s...\n", pushServer)
@@ -61,6 +73,7 @@ func NewPushCmd(col ports.InventoryCollector, upFactory func(url, token string) 
 
 	cmd.Flags().StringVar(&pushServer, "server", "http://localhost:3000", "Server URL")
 	cmd.Flags().StringVar(&pushToken, "token", os.Getenv("AGENT_TOKEN"), "Authentication token")
+	cmd.Flags().StringVar(&configDir, "config", "/etc/hpc-agent", "Configuration directory")
 
 	return cmd
 }

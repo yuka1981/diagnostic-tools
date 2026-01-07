@@ -7,8 +7,11 @@
 # Ignore bundler config.
 /.bundle
 
-# Ignore all environment files (except templates).
-/.env*
+# Ignore all environment files (except templates and example).
+/.env
+/.env.local
+/.env.*.local
+!/.env.example
 !/.env*.erb
 
 # Ignore all logfiles and tempfiles.
@@ -57,4 +60,7 @@ Thumbs.db
 .gemini/settings.json
 .gemini/
 /agent/agent
-/agent/hpcg_source
+/agent/hpcg_source/
+/bin/hpc-agent
+/bin/watchman
+/bin/agent_bin

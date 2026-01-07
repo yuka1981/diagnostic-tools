@@ -12,9 +12,10 @@ module Api
         # Agent sends hostname inside 'host' object
         hostname = parsed_body.dig(:host, :hostname) || parsed_body[:hostname]
         node_id = parsed_body[:node_id]
+        uuid = request.headers["X-Node-ID"]
 
-        unless hostname.present? || node_id.present?
-          return render_bad_request("Either hostname or node_id is required")
+        unless hostname.present? || node_id.present? || uuid.present?
+          return render_bad_request("Either hostname, node_id or X-Node-ID header is required")
         end
 
         # Build state data from request
@@ -24,6 +25,7 @@ module Api
         result = Inventory::ProcessStateService.new(
           hostname: hostname,
           node_id: node_id,
+          uuid: uuid,
           raw_json: raw_json
         ).call
 

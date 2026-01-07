@@ -1,0 +1,6 @@
+<%= turbo_stream.replace "install_modal_body" do %>
+  <%= render "nodes/installs/status", 
+      status: "processing", 
+      message: "Starting installation process...", 
+      target_host: params[:install][:hostname] %>
+<% end %>

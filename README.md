@@ -82,7 +82,7 @@ The application will be available at `http://localhost:3000`.
 
 ### SSH & Agent Collection
 
-To enable the application to collect data from nodes via SSH, you need to configure SSH credentials and ensure the agent is installed on the target nodes.
+To enable the application to collect data from nodes via SSH, you need to configure SSH credentials and ensure hpc-agent is installed on the target nodes.
 
 #### 1. Credentials
 
@@ -106,7 +106,7 @@ ssh:
 
 #### 2. Agent Installation
 
-The `agent` binary must be available on the target nodes. By default, the service expects the binary to be named `agent` and available in the system PATH.
+The `hpc-agent` binary must be available on the target nodes. By default, the service expects the binary to be named `hpc-agent` and available in the system PATH.
 
 ## Usage
 
@@ -142,38 +142,38 @@ The HPC Agent is a Go-based CLI tool that runs on cluster nodes to collect syste
 
 ### Building the Agent
 
-To build the agent binary (requires Go 1.22+):
+To build the hpc-agent binary (requires Go 1.22+):
 
 ```bash
 cd agent
-go build -o agent .
+go build -o hpc-agent .
 ```
 
 ### Commands
 
-#### `agent collect`
+#### `hpc-agent collect`
 Collects the current node's detailed system information (CPU architecture/topology/cache, Memory, Disk, Network, Host) and outputs it as JSON to stdout.
 
 ```bash
-./agent collect
+./hpc-agent collect
 ```
 
-#### `agent inventory push`
+#### `hpc-agent inventory push`
 Collects system information and pushes it directly to the web application's API.
 
 ```bash
-./agent inventory push --server http://your-app-url --token your-api-token
+./hpc-agent inventory push --server http://your-app-url --token your-api-token
 ```
 
 **Flags:**
 - `--server`: The URL of the web application (default: `http://localhost:3000`).
 - `--token`: Authentication token (required). Can also be set via `AGENT_TOKEN` environment variable.
 
-#### `agent hpcg`
+#### `hpc-agent hpcg`
 Runs the HPCG (High Performance Conjugate Gradients) benchmark workflow. This includes environment setup, native compilation, configuration generation, execution, and result parsing.
 
 ```bash
-./agent hpcg --id run-001 --module mpi/openmpi --rt 120 --log-path /var/log/hpcg/run-001.txt
+./hpc-agent hpcg --id run-001 --module mpi/openmpi --rt 120 --log-path /var/log/hpcg/run-001.txt
 ```
 
 **Flags:**
@@ -191,16 +191,16 @@ Runs the HPCG (High Performance Conjugate Gradients) benchmark workflow. This in
 
 ### Building from Source
 
-A helper script is provided to automate cloning the HPCG repository and running the benchmark using the agent:
+A helper script is provided to automate cloning the HPCG repository and running the benchmark using hpc-agent:
 
 ```bash
 ./scripts/run_hpcg_from_source.sh
 ```
 
 This script:
-1. Builds the `agent` binary.
+1. Builds the `hpc-agent` binary.
 2. Clones the official HPCG repository.
-3. Uses the `agent hpcg` command to compile (`make`) and run (`mpirun`) the benchmark.
+3. Uses the `hpc-agent hpcg` command to compile (`make`) and run (`mpirun`) the benchmark.
 
 ## Development
 

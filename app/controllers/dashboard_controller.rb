@@ -12,6 +12,10 @@ class DashboardController < ApplicationController
     @success_rate_24h = metrics.success_rate_24h
     @runs_by_status = metrics.runs_by_status
     @nodes_by_role = metrics.nodes_by_role
+    @queue_running = metrics.queue_running
+    @queue_pending = metrics.queue_pending
+    @total_storage = metrics.total_storage_bytes
+    @used_storage = metrics.used_storage_bytes
 
     # Load all nodes for heatmap display
     @nodes = Node.order(:hostname)

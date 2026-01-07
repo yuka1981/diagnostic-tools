@@ -1,0 +1,8 @@
+<%= turbo_stream.replace "uninstall_modal_body" do %>
+  <%= render "nodes/uninstalls/status", 
+      status: "processing", 
+      message: "Starting uninstallation process...", 
+      target_host: params[:uninstall][:hostname],
+      steps: Agent::RemoteUninstallService::STEPS,
+      current_step: nil %>
+<% end %>

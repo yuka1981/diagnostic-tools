@@ -66,7 +66,7 @@ end
 
 * **Service**: Inventory::TriggerCollectService  
 * **Logic**: 使用 net-ssh 連線至 Gateway (Admin Node)。  
-* **Test**: 使用 double Mock Net::SSH.start，驗證是否送出正確的指令 (e.g., ssh compute-01 agent collect --json)。  
+* **Test**: 使用 double Mock Net::SSH.start，驗證是否送出正確的指令 (e.g., ssh compute-01 hpc-agent collect --json)。  
 * **Job**: InventoryCollectJob (Sidekiq/SolidQueue)，負責非同步執行 Service。
 
 #### **C. 版本化資料處理 (Processing & Versioning)**

@@ -51,8 +51,8 @@ Changes: Added Node Configuration Versioning & History View features.
 ## **4\. 核心決策 (Core Decisions)**
 
 * **執行模型**: **Hybrid (Push & Pull)**  
-  * **Inventory (Pull via Gateway)**: Server 端 Collector 建立 SSH 連線至 **Admin Node**，再由 Admin Node 透過內部網路 (SSH/PDSH/Slurm) 觸發 Compute Node 的 agent collect。  
-  * **Inventory (Push)**: Agent 可透過 cron 或啟動腳本執行 agent inventory push 主動回報 (適用於自動註冊/定期更新，需確保 Compute Node 可訪問 Web API)。  
+  * **Inventory (Pull via Gateway)**: Server 端 Collector 建立 SSH 連線至 **Admin Node**，再由 Admin Node 透過內部網路 (SSH/PDSH/Slurm) 觸發 Compute Node 的 `hpc-agent collect`。  
+  * **Inventory (Push)**: Agent 可透過 cron 或啟動腳本執行 `hpc-agent inventory push` 主動回報 (適用於自動註冊/定期更新，需確保 Compute Node 可訪問 Web API)。  
   * **Benchmark (Push)**: Slurm Job 內的 Agent 主動執行並回報 DB，Artifacts 直寫 Shared Storage。  
 * **Nodes 來源**: **Web UI 匯入 (CSV)** \+ 靜態清單 \+ Agent 主動註冊。  
 * **Benchmark 環境**: **Native Compilation** (on-the-fly compile using modules/toolchain).  
@@ -73,15 +73,15 @@ Changes: Added Node Configuration Versioning & History View features.
   * 支援上傳 CSV 檔案。  
   * CSV 格式：hostname, ip (選填), role (compute/login), arch (選填)。  
   * 後端解析並更新 nodes 資料表。  
-* **主動收集 (Agent Push)**:  
-  * Command: agent inventory push。  
-  * 行為：Agent 收集本機資訊 \-\> POST 到 API Server \-\> 更新 DB。  
-* **被動觸發 (Server Pull via Admin Node)**:  
-  * Action: Web UI 點擊 "Collect Now" (單一節點或批次)。  
-  * Backend Flow:  
-    1. Rails (Sidekiq) 建立 SSH 連線至 **Admin Node**。  
-    2. 在 Admin Node 上執行遠端指令 (e.g., ssh \<compute\_node\> agent collect \--json 或 pdsh).  
-    3. 取得 JSON 輸出並解析更新 DB。  
+*   **主動收集 (Agent Push)**:
+    *   Command: `hpc-agent inventory push`。
+    *   行為：Agent 收集本機資訊 -> POST 到 API Server -> 更新 DB。
+*   **被動觸發 (Server Pull via Admin Node)**:
+    *   Action: Web UI 點擊 "Collect Now" (單一節點或批次)。
+    *   Backend Flow:
+        1.  Rails (Sidekiq) 建立 SSH 連線至 **Admin Node**。
+        2.  在 Admin Node 上執行遠端指令 (e.g., `ssh <compute_node> hpc-agent collect --json` 或 `pdsh`)。
+        3.  取得 JSON 輸出並解析更新 DB。  
 * **配置版本控制 (Configuration Versioning)**:  
   * 系統需保留節點的歷史狀態 (History)。  
   * 每次收集 (Push/Pull) 若偵測到硬體或系統資訊變更（如 Kernel 更新、記憶體增減），應建立新的 node\_state 版本記錄，而非僅覆蓋舊資料。  
@@ -177,10 +177,9 @@ Changes: Added Node Configuration Versioning & History View features.
 V1 Agent 功能定義：
 
 1. **Collect**:  
-   * agent collect: 輸出系統資訊 (CPU/Mem/Disk/Net) JSON 到 stdout。  
-   * agent inventory push: 收集資訊並主動 POST 至 API。  
-2. **HPCG Run (Single-node)**: 完整 Build/Run/Parse 流程。  
-
+   * `hpc-agent collect`: 輸出系統資訊 (CPU/Mem/Disk/Net) JSON 到 stdout。
+   * `hpc-agent inventory push`: 收集資訊並主動 POST 至 API。
+2. **HPCG Run (Single-node)**: 完整 Build/Run/Parse 流程。
 * **Non-Goals**: Build Cache, Multi-node orchestration (Rank0 leader), HPL support.  
 * **Deploy**: 單一靜態編譯執行檔 (Single Static Binary)。
 
@@ -199,7 +198,7 @@ V1 Agent 功能定義：
 
 ## **7\. 非功能需求 (Non-Functional Requirements)**
 
-* **Performance**: Agent collect \< 1s.  
+* **Performance**: `hpc-agent collect` \< 1s.  
 * **Reliability**: API Idempotency.  
 * **Security**: HTTPS only, Token-based Agent Auth.  
 * **UX**: 符合 Apple HIG，支援 Dark/Light Mode 自動切換 (Tailwind dark: variant)，並於 Navigation Bar 提供手動切換按鈕。  
@@ -233,7 +232,7 @@ flowchart LR
 
   subgraph HPC\["HPC Cluster"\]  
     subgraph NODES\["Compute Nodes (Private Network)"\]  
-      AG\["Agent CLI (Go)\<br/\>collect / push / hpcg"\]  
+      AG\["HPC Agent CLI (Go)\<br/\>collect / push / hpcg"\]  
     end  
     subgraph LOGIN\["Admin / Login Node (Gateway)"\]  
       COL\["Proxy Command / SSH Jump\<br/\>(SSH Trigger Endpoint)"\]  
