@@ -11,8 +11,8 @@ import (
 	"sync"
 	"time"
 
-	"nhooyr.io/websocket"
-	"nhooyr.io/websocket/wsjson"
+	"github.com/coder/websocket"
+	"github.com/coder/websocket/wsjson"
 )
 
 const (
@@ -39,9 +39,10 @@ type Client struct {
 	serverURL string
 	token     string
 	nodeID    string
-	handler   CommandHandler
 
+	// Reordered for alignment
 	conn    *websocket.Conn
+	handler CommandHandler
 	writeMu sync.Mutex
 }
 
@@ -88,6 +89,30 @@ func (c *Client) Start(ctx context.Context) error {
 }
 
 func (c *Client) connectAndListen(ctx context.Context) error {
+	conn, err := c.dial(ctx)
+	if err != nil {
+		return err
+	}
+
+	c.writeMu.Lock()
+	c.conn = conn
+	c.writeMu.Unlock()
+
+	defer func() {
+		c.writeMu.Lock()
+		c.conn = nil
+		c.writeMu.Unlock()
+		conn.Close(websocket.StatusInternalError, "connection closed")
+	}()
+
+	if err := c.subscribe(ctx, conn); err != nil {
+		return err
+	}
+
+	return c.readLoop(ctx, conn)
+}
+
+func (c *Client) dial(ctx context.Context) (*websocket.Conn, error) {
 	wsURL := c.prepareURL()
 
 	opts := &websocket.DialOptions{
@@ -100,65 +125,62 @@ func (c *Client) connectAndListen(ctx context.Context) error {
 	}
 
 	log.Printf("Connecting to %s...", wsURL)
-	conn, _, err := websocket.Dial(ctx, wsURL, opts)
-	if err != nil {
-		return fmt.Errorf("dial failed: %w", err)
+	conn, resp, err := websocket.Dial(ctx, wsURL, opts)
+	if resp != nil && resp.Body != nil {
+		resp.Body.Close()
 	}
-	
-	c.writeMu.Lock()
-	c.conn = conn
-	c.writeMu.Unlock()
-	
-	defer func() {
-		c.writeMu.Lock()
-		c.conn = nil
-		c.writeMu.Unlock()
-		conn.Close(websocket.StatusInternalError, "connection closed")
-	}()
+	if err != nil {
+		return nil, fmt.Errorf("dial failed: %w", err)
+	}
+	return conn, nil
+}
 
-	// Subscribe
-	identifier := fmt.Sprintf(`{"channel":"%s"}`, DefaultChannel)
+func (c *Client) subscribe(ctx context.Context, conn *websocket.Conn) error {
+	identifier := fmt.Sprintf(`{"channel":%q}`, DefaultChannel)
 	subscribeMsg := map[string]interface{}{
 		"command":    "subscribe",
 		"identifier": identifier,
 	}
-	
+
 	c.writeMu.Lock()
-	err = wsjson.Write(ctx, conn, subscribeMsg)
-	c.writeMu.Unlock()
-	
-	if err != nil {
+	defer c.writeMu.Unlock()
+
+	if err := wsjson.Write(ctx, conn, subscribeMsg); err != nil {
 		return fmt.Errorf("subscribe failed: %w", err)
 	}
+	return nil
+}
 
-	// Read loop
+func (c *Client) readLoop(ctx context.Context, conn *websocket.Conn) error {
 	for {
 		var msg map[string]interface{}
 		if err := wsjson.Read(ctx, conn, &msg); err != nil {
 			return fmt.Errorf("read failed: %w", err)
 		}
 
-		msgType, _ := msg["type"].(string)
-		if msgType == "ping" || msgType == "welcome" {
-			continue
-		}
+		c.handleMessage(ctx, msg)
+	}
+}
 
-		if msgType == "confirm_subscription" {
-			log.Println("Subscribed to AgentChannel")
-			continue
-		}
+func (c *Client) handleMessage(ctx context.Context, msg map[string]interface{}) {
+	msgType, _ := msg["type"].(string)
+	if msgType == "ping" || msgType == "welcome" {
+		return
+	}
 
-		// Handle Message
-		if message, ok := msg["message"].(map[string]interface{}); ok {
-			action, _ := message["action"].(string)
-			if c.handler != nil && action != "" {
-				// Handle asynchronously to not block read loop
-				go func(a string, p map[string]interface{}) {
-					if err := c.handler.HandleCommand(ctx, a, p, c); err != nil {
-						log.Printf("Command %s execution failed: %v", a, err)
-					}
-				}(action, message)
-			}
+	if msgType == "confirm_subscription" {
+		log.Println("Subscribed to AgentChannel")
+		return
+	}
+
+	if message, ok := msg["message"].(map[string]interface{}); ok {
+		action, _ := message["action"].(string)
+		if c.handler != nil && action != "" {
+			go func(a string, p map[string]interface{}) {
+				if err := c.handler.HandleCommand(ctx, a, p, c); err != nil {
+					log.Printf("Command %s execution failed: %v", a, err)
+				}
+			}(action, message)
 		}
 	}
 }
@@ -173,8 +195,8 @@ func (c *Client) Send(ctx context.Context, payload interface{}) error {
 	}
 
 	// ActionCable expects "command": "message", "identifier": ..., "data": JSON_STRING
-	identifier := fmt.Sprintf(`{"channel":"%s"}`, DefaultChannel)
-	
+	identifier := fmt.Sprintf(`{"channel":%q}`, DefaultChannel)
+
 	dataBytes, err := json.Marshal(payload)
 	if err != nil {
 		return fmt.Errorf("marshal payload failed: %w", err)

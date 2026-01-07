@@ -9,6 +9,7 @@ import (
 	"syscall"
 
 	"github.com/spf13/cobra"
+
 	"github.com/yuka1981/diagnostic-tools/agent/core/identity"
 	"github.com/yuka1981/diagnostic-tools/agent/core/ports"
 	"github.com/yuka1981/diagnostic-tools/agent/core/stream"
@@ -25,7 +26,7 @@ type agentHandler struct {
 func (h *agentHandler) HandleCommand(ctx context.Context, action string, payload map[string]interface{}, responder stream.Responder) error {
 	log.Printf("Received command: %s", action)
 
-	correlationID, _ := payload["correlation_id"]
+	correlationID := payload["correlation_id"]
 
 	switch action {
 	case "collect_inventory":
@@ -52,7 +53,7 @@ func (h *agentHandler) HandleCommand(ctx context.Context, action string, payload
 			"status":   "pong",
 			"received": action,
 		})
-	
+
 	default:
 		log.Printf("Unknown command: %s", action)
 	}
@@ -100,7 +101,7 @@ var startCmd = &cobra.Command{
 
 		sigChan := make(chan os.Signal, 1)
 		signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM)
-		
+
 		go func() {
 			<-sigChan
 			log.Println("Shutting down agent...")
