@@ -32,59 +32,10 @@ func (h *agentHandler) HandleCommand(ctx context.Context, action string, payload
 
 	switch action {
 	case "collect_inventory":
-		log.Println("Executing inventory collection...")
-		state, err := h.collector.Collect(ctx)
-		if err != nil {
-			return responder.Send(ctx, map[string]interface{}{
-				"action":         "report_result",
-				"status":         "error",
-				"error":          err.Error(),
-				"correlation_id": correlationID,
-			})
-		}
-
-		return responder.Send(ctx, map[string]interface{}{
-			"action":         "report_result",
-			"status":         "success",
-			"payload":        state,
-			"correlation_id": correlationID,
-		})
+		return h.handleCollectInventory(ctx, correlationID, responder)
 
 	case "uninstall":
-		log.Println("Received uninstall command. Initiating self-destruct...")
-		// Acknowledge receipt
-		if err := responder.Send(ctx, map[string]interface{}{
-			"action":         "report_result",
-			"status":         "success",
-			"payload":        map[string]string{"message": "Uninstall initiated"},
-			"correlation_id": correlationID,
-		}); err != nil {
-			log.Printf("Failed to send uninstall acknowledgement: %v", err)
-		}
-
-		go func() {
-			// Allow time for the response to be flushed
-			time.Sleep(1 * time.Second)
-
-			// Execute cleanup in background.
-			// 1. Disable service (so it doesn't restart)
-			// 2. Remove service file
-			// 3. Remove binary (self)
-			// 4. Reload daemon
-			// 5. Stop service (kills this process)
-			cmd := "systemctl disable hpc-agent && " +
-				"rm -f /etc/systemd/system/hpc-agent.service /usr/local/bin/hpc-agent && " +
-				"systemctl daemon-reload && " +
-				"systemctl stop hpc-agent"
-
-			if err := exec.Command("bash", "-c", cmd).Start(); err != nil {
-				log.Printf("Failed to execute uninstall command: %v", err)
-			}
-			// If we are still here, exit manually
-			time.Sleep(1 * time.Second)
-			os.Exit(0)
-		}()
-		return nil
+		return h.handleUninstall(ctx, correlationID, responder)
 
 	case "ping":
 		return responder.Send(ctx, map[string]string{
@@ -95,6 +46,63 @@ func (h *agentHandler) HandleCommand(ctx context.Context, action string, payload
 	default:
 		log.Printf("Unknown command: %s", action)
 	}
+	return nil
+}
+
+func (h *agentHandler) handleCollectInventory(ctx context.Context, correlationID interface{}, responder stream.Responder) error {
+	log.Println("Executing inventory collection...")
+	state, err := h.collector.Collect(ctx)
+	if err != nil {
+		return responder.Send(ctx, map[string]interface{}{
+			"action":         "report_result",
+			"status":         "error",
+			"error":          err.Error(),
+			"correlation_id": correlationID,
+		})
+	}
+
+	return responder.Send(ctx, map[string]interface{}{
+		"action":         "report_result",
+		"status":         "success",
+		"payload":        state,
+		"correlation_id": correlationID,
+	})
+}
+
+func (h *agentHandler) handleUninstall(ctx context.Context, correlationID interface{}, responder stream.Responder) error {
+	log.Println("Received uninstall command. Initiating self-destruct...")
+	// Acknowledge receipt
+	if err := responder.Send(ctx, map[string]interface{}{
+		"action":         "report_result",
+		"status":         "success",
+		"payload":        map[string]string{"message": "Uninstall initiated"},
+		"correlation_id": correlationID,
+	}); err != nil {
+		log.Printf("Failed to send uninstall acknowledgement: %v", err)
+	}
+
+	go func() {
+		// Allow time for the response to be flushed
+		time.Sleep(1 * time.Second)
+
+		// Execute cleanup in background.
+		// 1. Disable service (so it doesn't restart)
+		// 2. Remove service file
+		// 3. Remove binary (self)
+		// 4. Reload daemon
+		// 5. Stop service (kills this process)
+		cmd := "systemctl disable hpc-agent && " +
+			"rm -f /etc/systemd/system/hpc-agent.service /usr/local/bin/hpc-agent && " +
+			"systemctl daemon-reload && " +
+			"systemctl stop hpc-agent"
+
+		if err := exec.Command("bash", "-c", cmd).Start(); err != nil {
+			log.Printf("Failed to execute uninstall command: %v", err)
+		}
+		// If we are still here, exit manually
+		time.Sleep(1 * time.Second)
+		os.Exit(0)
+	}()
 	return nil
 }
 
