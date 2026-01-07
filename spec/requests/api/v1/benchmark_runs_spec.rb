@@ -88,7 +88,7 @@ RSpec.describe "Api::V1::BenchmarkRuns", type: :request do
     end
 
     it "creates artifact index records if artifacts are provided" do
-      payload = valid_payload.merge(artifacts: ["/path/to/hpcg.log", "/path/to/hpcg.dat"])
+      payload = valid_payload.merge(artifacts: [ "/path/to/hpcg.log", "/path/to/hpcg.dat" ])
       post "/api/v1/benchmark_runs",
            params: payload.to_json,
            headers: { "Authorization" => "Bearer #{valid_token}", "Content-Type" => "application/json" }
