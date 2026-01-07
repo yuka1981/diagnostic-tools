@@ -26,18 +26,36 @@ module Inventory
 
       result = execute_ssh_command(command)
 
-      return result unless result.success?
-      return error_result("Command returned empty output") if result.output.blank?
-
-      parsed_output = parse_json(result.output)
-      return parsed_output if parsed_output.is_a?(Result) # Error result
-
-      @target_node.touch_last_seen
-
-      Result.new(success: true, output: parsed_output)
+      process_result(result)
     end
 
     private
+
+    def process_result(result)
+      output = result.output
+      return error_result("Command returned empty output") if output.blank?
+
+      if output.include?("command not found")
+        return error_result("Agent not found at '#{@agent_path}'. Please check if it's installed and in the PATH.")
+      end
+
+      if output.include?("Permission denied")
+        return error_result("Permission denied when executing agent. Please check file permissions.")
+      end
+
+      if output.start_with?("Error:")
+        return error_result("Agent error: #{output.sub("Error:", "").strip}")
+      end
+
+      begin
+        parsed = JSON.parse(output, symbolize_names: true)
+        @target_node.touch_last_seen
+        Result.new(success: true, output: parsed)
+      rescue JSON::ParserError
+        return error_result(output) unless result.success?
+        error_result("JSON parse error: Unexpected command output: #{output.truncate(200)}")
+      end
+    end
 
     def broadcast_command
       ActionCable.server.broadcast("agent_#{@target_node.uuid}", {
@@ -75,26 +93,6 @@ module Inventory
 
     def command
       "#{Shellwords.escape(@agent_path)} collect --json 2>&1"
-    end
-
-    def parse_json(output)
-      # Check for common shell errors first
-      if output.include?("command not found")
-        return error_result("Agent not found at '#{@agent_path}'. Please check if it's installed and in the PATH.")
-      end
-
-      if output.include?("Permission denied")
-        return error_result("Permission denied when executing agent. Please check file permissions.")
-      end
-
-      # Check if output starts with "Error:" which is a common prefix for CLI errors
-      if output.start_with?("Error:")
-        return error_result("Agent error: #{output.sub("Error:", "").strip}")
-      end
-
-      JSON.parse(output, symbolize_names: true)
-    rescue JSON::ParserError => e
-      error_result("JSON parse error: #{e.message}. Raw output: #{output.truncate(200)}")
     end
   end
 end

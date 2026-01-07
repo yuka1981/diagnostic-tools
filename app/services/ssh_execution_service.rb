@@ -86,6 +86,7 @@ class SshExecutionService
     stdout_data = ""
     stderr_data = ""
     exit_code = nil
+    exit_signal = nil
 
     channel = session.open_channel do |ch|
       ch.exec(cmd) do |c, success|
@@ -96,7 +97,7 @@ class SshExecutionService
           yield(data, :stdout) if block_given?
         end
 
-        c.on_extended_data do |_, _, data|
+        c.on_extended_data do |_, data|
           stderr_data += data
           yield(data, :stderr) if block_given?
         end
@@ -104,11 +105,16 @@ class SshExecutionService
         c.on_request("exit-status") do |_, data|
           exit_code = data.read_long
         end
+
+        c.on_request("exit-signal") do |_, data|
+          exit_signal = data.read_long
+        end
       end
     end
     session.loop
 
-    Result.new(success: exit_code == 0, output: stdout_data)
+    success = exit_code == 0 && exit_signal.nil?
+    Result.new(success: success, output: stdout_data, error: stderr_data)
   rescue StandardError => e
     Result.new(success: false, output: stdout_data, error: e.message)
   end
