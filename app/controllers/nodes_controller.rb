@@ -10,7 +10,13 @@ class NodesController < ApplicationController
     @nodes = Node.order(:hostname)
   end
 
-  def show; end
+  def show
+    @selected_state = if params[:state_id].present?
+                        @node.node_states.find(params[:state_id])
+                      else
+                        @node.current_state
+                      end
+  end
 
   def test_connection
     service = Inventory::TriggerCollectService.new(@node)

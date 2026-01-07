@@ -51,9 +51,11 @@
   <% end %>
 </div>
 
-<div id="<%= dom_id(@node, :details) %>">
-  <%= render "nodes/details", node: @node %>
-</div>
+<%= turbo_frame_tag "node_details" do %>
+  <div id="<%= dom_id(@node, :details) %>">
+    <%= render "nodes/details", node: @node, selected_state: @selected_state %>
+  </div>
+<% end %>
 
 <%= turbo_frame_tag "modal" %>
 <%= turbo_frame_tag "install_modal" %>
