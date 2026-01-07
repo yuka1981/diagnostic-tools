@@ -86,15 +86,13 @@ func (h *agentHandler) handleUninstall(ctx context.Context, correlationID interf
 		time.Sleep(1 * time.Second)
 
 		// Execute cleanup in background.
-		// 1. Disable service (so it doesn't restart)
+		// 1. Disable and Stop service (systemctl disable --now)
 		// 2. Remove service file
 		// 3. Remove binary (self)
 		// 4. Reload daemon
-		// 5. Stop service (kills this process)
-		cmdStr := "systemctl disable hpc-agent && " +
+		cmdStr := "systemctl disable --now hpc-agent && " +
 			"rm -f /etc/systemd/system/hpc-agent.service /usr/local/bin/hpc-agent && " +
-			"systemctl daemon-reload && " +
-			"systemctl stop hpc-agent"
+			"systemctl daemon-reload"
 
 		cmd := exec.Command("bash", "-c", cmdStr)
 		cmd.SysProcAttr = &syscall.SysProcAttr{
