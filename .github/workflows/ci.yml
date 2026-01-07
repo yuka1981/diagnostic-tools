@@ -94,6 +94,14 @@ jobs:
       - name: Build Tailwind CSS
         run: bin/rails tailwindcss:build
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Playwright browsers
+        run: npx -y playwright install --with-deps chromium
+
       - name: Run tests
         run: bin/rspec --format documentation
 
