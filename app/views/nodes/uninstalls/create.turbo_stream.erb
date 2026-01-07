@@ -1,4 +1,5 @@
 <%= turbo_stream.replace "uninstall_modal_body" do %>
+  <%= turbo_stream_from "agent_uninstall_#{params[:uninstall][:hostname].parameterize}" %>
   <%= render "nodes/uninstalls/status", 
       status: "processing", 
       message: "Starting uninstallation process...", 
