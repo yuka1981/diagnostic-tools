@@ -20,6 +20,9 @@
       <%= node.role.humanize %>
     </span>
   </td>
+  <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500 dark:text-slate-400">
+    <%= node.arch.presence || "—" %>
+  </td>
   <td class="whitespace-nowrap px-6 py-4">
     <% if node.online? %>
       <span class="inline-flex items-center gap-1.5 text-sm text-emerald-600 dark:text-emerald-400">
