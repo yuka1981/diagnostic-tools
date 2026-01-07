@@ -5,6 +5,7 @@ go 1.22.2
 require (
 	github.com/spf13/cobra v1.10.2
 	golang.org/x/sync v0.10.0
+	nhooyr.io/websocket v1.8.17
 )
 
 require (

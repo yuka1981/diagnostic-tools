@@ -42,6 +42,11 @@ class InventoryCollectJob < ApplicationJob
   private
 
   def process_collected_data(node, raw_json)
+    if raw_json.is_a?(Hash) && raw_json[:async]
+      Rails.logger.info("[InventoryCollectJob] Command broadcasted via WebSocket for #{node.hostname}. Waiting for callback.")
+      return
+    end
+
     # Use ProcessStateService to handle versioning
     Inventory::ProcessStateService.new(
       node_id: node.id,
