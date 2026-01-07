@@ -19,6 +19,11 @@ module Inventory
     # Execute the SSH command to collect data from the target node
     # @return [Result] Success result with parsed JSON output, or error result
     def call
+      if @target_node.online?
+        broadcast_command
+        return Result.new(success: true, output: { async: true })
+      end
+
       result = execute_ssh_command(command)
 
       return result unless result.success?
@@ -33,6 +38,15 @@ module Inventory
     end
 
     private
+
+    def broadcast_command
+      ActionCable.server.broadcast("agent_#{@target_node.uuid}", {
+        type: "command",
+        action: "collect_inventory",
+        params: { force: true },
+        correlation_id: SecureRandom.uuid
+      })
+    end
 
     # Override to support legacy manual gateway
     def execute_ssh_command(cmd)

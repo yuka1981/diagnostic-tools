@@ -20,6 +20,33 @@ RSpec.describe Inventory::TriggerCollectService do
   describe "#call" do
     let(:mock_session) { instance_double(Net::SSH::Connection::Session) }
 
+    before do
+      allow(target_node).to receive(:online?).and_return(false)
+    end
+
+    context "when node is online" do
+      before do
+        allow(target_node).to receive(:online?).and_return(true)
+        allow(ActionCable.server).to receive(:broadcast)
+      end
+
+      it "broadcasts command via ActionCable" do
+        expect(ActionCable.server).to receive(:broadcast).with(
+          "agent_#{target_node.uuid}",
+          hash_including(
+            type: "command", action: "collect_inventory"
+          )
+        )
+        service.call
+      end
+
+      it "returns async result" do
+        result = service.call
+        expect(result.success?).to be true
+        expect(result.output).to eq({ async: true })
+      end
+    end
+
     context "when jump host is configured" do
       let(:gateway_node) { nil } # Ensure legacy gateway is not used
       subject(:service) { described_class.new(target_node, gateway: nil, ssh_config: ssh_config) }
