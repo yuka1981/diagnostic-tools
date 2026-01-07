@@ -70,5 +70,21 @@ RSpec.describe "Api::V1::BenchmarkRuns", type: :request do
 
       expect(response).to have_http_status(:not_found)
     end
+
+    it "associates the run with the node identified by X-Node-ID" do
+      new_uuid = SecureRandom.uuid
+      post "/api/v1/benchmark_runs",
+           params: valid_payload.to_json,
+           headers: {
+             "Authorization" => "Bearer #{valid_token}",
+             "Content-Type" => "application/json",
+             "X-Node-ID" => new_uuid
+           }
+
+      expect(response).to have_http_status(:success)
+      run.reload
+      expect(run.node.uuid).to eq(new_uuid)
+      expect(run.node.hostname).to start_with("node-")
+    end
   end
 end

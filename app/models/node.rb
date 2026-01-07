@@ -16,6 +16,7 @@ class Node < ApplicationRecord
 
   # Validations
   validates :hostname, presence: true, uniqueness: true, length: { maximum: 255 }
+  validates :uuid, uniqueness: true, allow_blank: true
   validates :role, presence: true
   validates :source, presence: true
   validates :ssh_port, numericality: { only_integer: true, greater_than: 0, less_than: 65536 }

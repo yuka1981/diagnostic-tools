@@ -3,6 +3,7 @@
 FactoryBot.define do
   factory :node do
     sequence(:hostname) { |n| "node-#{n.to_s.rjust(3, '0')}" }
+    uuid { SecureRandom.uuid }
     ip { Faker::Internet.ip_v4_address }
     arch { %w[x86_64 aarch64].sample }
     role { :compute }

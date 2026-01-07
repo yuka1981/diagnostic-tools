@@ -23,6 +23,7 @@ type HTTPUploader struct {
 	Client       *http.Client
 	BaseURL      string
 	Token        string
+	NodeID       string
 	RetryWaitMin time.Duration
 	RetryWaitMax time.Duration
 	MaxRetries   int
@@ -38,6 +39,11 @@ func NewHTTPUploader(baseURL, token string) *HTTPUploader {
 		RetryWaitMin: 1 * time.Second,
 		RetryWaitMax: 30 * time.Second,
 	}
+}
+
+// SetNodeID sets the unique identifier for the host.
+func (u *HTTPUploader) SetNodeID(id string) {
+	u.NodeID = id
 }
 
 // Upload sends the given payload to the configured endpoint.
@@ -67,6 +73,10 @@ func (u *HTTPUploader) Upload(ctx context.Context, payload interface{}) error {
 		req.Header.Set("Content-Type", "application/json")
 		if u.Token != "" {
 			req.Header.Set("Authorization", "Bearer "+u.Token)
+		}
+
+		if u.NodeID != "" {
+			req.Header.Set("X-Node-ID", u.NodeID)
 		}
 
 		resp, err := u.Client.Do(req)
