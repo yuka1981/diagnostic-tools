@@ -82,7 +82,7 @@ The application will be available at `http://localhost:3000`.
 
 ### SSH & Agent Collection
 
-To enable the application to collect data from nodes via SSH, you need to configure SSH credentials and ensure the agent is installed on the target nodes.
+To enable the application to collect data from nodes via SSH, you need to configure SSH credentials and ensure hpc-agent is installed on the target nodes.
 
 #### 1. Credentials
 
@@ -142,7 +142,7 @@ The HPC Agent is a Go-based CLI tool that runs on cluster nodes to collect syste
 
 ### Building the Agent
 
-To build the agent binary (requires Go 1.22+):
+To build the hpc-agent binary (requires Go 1.22+):
 
 ```bash
 cd agent
@@ -191,7 +191,7 @@ Runs the HPCG (High Performance Conjugate Gradients) benchmark workflow. This in
 
 ### Building from Source
 
-A helper script is provided to automate cloning the HPCG repository and running the benchmark using the agent:
+A helper script is provided to automate cloning the HPCG repository and running the benchmark using hpc-agent:
 
 ```bash
 ./scripts/run_hpcg_from_source.sh

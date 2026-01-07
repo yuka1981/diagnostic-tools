@@ -26,7 +26,7 @@ type HPCGMetrics struct {
 // BenchmarkRun represents a complete benchmark execution result.
 type BenchmarkRun struct {
 	RunID     string          `json:"run_id"`
-	NodeID    string          `json:"node_id,omitempty"` // populated by server if known, or agent config
+	NodeID    string          `json:"node_id,omitempty"` // populated by server if known, or hpc-agent config
 	RecipeID  string          `json:"recipe_id"`         // e.g., "hpcg"
 	StartTime time.Time       `json:"start_time"`
 	EndTime   time.Time       `json:"end_time"`
