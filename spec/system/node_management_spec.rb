@@ -65,8 +65,9 @@ RSpec.describe "Node Management", type: :system, js: true do
 
       click_button "Confirm Removal"
 
-      # Wait for the "Removing hpc-agent..." processing state
-      expect(page).to have_content("Removing hpc-agent...")
+      # Wait for the "Uninstalling Agent..." processing state
+      expect(page).to have_content("Uninstalling Agent...")
+      expect(page).to have_content("Connecting to host")
     end
 
     # The job is async, but we can simulate the broadcast that the job would do
@@ -74,7 +75,12 @@ RSpec.describe "Node Management", type: :system, js: true do
       "agent_uninstall_uninstall-target",
       target: "agent_uninstall_status_uninstall-target",
       partial: "nodes/uninstalls/status",
-      locals: { status: "success", message: "Agent uninstalled successfully", target_host: "uninstall-target" }
+      locals: {
+        status: "success",
+        message: "Agent uninstalled successfully",
+        target_host: "uninstall-target",
+        steps: Agent::RemoteUninstallService::STEPS
+      }
     )
 
     # Verify the successful state arrived via Turbo Stream

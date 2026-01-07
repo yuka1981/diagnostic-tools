@@ -34,7 +34,7 @@ RSpec.describe Agent::RemoteUninstallService do
     expect(Net::SSH).to receive(:start).with("bastion.example.com", bastion_user, any_args).and_yield(ssh_session)
 
         # Verify some key cleanup commands
-        expect(channel).to receive(:exec).with(/sudo -S ssh.*bash -c 'systemctl stop hpc-agent/).at_least(:once)
+        expect(channel).to receive(:exec).with(/sudo -S ssh.*timeout 10s systemctl stop hpc-agent/).at_least(:once)
         expect(channel).to receive(:exec).with(/sudo -S ssh.*rm -f \/usr\/local\/bin\/hpc-agent/).at_least(:once)
 
         expect(service.call).to be true
@@ -54,7 +54,7 @@ RSpec.describe Agent::RemoteUninstallService do
         expect(Net::SSH).to receive(:start).with(target_host, bastion_user, any_args).and_yield(ssh_session)
 
         # Should run commands directly without jump host SSH prefix
-        expect(channel).to receive(:exec).with(/sudo -S bash -c 'systemctl stop hpc-agent/).at_least(:once)
+        expect(channel).to receive(:exec).with(/sudo -S timeout 10s systemctl stop hpc-agent/).at_least(:once)
         expect(channel).to receive(:exec).with(/sudo -S rm -f \/usr\/local\/bin\/hpc-agent/).at_least(:once)
 
         expect(direct_service.call).to be true

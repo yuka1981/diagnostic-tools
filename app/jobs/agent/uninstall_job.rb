@@ -21,7 +21,8 @@ module Agent
       sleep 1 if Rails.env.development?
 
       # 1. Remote Uninstall
-      broadcast_status(target_host, "processing", "Connecting to remove agent...")
+      # Initial broadcast to show the list
+      broadcast_status(target_host, "processing", "Starting uninstallation...", nil)
 
       uninstaller = Agent::RemoteUninstallService.new(
         target_host: target_host,
@@ -29,9 +30,9 @@ module Agent
         bastion_user: bastion_user,
         bastion_password: credentials[:bastion_password],
         sudo_password: credentials[:sudo_password],
-        on_progress: ->(msg) {
-          Rails.logger.debug "[Agent::UninstallJob] Progress: #{msg}"
-          broadcast_status(target_host, "processing", msg)
+        on_progress: ->(step, msg) {
+          Rails.logger.debug "[Agent::UninstallJob] Step: #{step} - #{msg}"
+          broadcast_status(target_host, "processing", msg, step)
         }
       )
 
@@ -49,21 +50,27 @@ module Agent
 
       # 3. Success Broadcast
       Rails.logger.debug "[Agent::UninstallJob] Uninstallation Successful"
-      broadcast_status(target_host, "success", "Agent uninstalled successfully")
+      broadcast_status(target_host, "success", "Agent uninstalled successfully", :done)
     rescue => e
       Rails.logger.error "[Agent::UninstallJob] Error: #{e.message}"
       Rails.logger.error e.backtrace.first(10).join("\n")
-      broadcast_status(target_host, "error", e.message)
+      broadcast_status(target_host, "error", e.message, nil)
     end
 
     private
 
-    def broadcast_status(target_host, status, message)
+    def broadcast_status(target_host, status, message, step)
       Turbo::StreamsChannel.broadcast_replace_to(
         "agent_uninstall_#{target_host.parameterize}",
         target: "agent_uninstall_status_#{target_host.parameterize}",
         partial: "nodes/uninstalls/status",
-        locals: { status: status, message: message, target_host: target_host }
+        locals: {
+          status: status,
+          message: message,
+          target_host: target_host,
+          current_step: step,
+          steps: Agent::RemoteUninstallService::STEPS
+        }
       )
     end
   end

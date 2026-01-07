@@ -9,6 +9,13 @@ module Agent
     TARGET_BIN_PATH = "/usr/local/bin/hpc-agent"
     SERVICE_FILE_PATH = "/etc/systemd/system/hpc-agent.service"
 
+    STEPS = {
+      connect: "Connecting to host",
+      stop_service: "Stopping agent service",
+      remove_files: "Removing files",
+      reload_daemon: "Reloading systemd"
+    }.freeze
+
     def initialize(target_host:, bastion_user: nil, bastion_host: nil, bastion_password: nil, sudo_password:, on_progress: nil)
       @target_host = target_host
       validate_target_host!
@@ -40,13 +47,12 @@ module Agent
     end
 
     def uninstall_via_bastion
-      ssh_options = { password: @bastion_password }.compact
+      ssh_options = { password: @bastion_password, timeout: 10 }.compact
 
+      report_progress(:connect)
       Net::SSH.start(@bastion_host, @bastion_user, ssh_options) do |ssh|
-        report_progress "Connected to bastion host (#{@bastion_host})"
-
         # We run commands on the target via SSH from the bastion
-        ssh_prefix = "sudo -S ssh -o StrictHostKeyChecking=no root@#{Shellwords.escape(@target_host)} "
+        ssh_prefix = "sudo -S ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 root@#{Shellwords.escape(@target_host)} "
 
         perform_cleanup(ssh, ssh_prefix)
       end
@@ -57,12 +63,11 @@ module Agent
     end
 
     def uninstall_direct
-      ssh_options = { password: @bastion_password }.compact
+      ssh_options = { password: @bastion_password, timeout: 10 }.compact
       target_user = @bastion_user
 
+      report_progress(:connect)
       Net::SSH.start(@target_host, target_user, ssh_options) do |ssh|
-        report_progress "Connected directly to target host (#{@target_host})"
-
         perform_cleanup(ssh, "sudo -S ")
       end
       true
@@ -72,17 +77,17 @@ module Agent
     end
 
     def perform_cleanup(ssh, prefix)
-      report_progress "Stopping and disabling agent service"
+      report_progress(:stop_service)
 
-      # Stop service (ignore error if not exists)
-      stop_cmd = "#{prefix}bash -c 'systemctl stop hpc-agent || true'"
+      # Stop service (use timeout to prevent hanging)
+      stop_cmd = "#{prefix}timeout 10s systemctl stop hpc-agent || true"
       execute_remote_command(ssh, stop_cmd, password: @sudo_password)
 
       # Disable service
-      disable_cmd = "#{prefix}bash -c 'systemctl disable hpc-agent || true'"
+      disable_cmd = "#{prefix}timeout 10s systemctl disable hpc-agent || true"
       execute_remote_command(ssh, disable_cmd, password: @sudo_password)
 
-      report_progress "Removing service file and binary"
+      report_progress(:remove_files)
 
       # Remove service file
       rm_service_cmd = "#{prefix}rm -f #{SERVICE_FILE_PATH}"
@@ -92,13 +97,13 @@ module Agent
       rm_bin_cmd = "#{prefix}rm -f #{TARGET_BIN_PATH}"
       execute_remote_command(ssh, rm_bin_cmd, password: @sudo_password)
 
-      report_progress "Reloading systemd daemon"
-      reload_cmd = "#{prefix}systemctl daemon-reload"
+      report_progress(:reload_daemon)
+      reload_cmd = "#{prefix}timeout 10s systemctl daemon-reload"
       execute_remote_command(ssh, reload_cmd, password: @sudo_password)
     end
 
-    def report_progress(message)
-      @on_progress&.call(message)
+    def report_progress(step)
+      @on_progress&.call(step, STEPS[step])
     end
 
     def validate_target_host!

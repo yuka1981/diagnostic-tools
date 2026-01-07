@@ -10,10 +10,24 @@
         </svg>
       </div>
       <h4 class="text-lg font-medium text-gray-900 dark:text-white">Uninstallation Successful</h4>
-      <p class="text-sm text-gray-500 dark:text-slate-400 mt-2"><%= message %></p>
-      <div class="mt-6">
+      
+      <div class="mt-6 w-full max-w-sm mx-auto text-left">
+        <ul class="space-y-3">
+          <% steps&.each do |key, label| %>
+            <li class="flex items-center gap-3 text-sm text-gray-600 dark:text-slate-300">
+              <svg class="h-5 w-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+              </svg>
+              <%= label %>
+            </li>
+          <% end %>
+        </ul>
+      </div>
+
+      <div class="mt-8">
         <%= link_to "Done", nodes_path, class: "rounded-lg bg-gray-100 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-200 dark:bg-white/10 dark:text-slate-300", data: { turbo_frame: "_top" } %>
       </div>
+
     <% elsif status == "error" %>
       <div class="h-16 w-16 rounded-full bg-red-100 flex items-center justify-center mb-4 dark:bg-red-500/20">
         <svg class="h-8 w-8 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -21,20 +35,71 @@
         </svg>
       </div>
       <h4 class="text-lg font-medium text-gray-900 dark:text-white">Uninstallation Failed</h4>
-      <div class="mt-2 text-sm text-red-600 dark:text-red-400 bg-red-50 p-3 rounded-lg dark:bg-red-900/20 text-left">
+      
+      <div class="mt-6 w-full max-w-sm mx-auto text-left">
+        <ul class="space-y-3">
+          <% 
+             passed = true
+             steps&.each do |key, label| 
+               is_current = (key == current_step)
+               passed = false if is_current 
+          %>
+            <li class="flex items-center gap-3 text-sm <%= is_current ? 'text-red-600 font-medium' : 'text-gray-500 dark:text-slate-400' %>">
+              <% if passed %>
+                <svg class="h-5 w-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                </svg>
+              <% elsif is_current %>
+                <svg class="h-5 w-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              <% else %>
+                <div class="h-5 w-5 rounded-full border-2 border-gray-200 dark:border-white/10"></div>
+              <% end %>
+              <%= label %>
+            </li>
+          <% end %>
+        </ul>
+      </div>
+
+      <div class="mt-4 text-sm text-red-600 dark:text-red-400 bg-red-50 p-3 rounded-lg dark:bg-red-900/20 text-left">
         <%= message %>
       </div>
       <div class="mt-6 flex gap-3 justify-center">
-        <%= link_to "Retry", new_node_uninstall_path(hostname: target_host), class: "rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-indigo-700", data: { turbo_frame: "uninstall_modal" } do %>
-          Retry
-        <% end %>
+        <%= link_to "Retry", new_node_uninstall_path(hostname: target_host), class: "rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-indigo-700", data: { turbo_frame: "uninstall_modal" } %>
         <%= link_to "Close", nodes_path, class: "rounded-lg bg-gray-100 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-200 dark:bg-white/10 dark:text-slate-300", data: { turbo_frame: "uninstall_modal" } %>
       </div>
+
     <% else %>
       <%# Processing state %>
-      <div class="h-12 w-12 rounded-full border-4 border-red-500 border-t-transparent animate-spin mb-4"></div>
-      <h4 class="text-lg font-medium text-gray-900 dark:text-white">Removing hpc-agent...</h4>
-      <p class="text-sm text-gray-500 dark:text-slate-400 mt-2"><%= message %></p>
+      <div class="flex items-center justify-center gap-3 mb-6">
+        <div class="h-5 w-5 rounded-full border-2 border-indigo-500 border-t-transparent animate-spin"></div>
+        <h4 class="text-lg font-medium text-gray-900 dark:text-white">Uninstalling Agent...</h4>
+      </div>
+
+      <div class="w-full max-w-sm mx-auto text-left">
+        <ul class="space-y-3">
+          <% 
+             passed = true
+             steps&.each do |key, label| 
+               is_current = (key == current_step)
+               passed = false if is_current
+          %>
+            <li class="flex items-center gap-3 text-sm <%= is_current ? 'text-gray-900 dark:text-white font-medium' : 'text-gray-500 dark:text-slate-400' %>">
+              <% if passed %>
+                <svg class="h-5 w-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                </svg>
+              <% elsif is_current %>
+                <div class="h-5 w-5 rounded-full border-2 border-indigo-500 border-t-transparent animate-spin"></div>
+              <% else %>
+                <div class="h-5 w-5 rounded-full border-2 border-gray-200 dark:border-white/10"></div>
+              <% end %>
+              <%= label %>
+            </li>
+          <% end %>
+        </ul>
+      </div>
     <% end %>
   </div>
 </div>

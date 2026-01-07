@@ -2,5 +2,7 @@
   <%= render "nodes/uninstalls/status", 
       status: "processing", 
       message: "Starting uninstallation process...", 
-      target_host: params[:uninstall][:hostname] %>
+      target_host: params[:uninstall][:hostname],
+      steps: Agent::RemoteUninstallService::STEPS,
+      current_step: nil %>
 <% end %>
