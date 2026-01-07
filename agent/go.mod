@@ -2,8 +2,6 @@ module github.com/yuka1981/diagnostic-tools/agent
 
 go 1.23
 
-toolchain go1.24.11
-
 require (
 	github.com/coder/websocket v1.8.14
 	github.com/spf13/cobra v1.10.2
