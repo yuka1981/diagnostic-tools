@@ -13,7 +13,7 @@ module ApplicationCable
       if valid_token?(token)
         node_id = request.headers["X-Node-ID"]
         node = Node.find_by(uuid: node_id)
-        
+
         if node
           node.touch(:last_seen_at)
           node

@@ -18,10 +18,10 @@ class AgentChannel < ApplicationCable::Channel
   def receive(data)
     # Handle incoming data (e.g. command results)
     Rails.logger.info "Received data from #{current_node.hostname}: #{data}"
-    
+
     if data["action"] == "report_result" && data["status"] == "success"
       payload = data["payload"]
-      
+
       Inventory::ProcessStateService.new(
         node_id: current_node.id,
         raw_json: payload
