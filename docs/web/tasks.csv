@@ -15,3 +15,4 @@ Title,Description,Priority,Estimate,Status,Labels
 "[Runs] Slide-over Inspector UI", "Implement the slide-over panel using Tailwind transitions and Turbo Frames for content loading.", "Medium", 3, "Completed", "frontend"
 "[Runs] List & Filtering", "Implement Runs index page with Turbo Frame based searching/filtering.", "Medium", 2, "Completed", "frontend"
 "[Agent] Remote Installation & Management", "Implement cross-compilation, multi-hop deployment, uninstallation, and real-time status updates.", "High", 5, "Completed", "feature"
+"[UI] Add Architecture Column", "Add Architecture information to the nodes list table for better overview.", "Low", 1, "Completed", "frontend"

@@ -19,6 +19,10 @@ Rails.application.routes.draw do
     end
   end
 
+  namespace :settings do
+    resource :ssh, only: [ :show, :update ], controller: :ssh
+  end
+
   resources :nodes do
     member do
       post :test_connection

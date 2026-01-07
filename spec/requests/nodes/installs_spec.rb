@@ -20,6 +20,16 @@ RSpec.describe "Nodes::Installs", type: :request do
       expect(response.body).to include('value="compute-001"')
       expect(response.body).to include('selected="selected" value="arm64"')
     end
+
+    it "preloads global SSH settings and node specific user" do
+      SshSetting.current.update(bastion_host: "bastion.global", bastion_user: "global-user")
+      create(:node, hostname: "preloaded-node", ssh_user: "node-user")
+
+      get new_node_install_path(hostname: "preloaded-node")
+      expect(response.body).to include('value="bastion.global"')
+      # It prioritizes (global_user.presence || node_user.presence || "root")
+      expect(response.body).to include('value="global-user"')
+    end
   end
 
   describe "POST /nodes/installs" do

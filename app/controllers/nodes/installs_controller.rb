@@ -10,6 +10,8 @@ module Nodes
       @target_host = params[:hostname]
       @arch = params[:arch]
       @api_keys = ApiKey.active.order(:name)
+      @node = Node.find_by(hostname: @target_host)
+      @ssh_setting = SshSetting.current
     end
 
     def create

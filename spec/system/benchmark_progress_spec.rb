@@ -5,7 +5,7 @@ require "rails_helper"
 RSpec.describe "Benchmark Progress", type: :system, js: true do
   include ActionView::RecordIdentifier
   let(:approver) { create(:user, :approver) }
-  let(:node) { create(:node, hostname: "target-node") }
+  let(:node) { create(:node, hostname: "target-node", source: :agent_push) }
   let!(:recipe) { create(:benchmark_recipe, name: "HPCG", version: "3.1") }
 
   before do
