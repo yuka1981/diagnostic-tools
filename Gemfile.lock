@@ -420,7 +420,7 @@ DEPENDENCIES
   bootsnap
   brakeman
   capybara (~> 3.40)
-  capybara-playwright-driver
+  capybara-playwright-driver (~> 0.5)
   csv
   database_cleaner-active_record (~> 2.2)
   debug

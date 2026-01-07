@@ -75,7 +75,7 @@ end
 group :test do
   # Use system testing [https://guides.rubyonrails.org/testing.html#system-testing]
   gem "capybara", "~> 3.40"
-  gem "capybara-playwright-driver"
+  gem "capybara-playwright-driver", "~> 0.5"
 
   # Database cleaner for test isolation [https://github.com/DatabaseCleaner/database_cleaner]
   gem "database_cleaner-active_record", "~> 2.2"

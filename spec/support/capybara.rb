@@ -6,7 +6,8 @@ require "capybara/rspec"
 Capybara.register_driver :playwright do |app|
   Capybara::Playwright::Driver.new(app,
     browser_type: :chromium,
-    headless: true
+    headless: ENV["HEADLESS"] != "false",
+    viewport: { width: 1400, height: 1400 }
   )
 end
 
