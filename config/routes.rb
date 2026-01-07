@@ -21,6 +21,7 @@ Rails.application.routes.draw do
 
   namespace :settings do
     resource :ssh, only: [ :show, :update ], controller: :ssh
+    resource :agent, only: [ :show, :update ], controller: :agents
   end
 
   resources :nodes do

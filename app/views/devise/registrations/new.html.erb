@@ -13,7 +13,7 @@
         <%= f.label :name, class: "block text-sm font-medium leading-6 text-gray-900 dark:text-gray-200" %>
         <div class="mt-2">
           <%= f.text_field :name, autofocus: true, autocomplete: "name",
-              class: "block w-full rounded-md border-0 py-1.5 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 dark:bg-gray-800 dark:text-white dark:ring-gray-700 sm:text-sm sm:leading-6" %>
+              class: "block w-full rounded-none border-0 py-1.5 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 dark:bg-gray-800 dark:text-white dark:ring-gray-700 sm:text-sm sm:leading-6" %>
         </div>
       </div>
 
@@ -21,7 +21,7 @@
         <%= f.label :email, class: "block text-sm font-medium leading-6 text-gray-900 dark:text-gray-200" %>
         <div class="mt-2">
           <%= f.email_field :email, autocomplete: "email",
-              class: "block w-full rounded-md border-0 py-1.5 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 dark:bg-gray-800 dark:text-white dark:ring-gray-700 sm:text-sm sm:leading-6" %>
+              class: "block w-full rounded-none border-0 py-1.5 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 dark:bg-gray-800 dark:text-white dark:ring-gray-700 sm:text-sm sm:leading-6" %>
         </div>
       </div>
 
@@ -29,7 +29,7 @@
         <%= f.label :password, class: "block text-sm font-medium leading-6 text-gray-900 dark:text-gray-200" %>
         <div class="mt-2">
           <%= f.password_field :password, autocomplete: "new-password",
-              class: "block w-full rounded-md border-0 py-1.5 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 dark:bg-gray-800 dark:text-white dark:ring-gray-700 sm:text-sm sm:leading-6" %>
+              class: "block w-full rounded-none border-0 py-1.5 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 dark:bg-gray-800 dark:text-white dark:ring-gray-700 sm:text-sm sm:leading-6" %>
         </div>
         <% if @minimum_password_length %>
           <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
@@ -42,12 +42,12 @@
         <%= f.label :password_confirmation, class: "block text-sm font-medium leading-6 text-gray-900 dark:text-gray-200" %>
         <div class="mt-2">
           <%= f.password_field :password_confirmation, autocomplete: "new-password",
-              class: "block w-full rounded-md border-0 py-1.5 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 dark:bg-gray-800 dark:text-white dark:ring-gray-700 sm:text-sm sm:leading-6" %>
+              class: "block w-full rounded-none border-0 py-1.5 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 dark:bg-gray-800 dark:text-white dark:ring-gray-700 sm:text-sm sm:leading-6" %>
         </div>
       </div>
 
       <div>
-        <%= f.submit "Sign up", class: "flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 cursor-pointer" %>
+        <%= f.submit "Sign up", class: "flex w-full justify-center rounded-none bg-indigo-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 cursor-pointer" %>
       </div>
     <% end %>
 
