@@ -100,7 +100,7 @@ jobs:
           node-version: '20'
 
       - name: Install Playwright browsers
-        run: npx -y playwright install --with-deps
+        run: npx -y playwright install --with-deps chromium
 
       - name: Run tests
         run: bin/rspec --format documentation
