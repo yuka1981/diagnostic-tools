@@ -83,27 +83,27 @@ RSpec.describe "Node Management", type: :system, js: true do
       locals: { status: "success", message: "Agent uninstalled successfully", target_host: "uninstall-target" }
     )
 
-    # Verify the successful state arrived via Turbo Stream
+        # Verify the successful state arrived via Turbo Stream
         expect(page).to have_content("Uninstallation Successful")
         click_link "Done"
-        
+
         expect(page).to have_current_path(nodes_path)
       end
-    
+
       it "disables the Install button if the agent is already installed" do
         create(:node, hostname: "already-installed", source: :agent_push)
         visit nodes_path
-    
+
         within "tr", text: "already-installed" do
           expect(page).to have_css("span[title='hpc-agent is already installed']", text: "Install")
                 expect(page).not_to have_link("Install")
               end
             end
-          
+
             it "disables the Uninstall button if the agent is not installed" do
               create(:node, hostname: "not-installed", source: :manual)
               visit nodes_path
-          
+
               within "tr", text: "not-installed" do
                 expect(page).to have_css("span[title='hpc-agent is not installed']", text: "Uninstall")
                 expect(page).not_to have_link("Uninstall")
