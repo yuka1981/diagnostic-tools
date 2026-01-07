@@ -2,13 +2,17 @@ class AgentChannel < ApplicationCable::Channel
   periodically :beat, every: 1.minute
 
   def beat
-    current_node.touch(:last_seen_at)
+    current_node&.touch(:last_seen_at)
   end
 
   def subscribed
-    stream_from "agent_#{current_node.uuid}"
-    current_node.touch(:last_seen_at)
-    Rails.logger.info "Node #{current_node.hostname} (#{current_node.uuid}) connected to AgentChannel"
+    if current_node
+      stream_from "agent_#{current_node.uuid}"
+      current_node.touch(:last_seen_at)
+      Rails.logger.info "Node #{current_node.hostname} (#{current_node.uuid}) connected to AgentChannel"
+    else
+      reject
+    end
   end
 
   def unsubscribed

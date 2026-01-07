@@ -1,29 +1,26 @@
 module ApplicationCable
   class Connection < ActionCable::Connection::Base
     identified_by :current_node
+    identified_by :current_user
 
     def connect
-      self.current_node = find_verified_node
+      if env["warden"]&.user
+        self.current_user = env["warden"].user
+      elsif (node = find_verified_node)
+        self.current_node = node
+      else
+        reject_unauthorized_connection
+      end
     end
 
     private
 
     def find_verified_node
       token = extract_token
-      if valid_token?(token)
-        node_id = request.headers["X-Node-ID"]
-        node = Node.find_by(uuid: node_id)
+      return nil unless valid_token?(token)
 
-        if node
-          node.touch(:last_seen_at)
-          node
-        else
-          # Reject if node not found (Agent must register via HTTP Push first)
-          reject_unauthorized_connection
-        end
-      else
-        reject_unauthorized_connection
-      end
+      node_id = request.headers["X-Node-ID"]
+      Node.find_by(uuid: node_id)
     end
 
     def extract_token
