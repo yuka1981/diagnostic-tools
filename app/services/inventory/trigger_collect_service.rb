@@ -41,13 +41,10 @@ module Inventory
 
     def broadcast_command
       ActionCable.server.broadcast("agent_#{@target_node.uuid}", {
-        identifier: { channel: "AgentChannel" }.to_json,
-        message: {
-          type: "command",
-          action: "collect_inventory",
-          params: { force: true },
-          correlation_id: SecureRandom.uuid
-        }
+        type: "command",
+        action: "collect_inventory",
+        params: { force: true },
+        correlation_id: SecureRandom.uuid
       })
     end
 

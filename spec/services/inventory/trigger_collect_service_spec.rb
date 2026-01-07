@@ -34,7 +34,7 @@ RSpec.describe Inventory::TriggerCollectService do
         expect(ActionCable.server).to receive(:broadcast).with(
           "agent_#{target_node.uuid}",
           hash_including(
-            message: hash_including(type: "command", action: "collect_inventory")
+            type: "command", action: "collect_inventory"
           )
         )
         service.call

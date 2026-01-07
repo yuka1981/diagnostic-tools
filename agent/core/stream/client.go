@@ -7,7 +7,7 @@ import (
 	"log"
 	"math"
 	"net/http"
-	"strings"
+	"net/url"
 	"sync"
 	"time"
 
@@ -99,10 +99,13 @@ func (c *Client) connectAndListen(ctx context.Context) error {
 	c.writeMu.Unlock()
 
 	defer func() {
-		c.writeMu.Lock()
-		c.conn = nil
-		c.writeMu.Unlock()
 		conn.Close(websocket.StatusInternalError, "connection closed")
+
+		c.writeMu.Lock()
+		defer c.writeMu.Unlock()
+		if c.conn == conn {
+			c.conn = nil
+		}
 	}()
 
 	if err := c.subscribe(ctx, conn); err != nil {
@@ -212,11 +215,18 @@ func (c *Client) Send(ctx context.Context, payload interface{}) error {
 }
 
 func (c *Client) prepareURL() string {
-	wsURL := fmt.Sprintf("%s/cable", c.serverURL)
-	if strings.HasPrefix(c.serverURL, "https://") {
-		wsURL = "wss://" + strings.TrimPrefix(c.serverURL, "https://") + "/cable"
-	} else if strings.HasPrefix(c.serverURL, "http://") {
-		wsURL = "ws://" + strings.TrimPrefix(c.serverURL, "http://") + "/cable"
+	u, err := url.Parse(c.serverURL)
+	if err != nil || u.Scheme == "" || u.Host == "" {
+		// Fallback for simple hostnames like "localhost:3000"
+		u, _ = url.Parse("http://" + c.serverURL)
 	}
-	return wsURL
+
+	if u.Scheme == "https" {
+		u.Scheme = "wss"
+	} else {
+		u.Scheme = "ws"
+	}
+
+	u.Path = "/cable"
+	return u.String()
 }

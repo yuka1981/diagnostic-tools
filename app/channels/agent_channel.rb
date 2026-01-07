@@ -19,13 +19,19 @@ class AgentChannel < ApplicationCable::Channel
     # Handle incoming data (e.g. command results)
     Rails.logger.info "Received data from #{current_node.hostname}: #{data}"
 
-    if data["action"] == "report_result" && data["status"] == "success"
-      payload = data["payload"]
+    if data["action"] == "report_result"
+      if data["status"] == "success"
+        payload = data["payload"]
 
-      Inventory::ProcessStateService.new(
-        node_id: current_node.id,
-        raw_json: payload
-      ).call
+        Inventory::ProcessStateService.new(
+          node_id: current_node.id,
+          raw_json: payload
+        ).call
+      else
+        error_message = data["error"] || "Unknown error from agent"
+        correlation_id = data["correlation_id"]
+        Rails.logger.error "Agent on node #{current_node.hostname} reported an error (correlation_id: #{correlation_id}): #{error_message}"
+      end
     end
   end
 end
