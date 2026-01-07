@@ -35,7 +35,7 @@ func GetOrGenerateNodeID(configDir string) (string, error) {
 		return id, fmt.Errorf("failed to create config directory: %w", err)
 	}
 
-	if err := os.WriteFile(idPath, []byte(id), 0644); err != nil {
+	if err := os.WriteFile(idPath, []byte(id), 0600); err != nil {
 		// Log warning but return ID anyway so agent can function
 		fmt.Fprintf(os.Stderr, "Warning: failed to persist node_id to %s: %v\n", idPath, err)
 	}
