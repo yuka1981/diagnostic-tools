@@ -13,9 +13,9 @@ class NodesController < ApplicationController
   def show
     @selected_state = if params[:state_id].present?
                         @node.node_states.find(params[:state_id])
-                      else
+    else
                         @node.current_state
-                      end
+    end
   end
 
   def test_connection

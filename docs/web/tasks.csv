@@ -16,3 +16,6 @@ Title,Description,Priority,Estimate,Status,Labels
 "[Runs] List & Filtering", "Implement Runs index page with Turbo Frame based searching/filtering.", "Medium", 2, "Completed", "frontend"
 "[Agent] Remote Installation & Management", "Implement cross-compilation, multi-hop deployment, uninstallation, and real-time status updates.", "High", 5, "Completed", "feature"
 "[UI] Add Architecture Column", "Add Architecture information to the nodes list table for better overview.", "Low", 1, "Completed", "frontend"
+"[Agent] Node Identity (Hybrid UUID)", "Implement hardware-bound stable identification and server-side auto-registration.", "High", 3, "Completed", "feature"
+"[Dashboard] Hero Metrics (PRD v0.5.2)", "Implement PRD-aligned metrics: Availability, Health, Queue, and Cluster Storage.", "Medium", 2, "Completed", "feature"
+"[Node] Version History UI", "Implement dropdown and Turbo Frame to view historical hardware snapshots.", "Medium", 2, "Completed", "frontend"
