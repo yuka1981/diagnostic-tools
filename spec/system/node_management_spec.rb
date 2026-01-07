@@ -38,7 +38,7 @@ RSpec.describe "Node Management", type: :system, js: true do
     expect(node).to be_present
     expect(node.ssh_port).to eq(22)
     expect(node.ssh_user).to eq("deploy")
-    
+
     # Ensure modal is closed
     expect(page).not_to have_selector("#node_modal .fixed")
   end
