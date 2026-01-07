@@ -9,7 +9,7 @@ module Nodes
     def new
       @target_host = params[:hostname]
       @node = Node.find_by(hostname: @target_host)
-      
+
       # Determine arch: prioritize node's arch, fallback to params, default to x86_64
       raw_arch = @node&.arch.presence || params[:arch]
       @arch = raw_arch == "aarch64" ? "arm64" : raw_arch

@@ -15,7 +15,7 @@ RSpec.describe "Node Uninstall Settings", type: :system do
     global_node = create(:node, :agent_push, hostname: "global-node", ssh_connect_method: :global_bastion)
     visit new_node_uninstall_path(hostname: global_node.hostname)
     expect(find_field("Bastion Host (Optional)").value).to eq("global.bastion")
-    
+
     # 2. Custom Bastion Node
     custom_node = create(:node, :agent_push, hostname: "custom-node", ssh_connect_method: :custom_bastion, jump_host: "custom.bastion", jump_user: "custom-user")
     visit new_node_uninstall_path(hostname: custom_node.hostname)
