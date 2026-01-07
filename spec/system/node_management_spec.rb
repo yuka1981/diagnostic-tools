@@ -38,11 +38,17 @@ RSpec.describe "Node Management", type: :system, js: true do
     expect(node).to be_present
     expect(node.ssh_port).to eq(22)
     expect(node.ssh_user).to eq("deploy")
+    
+    # Ensure modal is closed
+    expect(page).not_to have_selector("#node_modal .fixed")
   end
 
   it "allows an approver to remove an agent" do
     node = create(:node, hostname: "uninstall-target", source: :agent_push, ip: "10.0.0.5")
     visit nodes_path
+
+    # Ensure any previous modals are closed
+    expect(page).not_to have_selector(".fixed.inset-0")
 
     # Use a more specific selector to avoid intercepting other elements
     within "tr##{dom_id(node)}" do
