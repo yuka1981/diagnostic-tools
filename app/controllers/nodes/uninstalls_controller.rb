@@ -8,6 +8,13 @@ module Nodes
 
     def new
       @target_host = params[:hostname]
+      @node = Node.find_by(hostname: @target_host)
+      @ssh_setting = SshSetting.current
+
+      # Adjust preloaded settings based on node configuration
+      if @node&.direct?
+        @ssh_setting = SshSetting.new # Empty settings to avoid prefilling global bastion
+      end
     end
 
     def create
