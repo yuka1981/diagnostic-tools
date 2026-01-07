@@ -16,7 +16,7 @@ module Agent
       reload_daemon: "Reloading systemd"
     }.freeze
 
-    def initialize(target_host:, bastion_user: nil, bastion_host: nil, bastion_password: nil, sudo_password:, on_progress: nil)
+    def initialize(target_host:, bastion_user: nil, bastion_host: nil, bastion_password: nil, sudo_password:, node: nil, on_progress: nil)
       @target_host = target_host
       validate_target_host!
 
@@ -24,11 +24,14 @@ module Agent
       @bastion_user = bastion_user.presence || "root"
       @bastion_password = bastion_password
       @sudo_password = sudo_password
+      @node = node
       @on_progress = on_progress
     end
 
     def call
-      if use_bastion?
+      if @node&.online?
+        uninstall_via_websocket
+      elsif use_bastion?
         uninstall_via_bastion
       else
         uninstall_direct
@@ -36,6 +39,22 @@ module Agent
     end
 
     private
+
+    def uninstall_via_websocket
+      report_progress(:connect) # Reuse connect step to indicate contact
+
+      # Broadcast command
+      ActionCable.server.broadcast("agent_#{@node.uuid}", {
+        type: "command",
+        action: "uninstall",
+        correlation_id: SecureRandom.uuid
+      })
+
+      report_progress(:stop_service)
+      # We assume the agent handles the rest (files, stopping)
+
+      true
+    end
 
     def use_bastion?
       return false if localhost?

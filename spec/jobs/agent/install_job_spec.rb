@@ -10,8 +10,10 @@ RSpec.describe Agent::InstallJob, type: :job do
       sudo_password: "sudo_password"
     }
   end
+  let!(:node) { create(:node, hostname: "compute-001", source: :agent_push, arch: "x86_64") }
   let(:params) do
     {
+      node: node,
       target_host: "compute-001",
       arch: "x86_64",
       bastion_host: "10.0.0.1",
@@ -34,19 +36,18 @@ RSpec.describe Agent::InstallJob, type: :job do
     end
 
     it "compiles and installs the agent" do
-      expect {
-        described_class.perform_now(**params)
-      }.to change(Node, :count).by(1)
+      described_class.perform_now(**params)
 
       expect(compiler).to have_received(:call)
       expect(Agent::RemoteInstallService).to have_received(:new).with(hash_including(
                                                                        bastion_host: "10.0.0.1",
                                                                        bastion_password: "password",
-                                                                       sudo_password: "sudo_password"
+                                                                       sudo_password: "sudo_password",
+                                                                       node: node
                                                                      ))
       expect(installer).to have_received(:call)
 
-      node = Node.last
+      node.reload
       expect(node.hostname).to eq("compute-001")
       expect(node.arch).to eq("x86_64")
       expect(node.source).to eq("agent_push")

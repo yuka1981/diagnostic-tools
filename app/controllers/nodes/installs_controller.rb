@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "resolv"
+
 module Nodes
   class InstallsController < ApplicationController
     layout "dashboard"
@@ -31,6 +33,15 @@ module Nodes
     end
 
     def create
+      # Find or create the node immediately so we have an ID for log streaming
+      @node = Node.find_or_initialize_by(hostname: install_params[:hostname])
+      @node.arch = install_params[:arch]
+      @node.source = :agent_push
+      if install_params[:hostname] =~ Regexp.union(Resolv::IPv4::Regex, Resolv::IPv6::Regex)
+        @node.ip = install_params[:hostname]
+      end
+      @node.save!
+
       # Find selected API key token if provided
       selected_token = ApiKey.active.find_by(id: install_params[:api_key_id])&.token
 
@@ -44,6 +55,7 @@ module Nodes
       Rails.cache.write("install_creds_#{cache_key}", credentials, expires_in: 5.minutes)
 
       Agent::InstallJob.perform_later(
+        node: @node,
         target_host: install_params[:hostname],
         arch: install_params[:arch],
         bastion_host: install_params[:bastion_host],

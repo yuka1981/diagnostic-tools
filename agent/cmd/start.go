@@ -5,8 +5,10 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"os/exec"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/spf13/cobra"
 
@@ -47,6 +49,37 @@ func (h *agentHandler) HandleCommand(ctx context.Context, action string, payload
 			"payload":        state,
 			"correlation_id": correlationID,
 		})
+
+	case "uninstall":
+		log.Println("Received uninstall command. Initiating self-destruct...")
+		// Acknowledge receipt
+		responder.Send(ctx, map[string]interface{}{
+			"action":         "report_result",
+			"status":         "success",
+			"payload":        map[string]string{"message": "Uninstall initiated"},
+			"correlation_id": correlationID,
+		})
+
+		go func() {
+			// Allow time for the response to be flushed
+			time.Sleep(1 * time.Second)
+
+			// Execute cleanup in background.
+			// 1. Disable service (so it doesn't restart)
+			// 2. Remove service file
+			// 3. Remove binary (self)
+			// 4. Reload daemon
+			// 5. Stop service (kills this process)
+			cmd := "systemctl disable hpc-agent && rm -f /etc/systemd/system/hpc-agent.service /usr/local/bin/hpc-agent && systemctl daemon-reload && systemctl stop hpc-agent"
+			
+			if err := exec.Command("bash", "-c", cmd).Start(); err != nil {
+				log.Printf("Failed to execute uninstall command: %v", err)
+			}
+			// If we are still here, exit manually
+			time.Sleep(1 * time.Second)
+			os.Exit(0)
+		}()
+		return nil
 
 	case "ping":
 		return responder.Send(ctx, map[string]string{

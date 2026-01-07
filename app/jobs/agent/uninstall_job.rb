@@ -17,6 +17,9 @@ module Agent
       # Ensure credentials are cleaned up
       Rails.cache.delete("install_creds_#{credentials_cache_key}")
 
+      # Find node record early
+      node = Node.find_by(hostname: target_host)
+
       # Small delay to allow the browser to establish ActionCable connection
       sleep 1 if Rails.env.development?
 
@@ -30,6 +33,7 @@ module Agent
         bastion_user: bastion_user,
         bastion_password: credentials[:bastion_password],
         sudo_password: credentials[:sudo_password],
+        node: node,
         on_progress: ->(step, msg) {
           Rails.logger.debug "[Agent::UninstallJob] Step: #{step} - #{msg}"
           broadcast_status(target_host, "processing", msg, step)
@@ -43,7 +47,6 @@ module Agent
       # We don't delete the node, just mark it as possibly offline or handled manually now.
       # For now, we'll just log it. Maybe in future we update source to manual.
 
-      node = Node.find_by(hostname: target_host)
       if node
         node.update(source: :manual)
       end

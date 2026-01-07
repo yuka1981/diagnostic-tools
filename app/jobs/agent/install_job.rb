@@ -6,7 +6,7 @@ module Agent
   class InstallJob < ApplicationJob
     queue_as :default
 
-    def perform(target_host:, arch:, bastion_host: nil, bastion_user:, credentials_cache_key:, server_url:)
+    def perform(node:, target_host:, arch:, bastion_host: nil, bastion_user:, credentials_cache_key:, server_url:)
       Rails.logger.debug "[Agent::InstallJob] Starting install for #{target_host} (arch: #{arch})"
 
       # Retrieve sensitive credentials from cache
@@ -40,6 +40,7 @@ module Agent
         local_binary_path: local_binary_path,
         server_url: server_url,
         agent_token: credentials[:agent_token], # Use the selected token if available
+        node: node,
         on_progress: ->(msg) {
           Rails.logger.debug "[Agent::InstallJob] Progress: #{msg}"
           broadcast_status(target_host, "processing", msg)
@@ -48,18 +49,9 @@ module Agent
 
       installer.call
 
-      # 3. Create or update Node record
-      Rails.logger.debug "[Agent::InstallJob] Ensuring Node record exists for #{target_host}"
-      node = Node.find_or_initialize_by(hostname: target_host)
-      node.arch = arch
-      node.source = :agent_push
-      # Use the target_host as IP if it looks like one, otherwise leave blank
-      node.ip = target_host if target_host =~ Regexp.union(Resolv::IPv4::Regex, Resolv::IPv6::Regex)
-      node.save!
-
-      # 4. Success Broadcast
+      # 3. Success Broadcast
       Rails.logger.debug "[Agent::InstallJob] Installation Successful"
-      broadcast_status(target_host, "success", "Agent installed successfully and node record created")
+      broadcast_status(target_host, "success", "Agent installed successfully")
     rescue => e
       Rails.logger.error "[Agent::InstallJob] Error: #{e.message}"
       Rails.logger.error e.backtrace.first(10).join("\n")
