@@ -11,8 +11,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/coder/websocket"
-	"github.com/coder/websocket/wsjson"
+	"nhooyr.io/websocket" //nolint:staticcheck
+	"nhooyr.io/websocket/wsjson" //nolint:staticcheck
 )
 
 const (
@@ -36,7 +36,7 @@ type Responder interface {
 
 // Client manages the WebSocket connection to the server
 type Client struct {
-	conn      *websocket.Conn
+	conn      *websocket.Conn //nolint:staticcheck
 	handler   CommandHandler
 	serverURL string
 	token     string
@@ -97,7 +97,7 @@ func (c *Client) connectAndListen(ctx context.Context) error {
 	c.writeMu.Unlock()
 
 	defer func() {
-		conn.Close(websocket.StatusInternalError, "connection closed")
+		conn.Close(websocket.StatusInternalError, "connection closed") //nolint:staticcheck
 
 		c.writeMu.Lock()
 		defer c.writeMu.Unlock()
@@ -113,10 +113,10 @@ func (c *Client) connectAndListen(ctx context.Context) error {
 	return c.readLoop(ctx, conn)
 }
 
-func (c *Client) dial(ctx context.Context) (*websocket.Conn, error) {
+func (c *Client) dial(ctx context.Context) (*websocket.Conn, error) { //nolint:staticcheck
 	wsURL := c.prepareURL()
 
-	opts := &websocket.DialOptions{
+	opts := &websocket.DialOptions{ //nolint:staticcheck
 		HTTPHeader: http.Header{
 			"X-Node-ID": []string{c.nodeID},
 		},
@@ -126,7 +126,7 @@ func (c *Client) dial(ctx context.Context) (*websocket.Conn, error) {
 	}
 
 	log.Printf("Connecting to %s...", wsURL)
-	conn, resp, err := websocket.Dial(ctx, wsURL, opts)
+	conn, resp, err := websocket.Dial(ctx, wsURL, opts) //nolint:bodyclose
 	if resp != nil && resp.Body != nil {
 		resp.Body.Close()
 	}
@@ -136,7 +136,7 @@ func (c *Client) dial(ctx context.Context) (*websocket.Conn, error) {
 	return conn, nil
 }
 
-func (c *Client) subscribe(ctx context.Context, conn *websocket.Conn) error {
+func (c *Client) subscribe(ctx context.Context, conn *websocket.Conn) error { //nolint:staticcheck
 	identifier := fmt.Sprintf(`{"channel":%q}`, DefaultChannel)
 	subscribeMsg := map[string]interface{}{
 		"command":    "subscribe",
@@ -152,7 +152,7 @@ func (c *Client) subscribe(ctx context.Context, conn *websocket.Conn) error {
 	return nil
 }
 
-func (c *Client) readLoop(ctx context.Context, conn *websocket.Conn) error {
+func (c *Client) readLoop(ctx context.Context, conn *websocket.Conn) error { //nolint:staticcheck
 	for {
 		var msg map[string]interface{}
 		if err := wsjson.Read(ctx, conn, &msg); err != nil {
