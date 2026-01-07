@@ -62,7 +62,7 @@ RSpec.describe Inventory::TriggerCollectService do
     context "when node specific jump host is configured" do
       let(:gateway_node) { nil } # Ensure legacy gateway is not used
       subject(:service) { described_class.new(target_node, gateway: nil, ssh_config: ssh_config) }
-      let(:target_node) { create(:node, jump_host: "node-jump.example.com", jump_user: "node-jumpuser", jump_port: 2223) }
+      let(:target_node) { create(:node, ssh_connect_method: :custom_bastion, jump_host: "node-jump.example.com", jump_user: "node-jumpuser", jump_port: 2223) }
       let(:gateway) { instance_double(Net::SSH::Gateway) }
 
       before do

@@ -22,7 +22,7 @@ RSpec.describe "Node Management", type: :system, js: true do
       select "Compute", from: "Role"
       select "x86_64", from: "Architecture"
 
-      expect(page).to have_content("SSH Settings")
+      expect(page).to have_content("SSH Configuration")
       fill_in "SSH Port", with: "22"
       fill_in "SSH User", with: "deploy"
       fill_in "User password", with: "secret-password"

@@ -21,7 +21,7 @@ module Agent
     end
 
     def call
-      if @bastion_host.present?
+      if use_bastion?
         uninstall_via_bastion
       else
         uninstall_direct
@@ -29,6 +29,15 @@ module Agent
     end
 
     private
+
+    def use_bastion?
+      return false if localhost?
+      @bastion_host.present?
+    end
+
+    def localhost?
+      @target_host == "127.0.0.1" || @target_host == "localhost" || @target_host == "::1"
+    end
 
     def uninstall_via_bastion
       ssh_options = { password: @bastion_password }.compact

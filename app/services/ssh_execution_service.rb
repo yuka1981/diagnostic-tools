@@ -24,15 +24,33 @@ class SshExecutionService
   private
 
   def execute_ssh_command(cmd)
-    if use_jump_host?
+    if direct_connection_required?
+      execute_direct(cmd)
+    elsif use_jump_host?
       execute_via_gateway(cmd)
     else
       execute_direct(cmd)
     end
   end
 
+  def direct_connection_required?
+    return true if @target_node.direct?
+    return true if localhost?(@target_node.ip) || localhost?(@target_node.hostname)
+
+    false
+  end
+
+  def localhost?(host)
+    return false if host.blank?
+
+    host == "127.0.0.1" || host == "localhost" || host == "::1"
+  end
+
   def use_jump_host?
-    @target_node.use_jump_host? || ::SshConfig.use_jump_host?
+    return true if @target_node.custom_bastion? && @target_node.jump_host.present?
+    return true if @target_node.global_bastion? && ::SshConfig.use_jump_host?
+
+    false
   end
 
   def execute_direct(cmd)

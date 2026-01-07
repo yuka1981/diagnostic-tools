@@ -1,8 +1,8 @@
-# Feature Request: Agent 唯一識別機制 (Hybrid UUID Strategy)
+# Feature Request: HPC-agent 唯一識別機制 (Hybrid UUID Strategy)
 
 ## 1. 背景與目標 (Context)
 
-目前 Agent 在向 Rails Server 發送 Report 時，缺乏一個唯一識別碼 (Unique Identifier)，導致 Server 無法區分數據來自哪一台機器。
+目前 hpc-agent 在向 Rails Server 發送 Report 時，缺乏一個唯一識別碼 (Unique Identifier)，導致 Server 無法區分數據來自哪一台機器。
 
 **目標：** 實作一套「混合式身份識別機制」。
 
@@ -23,7 +23,7 @@
 
 ### Agent 端 (Go) 啟動流程
 
-1. **檢查識別檔：** 檢查本地路徑 (例如 `./config/node_id` 或 `/var/lib/agent/node_id`) 是否存在。
+1. **檢查識別檔：** 檢查本地路徑 (例如 `./config/node_id` 或 `/var/lib/hpc-agent/node_id`) 是否存在。
 2. **路徑 A - 檔案存在：**
 
 * 直接讀取檔案內容作為 `NodeUUID`。

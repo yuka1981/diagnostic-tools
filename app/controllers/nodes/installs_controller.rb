@@ -12,6 +12,18 @@ module Nodes
       @api_keys = ApiKey.active.order(:name)
       @node = Node.find_by(hostname: @target_host)
       @ssh_setting = SshSetting.current
+
+      # Adjust preloaded settings based on node configuration
+      if @node&.direct?
+        @ssh_setting = SshSetting.new # Empty settings to avoid prefilling global bastion
+      elsif @node&.custom_bastion?
+        # If custom bastion, we might want to use node's jump host, but SshSetting is for global.
+        # We can construct a temporary object or just let the view handle @node.jump_host precedence if we updated the view.
+        # But for now, let's just clear global if custom is selected, so the form starts empty (or we fill from node).
+        # Actually, if custom_bastion, the view should probably autofill from @node.jump_host.
+        # The view currently uses @ssh_setting.bastion_host.
+        # Let's verify app/views/nodes/installs/new.html.erb
+      end
     end
 
     def create

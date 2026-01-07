@@ -13,6 +13,7 @@ class Node < ApplicationRecord
   # Enums
   enum :role, { compute: 0, login: 1, admin: 2 }, default: :compute
   enum :source, { manual: 0, csv: 1, agent_push: 2 }, default: :manual
+  enum :ssh_connect_method, { global_bastion: 0, custom_bastion: 1, direct: 2 }, default: :global_bastion
 
   # Validations
   validates :hostname, presence: true, uniqueness: true, length: { maximum: 255 }
