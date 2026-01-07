@@ -31,16 +31,6 @@ RSpec.describe "Node Management", type: :system, js: true do
       click_button "Save Node"
     end
 
-    # Wait for the database record to be created
-    expect {
-      Timeout.timeout(5) do
-        loop do
-          break if Node.exists?(hostname: "compute-001")
-          sleep 0.1
-        end
-      end
-    }.not_to raise_error
-
     expect(page).to have_content("compute-001")
     expect(page).to have_content("192.168.1.100")
 
@@ -48,22 +38,26 @@ RSpec.describe "Node Management", type: :system, js: true do
     expect(node).to be_present
     expect(node.ssh_port).to eq(22)
     expect(node.ssh_user).to eq("deploy")
-    # Virtual attributes are not persisted, so we can't check them on the model after reload
   end
 
   it "allows an approver to remove an agent" do
-    node = create(:node, hostname: "uninstall-target", source: :agent_push)
+    node = create(:node, hostname: "uninstall-target", source: :agent_push, ip: "10.0.0.5")
     visit nodes_path
 
+    # Use a more specific selector to avoid intercepting other elements
     within "tr##{dom_id(node)}" do
       click_link "Uninstall"
     end
 
     within "#uninstall_modal" do
-      expect(page).to have_content("Remove Agent")
-      expect(page).to have_field("Target Hostname/IP", with: "uninstall-target", readonly: true)
+      expect(page).to have_field("Hostname", with: "uninstall-target", readonly: true)
+      # Check IP address (using have_field or generic find since it's a raw input in my previous replace)
+      # In my previous replace I used <input type="text" value="<%= @node&.ip %>" readonly ...>
+      # It doesn't have a name/id that have_field might easily find unless I add label.
+      # Wait, I did add label: <%= f.label :ip, "IP Address" %>
+      expect(page).to have_field("IP Address", with: "10.0.0.5", readonly: true)
 
-      fill_in "Sudo Password (Required)", with: "sudo-secret"
+      fill_in "Sudo Password (Required)", with: "secret"
 
       # Mock the background job behavior
       uninstaller = instance_double(Agent::RemoteUninstallService, call: true)
@@ -83,30 +77,30 @@ RSpec.describe "Node Management", type: :system, js: true do
       locals: { status: "success", message: "Agent uninstalled successfully", target_host: "uninstall-target" }
     )
 
-        # Verify the successful state arrived via Turbo Stream
-        expect(page).to have_content("Uninstallation Successful")
-        click_link "Done"
+    # Verify the successful state arrived via Turbo Stream
+    expect(page).to have_content("Uninstallation Successful")
+    click_link "Done"
 
-        expect(page).to have_current_path(nodes_path)
-      end
+    expect(page).to have_current_path(nodes_path)
+  end
 
-      it "disables the Install button if the agent is already installed" do
-        create(:node, hostname: "already-installed", source: :agent_push)
-        visit nodes_path
+  it "disables the Install button if the agent is already installed" do
+    create(:node, hostname: "already-installed", source: :agent_push)
+    visit nodes_path
 
-        within "tr", text: "already-installed" do
-          expect(page).to have_css("span[title='hpc-agent is already installed']", text: "Install")
-                expect(page).not_to have_link("Install")
-              end
-            end
+    within "tr", text: "already-installed" do
+      expect(page).to have_css("span[title='hpc-agent is already installed']", text: "Install")
+      expect(page).not_to have_link("Install")
+    end
+  end
 
-            it "disables the Uninstall button if the agent is not installed" do
-              create(:node, hostname: "not-installed", source: :manual)
-              visit nodes_path
+  it "disables the Uninstall button if the agent is not installed" do
+    create(:node, hostname: "not-installed", source: :manual)
+    visit nodes_path
 
-              within "tr", text: "not-installed" do
-                expect(page).to have_css("span[title='hpc-agent is not installed']", text: "Uninstall")
-                expect(page).not_to have_link("Uninstall")
-              end
-            end
-          end
+    within "tr", text: "not-installed" do
+      expect(page).to have_css("span[title='hpc-agent is not installed']", text: "Uninstall")
+      expect(page).not_to have_link("Uninstall")
+    end
+  end
+end

@@ -53,7 +53,7 @@
                 </div>
                 <div>
                   <%= f.label :ip, "IP Address", class: "block text-sm font-medium text-gray-700 dark:text-slate-300" %>
-                  <input type="text" value="<%= @node&.ip %>" readonly class="mt-1 block w-full rounded-none border-gray-300 bg-gray-50 shadow-sm focus:border-red-500 focus:ring-red-500 dark:bg-slate-700 dark:border-white/10 dark:text-gray-400 sm:text-sm cursor-not-allowed">
+                  <%= f.text_field :ip, value: @node&.ip, readonly: true, class: "mt-1 block w-full rounded-none border-gray-300 bg-gray-50 shadow-sm focus:border-red-500 focus:ring-red-500 dark:bg-slate-700 dark:border-white/10 dark:text-gray-400 sm:text-sm cursor-not-allowed" %>
                 </div>
               </div>
 
