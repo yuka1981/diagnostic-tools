@@ -36,14 +36,12 @@ type Responder interface {
 
 // Client manages the WebSocket connection to the server
 type Client struct {
+	conn      *websocket.Conn
+	handler   CommandHandler
 	serverURL string
 	token     string
 	nodeID    string
-
-	// Reordered for alignment
-	conn    *websocket.Conn
-	handler CommandHandler
-	writeMu sync.Mutex
+	writeMu   sync.Mutex
 }
 
 // NewClient creates a new WebSocket client
