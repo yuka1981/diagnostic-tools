@@ -53,12 +53,14 @@ func (h *agentHandler) HandleCommand(ctx context.Context, action string, payload
 	case "uninstall":
 		log.Println("Received uninstall command. Initiating self-destruct...")
 		// Acknowledge receipt
-		responder.Send(ctx, map[string]interface{}{
+		if err := responder.Send(ctx, map[string]interface{}{
 			"action":         "report_result",
 			"status":         "success",
 			"payload":        map[string]string{"message": "Uninstall initiated"},
 			"correlation_id": correlationID,
-		})
+		}); err != nil {
+			log.Printf("Failed to send uninstall acknowledgement: %v", err)
+		}
 
 		go func() {
 			// Allow time for the response to be flushed
@@ -70,8 +72,11 @@ func (h *agentHandler) HandleCommand(ctx context.Context, action string, payload
 			// 3. Remove binary (self)
 			// 4. Reload daemon
 			// 5. Stop service (kills this process)
-			cmd := "systemctl disable hpc-agent && rm -f /etc/systemd/system/hpc-agent.service /usr/local/bin/hpc-agent && systemctl daemon-reload && systemctl stop hpc-agent"
-			
+			cmd := "systemctl disable hpc-agent && " +
+				"rm -f /etc/systemd/system/hpc-agent.service /usr/local/bin/hpc-agent && " +
+				"systemctl daemon-reload && " +
+				"systemctl stop hpc-agent"
+
 			if err := exec.Command("bash", "-c", cmd).Start(); err != nil {
 				log.Printf("Failed to execute uninstall command: %v", err)
 			}
