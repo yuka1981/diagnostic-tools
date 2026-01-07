@@ -91,12 +91,17 @@ func (h *agentHandler) handleUninstall(ctx context.Context, correlationID interf
 		// 3. Remove binary (self)
 		// 4. Reload daemon
 		// 5. Stop service (kills this process)
-		cmd := "systemctl disable hpc-agent && " +
+		cmdStr := "systemctl disable hpc-agent && " +
 			"rm -f /etc/systemd/system/hpc-agent.service /usr/local/bin/hpc-agent && " +
 			"systemctl daemon-reload && " +
 			"systemctl stop hpc-agent"
 
-		if err := exec.Command("bash", "-c", cmd).Start(); err != nil {
+		cmd := exec.Command("bash", "-c", cmdStr)
+		cmd.SysProcAttr = &syscall.SysProcAttr{
+			Setsid: true,
+		}
+
+		if err := cmd.Start(); err != nil {
 			log.Printf("Failed to execute uninstall command: %v", err)
 		}
 		// If we are still here, exit manually
