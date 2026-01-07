@@ -50,6 +50,16 @@ module Api
         }
 
         if run.update(update_params)
+          # Process artifacts if provided
+          if params[:artifacts].is_a?(Array)
+            params[:artifacts].each do |path|
+              run.artifact_indices.find_or_create_by(path: path) do |ai|
+                ai.file_type = File.extname(path).delete(".")
+                # Size could be updated later or passed in payload
+              end
+            end
+          end
+
           render json: { success: true, run_id: run.uuid }
         else
           render json: { error: run.errors.full_messages.join(", ") }, status: :unprocessable_entity

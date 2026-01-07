@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_01_07_015252) do
+ActiveRecord::Schema[7.2].define(version: 2026_01_07_020301) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -22,6 +22,16 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_07_015252) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["token"], name: "index_api_keys_on_token", unique: true
+  end
+
+  create_table "artifact_indices", force: :cascade do |t|
+    t.bigint "benchmark_run_id", null: false
+    t.string "path"
+    t.string "file_type"
+    t.bigint "size"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["benchmark_run_id"], name: "index_artifact_indices_on_benchmark_run_id"
   end
 
   create_table "benchmark_recipes", force: :cascade do |t|
@@ -116,6 +126,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_07_015252) do
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
   end
 
+  add_foreign_key "artifact_indices", "benchmark_runs"
   add_foreign_key "benchmark_runs", "benchmark_recipes"
   add_foreign_key "benchmark_runs", "nodes"
   add_foreign_key "node_states", "nodes"

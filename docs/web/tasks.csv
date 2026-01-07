@@ -19,3 +19,4 @@ Title,Description,Priority,Estimate,Status,Labels
 "[Agent] Node Identity (Hybrid UUID)", "Implement hardware-bound stable identification and server-side auto-registration.", "High", 3, "Completed", "feature"
 "[Dashboard] Hero Metrics (PRD v0.5.2)", "Implement PRD-aligned metrics: Availability, Health, Queue, and Cluster Storage.", "Medium", 2, "Completed", "feature"
 "[Node] Version History UI", "Implement dropdown and Turbo Frame to view historical hardware snapshots.", "Medium", 2, "Completed", "frontend"
+"[Runs] Artifact Management", "Implement tracking and UI for raw benchmark output files and logs.", "Medium", 2, "Completed", "feature"

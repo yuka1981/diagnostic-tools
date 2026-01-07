@@ -58,6 +58,17 @@
                 class="border-b-2 border-transparent px-4 py-3 text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-slate-400 dark:hover:text-slate-300 focus:outline-none">
           Logs
         </button>
+        <button type="button"
+                id="tab-artifacts"
+                role="tab"
+                aria-selected="false"
+                aria-controls="tab-panel-artifacts"
+                tabindex="-1"
+                data-tabs-target="tab"
+                data-action="click->tabs#select"
+                class="border-b-2 border-transparent px-4 py-3 text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-slate-400 dark:hover:text-slate-300 focus:outline-none">
+          Artifacts
+        </button>
       </nav>
     </div>
 
@@ -179,6 +190,52 @@
           <p class="mt-4 text-sm font-medium text-gray-500 dark:text-slate-400">No logs available</p>
           <p class="mt-1 text-xs text-gray-400 dark:text-slate-500">Log output will be displayed here when available</p>
         </div>
+      </div>
+
+      <%# Artifacts Tab Panel %>
+      <div id="tab-panel-artifacts"
+           role="tabpanel"
+           aria-labelledby="tab-artifacts"
+           aria-hidden="true"
+           class="hidden"
+           data-tabs-target="panel">
+        
+        <% if benchmark_run.artifact_indices.any? %>
+          <div class="space-y-3">
+            <% benchmark_run.artifact_indices.each do |artifact| %>
+              <div class="flex items-center justify-between rounded-lg bg-gray-50 p-4 dark:bg-white/5 border border-gray-100 dark:border-white/5">
+                <div class="flex items-center gap-3 min-w-0">
+                  <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                  </svg>
+                  <div class="min-w-0">
+                    <p class="text-sm font-medium text-gray-900 dark:text-white truncate" title="<%= artifact.path %>">
+                      <%= File.basename(artifact.path) %>
+                    </p>
+                    <p class="text-[10px] text-gray-500 dark:text-slate-500 uppercase">
+                      <%= artifact.file_type %>
+                    </p>
+                  </div>
+                </div>
+                <div class="flex-shrink-0">
+                  <%# Since files are on shared storage, we just show the path for now %>
+                  <%# In a real cluster, we might offer a download if the web server can read the mount %>
+                  <span class="text-[10px] font-mono text-gray-400 bg-white dark:bg-slate-900 px-2 py-1 rounded border border-gray-100 dark:border-white/5">
+                    <%= artifact.path %>
+                  </span>
+                </div>
+              </div>
+            <% end %>
+          </div>
+        <% else %>
+          <div class="flex flex-col items-center justify-center py-12 text-center">
+            <svg class="h-12 w-12 text-gray-300 dark:text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+            </svg>
+            <p class="mt-4 text-sm font-medium text-gray-500 dark:text-slate-400">No artifacts found</p>
+            <p class="mt-1 text-xs text-gray-400 dark:text-slate-500">Artifacts will appear here when the run completes</p>
+          </div>
+        <% end %>
       </div>
     </div>
   </div>

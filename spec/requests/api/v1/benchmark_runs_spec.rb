@@ -86,5 +86,17 @@ RSpec.describe "Api::V1::BenchmarkRuns", type: :request do
       expect(run.node.uuid).to eq(new_uuid)
       expect(run.node.hostname).to start_with("node-")
     end
+
+    it "creates artifact index records if artifacts are provided" do
+      payload = valid_payload.merge(artifacts: ["/path/to/hpcg.log", "/path/to/hpcg.dat"])
+      post "/api/v1/benchmark_runs",
+           params: payload.to_json,
+           headers: { "Authorization" => "Bearer #{valid_token}", "Content-Type" => "application/json" }
+
+      expect(response).to have_http_status(:success)
+      expect(run.artifact_indices.count).to eq(2)
+      expect(run.artifact_indices.pluck(:path)).to contain_exactly("/path/to/hpcg.log", "/path/to/hpcg.dat")
+      expect(run.artifact_indices.find_by(path: "/path/to/hpcg.log").file_type).to eq("log")
+    end
   end
 end

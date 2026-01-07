@@ -82,6 +82,10 @@ func (w *WorkflowOrchestrator) Run(ctx context.Context, params *RunParams) (*mod
 		Status:    finalStatus,
 	}
 
+	if targetLogPath != "" {
+		result.Artifacts = append(result.Artifacts, targetLogPath)
+	}
+
 	if metrics != nil && metrics.GFLOPS > 0 {
 		metricsBytes, err := json.Marshal(metrics)
 		if err != nil {
