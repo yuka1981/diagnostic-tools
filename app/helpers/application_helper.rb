@@ -39,4 +39,20 @@ module ApplicationHelper
 
     "#{base_classes} #{color_classes}"
   end
+
+  def disk_usage_percentage(disk)
+    return 0 if disk["total"].to_i.zero?
+
+    (disk["used"].to_f / disk["total"].to_f * 100).round(1)
+  end
+
+  def disk_usage_bar_color(percentage)
+    if percentage > 90
+      "bg-red-500"
+    elsif percentage > 75
+      "bg-amber-500"
+    else
+      "bg-blue-500"
+    end
+  end
 end

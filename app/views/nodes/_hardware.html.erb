@@ -118,8 +118,8 @@
           <tbody class="divide-y divide-slate-100">
             <% state.disk_info.each do |disk| %>
               <% 
-                usage_pct = disk["total"].to_i > 0 ? (disk["used"].to_f / disk["total"].to_f * 100).round(1) : 0 
-                bar_color = usage_pct > 90 ? "bg-red-500" : (usage_pct > 75 ? "bg-amber-500" : "bg-blue-500")
+                usage_pct = disk_usage_percentage(disk)
+                bar_color = disk_usage_bar_color(usage_pct)
               %>
               <tr class="hover:bg-slate-50">
                 <td class="px-3 py-2 text-xs font-medium text-slate-900"><%= disk["device"] %></td>
