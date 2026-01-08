@@ -1,7 +1,7 @@
 <%= turbo_frame_tag "uninstall_modal" do %>
-  <div class="fixed inset-0 z-50 overflow-y-auto" data-controller="modal" data-action="keydown.esc->modal#close">
+  <div class="fixed inset-0 z-50 overflow-y-auto" data-controller="modal">
     <%# Backdrop %>
-    <div class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm" data-action="click->modal#close"></div>
+    <div class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm"></div>
 
     <%# Modal container %>
     <div class="flex min-h-full items-center justify-center p-4">

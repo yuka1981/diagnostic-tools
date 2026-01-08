@@ -1,6 +1,6 @@
 <%= turbo_frame_tag "node_modal" do %>
-  <div class="fixed inset-0 z-50 overflow-y-auto" data-controller="modal" data-action="keydown.esc->modal#close">
-    <div class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm" data-action="click->modal#close"></div>
+  <div class="fixed inset-0 z-50 overflow-y-auto" data-controller="modal">
+    <div class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm"></div>
 
     <div class="flex min-h-full items-center justify-center p-4">
       <div class="relative w-full max-w-2xl transform rounded-2xl bg-white shadow-2xl transition-all dark:bg-slate-800">
