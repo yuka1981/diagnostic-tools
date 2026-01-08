@@ -20,15 +20,23 @@ export default class extends Controller {
 
   appendLog(data) {
     const { log, stream } = data
-    const span = document.createElement("span")
-    span.textContent = log
-    if (stream === "stderr") {
-      span.classList.add("text-red-500")
+
+    if (stream === "meta") {
+      const div = document.createElement("div")
+      div.textContent = log
+      div.classList.add("text-indigo-400", "font-bold", "mt-4", "mb-1")
+      this.outputTarget.appendChild(div)
     } else {
-      span.classList.add("text-gray-300")
+      const span = document.createElement("span")
+      span.textContent = log
+      if (stream === "stderr") {
+        span.classList.add("text-red-500")
+      } else {
+        span.classList.add("text-gray-300")
+      }
+      this.outputTarget.appendChild(span)
     }
-    this.outputTarget.appendChild(span)
-    
+
     // Auto-scroll
     this.outputTarget.scrollTop = this.outputTarget.scrollHeight
   }

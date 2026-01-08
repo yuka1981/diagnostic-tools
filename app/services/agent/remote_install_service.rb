@@ -157,7 +157,7 @@ module Agent
       @on_progress&.call(message)
 
       # Also stream step description to terminal for transparency
-      report_log("\n==> #{message}\n", "stdout")
+      report_log("==> #{message}", "meta")
     end
 
     def validate_target_host!
