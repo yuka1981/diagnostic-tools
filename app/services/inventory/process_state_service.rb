@@ -59,6 +59,8 @@ module Inventory
       current_state = node.current_state
       new_state_data = build_state_data
 
+      update_node_attributes(node, new_state_data[:host_info])
+
       result = if state_changed?(current_state, new_state_data)
                  create_new_state(node, new_state_data)
       else
@@ -69,12 +71,23 @@ module Inventory
       result
     end
 
+    def update_node_attributes(node, host_info)
+      return if host_info.blank?
+
+      updates = {}
+      updates[:hostname] = host_info[:hostname] if host_info[:hostname].present?
+      updates[:arch] = host_info[:arch] if host_info[:arch].present?
+      updates[:ip] = host_info[:ip] if host_info[:ip].present?
+
+      node.update(updates) if updates.any?
+    end
+
     def broadcast_update(node, state)
       Turbo::StreamsChannel.broadcast_replace_to(
         node,
         target: ActionView::RecordIdentifier.dom_id(node, :details),
         partial: "nodes/details",
-        locals: { node: node, selected_state: state, current_user: nil }
+        locals: { node: node, selected_state: state }
       )
     end
 

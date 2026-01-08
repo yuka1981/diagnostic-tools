@@ -1,3 +1,3 @@
 <%= turbo_stream.update "flash_messages", partial: "shared/flash" %>
 <%= turbo_stream.replace dom_id(@node), partial: "nodes/node", locals: { node: @node } %>
-<%= turbo_stream.replace dom_id(@node, :details), partial: "nodes/details", locals: { node: @node } %>
+<%= turbo_stream.replace dom_id(@node, :details), partial: "nodes/details", locals: { node: @node, current_user: current_user } %>
