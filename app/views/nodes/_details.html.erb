@@ -103,6 +103,18 @@
                 <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">UUID</dt>
                 <dd class="mt-1 text-xs text-gray-900 dark:text-white font-mono break-all"><%= state.dmi_info.dig("system", "uuid") %></dd>
               </div>
+              <% if state.dmi_info.dig("system", "sku_number").present? %>
+                <div>
+                  <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">SKU Number</dt>
+                  <dd class="mt-1 text-sm text-gray-900 dark:text-white"><%= state.dmi_info.dig("system", "sku_number") %></dd>
+                </div>
+              <% end %>
+              <% if state.dmi_info.dig("system", "family").present? %>
+                <div>
+                  <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">Family</dt>
+                  <dd class="mt-1 text-sm text-gray-900 dark:text-white"><%= state.dmi_info.dig("system", "family") %></dd>
+                </div>
+              <% end %>
               <div>
                 <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">BIOS Version</dt>
                 <dd class="mt-1 text-sm text-gray-900 dark:text-white font-mono"><%= state.dmi_info.dig("bios", "version") %></dd>
@@ -154,6 +166,18 @@
               <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">Stepping</dt>
               <dd class="text-sm font-semibold text-gray-900 dark:text-white"><%= state.cpu_info["stepping"] || "—" %></dd>
             </div>
+            <% if state.cpu_info["byte_order"].present? %>
+              <div>
+                <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">Byte Order</dt>
+                <dd class="text-sm font-semibold text-gray-900 dark:text-white"><%= state.cpu_info["byte_order"] %></dd>
+              </div>
+            <% end %>
+            <% if state.cpu_info["online_cpus_list"].present? %>
+              <div class="sm:col-span-2">
+                <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">Online CPU(s) list</dt>
+                <dd class="text-sm font-semibold text-gray-900 dark:text-white font-mono"><%= state.cpu_info["online_cpus_list"] %></dd>
+              </div>
+            <% end %>
           </dl>
         </div>
 
@@ -286,6 +310,10 @@
             <dd class="mt-1 text-sm text-gray-900 dark:text-white"><%= format_bytes(state.mem_info["cached"]) %></dd>
           </div>
           <div>
+            <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">Buffers</dt>
+            <dd class="mt-1 text-sm text-gray-900 dark:text-white"><%= format_bytes(state.mem_info["buffers"]) %></dd>
+          </div>
+          <div>
             <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">Swap Total</dt>
             <dd class="mt-1 text-sm text-gray-900 dark:text-white"><%= format_bytes(state.mem_info["swap_total"]) %></dd>
           </div>
@@ -362,6 +390,7 @@
             <tr>
               <th class="px-3 py-2 text-left text-xs font-medium uppercase text-gray-500 dark:text-slate-400">Device</th>
               <th class="px-3 py-2 text-left text-xs font-medium uppercase text-gray-500 dark:text-slate-400">Mountpoint</th>
+              <th class="px-3 py-2 text-left text-xs font-medium uppercase text-gray-500 dark:text-slate-400">Type</th>
               <th class="px-3 py-2 text-right text-xs font-medium uppercase text-gray-500 dark:text-slate-400">Total</th>
               <th class="px-3 py-2 text-right text-xs font-medium uppercase text-gray-500 dark:text-slate-400">Used</th>
               <th class="px-3 py-2 text-right text-xs font-medium uppercase text-gray-500 dark:text-slate-400">Free</th>
@@ -377,6 +406,7 @@
               <tr>
                 <td class="px-3 py-3 text-xs font-medium text-gray-900 dark:text-white"><%= disk["device"] %></td>
                 <td class="px-3 py-3 text-xs text-gray-500 dark:text-slate-400"><%= disk["mountpoint"] %></td>
+                <td class="px-3 py-3 text-xs text-gray-500 dark:text-slate-400 font-mono"><%= disk["fstype"] %></td>
                 <td class="px-3 py-3 text-xs text-right text-gray-900 dark:text-white"><%= format_bytes(disk["total"]) %></td>
                 <td class="px-3 py-3 text-xs text-right text-gray-900 dark:text-white"><%= format_bytes(disk["used"]) %></td>
                 <td class="px-3 py-3 text-xs text-right text-gray-900 dark:text-white"><%= format_bytes(disk["free"]) %></td>
@@ -455,23 +485,14 @@
     <p class="mt-1 text-sm text-gray-500 dark:text-slate-400">Trigger a collection to see detailed system information.</p>
     <% if current_user&.approver? %>
       <div class="mt-6">
-        <% if node.agent_push? %>
-          <%= button_to collect_node_path(node), 
-              method: :post,
-              class: "inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600",
-              data: { turbo_submits_with: "Collecting..." } do %>
-            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-            </svg>
-            Collect Now
-          <% end %>
-        <% else %>
-          <span class="inline-flex items-center gap-2 rounded-lg bg-gray-100 px-4 py-2 text-sm font-semibold text-gray-400 cursor-not-allowed dark:bg-white/5 dark:text-gray-500" title="hpc-agent is not installed">
-            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-            </svg>
-            Collect Now
-          </span>
+        <%= button_to collect_node_path(node), 
+            method: :post,
+            class: "inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600",
+            data: { turbo_submits_with: "Collecting..." } do %>
+          <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+          </svg>
+          Collect Now
         <% end %>
       </div>
     <% end %>
