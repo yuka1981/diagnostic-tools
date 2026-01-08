@@ -1,40 +1,43 @@
 <% content_for(:page_title) { @benchmark_recipe.display_name } %>
+<% content_for(:breadcrumbs) do %>
+  <span class="mx-2">/</span>
+  <%= link_to "Benchmark Recipes", benchmark_recipes_path, class: "hover:text-teal-600 font-bold" %>
+  <span class="mx-2">/</span>
+  <span class="font-medium text-slate-700"><%= @benchmark_recipe.name %></span>
+<% end %>
 
-<div class="mb-6">
-  <%= link_to benchmark_recipes_path, class: "inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 dark:text-slate-400 dark:hover:text-slate-300" do %>
-    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-    </svg>
-    Back to Recipes
-  <% end %>
+<div class="card-netbox mb-6">
+  <div class="card-header">
+    <h3 class="card-title">Recipe Details</h3>
+  </div>
+  <div class="p-0">
+    <table class="w-full text-sm text-left">
+      <tbody class="divide-y divide-slate-100">
+        <tr class="hover:bg-slate-50">
+          <th class="px-4 py-2 font-bold text-slate-700 w-1/3 border-r border-slate-200">Name</th>
+          <td class="px-4 py-2 text-slate-700 font-bold"><%= @benchmark_recipe.name %></td>
+        </tr>
+        <tr class="hover:bg-slate-50">
+          <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">Version</th>
+          <td class="px-4 py-2 text-slate-700"><%= @benchmark_recipe.version %></td>
+        </tr>
+        <tr class="hover:bg-slate-50">
+          <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">Total Runs</th>
+          <td class="px-4 py-2 text-slate-700"><%= @benchmark_recipe.benchmark_runs.count %></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
 </div>
 
-<div class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-200 dark:bg-slate-800/50 dark:ring-white/10">
-  <div class="flex items-start gap-6">
-    <div class="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 shadow-lg shadow-violet-500/20">
-      <svg class="h-8 w-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-          d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
-      </svg>
+<% if @benchmark_recipe.default_profile.present? %>
+  <div class="card-netbox">
+    <div class="card-header">
+      <h3 class="card-title">Default Profile</h3>
     </div>
-    <div class="flex-1">
-      <h2 class="text-2xl font-bold text-gray-900 dark:text-white"><%= @benchmark_recipe.name %></h2>
-      <p class="mt-1 text-gray-500 dark:text-slate-400">Version <%= @benchmark_recipe.version %></p>
-
-      <div class="mt-4">
-        <p class="text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-slate-400">Total Runs</p>
-        <p class="mt-1 text-sm font-semibold text-gray-900 dark:text-white"><%= @benchmark_recipe.benchmark_runs.count %></p>
-      </div>
+    <div class="p-4 bg-slate-50">
+      <pre class="text-xs text-slate-700 font-mono overflow-x-auto"><%= JSON.pretty_generate(@benchmark_recipe.default_profile) %></pre>
     </div>
   </div>
-
-  <% if @benchmark_recipe.default_profile.present? %>
-    <div class="mt-6">
-      <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Default Profile</h3>
-      <div class="rounded-xl bg-gray-50 p-4 dark:bg-white/5">
-        <pre class="text-sm text-gray-700 dark:text-slate-300 overflow-x-auto"><%= JSON.pretty_generate(@benchmark_recipe.default_profile) %></pre>
-      </div>
-    </div>
-  <% end %>
-</div>
+<% end %>
 

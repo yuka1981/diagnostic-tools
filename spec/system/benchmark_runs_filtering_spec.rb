@@ -218,13 +218,13 @@ RSpec.describe "Benchmark Runs Filtering", type: :system do
       visit benchmark_runs_path
 
       # Verify we're on page 1
-      expect(page).to have_content("Showing 1 to 20 of 25 results")
+      expect(page).to have_content(/Showing 1 to 20 of 25 results/i)
 
       # Click Next link
       click_link "Next"
 
       # Verify page 2 content
-      expect(page).to have_content("Showing 21 to 25 of 25 results", wait: 5)
+      expect(page).to have_content(/Showing 21 to 25 of 25 results/i, wait: 5)
 
       # First page has 20 rows, second page has 5 rows
       within("tbody") do
@@ -239,13 +239,13 @@ RSpec.describe "Benchmark Runs Filtering", type: :system do
       visit benchmark_runs_path(page: 2)
 
       # Verify we're on page 2
-      expect(page).to have_content("Showing 21 to 25 of 25 results")
+      expect(page).to have_content(/Showing 21 to 25 of 25 results/i)
 
       # Click Previous link
       click_link "Previous"
 
       # Verify page 1 content
-      expect(page).to have_content("Showing 1 to 20 of 25 results", wait: 5)
+      expect(page).to have_content(/Showing 1 to 20 of 25 results/i, wait: 5)
 
       within("tbody") do
         expect(page).to have_selector("tr", count: 20)
