@@ -1,5 +1,17 @@
 <div class="rounded-2xl bg-white shadow-sm ring-1 ring-gray-200 dark:bg-slate-800/50 dark:ring-white/10 overflow-hidden">
   <% if nodes.any? %>
+    <%# Filter Summary %>
+    <% if local_assigns[:filter]&.filtered? %>
+      <div class="border-b border-gray-200 bg-gray-50 px-6 py-3 dark:border-white/10 dark:bg-white/5">
+        <p class="text-sm text-gray-600 dark:text-slate-400">
+          Showing <%= pluralize(nodes.count, "node") %>
+          <% if filter.search_query.present? %>
+            matching <strong class="font-medium text-gray-900 dark:text-white">"<%= h(filter.search_query) %>"</strong>
+          <% end %>
+        </p>
+      </div>
+    <% end %>
+
     <table class="min-w-full divide-y divide-gray-200 dark:divide-white/5">
       <thead class="bg-gray-50 dark:bg-white/5">
         <tr>
@@ -17,6 +29,22 @@
         <%= render partial: "nodes/node", collection: nodes, as: :node %>
       </tbody>
     </table>
+  <% elsif local_assigns[:filter]&.filtered? %>
+    <div class="flex flex-col items-center justify-center py-12 text-center">
+      <svg class="h-12 w-12 text-gray-300 dark:text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" 
+          d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+      </svg>
+      <p class="mt-4 text-sm font-medium text-gray-500 dark:text-slate-400">
+        No nodes match your filters
+      </p>
+      <p class="mt-1 text-xs text-gray-400 dark:text-slate-500">
+        Try adjusting your search or filters
+      </p>
+      <%= link_to "Clear all filters", nodes_path,
+          data: { turbo_frame: "nodes_list" },
+          class: "mt-4 inline-flex items-center rounded-lg bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200 dark:bg-white/10 dark:text-slate-300 dark:hover:bg-white/20 transition-colors" %>
+    </div>
   <% else %>
     <div class="flex flex-col items-center justify-center py-20 text-center">
       <div class="h-20 w-20 rounded-full bg-slate-50 dark:bg-white/5 flex items-center justify-center mb-6">
