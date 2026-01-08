@@ -33,18 +33,22 @@ module Inventory
 
     def process_result(result)
       output = result.output
-      return error_result("Command returned empty output") if output.blank?
+      error = result.error
 
-      if output.include?("command not found")
+      if output.blank?
+        return error_result(error.presence || "Command returned empty output")
+      end
+
+      if error.present? && (error.include?("command not found") || output.include?("command not found"))
         return error_result("Agent not found at '#{@agent_path}'. Please check if it's installed and in the PATH.")
       end
 
-      if output.include?("Permission denied")
+      if error.present? && (error.include?("Permission denied") || output.include?("Permission denied"))
         return error_result("Permission denied when executing agent. Please check file permissions.")
       end
 
-      if output.start_with?("Error:")
-        return error_result("Agent error: #{output.sub("Error:", "").strip}")
+      if error.present? && error.start_with?("Error:")
+        return error_result("Agent error: #{error.sub("Error:", "").strip}")
       end
 
       begin
@@ -53,7 +57,10 @@ module Inventory
         Result.new(success: true, output: parsed)
       rescue JSON::ParserError
         return error_result(output) unless result.success?
-        error_result("JSON parse error: Unexpected command output: #{output.truncate(200)}")
+        
+        # If there's content but it's not JSON, check if it's an error message
+        combined_output = [error, output].reject(&:blank?).join("\n")
+        error_result("JSON parse error: Unexpected command output: #{combined_output.truncate(200)}")
       end
     end
 
@@ -92,7 +99,7 @@ module Inventory
     end
 
     def command
-      "#{Shellwords.escape(@agent_path)} collect --json 2>&1"
+      "#{Shellwords.escape(@agent_path)} collect --json"
     end
   end
 end
