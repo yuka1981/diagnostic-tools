@@ -41,6 +41,7 @@ Memory Device
 	Minimum Voltage: 1.2 V
 	Maximum Voltage: 1.2 V
 	Configured Voltage: 1.2 V
+	Firmware Version: 1.2.3
 	Locator: DIMM_A1
 	Bank Locator: P0_Node0_Channel0_Dimm0
 
@@ -71,6 +72,12 @@ Memory Device
 	}
 	if dmiInfo.Memory[0].Size != "32 GB" {
 		t.Errorf("expected Size 32 GB, got %s", dmiInfo.Memory[0].Size)
+	}
+	if dmiInfo.Memory[0].FormFactor != "DIMM" {
+		t.Errorf("expected Form Factor DIMM, got %s", dmiInfo.Memory[0].FormFactor)
+	}
+	if dmiInfo.Memory[0].FirmwareVersion != "1.2.3" {
+		t.Errorf("expected Firmware Version 1.2.3, got %s", dmiInfo.Memory[0].FirmwareVersion)
 	}
 	if dmiInfo.Memory[1].Size != "No Module Installed" {
 		t.Errorf("expected Size No Module Installed, got %s", dmiInfo.Memory[1].Size)

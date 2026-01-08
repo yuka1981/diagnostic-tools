@@ -2,7 +2,7 @@
 
 **Status**: Draft  
 **Priority**: High  
-**Target Version**: v0.6.x (Phase 1), v0.7.x (Phase 1)  
+**Target Version**: v0.6.x (Phase 2), v0.7.x (Phase 2)  
 **Related**: `AGENT.md`
 
 ## **1. Context & Roadmap**

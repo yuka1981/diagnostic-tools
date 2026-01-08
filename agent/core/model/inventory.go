@@ -107,6 +107,8 @@ type DIMMInfo struct {
 	MinVoltage        string `json:"min_voltage"`
 	MaxVoltage        string `json:"max_voltage"`
 	ConfiguredVoltage string `json:"configured_voltage"`
+	FirmwareVersion   string `json:"firmware_version"`
+	FormFactor        string `json:"form_factor"`
 }
 
 // HostDMIInfo aggregates DMI information.
