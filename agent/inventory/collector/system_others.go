@@ -37,3 +37,8 @@ func (c *SystemCollector) GetDiskInfo(ctx context.Context) ([]model.DiskInfo, er
 func (c *SystemCollector) GetNetInfo(ctx context.Context) ([]model.NetInfo, error) {
 	return nil, fmt.Errorf("not implemented on this OS")
 }
+
+func (c *SystemCollector) GetDMIInfo(ctx context.Context) (*model.HostDMIInfo, error) {
+	return nil, fmt.Errorf("not implemented on this OS")
+}
+

@@ -70,13 +70,61 @@ type NetInfo struct {
 	Up          bool     `json:"up"`              // Interface operational status
 }
 
+// SystemInfo represents DMI type 1 information.
+type SystemInfo struct {
+	Manufacturer string `json:"manufacturer"`
+	ProductName  string `json:"product_name"`
+	Version      string `json:"version"`
+	SerialNumber string `json:"serial_number"`
+	UUID         string `json:"uuid"`
+	SKU          string `json:"sku_number"`
+	Family       string `json:"family"`
+}
+
+// BIOSInfo represents DMI type 0 information.
+type BIOSInfo struct {
+	Vendor      string `json:"vendor"`
+	Version     string `json:"version"`
+	ReleaseDate string `json:"release_date"`
+	Address     string `json:"address"`
+	RuntimeSize string `json:"runtime_size"`
+	ROMSize     string `json:"rom_size"`
+}
+
+// DIMMInfo represents DMI type 17 information.
+type DIMMInfo struct {
+	Locator         string `json:"locator"`
+	BankLocator     string `json:"bank_locator"`
+	Size            string `json:"size"`
+	Type            string `json:"type"`
+	Speed           string `json:"speed"`
+	ConfiguredSpeed string `json:"configured_speed"`
+	Manufacturer    string `json:"manufacturer"`
+	PartNumber      string `json:"part_number"`
+	SerialNumber    string `json:"serial_number"`
+	AssetTag        string `json:"asset_tag"`
+	Rank            string `json:"rank"`
+	MinVoltage      string `json:"min_voltage"`
+	MaxVoltage      string `json:"max_voltage"`
+	ConfiguredVoltage string `json:"configured_voltage"`
+}
+
+// HostDMIInfo aggregates DMI information.
+type HostDMIInfo struct {
+	System SystemInfo `json:"system"`
+	BIOS   BIOSInfo   `json:"bios"`
+	Memory []DIMMInfo `json:"memory"`
+}
+
 // NodeState represents a snapshot of the node's complete inventory state.
 // This matches the structure expected by the backend for versioning.
 type NodeState struct {
-	Disks      []DiskInfo `json:"disks"`
-	Network    []NetInfo  `json:"network"`
-	CapturedAt time.Time  `json:"captured_at"`
-	Host       HostInfo   `json:"host"`
-	CPU        CPUInfo    `json:"cpu"`
-	Memory     MemoryInfo `json:"memory"`
+	Disks      []DiskInfo   `json:"disks"`
+	Network    []NetInfo    `json:"network"`
+	CapturedAt time.Time    `json:"captured_at"`
+	Host       HostInfo     `json:"host"`
+	CPU        CPUInfo      `json:"cpu"`
+	Memory     MemoryInfo   `json:"memory"`
+	DMI        *HostDMIInfo `json:"dmi,omitempty"`
 }
+

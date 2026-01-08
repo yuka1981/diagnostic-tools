@@ -19,7 +19,9 @@ type SystemCollector interface {
 	GetMemInfo(ctx context.Context) (*model.MemoryInfo, error)
 	GetDiskInfo(ctx context.Context) ([]model.DiskInfo, error)
 	GetNetInfo(ctx context.Context) ([]model.NetInfo, error)
+	GetDMIInfo(ctx context.Context) (*model.HostDMIInfo, error)
 }
+
 
 // Uploader defines the interface for sending data to a remote server.
 type Uploader interface {

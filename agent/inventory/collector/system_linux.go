@@ -17,6 +17,7 @@ type SystemCollector struct {
 	mem  *linux.LinuxMemoryCollector
 	disk *linux.LinuxDiskCollector
 	net  *linux.LinuxNetCollector
+	dmi  *linux.LinuxDMICollector
 }
 
 // NewSystemCollector creates a new system collector with Linux implementations.
@@ -27,6 +28,7 @@ func NewSystemCollector(runner ports.CommandRunner) *SystemCollector {
 		mem:  linux.NewLinuxMemoryCollector(),
 		disk: linux.NewLinuxDiskCollector(runner),
 		net:  linux.NewLinuxNetCollector(),
+		dmi:  linux.NewLinuxDMICollector(runner),
 	}
 }
 
@@ -54,3 +56,9 @@ func (c *SystemCollector) GetDiskInfo(ctx context.Context) ([]model.DiskInfo, er
 func (c *SystemCollector) GetNetInfo(ctx context.Context) ([]model.NetInfo, error) {
 	return c.net.Collect(ctx)
 }
+
+// GetDMIInfo collects DMI information.
+func (c *SystemCollector) GetDMIInfo(ctx context.Context) (*model.HostDMIInfo, error) {
+	return c.dmi.Collect(ctx)
+}
+

@@ -88,8 +88,10 @@ module Inventory
         cpu_info: cpu_data,
         mem_info: @raw_json[:memory] || {},
         disk_info: @raw_json[:disks] || [],
-        net_info: @raw_json[:network] || []
+        net_info: @raw_json[:network] || [],
+        dmi_info: @raw_json[:dmi] || {}
       }
+
     end
 
     def state_changed?(current_state, new_data)
