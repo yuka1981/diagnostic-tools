@@ -74,7 +74,7 @@
       
       <% if @filter.filtered? %>
         <%= link_to "Clear filters", nodes_path,
-            data: { turbo_frame: "nodes_list" },
+            data: { turbo_frame: "_top" },
             class: "inline-flex items-center rounded-none px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 dark:text-slate-400 dark:hover:text-white dark:hover:bg-white/10 transition-colors" %>
       <% end %>
     </div>
