@@ -43,7 +43,7 @@
           Try adjusting your search or filters
         </p>
         <%= link_to "Clear all filters", nodes_path,
-            data: { turbo_frame: "nodes_list" },
+            data: { turbo_frame: "_top" },
             class: "mt-4 btn-secondary" %>
       </div>
     <% else %>
