@@ -277,6 +277,51 @@ func TestParseCPUInfo_AArch64(t *testing.T) {
 	})
 }
 
+func TestParseCacheSize(t *testing.T) {
+	tests := []struct {
+		input  string
+		want   uint64
+		wantOk bool
+	}{
+		{"1024", 1024, true},
+		{"1K", 1024, true},
+		{"1M", 1024 * 1024, true},
+		{"1G", 1024 * 1024 * 1024, true},
+		{"invalid", 0, false},
+	}
+
+	for _, tt := range tests {
+		got, ok := parseCacheSize(tt.input)
+		if ok != tt.wantOk {
+			t.Errorf("parseCacheSize(%q) ok = %v, want %v", tt.input, ok, tt.wantOk)
+		}
+		if got != tt.want {
+			t.Errorf("parseCacheSize(%q) = %d, want %d", tt.input, got, tt.want)
+		}
+	}
+}
+
+func TestFormatCacheString(t *testing.T) {
+	tests := []struct {
+		want  string
+		bytes uint64
+		count int
+	}{
+		{"", 0, 0},
+		{"2.0 GiB (1 instance)", 1024 * 1024 * 1024 * 2, 1},
+		{"2.0 MiB (2 instances)", 1024 * 1024 * 2, 2},
+		{"2.0 KiB (1 instance)", 1024 * 2, 1},
+		{"512 B (1 instance)", 512, 1},
+	}
+
+	for _, tt := range tests {
+		got := formatCacheString(tt.bytes, tt.count)
+		if got != tt.want {
+			t.Errorf("formatCacheString(%d, %d) = %q, want %q", tt.bytes, tt.count, got, tt.want)
+		}
+	}
+}
+
 func TestNewLinuxCPUCollector(t *testing.T) {
 	collector := NewLinuxCPUCollector()
 
