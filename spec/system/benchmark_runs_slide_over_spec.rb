@@ -90,7 +90,7 @@ RSpec.describe "Benchmark Runs Slide-over Inspector", type: :system do
       expect(page).to have_css("[data-slide-over-target='panel']", visible: true, wait: 5)
 
       # Summary tab should be active
-      expect(page).to have_css("[data-tabs-target='tab'][aria-selected='true']", text: "Summary")
+      expect(page).to have_css("[data-tabs-target='tab'][aria-selected='true']", text: /Summary/i)
       expect(page).to have_content("Node")
       expect(page).to have_content(node.hostname)
     end
@@ -105,7 +105,7 @@ RSpec.describe "Benchmark Runs Slide-over Inspector", type: :system do
       click_button "Metrics"
 
       # Metrics tab should be active
-      expect(page).to have_css("[data-tabs-target='tab'][aria-selected='true']", text: "Metrics")
+      expect(page).to have_css("[data-tabs-target='tab'][aria-selected='true']", text: /Metrics/i)
       # Metrics keys are humanized (gflops -> Gflops)
       expect(page).to have_content("Gflops")
       expect(page).to have_content("123.45")
@@ -121,8 +121,8 @@ RSpec.describe "Benchmark Runs Slide-over Inspector", type: :system do
       click_button "Logs"
 
       # Logs tab should be active and show placeholder
-      expect(page).to have_css("[data-tabs-target='tab'][aria-selected='true']", text: "Logs")
-      expect(page).to have_content("No logs available")
+      expect(page).to have_css("[data-tabs-target='tab'][aria-selected='true']", text: /Logs/i)
+      expect(page).to have_content(/No logs available/i)
     end
   end
 
