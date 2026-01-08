@@ -11,8 +11,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/coder/websocket"
-	"github.com/coder/websocket/wsjson"
+	"nhooyr.io/websocket"        //nolint:staticcheck // Deprecated but required for Go 1.22 compatibility
+	"nhooyr.io/websocket/wsjson" //nolint:staticcheck // Deprecated but required for Go 1.22 compatibility
 )
 
 const (
@@ -36,7 +36,7 @@ type Responder interface {
 
 // Client manages the WebSocket connection to the server
 type Client struct {
-	conn      *websocket.Conn
+	conn      *websocket.Conn //nolint:staticcheck // Deprecated but required for Go 1.22 compatibility
 	handler   CommandHandler
 	serverURL string
 	token     string
@@ -97,7 +97,7 @@ func (c *Client) connectAndListen(ctx context.Context) error {
 	c.writeMu.Unlock()
 
 	defer func() {
-		conn.Close(websocket.StatusInternalError, "connection closed")
+		conn.Close(websocket.StatusInternalError, "connection closed") //nolint:staticcheck // Deprecated but required for Go 1.22 compatibility
 
 		c.writeMu.Lock()
 		defer c.writeMu.Unlock()
@@ -113,10 +113,11 @@ func (c *Client) connectAndListen(ctx context.Context) error {
 	return c.readLoop(ctx, conn)
 }
 
+//nolint:staticcheck // Deprecated but required for Go 1.22 compatibility
 func (c *Client) dial(ctx context.Context) (*websocket.Conn, error) {
 	wsURL := c.prepareURL()
 
-	opts := &websocket.DialOptions{
+	opts := &websocket.DialOptions{ //nolint:staticcheck // Deprecated but required for Go 1.22 compatibility
 		HTTPHeader: http.Header{
 			"X-Node-ID": []string{c.nodeID},
 		},
@@ -126,6 +127,7 @@ func (c *Client) dial(ctx context.Context) (*websocket.Conn, error) {
 	}
 
 	log.Printf("Connecting to %s...", wsURL)
+	//nolint:staticcheck // Deprecated but required for Go 1.22 compatibility
 	conn, resp, err := websocket.Dial(ctx, wsURL, opts)
 	if resp != nil && resp.Body != nil {
 		resp.Body.Close()
@@ -136,6 +138,7 @@ func (c *Client) dial(ctx context.Context) (*websocket.Conn, error) {
 	return conn, nil
 }
 
+//nolint:staticcheck // Deprecated but required for Go 1.22 compatibility
 func (c *Client) subscribe(ctx context.Context, conn *websocket.Conn) error {
 	identifier := fmt.Sprintf(`{"channel":%q}`, DefaultChannel)
 	subscribeMsg := map[string]interface{}{
@@ -152,6 +155,7 @@ func (c *Client) subscribe(ctx context.Context, conn *websocket.Conn) error {
 	return nil
 }
 
+//nolint:staticcheck // Deprecated but required for Go 1.22 compatibility
 func (c *Client) readLoop(ctx context.Context, conn *websocket.Conn) error {
 	for {
 		var msg map[string]interface{}

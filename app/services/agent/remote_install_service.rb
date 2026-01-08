@@ -10,7 +10,7 @@ module Agent
     BASTION_TMP_PATH = "/tmp/agent_bin"
     TARGET_BIN_PATH = "/usr/local/bin/hpc-agent"
 
-    def initialize(target_host:, arch:, bastion_user: nil, bastion_host: nil, bastion_password: nil, sudo_password:, local_binary_path:, server_url: nil, agent_token: nil, on_progress: nil)
+    def initialize(target_host:, arch:, bastion_user: nil, bastion_host: nil, bastion_password: nil, sudo_password:, local_binary_path:, server_url: nil, agent_token: nil, node: nil, on_progress: nil)
       @target_host = target_host
       validate_target_host!
 
@@ -22,6 +22,7 @@ module Agent
       @local_binary_path = local_binary_path
       @server_url = server_url || ENV.fetch("APP_URL", "http://localhost:3000")
       @agent_token = agent_token || Rails.application.credentials.dig(:api, :agent_token) || ENV["AGENT_TOKEN"]
+      @node = node
       @on_progress = on_progress
     end
 
@@ -154,6 +155,9 @@ module Agent
 
     def report_progress(message)
       @on_progress&.call(message)
+
+      # Also stream step description to terminal for transparency
+      report_log("==> #{message}", "meta")
     end
 
     def validate_target_host!
@@ -180,8 +184,18 @@ module Agent
             channel.send_data("#{password}\n")
           end
 
-          channel.on_data { |_c, data| stdout += data }
-          channel.on_extended_data { |_c, _type, data| stderr += data }
+          channel.on_data do |_c, data|
+            stdout += data
+            report_log(data, "stdout")
+          end
+          channel.on_extended_data do |_c, _type, data|
+            stderr += data
+            report_log(data, "stderr")
+            # Force newline after sudo prompt so subsequent output starts on a new line
+            if data.match?(/\[sudo\] password for .*: /)
+              report_log("\n", "stderr")
+            end
+          end
           channel.on_request("exit-status") { |_c, data| exit_code = data.read_long }
         end
       end
@@ -198,6 +212,12 @@ module Agent
       end
 
       stdout
+    end
+
+    def report_log(data, stream)
+      return unless @node
+
+      ActionCable.server.broadcast("node_logs_#{@node.id}", { log: data, stream: stream })
     end
   end
 end

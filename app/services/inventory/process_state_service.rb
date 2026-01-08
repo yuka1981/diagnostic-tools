@@ -2,6 +2,8 @@
 
 module Inventory
   class ProcessStateService
+    include ActionView::RecordIdentifier
+
     # Error codes for proper error classification
     ERROR_CODES = {
       not_found: :not_found,
@@ -57,11 +59,23 @@ module Inventory
       current_state = node.current_state
       new_state_data = build_state_data
 
-      if state_changed?(current_state, new_state_data)
-        create_new_state(node, new_state_data)
+      result = if state_changed?(current_state, new_state_data)
+                 create_new_state(node, new_state_data)
       else
-        touch_node(node, current_state)
+                 touch_node(node, current_state)
       end
+
+      broadcast_update(node, result.node_state) if result.success?
+      result
+    end
+
+    def broadcast_update(node, state)
+      Turbo::StreamsChannel.broadcast_replace_to(
+        node,
+        target: ActionView::RecordIdentifier.dom_id(node, :details),
+        partial: "nodes/details",
+        locals: { node: node, selected_state: state, current_user: nil }
+      )
     end
 
     def build_state_data
@@ -95,10 +109,12 @@ module Inventory
 
       node.touch_last_seen
 
+      # Reload to ensure JSONB attributes have String keys (Rails behavior consistency)
+      # This prevents view errors when accessing keys as strings immediately after creation
       Result.new(
         success: true,
         state_created: true,
-        node_state: node_state
+        node_state: node_state.reload
       )
     rescue ActiveRecord::RecordInvalid => e
       error_result("Failed to create NodeState: #{e.message}", :internal_error)

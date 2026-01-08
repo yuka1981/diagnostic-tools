@@ -23,13 +23,13 @@ class SshExecutionService
 
   private
 
-  def execute_ssh_command(cmd)
+  def execute_ssh_command(cmd, &block)
     if direct_connection_required?
-      execute_direct(cmd)
+      execute_direct(cmd, &block)
     elsif use_jump_host?
-      execute_via_gateway(cmd)
+      execute_via_gateway(cmd, &block)
     else
-      execute_direct(cmd)
+      execute_direct(cmd, &block)
     end
   end
 
@@ -53,19 +53,17 @@ class SshExecutionService
     false
   end
 
-  def execute_direct(cmd)
+  def execute_direct(cmd, &block)
     host = ssh_host
     user = target_user
     options = target_options
 
-    output = Net::SSH.start(host, user, options) do |session|
-      session.exec!(cmd)
+    Net::SSH.start(host, user, options) do |session|
+      execute_on_session(session, cmd, &block)
     end
-
-    Result.new(success: true, output: output)
   end
 
-  def execute_via_gateway(cmd)
+  def execute_via_gateway(cmd, &block)
     gateway_host = @target_node.jump_host.presence || ::SshConfig.jump_host
     gateway_user = @target_node.jump_user.presence || ::SshConfig.jump_user || @ssh_config[:user]
     gateway_port = @target_node.jump_port || ::SshConfig.jump_port
@@ -75,12 +73,50 @@ class SshExecutionService
 
     begin
       output = gateway.ssh(@target_node.ip || @target_node.hostname, target_user, target_options) do |session|
-        session.exec!(cmd)
+        execute_on_session(session, cmd, &block)
       end
-      Result.new(success: true, output: output)
+      # When using gateway.ssh block return value is returned.
+      output
     ensure
       gateway.shutdown!
     end
+  end
+
+  def execute_on_session(session, cmd)
+    stdout_data = ""
+    stderr_data = ""
+    exit_code = nil
+    exit_signal = nil
+
+    channel = session.open_channel do |ch|
+      ch.exec(cmd) do |c, success|
+        raise "Could not execute command" unless success
+
+        c.on_data do |_, data|
+          stdout_data += data
+          yield(data, :stdout) if block_given?
+        end
+
+        c.on_extended_data do |_, data|
+          stderr_data += data
+          yield(data, :stderr) if block_given?
+        end
+
+        c.on_request("exit-status") do |_, data|
+          exit_code = data.read_long
+        end
+
+        c.on_request("exit-signal") do |_, data|
+          exit_signal = data.read_long
+        end
+      end
+    end
+    session.loop
+
+    success = exit_code == 0 && exit_signal.nil?
+    Result.new(success: success, output: stdout_data, error: stderr_data)
+  rescue StandardError => e
+    Result.new(success: false, output: stdout_data, error: e.message)
   end
 
   def target_user

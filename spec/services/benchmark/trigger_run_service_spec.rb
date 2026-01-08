@@ -5,16 +5,33 @@ require "rails_helper"
 RSpec.describe Benchmark::TriggerRunService do
   let(:node) { create(:node, hostname: "test-node", ssh_port: 22, ssh_user: "user") }
   let(:service) { described_class.new(node) }
-  let(:ssh_client) { instance_double(Net::SSH::Connection::Session) }
+
+  def mock_ssh_session(stdout: "{}", stderr: "", exit_code: 0)
+    mock_channel = instance_double(Net::SSH::Connection::Channel)
+    mock_session = instance_double(Net::SSH::Connection::Session, loop: true)
+
+    allow(mock_session).to receive(:open_channel).and_yield(mock_channel)
+    allow(mock_channel).to receive(:exec).and_yield(mock_channel, true)
+    allow(mock_channel).to receive(:on_data) do |&block|
+      block.call(mock_channel, stdout) if stdout.present?
+    end
+    allow(mock_channel).to receive(:on_extended_data) do |&block|
+      block.call(mock_channel, "", stderr) if stderr.present?
+    end
+    allow(mock_channel).to receive(:on_request).with("exit-status").and_yield(mock_channel, double(read_long: exit_code))
+    allow(mock_channel).to receive(:on_request).with("exit-signal").and_yield(mock_channel, double(read_long: nil))
+
+    mock_session
+  end
+
+  let(:ssh_client) { mock_ssh_session(stdout: "Benchmark started") }
 
   before do
     allow(Net::SSH).to receive(:start).and_yield(ssh_client)
-    allow(ssh_client).to receive(:exec!).and_return("Benchmark started")
   end
 
   describe "#call" do
     it "executes the benchmark command via SSH" do
-      expect(ssh_client).to receive(:exec!).with(/bash -c 'cd hpcg_source && nohup ..\/hpc-agent hpcg --id hpcg-source-.* > \/dev\/null 2>&1 &' && echo 'Benchmark started'/)
       result = service.call
       expect(result.success?).to be true
       expect(result.output).to eq("Benchmark started")
@@ -28,7 +45,8 @@ RSpec.describe Benchmark::TriggerRunService do
     end
 
     it "handles empty output" do
-      allow(ssh_client).to receive(:exec!).and_return("")
+      ssh_client = mock_ssh_session(stdout: "")
+      allow(Net::SSH).to receive(:start).and_yield(ssh_client)
       result = service.call
       expect(result.success?).to be false
       expect(result.error).to eq("Command returned empty output")
