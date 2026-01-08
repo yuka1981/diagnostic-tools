@@ -127,7 +127,7 @@ func (c *Client) dial(ctx context.Context) (*websocket.Conn, error) {
 	}
 
 	log.Printf("Connecting to %s...", wsURL)
-	//nolint:bodyclose,staticcheck // Response body is not closed by Dial on success, deprecated
+	//nolint:staticcheck // Deprecated but required for Go 1.22 compatibility
 	conn, resp, err := websocket.Dial(ctx, wsURL, opts)
 	if resp != nil && resp.Body != nil {
 		resp.Body.Close()
