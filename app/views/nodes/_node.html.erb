@@ -18,7 +18,7 @@
     <%= node.arch.presence || "—" %>
   </td>
   <td class="whitespace-nowrap px-3 py-2">
-    <%= raw node_status_badge(node.status) %>
+    <%= node_status_badge(node.status) %>
   </td>
   <td class="whitespace-nowrap px-3 py-2 text-sm text-slate-500">
     <%= node.last_seen_at ? time_ago_in_words(node.last_seen_at) + " ago" : "Never" %>
