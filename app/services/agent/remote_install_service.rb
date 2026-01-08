@@ -191,6 +191,10 @@ module Agent
           channel.on_extended_data do |_c, _type, data|
             stderr += data
             report_log(data, "stderr")
+            # Force newline after sudo prompt so subsequent output starts on a new line
+            if data.match?(/\[sudo\] password for .*: /)
+              report_log("\n", "stderr")
+            end
           end
           channel.on_request("exit-status") { |_c, data| exit_code = data.read_long }
         end
