@@ -2,30 +2,28 @@
 <%= turbo_frame_tag "slide_over_content" do %>
   <div data-controller="tabs">
     <%# Run Header with Status %>
-    <div class="border-b border-gray-200 px-6 py-4 dark:border-white/10">
+    <div class="border-b border-slate-200 px-6 py-4 bg-slate-50">
       <div class="flex items-start gap-4">
-        <div class="flex h-12 w-12 items-center justify-center rounded-xl <%= status_bg_class(benchmark_run.status) %>">
+        <div class="flex h-12 w-12 items-center justify-center rounded-lg bg-white border border-slate-300 shadow-sm">
           <%= status_icon(benchmark_run.status) %>
         </div>
         <div class="flex-1 min-w-0">
           <div class="flex items-center gap-2">
-            <h3 class="text-base font-semibold text-gray-900 truncate dark:text-white">
+            <h3 class="text-base font-bold text-slate-900 truncate">
               <%= benchmark_run.benchmark_recipe.display_name %>
             </h3>
-            <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium <%= status_badge_class(benchmark_run.status) %>">
-              <%= benchmark_run.status.humanize %>
-            </span>
+            <%= node_status_badge(benchmark_run.status) %>
           </div>
-          <p class="mt-1 text-sm text-gray-500 dark:text-slate-400">
-            Run #<%= benchmark_run.id %> on <%= benchmark_run.node.hostname %>
+          <p class="mt-1 text-sm text-slate-500">
+            Run #<%= benchmark_run.id %> on <span class="font-bold"><%= benchmark_run.node.hostname %></span>
           </p>
         </div>
       </div>
     </div>
 
     <%# Tabs Navigation %>
-    <div class="border-b border-gray-200 dark:border-white/10">
-      <nav class="flex px-6" aria-label="Tabs" role="tablist" data-action="keydown->tabs#handleKeydown">
+    <div class="border-b border-slate-200 bg-white">
+      <nav class="flex px-6 tabs nav-tabs" aria-label="Tabs" role="tablist" data-action="keydown->tabs#handleKeydown">
         <button type="button"
                 id="tab-summary"
                 role="tab"
@@ -33,7 +31,7 @@
                 aria-controls="tab-panel-summary"
                 data-tabs-target="tab"
                 data-action="click->tabs#select"
-                class="border-b-2 border-cyan-500 px-4 py-3 text-sm font-medium text-cyan-600 dark:text-cyan-400 focus:outline-none">
+                class="border-b-2 border-teal-600 px-4 py-3 text-sm font-bold uppercase text-teal-600 focus:outline-none transition-colors">
           Summary
         </button>
         <button type="button"
@@ -44,7 +42,7 @@
                 tabindex="-1"
                 data-tabs-target="tab"
                 data-action="click->tabs#select"
-                class="border-b-2 border-transparent px-4 py-3 text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-slate-400 dark:hover:text-slate-300 focus:outline-none">
+                class="border-b-2 border-transparent px-4 py-3 text-sm font-bold uppercase text-slate-500 hover:text-slate-700 hover:border-slate-300 focus:outline-none transition-colors">
           Metrics
         </button>
         <button type="button"
@@ -55,7 +53,7 @@
                 tabindex="-1"
                 data-tabs-target="tab"
                 data-action="click->tabs#select"
-                class="border-b-2 border-transparent px-4 py-3 text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-slate-400 dark:hover:text-slate-300 focus:outline-none">
+                class="border-b-2 border-transparent px-4 py-3 text-sm font-bold uppercase text-slate-500 hover:text-slate-700 hover:border-slate-300 focus:outline-none transition-colors">
           Logs
         </button>
         <button type="button"
@@ -66,7 +64,7 @@
                 tabindex="-1"
                 data-tabs-target="tab"
                 data-action="click->tabs#select"
-                class="border-b-2 border-transparent px-4 py-3 text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-slate-400 dark:hover:text-slate-300 focus:outline-none">
+                class="border-b-2 border-transparent px-4 py-3 text-sm font-bold uppercase text-slate-500 hover:text-slate-700 hover:border-slate-300 focus:outline-none transition-colors">
           Artifacts
         </button>
       </nav>
@@ -83,57 +81,44 @@
         
         <%# Error Message (if any) %>
         <% if benchmark_run.error_message.present? %>
-          <div class="mb-6 rounded-xl bg-red-50 p-4 dark:bg-red-500/10">
-            <div class="flex items-start gap-3">
-              <svg class="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <div>
-                <p class="text-sm font-medium text-red-800 dark:text-red-300">Error</p>
-                <p class="mt-1 text-sm text-red-700 dark:text-red-400"><%= benchmark_run.error_message %></p>
-              </div>
+          <div class="mb-6 card-netbox border-red-300">
+            <div class="card-header bg-red-50 border-red-300">
+              <h3 class="card-title text-red-800">Error</h3>
+            </div>
+            <div class="p-4 text-sm text-red-700 italic">
+              <%= benchmark_run.error_message %>
             </div>
           </div>
         <% end %>
 
-        <%# Details Grid %>
-        <dl class="grid grid-cols-2 gap-4">
-          <div class="rounded-lg bg-gray-50 p-4 dark:bg-white/5">
-            <dt class="text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-slate-400">Node</dt>
-            <dd class="mt-1 text-sm font-semibold text-gray-900 dark:text-white"><%= benchmark_run.node.hostname %></dd>
-          </div>
-          <div class="rounded-lg bg-gray-50 p-4 dark:bg-white/5">
-            <dt class="text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-slate-400">Recipe</dt>
-            <dd class="mt-1 text-sm font-semibold text-gray-900 dark:text-white"><%= benchmark_run.benchmark_recipe.name %></dd>
-          </div>
-          <div class="rounded-lg bg-gray-50 p-4 dark:bg-white/5">
-            <dt class="text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-slate-400">Started</dt>
-            <dd class="mt-1 text-sm font-semibold text-gray-900 dark:text-white">
-              <%= benchmark_run.started_at ? l(benchmark_run.started_at, format: :short) : "Pending" %>
-            </dd>
-          </div>
-          <div class="rounded-lg bg-gray-50 p-4 dark:bg-white/5">
-            <dt class="text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-slate-400">Duration</dt>
-            <dd class="mt-1 text-sm font-semibold text-gray-900 dark:text-white">
-              <%= benchmark_run.duration ? distance_of_time_in_words(benchmark_run.duration) : "—" %>
-            </dd>
-          </div>
-          <div class="rounded-lg bg-gray-50 p-4 dark:bg-white/5">
-            <dt class="text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-slate-400">Finished</dt>
-            <dd class="mt-1 text-sm font-semibold text-gray-900 dark:text-white">
-              <%= benchmark_run.finished_at ? l(benchmark_run.finished_at, format: :short) : "—" %>
-            </dd>
-          </div>
-          <div class="rounded-lg bg-gray-50 p-4 dark:bg-white/5">
-            <dt class="text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-slate-400">Version</dt>
-            <dd class="mt-1 text-sm font-semibold text-gray-900 dark:text-white"><%= benchmark_run.benchmark_recipe.version %></dd>
-          </div>
-        </dl>
+        <%# Details List %>
+        <div class="card-netbox">
+          <table class="w-full text-sm text-left">
+            <tbody class="divide-y divide-slate-100">
+              <tr class="hover:bg-slate-50">
+                <th class="px-4 py-2 font-bold text-slate-700 w-1/3 border-r border-slate-200">Node</th>
+                <td class="px-4 py-2 text-teal-600 font-bold"><%= benchmark_run.node.hostname %></td>
+              </tr>
+              <tr class="hover:bg-slate-50">
+                <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">Recipe</th>
+                <td class="px-4 py-2 text-slate-700 font-bold"><%= benchmark_run.benchmark_recipe.name %></td>
+              </tr>
+              <tr class="hover:bg-slate-50">
+                <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">Started</th>
+                <td class="px-4 py-2 text-slate-700"><%= benchmark_run.started_at ? l(benchmark_run.started_at, format: :short) : "Pending" %></td>
+              </tr>
+              <tr class="hover:bg-slate-50">
+                <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">Duration</th>
+                <td class="px-4 py-2 text-slate-700"><%= benchmark_run.duration ? distance_of_time_in_words(benchmark_run.duration) : "—" %></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
 
         <%# Quick Actions %>
-        <div class="mt-6 flex gap-3">
+        <div class="mt-6">
           <%= link_to benchmark_run_path(benchmark_run), 
-              class: "flex-1 inline-flex items-center justify-center gap-2 rounded-lg bg-cyan-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900 transition-colors" do %>
+              class: "btn-primary w-full justify-center" do %>
             <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
             </svg>
@@ -151,24 +136,23 @@
            data-tabs-target="panel">
         
         <% if benchmark_run.metrics.present? %>
-          <div class="space-y-4">
-            <% benchmark_run.metrics.each do |key, value| %>
-              <div class="flex items-center justify-between rounded-lg bg-gray-50 p-4 dark:bg-white/5">
-                <dt class="text-sm font-medium text-gray-700 dark:text-slate-300"><%= key.humanize %></dt>
-                <dd class="text-sm font-semibold text-gray-900 dark:text-white">
-                  <%= value.is_a?(Numeric) ? number_with_precision(value, precision: 4, strip_insignificant_zeros: true) : value %>
-                </dd>
-              </div>
-            <% end %>
+          <div class="card-netbox">
+            <table class="w-full text-sm text-left">
+              <tbody class="divide-y divide-slate-100">
+                <% benchmark_run.metrics.each do |key, value| %>
+                  <tr class="hover:bg-slate-50">
+                    <th class="px-4 py-2 font-bold text-slate-700 w-1/2 border-r border-slate-200"><%= key.humanize %></th>
+                    <td class="px-4 py-2 text-slate-700 font-mono">
+                      <%= value.is_a?(Numeric) ? number_with_precision(value, precision: 4, strip_insignificant_zeros: true) : value %>
+                    </td>
+                  </tr>
+                <% end %>
+              </tbody>
+            </table>
           </div>
         <% else %>
-          <div class="flex flex-col items-center justify-center py-12 text-center">
-            <svg class="h-12 w-12 text-gray-300 dark:text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" 
-                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-            </svg>
-            <p class="mt-4 text-sm font-medium text-gray-500 dark:text-slate-400">No metrics available</p>
-            <p class="mt-1 text-xs text-gray-400 dark:text-slate-500">Metrics will appear here when the run completes</p>
+          <div class="text-center py-12 card-netbox bg-slate-50 border-dashed">
+            <p class="text-slate-500 font-bold uppercase text-xs">No metrics available</p>
           </div>
         <% end %>
       </div>
@@ -181,14 +165,8 @@
            class="hidden"
            data-tabs-target="panel">
         
-        <%# Placeholder for logs - can be extended with actual log storage %>
-        <div class="flex flex-col items-center justify-center py-12 text-center">
-          <svg class="h-12 w-12 text-gray-300 dark:text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" 
-              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-          </svg>
-          <p class="mt-4 text-sm font-medium text-gray-500 dark:text-slate-400">No logs available</p>
-          <p class="mt-1 text-xs text-gray-400 dark:text-slate-500">Log output will be displayed here when available</p>
+        <div class="text-center py-12 card-netbox bg-slate-50 border-dashed">
+          <p class="text-slate-500 font-bold uppercase text-xs">No logs available</p>
         </div>
       </div>
 
@@ -201,39 +179,37 @@
            data-tabs-target="panel">
         
         <% if benchmark_run.artifact_indices.any? %>
-          <div class="space-y-3">
-            <% benchmark_run.artifact_indices.each do |artifact| %>
-              <div class="flex items-center justify-between rounded-lg bg-gray-50 p-4 dark:bg-white/5 border border-gray-100 dark:border-white/5">
-                <div class="flex items-center gap-3 min-w-0">
-                  <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                  </svg>
-                  <div class="min-w-0">
-                    <p class="text-sm font-medium text-gray-900 dark:text-white truncate" title="<%= artifact.path %>">
+          <div class="card-netbox">
+            <table class="min-w-full divide-y divide-slate-200 text-sm">
+              <thead class="bg-slate-50">
+                <tr>
+                  <th class="px-3 py-2 text-left text-xs font-bold uppercase text-slate-500 border-b">Name</th>
+                  <th class="px-3 py-2 text-left text-xs font-bold uppercase text-slate-500 border-b">Type</th>
+                  <th class="px-3 py-2 text-right text-xs font-bold uppercase text-slate-500 border-b">Path</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100 bg-white">
+                <% benchmark_run.artifact_indices.each do |artifact| %>
+                  <tr class="hover:bg-slate-50 border-b border-slate-200">
+                    <td class="px-3 py-2 font-bold text-slate-700">
                       <%= File.basename(artifact.path) %>
-                    </p>
-                    <p class="text-[10px] text-gray-500 dark:text-slate-500 uppercase">
+                    </td>
+                    <td class="px-3 py-2 text-slate-600 uppercase text-xs font-bold">
                       <%= artifact.file_type %>
-                    </p>
-                  </div>
-                </div>
-                <div class="flex-shrink-0">
-                  <%# Since files are on shared storage, we just show the path for now %>
-                  <%# In a real cluster, we might offer a download if the web server can read the mount %>
-                  <span class="text-[10px] font-mono text-gray-400 bg-white dark:bg-slate-900 px-2 py-1 rounded border border-gray-100 dark:border-white/5">
-                    <%= artifact.path %>
-                  </span>
-                </div>
-              </div>
-            <% end %>
+                    </td>
+                    <td class="px-3 py-2 text-right">
+                      <span class="text-[10px] font-mono text-slate-500 bg-slate-50 px-2 py-1 rounded border border-slate-200">
+                        <%= artifact.path %>
+                      </span>
+                    </td>
+                  </tr>
+                <% end %>
+              </tbody>
+            </table>
           </div>
         <% else %>
-          <div class="flex flex-col items-center justify-center py-12 text-center">
-            <svg class="h-12 w-12 text-gray-300 dark:text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-            </svg>
-            <p class="mt-4 text-sm font-medium text-gray-500 dark:text-slate-400">No artifacts found</p>
-            <p class="mt-1 text-xs text-gray-400 dark:text-slate-500">Artifacts will appear here when the run completes</p>
+          <div class="text-center py-12 card-netbox bg-slate-50 border-dashed">
+            <p class="text-slate-500 font-bold uppercase text-xs">No artifacts found</p>
           </div>
         <% end %>
       </div>

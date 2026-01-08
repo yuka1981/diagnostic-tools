@@ -1,8 +1,8 @@
 <div class="grid grid-cols-12 gap-6 mb-6">
   <!-- Left Column: Info Panel -->
   <div class="col-span-12 lg:col-span-6">
-    <div class="card border border-slate-300 shadow-sm rounded bg-white">
-      <div class="card-header bg-slate-50 px-4 py-2 border-b border-slate-300">
+        <div class="card-netbox">
+      <div class="card-header">
         <h3 class="card-title text-xs font-bold text-slate-500 uppercase">Node Details</h3>
       </div>
       <div class="p-0">
@@ -36,8 +36,8 @@
 
   <!-- Right Column: Stats/Hardware Panel -->
   <div class="col-span-12 lg:col-span-6">
-    <div class="card border border-slate-300 shadow-sm rounded bg-white">
-      <div class="card-header bg-slate-50 px-4 py-2 border-b border-slate-300">
+        <div class="card-netbox">
+      <div class="card-header">
         <h3 class="card-title text-xs font-bold text-slate-500 uppercase">Latest Benchmark</h3>
       </div>
       <div class="p-4">
@@ -48,8 +48,8 @@
 </div>
 
 <!-- Bottom Section: Recent Benchmarks -->
-<div class="card border border-slate-300 shadow-sm rounded bg-white">
-  <div class="card-header bg-slate-50 px-4 py-2 border-b border-slate-300 flex items-center justify-between">
+    <div class="card-netbox">
+  <div class="card-header">
     <h3 class="card-title text-xs font-bold text-slate-500 uppercase">Recent Benchmark Runs</h3>
     <%= link_to "View All", node_benchmark_runs_path(node), class: "text-xs font-bold text-teal-600 hover:underline" %>
   </div>
