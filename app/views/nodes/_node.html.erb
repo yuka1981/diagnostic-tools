@@ -1,20 +1,18 @@
-<tr id="<%= dom_id(node) %>" class="hover:bg-slate-50 transition-colors group">
+<tr id="<%= dom_id(node) %>" class="bg-white hover:bg-teal-50 border-b border-slate-200 transition-colors group">
   <td class="whitespace-nowrap px-3 py-2">
     <div class="flex items-center gap-3">
       <div>
-        <p class="text-sm font-medium text-slate-900 group-hover:text-teal-600 transition-colors"><%= link_to node.hostname, node_path(node) %></p>
+        <p class="text-sm font-bold text-teal-600 hover:underline"><%= link_to node.hostname, node_path(node) %></p>
         <% if node.ip.present? %>
           <p class="text-xs text-slate-500 font-mono"><%= node.ip %></p>
         <% end %>
       </div>
     </div>
   </td>
-  <td class="whitespace-nowrap px-3 py-2">
-    <span class="inline-flex items-center rounded-sm px-2 py-0.5 text-xs font-medium <%= role_badge_class(node.role) %>">
-      <%= node.role.humanize %>
-    </span>
+  <td class="whitespace-nowrap px-3 py-2 text-sm text-slate-700">
+    <%= node.role.humanize %>
   </td>
-  <td class="whitespace-nowrap px-3 py-2 text-sm text-slate-600">
+  <td class="whitespace-nowrap px-3 py-2 text-sm text-slate-700">
     <%= node.arch.presence || "—" %>
   </td>
   <td class="whitespace-nowrap px-3 py-2">
@@ -24,7 +22,7 @@
     <%= node.last_seen_at ? time_ago_in_words(node.last_seen_at) + " ago" : "Never" %>
   </td>
   <td class="whitespace-nowrap px-3 py-2 text-right text-sm font-medium">
-    <div class="flex items-center justify-end gap-2 transition-opacity">
+    <div class="flex items-center justify-end gap-2">
       <% if current_user.approver? %>
         <%# Install Action %>
         <% if node.agent_push? %>
@@ -35,7 +33,7 @@
            </span>
         <% else %>
            <%= link_to new_node_install_path(hostname: node.hostname, arch: node.arch),
-               class: "text-slate-400 hover:text-teal-600 transition-colors",
+               class: "text-slate-400 hover:text-blue-600 transition-colors",
                title: "Install Agent",
                data: { turbo_frame: "install_modal" } do %>
              <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -75,7 +73,7 @@
       <% end %>
 
       <%= link_to edit_node_path(node), 
-          class: "text-slate-400 hover:text-amber-600 transition-colors",
+          class: "text-slate-400 hover:text-blue-600 transition-colors",
           title: "Edit",
           data: { turbo_frame: "node_modal" } do %>
         <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -86,7 +84,7 @@
       <% if current_user.approver? %>
         <%= button_to node_path(node),
             method: :delete,
-            class: "text-slate-400 hover:text-red-600 transition-colors",
+            class: "text-slate-400 hover:text-blue-600 transition-colors",
             title: "Delete",
             data: { turbo_confirm: "Are you sure you want to delete this node?" } do %>
           <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

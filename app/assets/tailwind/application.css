@@ -4,22 +4,47 @@
 @variant dark (&:where(.dark, .dark *));
 
 @layer components {
+
   .card {
+
     @apply bg-white shadow-sm ring-1 ring-slate-200 rounded-lg overflow-hidden;
+
   }
+
+  .card-netbox {
+
+    @apply bg-white shadow-sm border border-slate-300 rounded overflow-hidden;
+
+  }
+
   .card-header {
-    @apply px-4 py-3 border-b border-slate-200 bg-slate-50 flex items-center justify-between;
+
+    @apply px-4 py-2 border-b border-slate-300 bg-slate-50 flex items-center justify-between;
+
   }
+
   .card-title {
-    @apply text-sm font-bold text-slate-700 uppercase tracking-wide;
+
+    @apply text-xs font-bold text-slate-500 uppercase tracking-wider;
+
   }
+
   .btn-primary {
-    @apply bg-teal-600 hover:bg-teal-700 text-white font-medium py-2 px-4 rounded shadow-sm focus:ring-2 focus:ring-teal-500 transition-colors inline-flex items-center gap-2 text-sm;
+
+    @apply bg-teal-600 hover:bg-teal-700 text-white font-bold py-1.5 px-3 rounded shadow-sm focus:ring-2 focus:ring-teal-500 transition-colors inline-flex items-center gap-2 text-sm;
+
   }
+
   .btn-secondary {
-    @apply bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 py-2 px-4 rounded shadow-sm transition-colors inline-flex items-center gap-2 text-sm;
+
+    @apply bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 py-1.5 px-3 rounded shadow-sm transition-colors inline-flex items-center gap-2 text-sm;
+
   }
+
   .btn-danger {
-    @apply bg-white border border-red-200 text-red-600 hover:bg-red-50 py-2 px-4 rounded shadow-sm transition-colors inline-flex items-center gap-2 text-sm;
+
+    @apply bg-white border border-red-200 text-red-600 hover:bg-red-50 py-1.5 px-3 rounded shadow-sm transition-colors inline-flex items-center gap-2 text-sm;
+
   }
+
 }
