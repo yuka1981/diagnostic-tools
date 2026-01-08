@@ -8,7 +8,7 @@
   </div>
 
   <%# Filter Controls %>
-  <div class="card mb-6">
+  <div class="card-netbox mb-6">
     <div class="card-header">
       <h3 class="card-title">Filters</h3>
     </div>
@@ -69,7 +69,7 @@
 
   <%# Runs List (Turbo Frame) %>
   <%= turbo_frame_tag "runs_list", data: { turbo_action: "advance" } do %>
-    <div class="border border-slate-300 rounded overflow-hidden shadow-sm">
+    <div class="card-netbox">
       <% if @benchmark_runs.any? %>
         <%# Filter Summary %>
         <% if @filter.filtered? %>
