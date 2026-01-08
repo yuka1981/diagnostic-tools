@@ -19,6 +19,9 @@ RSpec.describe "Nodes Filtering", type: :system do
       expect(page).to have_field("Search")
       expect(page).to have_select("Role")
       expect(page).to have_select("Status")
+      # "Clear filters" should be present but disabled (not a link)
+      expect(page).to have_content("Clear filters")
+      expect(page).not_to have_link("Clear filters")
     end
   end
 
