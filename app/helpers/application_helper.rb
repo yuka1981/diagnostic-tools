@@ -24,7 +24,7 @@ module ApplicationHelper
   def node_status_badge(status)
     base_classes = "px-2 py-0.5 rounded text-xs font-bold shadow-sm text-white"
 
-    color_classes = case status.to_s
+    color_class = case status.to_s
     when "online", "success", "passed"
       "bg-emerald-500"
     when "offline", "failed", "error"
@@ -37,7 +37,7 @@ module ApplicationHelper
       "bg-slate-500"
     end
 
-    "#{base_classes} #{color_classes}"
+    content_tag(:span, status.to_s.humanize, class: "#{base_classes} #{color_class}")
   end
 
   def disk_usage_percentage(disk)

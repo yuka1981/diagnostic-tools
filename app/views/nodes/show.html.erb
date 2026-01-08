@@ -7,7 +7,7 @@
   <div>
     <div class="flex items-center gap-3">
       <h1 class="text-2xl font-bold text-slate-900"><%= @node.hostname %></h1>
-      <%= raw node_status_badge(@node.status) %>
+      <%= node_status_badge(@node.status) %>
     </div>
     <div class="mt-1 flex items-center gap-4 text-sm text-slate-500">
       <span class="font-mono">UUID: <%= @node.id %></span>
