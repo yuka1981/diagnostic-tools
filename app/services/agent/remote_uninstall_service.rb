@@ -122,15 +122,16 @@ module Agent
       execute_remote_command(ssh, reload_cmd, password: @sudo_password)
 
       report_progress(:restore_permissions)
-      
+
       inner_cmd = "(chmod 755 /usr/sbin/dmidecode || chmod 755 $(which dmidecode)) || true"
-      
-      restore_cmd = if is_bastion
-                      "#{prefix}\"bash -c '#{inner_cmd}'\""
-                    else
-                      "#{prefix}bash -c '#{inner_cmd}'"
-                    end
-      
+
+      restore_cmd = nil
+      if is_bastion
+        restore_cmd = "#{prefix}\"bash -c '#{inner_cmd}'\""
+      else
+        restore_cmd = "#{prefix}bash -c '#{inner_cmd}'"
+      end
+
       execute_remote_command(ssh, restore_cmd, password: @sudo_password)
     end
 
