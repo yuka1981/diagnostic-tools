@@ -7,12 +7,7 @@ class NodesController < ApplicationController
   before_action :authorize_approver!, only: %i[new create edit update destroy test_connection collect run_benchmark]
 
   def index
-    filter_params = {
-      q: params[:q],
-      role: params[:role],
-      status: params[:status]
-    }
-    @filter = Nodes::FilterQuery.new(filter_params)
+    @filter = Nodes::FilterQuery.new(params.permit(:q, :role, :status))
     @nodes = @filter.call
   end
 

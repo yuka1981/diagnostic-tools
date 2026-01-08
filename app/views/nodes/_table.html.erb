@@ -1,6 +1,18 @@
 <div class="card-netbox">
   <div class="overflow-x-auto">
     <% if nodes.any? %>
+      <%# Filter Summary %>
+      <% if local_assigns[:filter]&.filtered? %>
+        <div class="border-b border-slate-300 bg-slate-50 px-4 py-2">
+          <p class="text-xs text-slate-600">
+            Showing <%= pluralize(nodes.count, "node") %>
+            <% if filter.search_query.present? %>
+              matching <strong class="font-medium text-slate-900">"<%= h(filter.search_query) %>"</strong>
+            <% end %>
+          </p>
+        </div>
+      <% end %>
+
       <table class="min-w-full divide-y divide-slate-200 text-sm">
         <thead class="bg-slate-50">
           <tr>
@@ -18,6 +30,22 @@
           <%= render partial: "nodes/node", collection: nodes, as: :node %>
         </tbody>
       </table>
+    <% elsif local_assigns[:filter]&.filtered? %>
+      <div class="flex flex-col items-center justify-center py-12 text-center">
+        <svg class="h-12 w-12 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" 
+            d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+        </svg>
+        <p class="mt-4 text-sm font-medium text-slate-500">
+          No nodes match your filters
+        </p>
+        <p class="mt-1 text-xs text-slate-400">
+          Try adjusting your search or filters
+        </p>
+        <%= link_to "Clear all filters", nodes_path,
+            data: { turbo_frame: "nodes_list" },
+            class: "mt-4 btn-secondary" %>
+      </div>
     <% else %>
       <div class="flex flex-col items-center justify-center py-12 text-center">
         <div class="h-12 w-12 rounded-full bg-slate-100 flex items-center justify-center mb-4">
