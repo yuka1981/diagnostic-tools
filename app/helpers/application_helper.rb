@@ -20,4 +20,39 @@ module ApplicationHelper
       "#{mbps} Mbps"
     end
   end
+
+  def node_status_badge(status)
+    base_classes = "px-2 py-0.5 rounded text-xs font-bold shadow-sm text-white"
+
+    color_class = case status.to_s
+    when "online", "success", "passed"
+      "bg-emerald-500"
+    when "offline", "failed", "error"
+      "bg-red-500"
+    when "running"
+      "bg-blue-500 animate-pulse"
+    when "unknown", "warning"
+      "bg-yellow-500"
+    else
+      "bg-slate-500"
+    end
+
+    content_tag(:span, status.to_s.humanize, class: "#{base_classes} #{color_class}")
+  end
+
+  def disk_usage_percentage(disk)
+    return 0 if disk["total"].to_i.zero?
+
+    (disk["used"].to_f / disk["total"].to_f * 100).round(1)
+  end
+
+  def disk_usage_bar_color(percentage)
+    if percentage > 90
+      "bg-red-500"
+    elsif percentage > 75
+      "bg-amber-500"
+    else
+      "bg-blue-500"
+    end
+  end
 end

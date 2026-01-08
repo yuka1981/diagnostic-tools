@@ -14,7 +14,12 @@ RSpec.describe "Benchmark Run Feature", type: :system do
   it "allows an approver to run a benchmark with a custom log path" do
     visit node_path(node)
 
-    expect(page).to have_link("Run Benchmarking")
+    # Expect the "Benchmark" button to be visible
+    expect(page).to have_link("Benchmark")
+    click_link "Benchmark"
+
+    expect(page).to have_content("Run Benchmark")
+
 
     # Since we are using rack_test which doesn't support JS/Turbo frames perfectly for modals
     # we can visit the new page directly or stub the interaction.

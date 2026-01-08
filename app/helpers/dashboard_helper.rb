@@ -1,44 +1,72 @@
 # frozen_string_literal: true
 
 module DashboardHelper
-  STATUS_BADGE_CLASSES = {
-    "success" => "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400",
-    "failed" => "bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400",
-    "running" => "bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400",
-    "pending" => "bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400",
-    "cancelled" => "bg-gray-100 text-gray-700 dark:bg-gray-500/20 dark:text-gray-400"
+  COLOR_MAPS = {
+    success: {
+      badge: "bg-emerald-100 text-emerald-700 border border-emerald-200",
+      bg: "bg-emerald-100",
+      text: "text-emerald-600"
+    },
+    error: {
+      badge: "bg-red-100 text-red-700 border border-red-200",
+      bg: "bg-red-100",
+      text: "text-red-600"
+    },
+    running: {
+      badge: "bg-blue-100 text-blue-700 border border-blue-200",
+      bg: "bg-blue-100",
+      text: "text-blue-600"
+    },
+    warning: {
+      badge: "bg-amber-100 text-amber-700 border border-amber-200",
+      bg: "bg-amber-100",
+      text: "text-amber-600"
+    },
+    muted: {
+      badge: "bg-slate-100 text-slate-700 border border-slate-200",
+      bg: "bg-slate-100",
+      text: "text-slate-500"
+    }
   }.freeze
 
-  STATUS_BG_CLASSES = {
-    "success" => "bg-emerald-100 dark:bg-emerald-500/20",
-    "failed" => "bg-red-100 dark:bg-red-500/20",
-    "running" => "bg-blue-100 dark:bg-blue-500/20",
-    "pending" => "bg-amber-100 dark:bg-amber-500/20",
-    "cancelled" => "bg-gray-100 dark:bg-gray-500/20"
+  STATUS_COLORS = {
+    "success" => :success,
+    "completed" => :success,
+    "passed" => :success,
+    "online" => :success,
+    "failed" => :error,
+    "offline" => :error,
+    "error" => :error,
+    "running" => :running,
+    "pending" => :warning,
+    "warning" => :warning,
+    "unknown" => :warning,
+    "cancelled" => :muted
   }.freeze
 
   ROLE_BADGE_CLASSES = {
-    "compute" => "bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400",
-    "login" => "bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-400",
-    "admin" => "bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400"
+    "compute" => "bg-blue-100 text-blue-700 border border-blue-200",
+    "login" => "bg-purple-100 text-purple-700 border border-purple-200",
+    "admin" => "bg-amber-100 text-amber-700 border border-amber-200"
   }.freeze
 
-  DEFAULT_BADGE_CLASS = "bg-gray-100 text-gray-700 dark:bg-gray-500/20 dark:text-gray-400"
-  DEFAULT_BG_CLASS = "bg-gray-100 dark:bg-gray-500/20"
+  DEFAULT_BADGE_CLASS = COLOR_MAPS[:muted][:badge]
+  DEFAULT_BG_CLASS = COLOR_MAPS[:muted][:bg]
+  DEFAULT_TEXT_COLOR = COLOR_MAPS[:muted][:text]
 
   # Heatmap cell colors based on node role and status
   HEATMAP_COLORS = {
     compute: {
-      online: "bg-emerald-500 hover:bg-emerald-400 dark:bg-emerald-600 dark:hover:bg-emerald-500",
-      offline: "bg-gray-300 hover:bg-gray-200 dark:bg-slate-600 dark:hover:bg-slate-500"
+      online: "bg-emerald-500 hover:bg-emerald-400",
+      offline: "bg-slate-300 hover:bg-slate-200"
     },
     login: {
-      online: "bg-blue-500 hover:bg-blue-400 dark:bg-blue-600 dark:hover:bg-blue-500",
-      offline: "bg-gray-300 hover:bg-gray-200 dark:bg-slate-600 dark:hover:bg-slate-500"
+      online: "bg-blue-500 hover:bg-blue-400",
+      offline: "bg-slate-300 hover:bg-slate-200"
     },
     admin: {
-      online: "bg-amber-500 hover:bg-amber-400 dark:bg-amber-600 dark:hover:bg-amber-500",
-      offline: "bg-gray-300 hover:bg-gray-200 dark:bg-slate-600 dark:hover:bg-slate-500"
+      online: "bg-amber-500 hover:bg-amber-400",
+      offline: "bg-slate-300 hover:bg-slate-200"
     }
   }.freeze
 
@@ -50,11 +78,24 @@ module DashboardHelper
   end
 
   def status_badge_class(status)
-    STATUS_BADGE_CLASSES.fetch(status.to_s, DEFAULT_BADGE_CLASS)
+    color_key = STATUS_COLORS[status.to_s]
+    return DEFAULT_BADGE_CLASS unless color_key
+
+    COLOR_MAPS[color_key][:badge]
   end
 
   def status_bg_class(status)
-    STATUS_BG_CLASSES.fetch(status.to_s, DEFAULT_BG_CLASS)
+    color_key = STATUS_COLORS[status.to_s]
+    return DEFAULT_BG_CLASS unless color_key
+
+    COLOR_MAPS[color_key][:bg]
+  end
+
+  def status_text_color(status)
+    color_key = STATUS_COLORS[status.to_s]
+    return DEFAULT_TEXT_COLOR unless color_key
+
+    COLOR_MAPS[color_key][:text]
   end
 
   def role_badge_class(role)

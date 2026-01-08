@@ -2,71 +2,132 @@
 
 <%= turbo_stream_from @node %>
 
-<div class="mb-6 flex items-center justify-between">
-  <%= link_to nodes_path, class: "inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 dark:text-slate-400 dark:hover:text-slate-300" do %>
-    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-    </svg>
-    Back to Nodes
-  <% end %>
+<%# Header %>
+<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+  <div>
+    <div class="flex items-center gap-3">
+      <h1 class="text-2xl font-bold text-slate-900"><%= @node.hostname %></h1>
+      <%= node_status_badge(@node.status) %>
+    </div>
+    <div class="mt-1 flex items-center gap-4 text-sm text-slate-500">
+      <span class="font-mono">UUID: <%= @node.id %></span>
+      <span>•</span>
+      <span>Added <%= time_ago_in_words(@node.created_at) %> ago</span>
+    </div>
+  </div>
 
-  <% if current_user.approver? %>
-    <div class="flex gap-2">
+  <div class="flex items-center gap-2">
+    <% if current_user.approver? %>
       <%= button_to collect_node_path(@node), 
           method: :post,
-          class: "inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 transition-all",
+          class: "btn-primary",
           data: { turbo_submits_with: "Collecting..." } do %>
         <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
         </svg>
-        Collect Info
+        Collect
       <% end %>
 
       <% if @node.agent_push? %>
         <%= link_to new_node_benchmark_run_path(@node),
-            class: "inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 transition-all",
+            class: "btn-secondary",
             data: { turbo_frame: "modal" } do %>
-          <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg class="h-4 w-4 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
           </svg>
-          Run Benchmarking
+          Benchmark
         <% end %>
-      <% else %>
-        <span class="inline-flex items-center gap-2 rounded-lg bg-gray-100 px-4 py-2 text-sm font-semibold text-gray-400 cursor-not-allowed dark:bg-white/5 dark:text-gray-500 transition-all" title="hpc-agent must be installed to run benchmarks">
-          <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-          </svg>
-          Run Benchmarking
-        </span>
       <% end %>
 
-      <% if @node.agent_push? %>
-        <%= link_to new_node_uninstall_path(hostname: @node.hostname),
-            class: "inline-flex items-center gap-2 rounded-lg bg-white px-4 py-2 text-sm font-semibold text-red-600 shadow-sm ring-1 ring-inset ring-red-300 hover:bg-red-50 transition-all",
-            data: { turbo_frame: "uninstall_modal" } do %>
-          <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h14" />
-          </svg>
-          Remove Agent
-        <% end %>
-      <% else %>
-        <span class="inline-flex items-center gap-2 rounded-lg bg-gray-100 px-4 py-2 text-sm font-semibold text-gray-400 cursor-not-allowed dark:bg-white/5 dark:text-gray-500 transition-all" title="hpc-agent is not installed">
-          <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h14" />
-          </svg>
-          Remove Agent
-        </span>
+      <%= link_to edit_node_path(@node), 
+          class: "btn-secondary",
+          data: { turbo_frame: "node_modal" } do %>
+        <svg class="h-4 w-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+        </svg>
+        Edit
       <% end %>
-    </div>
-  <% end %>
+
+      <%= button_to node_path(@node),
+          method: :delete,
+          class: "btn-danger",
+          data: { turbo_confirm: "Are you sure you want to delete this node?" } do %>
+        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h14" />
+        </svg>
+        Delete
+      <% end %>
+    <% end %>
+  </div>
 </div>
 
-<%= turbo_frame_tag "node_details" do %>
-  <div id="<%= dom_id(@node, :details) %>">
-    <%= render "nodes/details", node: @node, selected_state: @selected_state %>
+<%# Tabs & Content %>
+<div data-controller="tabs" data-tabs-active-index-value="0">
+  <%# Tab Navigation %>
+  <div class="mb-6 border-b border-slate-200">
+    <nav class="-mb-px flex gap-6 tabs" aria-label="Tabs">
+      <a href="#" 
+         data-tabs-target="tab" 
+         data-action="click->tabs#select"
+         class="border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700 whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium transition-colors"
+         aria-current="page">
+        Overview
+      </a>
+      <a href="#" 
+         data-tabs-target="tab" 
+         data-action="click->tabs#select"
+         class="border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700 whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium transition-colors">
+        Hardware
+      </a>
+      <a href="#" 
+         data-tabs-target="tab" 
+         data-action="click->tabs#select"
+         class="border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700 whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium transition-colors">
+        Benchmark History
+      </a>
+      <a href="#" 
+         data-tabs-target="tab" 
+         data-action="click->tabs#select"
+         class="border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700 whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium transition-colors">
+        Logs
+      </a>
+    </nav>
   </div>
-<% end %>
+
+  <%# Tab Panels %>
+  <div>
+    <%# Panel 1: Overview %>
+    <div data-tabs-target="panel" class="outline-none" role="tabpanel" tabindex="0">
+      <%= render "nodes/overview", node: @node %>
+    </div>
+
+    <%# Panel 2: Hardware %>
+    <div data-tabs-target="panel" class="hidden outline-none" role="tabpanel" tabindex="0">
+      <%= render "nodes/hardware", node: @node %>
+    </div>
+
+    <%# Panel 3: Benchmark History %>
+    <div data-tabs-target="panel" class="hidden outline-none" role="tabpanel" tabindex="0">
+      <div class="card">
+         <div class="card-header">
+           <h3 class="card-title">Benchmark History</h3>
+         </div>
+         <div class="overflow-x-auto">
+            <% if @node.benchmark_runs.any? %>
+              <%= render "nodes/benchmark_runs/table", benchmark_runs: @node.benchmark_runs.order(created_at: :desc) rescue render partial: "shared/simple_benchmark_table", locals: { runs: @node.benchmark_runs } %>
+            <% else %>
+              <div class="p-8 text-center text-slate-500">No benchmarks recorded.</div>
+            <% end %>
+         </div>
+      </div>
+    </div>
+
+    <%# Panel 4: Logs %>
+    <div data-tabs-target="panel" class="hidden outline-none" role="tabpanel" tabindex="0">
+      <%= render "nodes/logs", node: @node %>
+    </div>
+  </div>
+</div>
 
 <%= turbo_frame_tag "modal" %>
-<%= turbo_frame_tag "install_modal" %>
-<%= turbo_frame_tag "uninstall_modal" %>
+<%= turbo_frame_tag "node_modal" %>

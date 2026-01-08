@@ -15,13 +15,14 @@ RSpec.describe "Benchmark Progress", type: :system, js: true do
   end
 
   it "shows progress updates when a benchmark is run" do
+    # Visit node page
     visit node_path(node)
 
-    # Initial state
-    expect(page).to have_text("LATEST BENCHMARK")
+    # Should see the empty state initially
+    expect(page).to have_text(/Latest Benchmark/i)
     expect(page).to have_text("—")
 
-    click_link "Run Benchmarking"
+    click_link "Benchmark"
 
     # In the modal
     within "#modal" do
@@ -44,7 +45,7 @@ RSpec.describe "Benchmark Progress", type: :system, js: true do
 
     # Wait for Turbo Stream update on node show page
     within "##{dom_id(node, :latest_benchmark)}" do
-      expect(page).to have_content("Running")
+      expect(page).to have_content("Running", wait: 10)
     end
 
     # Simulate agent reporting back "PASS" (Success)

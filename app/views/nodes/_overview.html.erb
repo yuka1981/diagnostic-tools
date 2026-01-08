@@ -1,0 +1,83 @@
+<div class="grid grid-cols-1 gap-6 lg:grid-cols-2 mb-6">
+  <!-- Left Column: Info -->
+  <div class="card">
+    <div class="card-header">
+      <h3 class="card-title">Node Details</h3>
+    </div>
+    <div class="p-0">
+      <table class="w-full text-sm text-left">
+        <tbody class="divide-y divide-slate-100">
+          <tr>
+            <th class="px-4 py-2 font-medium text-slate-500 w-1/3">Status</th>
+            <td class="px-4 py-2"><%= node_status_badge(node.status) %></td>
+          </tr>
+          <tr>
+            <th class="px-4 py-2 font-medium text-slate-500">Role</th>
+            <td class="px-4 py-2"><%= node.role.humanize %></td>
+          </tr>
+          <tr>
+            <th class="px-4 py-2 font-medium text-slate-500">IP Address</th>
+            <td class="px-4 py-2 font-mono"><%= node.ip || "—" %></td>
+          </tr>
+          <tr>
+            <th class="px-4 py-2 font-medium text-slate-500">Architecture</th>
+            <td class="px-4 py-2"><%= node.arch || "—" %></td>
+          </tr>
+          <tr>
+            <th class="px-4 py-2 font-medium text-slate-500">Last Seen</th>
+            <td class="px-4 py-2"><%= node.last_seen_at ? time_ago_in_words(node.last_seen_at) + " ago" : "Never" %></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Right Column: Metrics/Activity -->
+  <div class="card">
+    <div class="card-header">
+      <h3 class="card-title">Latest Benchmark</h3>
+    </div>
+    <div class="p-4">
+      <%= render "nodes/latest_benchmark", node: node %>
+    </div>
+  </div>
+</div>
+
+<!-- Bottom Section: Recent Benchmarks -->
+<div class="card">
+  <div class="card-header flex items-center justify-between">
+    <h3 class="card-title">Recent Benchmark Runs</h3>
+    <%= link_to "View All", node_benchmark_runs_path(node), class: "text-xs font-medium text-teal-600 hover:text-teal-700" %>
+  </div>
+  <div class="overflow-x-auto">
+     <!-- Placeholder for table, or render partial if exists -->
+     <% if node.benchmark_runs.any? %>
+       <table class="min-w-full divide-y divide-slate-200">
+         <thead class="bg-slate-50">
+           <tr>
+             <th class="px-3 py-2 text-left text-xs font-bold uppercase text-slate-500">ID</th>
+             <th class="px-3 py-2 text-left text-xs font-bold uppercase text-slate-500">Recipe</th>
+             <th class="px-3 py-2 text-left text-xs font-bold uppercase text-slate-500">Status</th>
+             <th class="px-3 py-2 text-right text-xs font-bold uppercase text-slate-500">Date</th>
+           </tr>
+         </thead>
+         <tbody class="divide-y divide-slate-100">
+           <% node.benchmark_runs.order(created_at: :desc).limit(5).each do |run| %>
+             <tr id="<%= dom_id(run) %>" class="hover:bg-slate-50">
+               <td class="px-3 py-2 text-xs font-mono text-slate-900">
+                 <%= link_to run.id.to_s[0..7], benchmark_run_path(run), class: "text-teal-600 hover:underline" %>
+               </td>
+               <td class="px-3 py-2 text-xs text-slate-900"><%= run.benchmark_recipe&.name || "N/A" %></td>
+               <td class="px-3 py-2 text-xs">
+                 <span class="font-medium <%= status_text_color(run.status) %>"><%= run.status.humanize %></span>
+               </td>
+               <td class="px-3 py-2 text-xs text-right text-slate-500"><%= time_ago_in_words(run.created_at) %> ago</td>
+             </tr>
+           <% end %>
+         </tbody>
+       </table>
+     <% else %>
+       <div class="p-4 text-center text-sm text-slate-500">No benchmarks run yet.</div>
+     <% end %>
+  </div>
+</div>
