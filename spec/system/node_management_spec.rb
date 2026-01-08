@@ -22,7 +22,7 @@ RSpec.describe "Node Management", type: :system, js: true do
       select "Compute", from: "Role"
       select "x86_64", from: "Architecture"
 
-      expect(page).to have_content("SSH Configuration")
+      expect(page).to have_content(/SSH Configuration/i)
       fill_in "SSH Port", with: "22"
       fill_in "SSH User", with: "deploy"
       fill_in "User password", with: "secret-password"
@@ -52,7 +52,7 @@ RSpec.describe "Node Management", type: :system, js: true do
 
     # Use a more specific selector to avoid intercepting other elements
     within "tr##{dom_id(node)}" do
-      click_link "Uninstall"
+      find("a[title='Uninstall Agent']").click
     end
 
     within "#uninstall_modal" do
@@ -101,8 +101,8 @@ RSpec.describe "Node Management", type: :system, js: true do
     visit nodes_path
 
     within "tr", text: "already-installed" do
-      expect(page).to have_css("span[title='hpc-agent is already installed']", text: "Install")
-      expect(page).not_to have_link("Install")
+      expect(page).to have_css("span[title='hpc-agent is already installed']")
+      expect(page).not_to have_link(title: "Install Agent")
     end
   end
 
@@ -111,8 +111,8 @@ RSpec.describe "Node Management", type: :system, js: true do
     visit nodes_path
 
     within "tr", text: "not-installed" do
-      expect(page).to have_css("span[title='hpc-agent is not installed']", text: "Uninstall")
-      expect(page).not_to have_link("Uninstall")
+      expect(page).to have_css("span[title='hpc-agent is not installed']")
+      expect(page).not_to have_link(title: "Uninstall Agent")
     end
   end
 end

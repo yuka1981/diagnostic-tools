@@ -2,126 +2,123 @@
 
 <div data-controller="slide-over">
   <%= turbo_stream_from "benchmark_runs" %>
+  
   <div class="flex items-center justify-between mb-6">
-    <div>
-      <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Benchmark Runs</h2>
-      <p class="mt-1 text-sm text-gray-500 dark:text-slate-400">View and manage benchmark execution history</p>
-    </div>
+    <h1 class="text-2xl font-bold text-slate-900">Benchmark Runs</h1>
   </div>
 
   <%# Filter Controls %>
-  <div class="mb-6 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-gray-200 dark:bg-slate-800/50 dark:ring-white/10">
-    <%= form_with url: benchmark_runs_path, method: :get, data: { controller: "autosubmit", turbo_frame: "runs_list", turbo_action: "advance" }, class: "flex flex-wrap items-end gap-4" do |f| %>
-      <%# Search Field %>
-      <div class="flex-1 min-w-[200px]">
-        <label for="q" class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Search</label>
-        <div class="relative">
-          <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-            <svg class="h-4 w-4 text-gray-400 dark:text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-          </div>
+  <div class="card mb-6">
+    <div class="card-header">
+      <h3 class="card-title">Filters</h3>
+    </div>
+    <div class="p-4">
+      <%= form_with url: benchmark_runs_path, method: :get, data: { controller: "autosubmit", turbo_frame: "runs_list", turbo_action: "advance" }, class: "flex flex-wrap items-end gap-4" do |f| %>
+        <%# Search Field %>
+        <div class="flex-1 min-w-[200px]">
+          <label for="q" class="block text-xs font-bold text-slate-500 uppercase mb-1">Search</label>
           <%= f.text_field :q, 
               value: @filter.search_query,
               placeholder: "Search by node or recipe...",
-              class: "block w-full rounded-none border-0 bg-gray-50 py-2 pl-10 pr-3 text-sm text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-cyan-600 dark:bg-slate-700 dark:text-white dark:ring-white/10 dark:placeholder:text-slate-500" %>
+              class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" %>
         </div>
-      </div>
 
-      <%# Status Filter %>
-      <div class="w-40">
-        <label for="status" class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Status</label>
-        <%= f.select :status, 
-            options_for_select([["All Statuses", ""]] + BenchmarkRun.statuses.keys.map { |s| [s.humanize, s] }, @filter.status),
-            {},
-            class: "block w-full rounded-none border-0 bg-gray-50 py-2 pl-3 pr-10 text-sm text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-cyan-600 dark:bg-slate-700 dark:text-white dark:ring-white/10",
-            data: { action: "change->autosubmit#submit" } %>
-      </div>
+        <%# Status Filter %>
+        <div class="w-40">
+          <label for="status" class="block text-xs font-bold text-slate-500 uppercase mb-1">Status</label>
+          <%= f.select :status, 
+              options_for_select([["All Statuses", ""]] + BenchmarkRun.statuses.keys.map { |s| [s.humanize, s] }, @filter.status),
+              {},
+              class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm",
+              data: { action: "change->autosubmit#submit" } %>
+        </div>
 
-      <%# Node Filter %>
-      <div class="w-44">
-        <label for="node_id" class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Node</label>
-        <%= f.select :node_id,
-            options_for_select([["All Nodes", ""]] + @nodes.map { |n| [n.hostname, n.id] }, @filter.node_id),
-            {},
-            class: "block w-full rounded-none border-0 bg-gray-50 py-2 pl-3 pr-10 text-sm text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-cyan-600 dark:bg-slate-700 dark:text-white dark:ring-white/10",
-            data: { action: "change->autosubmit#submit" } %>
-      </div>
+        <%# Node Filter %>
+        <div class="w-44">
+          <label for="node_id" class="block text-xs font-bold text-slate-500 uppercase mb-1">Node</label>
+          <%= f.select :node_id,
+              options_for_select([["All Nodes", ""]] + @nodes.map { |n| [n.hostname, n.id] }, @filter.node_id),
+              {},
+              class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm",
+              data: { action: "change->autosubmit#submit" } %>
+        </div>
 
-      <%# Recipe Filter %>
-      <div class="w-44">
-        <label for="recipe_id" class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Recipe</label>
-        <%= f.select :recipe_id,
-            options_for_select([["All Recipes", ""]] + @recipes.map { |r| [r.name, r.id] }, @filter.recipe_id),
-            {},
-            class: "block w-full rounded-none border-0 bg-gray-50 py-2 pl-3 pr-10 text-sm text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-cyan-600 dark:bg-slate-700 dark:text-white dark:ring-white/10",
-            data: { action: "change->autosubmit#submit" } %>
-      </div>
+        <%# Recipe Filter %>
+        <div class="w-44">
+          <label for="recipe_id" class="block text-xs font-bold text-slate-500 uppercase mb-1">Recipe</label>
+          <%= f.select :recipe_id,
+              options_for_select([["All Recipes", ""]] + @recipes.map { |r| [r.name, r.id] }, @filter.recipe_id),
+              {},
+              class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm",
+              data: { action: "change->autosubmit#submit" } %>
+        </div>
 
-      <%# Actions %>
-      <div class="flex items-center gap-2">
-        <%= f.submit "Search",
-            class: "inline-flex items-center rounded-none bg-cyan-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900 transition-colors cursor-pointer" %>
-        
-        <% if @filter.filtered? %>
-          <%= link_to "Clear filters", benchmark_runs_path,
-              data: { turbo_frame: "runs_list" },
-              class: "inline-flex items-center rounded-none px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 dark:text-slate-400 dark:hover:text-white dark:hover:bg-white/10 transition-colors" %>
-        <% end %>
-      </div>
-    <% end %>
+        <%# Actions %>
+        <div class="flex items-center gap-2">
+          <%= f.submit "Search", class: "btn-primary cursor-pointer" %>
+          
+          <% if @filter.filtered? %>
+            <%= link_to "Clear", benchmark_runs_path,
+                data: { turbo_frame: "runs_list" },
+                class: "btn-secondary" %>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
   </div>
 
   <%# Runs List (Turbo Frame) %>
   <%= turbo_frame_tag "runs_list", data: { turbo_action: "advance" } do %>
-    <div class="rounded-2xl bg-white shadow-sm ring-1 ring-gray-200 dark:bg-slate-800/50 dark:ring-white/10 overflow-hidden">
+    <div class="card overflow-hidden">
       <% if @benchmark_runs.any? %>
         <%# Filter Summary %>
         <% if @filter.filtered? %>
-          <div class="border-b border-gray-200 bg-gray-50 px-6 py-3 dark:border-white/10 dark:bg-white/5">
-            <p class="text-sm text-gray-600 dark:text-slate-400">
+          <div class="border-b border-slate-200 bg-slate-50 px-6 py-3">
+            <p class="text-sm text-slate-600">
               Showing <%= pluralize(@benchmark_runs.total_count, "result") %>
               <% if @filter.search_query.present? %>
-                matching <strong class="font-medium text-gray-900 dark:text-white">"<%= h(@filter.search_query) %>"</strong>
+                matching <strong class="font-medium text-slate-900">"<%= h(@filter.search_query) %>"</strong>
               <% end %>
             </p>
           </div>
         <% end %>
 
-        <table class="min-w-full divide-y divide-gray-200 dark:divide-white/5">
-          <thead class="bg-gray-50 dark:bg-white/5">
-            <tr>
-              <th scope="col" class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-slate-400">Recipe</th>
-              <th scope="col" class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-slate-400">Hostname</th>
-              <th scope="col" class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-slate-400">Log Path</th>
-              <th scope="col" class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-slate-400">Benchmarking Status</th>
-              <th scope="col" class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-slate-400">Created At</th>
-              <th scope="col" class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-slate-400">Started</th>
-              <th scope="col" class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-slate-400">Execute Time</th>
-              <th scope="col" class="relative px-6 py-3">
-                <span class="sr-only">Actions</span>
-              </th>
-            </tr>
-          </thead>
-          <tbody id="benchmark_runs_tbody" class="divide-y divide-gray-200 dark:divide-white/5">
-            <% @benchmark_runs.each do |run| %>
-              <%= render "benchmark_runs/run_row", run: run %>
-            <% end %>
-          </tbody>
-        </table>
+        <div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-slate-200">
+            <thead class="bg-slate-50">
+              <tr>
+                <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wide text-slate-500">Recipe</th>
+                <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wide text-slate-500">Hostname</th>
+                <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wide text-slate-500">Log Path</th>
+                <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wide text-slate-500">Status</th>
+                <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wide text-slate-500">Created At</th>
+                <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wide text-slate-500">Started</th>
+                <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wide text-slate-500">Time</th>
+                <th scope="col" class="relative px-3 py-2">
+                  <span class="sr-only">Actions</span>
+                </th>
+              </tr>
+            </thead>
+            <tbody id="benchmark_runs_tbody" class="divide-y divide-slate-200 bg-white">
+              <% @benchmark_runs.each do |run| %>
+                <%= render "benchmark_runs/run_row", run: run %>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
 
         <%# Pagination %>
         <% if @benchmark_runs.total_pages > 1 %>
-          <div class="border-t border-gray-200 bg-gray-50 px-6 py-4 dark:border-white/10 dark:bg-white/5">
+          <div class="border-t border-slate-200 bg-slate-50 px-6 py-4">
             <nav class="flex items-center justify-between" aria-label="Pagination">
               <div class="hidden sm:block">
-                <p class="text-sm text-gray-700 dark:text-slate-400">
+                <p class="text-sm text-slate-700">
                   Showing
-                  <span class="font-medium text-gray-900 dark:text-white"><%= @benchmark_runs.offset_value + 1 %></span>
+                  <span class="font-medium text-slate-900"><%= @benchmark_runs.offset_value + 1 %></span>
                   to
-                  <span class="font-medium text-gray-900 dark:text-white"><%= [@benchmark_runs.offset_value + @benchmark_runs.limit_value, @benchmark_runs.total_count].min %></span>
+                  <span class="font-medium text-slate-900"><%= [@benchmark_runs.offset_value + @benchmark_runs.limit_value, @benchmark_runs.total_count].min %></span>
                   of
-                  <span class="font-medium text-gray-900 dark:text-white"><%= @benchmark_runs.total_count %></span>
+                  <span class="font-medium text-slate-900"><%= @benchmark_runs.total_count %></span>
                   results
                 </p>
               </div>
@@ -130,13 +127,13 @@
                   <%= link_to "Previous", 
                       benchmark_runs_path(filter_params.merge(page: @benchmark_runs.prev_page)),
                       data: { turbo_frame: "runs_list" },
-                      class: "relative inline-flex items-center rounded-lg bg-white px-3 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 dark:bg-slate-700 dark:text-white dark:ring-white/10 dark:hover:bg-slate-600" %>
+                      class: "btn-secondary" %>
                 <% end %>
                 <% if @benchmark_runs.next_page %>
                   <%= link_to "Next",
                       benchmark_runs_path(filter_params.merge(page: @benchmark_runs.next_page)),
                       data: { turbo_frame: "runs_list" },
-                      class: "relative inline-flex items-center rounded-lg bg-white px-3 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 dark:bg-slate-700 dark:text-white dark:ring-white/10 dark:hover:bg-slate-600" %>
+                      class: "btn-secondary" %>
                 <% end %>
               </div>
             </nav>
@@ -144,28 +141,23 @@
         <% end %>
       <% else %>
         <div class="flex flex-col items-center justify-center py-12 text-center">
-          <svg class="h-12 w-12 text-gray-300 dark:text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" 
-              d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-          </svg>
-          <p class="mt-4 text-sm font-medium text-gray-500 dark:text-slate-400">
+          <div class="h-12 w-12 rounded-full bg-slate-100 flex items-center justify-center mb-4">
+            <svg class="h-6 w-6 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+          </div>
+          <p class="text-sm font-medium text-slate-900">
             <% if @filter.filtered? %>
               No benchmark runs match your filters
             <% else %>
               No benchmark runs yet
             <% end %>
           </p>
-          <p class="mt-1 text-xs text-gray-400 dark:text-slate-500">
-            <% if @filter.filtered? %>
-              Try adjusting your search or filters
-            <% else %>
-              Start a benchmark to see results here
-            <% end %>
-          </p>
           <% if @filter.filtered? %>
             <%= link_to "Clear all filters", benchmark_runs_path,
                 data: { turbo_frame: "runs_list" },
-                class: "mt-4 inline-flex items-center rounded-lg bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200 dark:bg-white/10 dark:text-slate-300 dark:hover:bg-white/20 transition-colors" %>
+                class: "mt-4 btn-secondary" %>
           <% end %>
         </div>
       <% end %>
