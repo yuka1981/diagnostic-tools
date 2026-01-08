@@ -127,7 +127,8 @@ func (c *Client) dial(ctx context.Context) (*websocket.Conn, error) {
 	}
 
 	log.Printf("Connecting to %s...", wsURL)
-	conn, resp, err := websocket.Dial(ctx, wsURL, opts) //nolint:bodyclose,staticcheck // Response body is not closed by Dial on success, deprecated
+	//nolint:bodyclose,staticcheck // Response body is not closed by Dial on success, deprecated
+	conn, resp, err := websocket.Dial(ctx, wsURL, opts)
 	if resp != nil && resp.Body != nil {
 		resp.Body.Close()
 	}
