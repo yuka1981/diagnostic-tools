@@ -61,9 +61,9 @@ module Inventory
 
       result = if state_changed?(current_state, new_state_data)
                  create_new_state(node, new_state_data)
-               else
+      else
                  touch_node(node, current_state)
-               end
+      end
 
       broadcast_update(node, result.node_state) if result.success?
       result
@@ -109,10 +109,12 @@ module Inventory
 
       node.touch_last_seen
 
+      # Reload to ensure JSONB attributes have String keys (Rails behavior consistency)
+      # This prevents view errors when accessing keys as strings immediately after creation
       Result.new(
         success: true,
         state_created: true,
-        node_state: node_state
+        node_state: node_state.reload
       )
     rescue ActiveRecord::RecordInvalid => e
       error_result("Failed to create NodeState: #{e.message}", :internal_error)
