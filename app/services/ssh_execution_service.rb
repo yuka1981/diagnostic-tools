@@ -92,15 +92,16 @@ class SshExecutionService
       ch.exec(cmd) do |c, success|
         raise "Could not execute command" unless success
 
-        c.on_data do |_, data|
-          stdout_data += data
+        ch.on_data do |_, data|
+          stdout_data += data.to_s
           yield(data, :stdout) if block_given?
         end
 
-        c.on_extended_data do |_, data|
-          stderr_data += data
+        ch.on_extended_data do |_, _type, data|
+          stderr_data += data.to_s
           yield(data, :stderr) if block_given?
         end
+
 
         c.on_request("exit-status") do |_, data|
           exit_code = data.read_long
