@@ -113,7 +113,8 @@ func (c *Client) connectAndListen(ctx context.Context) error {
 	return c.readLoop(ctx, conn)
 }
 
-func (c *Client) dial(ctx context.Context) (*websocket.Conn, error) { //nolint:staticcheck // Deprecated but required for Go 1.22 compatibility
+//nolint:staticcheck // Deprecated but required for Go 1.22 compatibility
+func (c *Client) dial(ctx context.Context) (*websocket.Conn, error) {
 	wsURL := c.prepareURL()
 
 	opts := &websocket.DialOptions{ //nolint:staticcheck // Deprecated but required for Go 1.22 compatibility
@@ -126,7 +127,7 @@ func (c *Client) dial(ctx context.Context) (*websocket.Conn, error) { //nolint:s
 	}
 
 	log.Printf("Connecting to %s...", wsURL)
-	conn, resp, err := websocket.Dial(ctx, wsURL, opts) //nolint:bodyclose // Response body is not closed by Dial on success
+	conn, resp, err := websocket.Dial(ctx, wsURL, opts) //nolint:bodyclose,staticcheck // Response body is not closed by Dial on success, deprecated
 	if resp != nil && resp.Body != nil {
 		resp.Body.Close()
 	}
@@ -136,7 +137,8 @@ func (c *Client) dial(ctx context.Context) (*websocket.Conn, error) { //nolint:s
 	return conn, nil
 }
 
-func (c *Client) subscribe(ctx context.Context, conn *websocket.Conn) error { //nolint:staticcheck // Deprecated but required for Go 1.22 compatibility
+//nolint:staticcheck // Deprecated but required for Go 1.22 compatibility
+func (c *Client) subscribe(ctx context.Context, conn *websocket.Conn) error {
 	identifier := fmt.Sprintf(`{"channel":%q}`, DefaultChannel)
 	subscribeMsg := map[string]interface{}{
 		"command":    "subscribe",
@@ -152,7 +154,8 @@ func (c *Client) subscribe(ctx context.Context, conn *websocket.Conn) error { //
 	return nil
 }
 
-func (c *Client) readLoop(ctx context.Context, conn *websocket.Conn) error { //nolint:staticcheck // Deprecated but required for Go 1.22 compatibility
+//nolint:staticcheck // Deprecated but required for Go 1.22 compatibility
+func (c *Client) readLoop(ctx context.Context, conn *websocket.Conn) error {
 	for {
 		var msg map[string]interface{}
 		if err := wsjson.Read(ctx, conn, &msg); err != nil {
