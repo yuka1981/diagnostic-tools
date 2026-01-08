@@ -74,7 +74,7 @@ module Inventory
         node,
         target: ActionView::RecordIdentifier.dom_id(node, :details),
         partial: "nodes/details",
-        locals: { node: node, selected_state: nil }
+        locals: { node: node, selected_state: nil, current_user: nil }
       )
     end
 
