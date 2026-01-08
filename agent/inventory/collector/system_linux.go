@@ -61,4 +61,3 @@ func (c *SystemCollector) GetNetInfo(ctx context.Context) ([]model.NetInfo, erro
 func (c *SystemCollector) GetDMIInfo(ctx context.Context) (*model.HostDMIInfo, error) {
 	return c.dmi.Collect(ctx)
 }
-

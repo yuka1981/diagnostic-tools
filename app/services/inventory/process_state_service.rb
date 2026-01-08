@@ -91,7 +91,6 @@ module Inventory
         net_info: @raw_json[:network] || [],
         dmi_info: @raw_json[:dmi] || {}
       }
-
     end
 
     def state_changed?(current_state, new_data)

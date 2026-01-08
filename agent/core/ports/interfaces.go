@@ -22,7 +22,6 @@ type SystemCollector interface {
 	GetDMIInfo(ctx context.Context) (*model.HostDMIInfo, error)
 }
 
-
 // Uploader defines the interface for sending data to a remote server.
 type Uploader interface {
 	// Upload sends the given payload to the configured endpoint.

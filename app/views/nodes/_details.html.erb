@@ -285,6 +285,14 @@
             <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">Page Cache</dt>
             <dd class="mt-1 text-sm text-gray-900 dark:text-white"><%= format_bytes(state.mem_info["cached"]) %></dd>
           </div>
+          <div>
+            <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">Swap Total</dt>
+            <dd class="mt-1 text-sm text-gray-900 dark:text-white"><%= format_bytes(state.mem_info["swap_total"]) %></dd>
+          </div>
+          <div>
+            <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">Swap Free</dt>
+            <dd class="mt-1 text-sm text-gray-900 dark:text-white"><%= format_bytes(state.mem_info["swap_free"]) %></dd>
+          </div>
         </dl>
 
         <% if state.dmi_info.present? && state.dmi_info["memory"].present? %>

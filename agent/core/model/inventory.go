@@ -93,19 +93,19 @@ type BIOSInfo struct {
 
 // DIMMInfo represents DMI type 17 information.
 type DIMMInfo struct {
-	Locator         string `json:"locator"`
-	BankLocator     string `json:"bank_locator"`
-	Size            string `json:"size"`
-	Type            string `json:"type"`
-	Speed           string `json:"speed"`
-	ConfiguredSpeed string `json:"configured_speed"`
-	Manufacturer    string `json:"manufacturer"`
-	PartNumber      string `json:"part_number"`
-	SerialNumber    string `json:"serial_number"`
-	AssetTag        string `json:"asset_tag"`
-	Rank            string `json:"rank"`
-	MinVoltage      string `json:"min_voltage"`
-	MaxVoltage      string `json:"max_voltage"`
+	Locator           string `json:"locator"`
+	BankLocator       string `json:"bank_locator"`
+	Size              string `json:"size"`
+	Type              string `json:"type"`
+	Speed             string `json:"speed"`
+	ConfiguredSpeed   string `json:"configured_speed"`
+	Manufacturer      string `json:"manufacturer"`
+	PartNumber        string `json:"part_number"`
+	SerialNumber      string `json:"serial_number"`
+	AssetTag          string `json:"asset_tag"`
+	Rank              string `json:"rank"`
+	MinVoltage        string `json:"min_voltage"`
+	MaxVoltage        string `json:"max_voltage"`
 	ConfiguredVoltage string `json:"configured_voltage"`
 }
 
@@ -119,12 +119,11 @@ type HostDMIInfo struct {
 // NodeState represents a snapshot of the node's complete inventory state.
 // This matches the structure expected by the backend for versioning.
 type NodeState struct {
+	CapturedAt time.Time    `json:"captured_at"`
+	Host       *HostInfo    `json:"host"`
+	CPU        *CPUInfo     `json:"cpu"`
+	Memory     *MemoryInfo  `json:"memory"`
+	DMI        *HostDMIInfo `json:"dmi,omitempty"`
 	Disks      []DiskInfo   `json:"disks"`
 	Network    []NetInfo    `json:"network"`
-	CapturedAt time.Time    `json:"captured_at"`
-	Host       HostInfo     `json:"host"`
-	CPU        CPUInfo      `json:"cpu"`
-	Memory     MemoryInfo   `json:"memory"`
-	DMI        *HostDMIInfo `json:"dmi,omitempty"`
 }
-

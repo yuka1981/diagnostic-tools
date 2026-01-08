@@ -67,12 +67,11 @@ func (s *InventoryService) Collect(ctx context.Context) (*model.NodeState, error
 
 	return &model.NodeState{
 		CapturedAt: time.Now().UTC(),
-		Host:       *host,
-		CPU:        *cpu,
-		Memory:     *mem,
+		Host:       host,
+		CPU:        cpu,
+		Memory:     mem,
 		Disks:      disk,
 		Network:    net,
 		DMI:        dmi,
 	}, nil
 }
-

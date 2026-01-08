@@ -2,10 +2,11 @@ package linux
 
 import (
 	"context"
-	"fmt"
+	"log"
 	"strings"
 
 	"github.com/yuka1981/diagnostic-tools/agent/core/model"
+
 	"github.com/yuka1981/diagnostic-tools/agent/core/ports"
 )
 
@@ -25,7 +26,10 @@ func (c *LinuxDMICollector) Collect(ctx context.Context) (*model.HostDMIInfo, er
 	// Future phases might use sudo.
 	output, err := c.runner.Run(ctx, "", "dmidecode", "-t", "0,1,17")
 	if err != nil {
-		return nil, fmt.Errorf("failed to run dmidecode: %w", err)
+		// dmidecode may not be installed or may fail. This is not a fatal error for inventory collection.
+		// We can log this and return nil to indicate DMI info is unavailable.
+		log.Printf("Warning: failed to collect DMI information: %v", err)
+		return nil, nil
 	}
 
 	return parseDMIDecodeOutput(string(output)), nil
