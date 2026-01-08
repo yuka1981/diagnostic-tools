@@ -30,7 +30,14 @@
 
 <%# Filter Controls %>
 <div class="mb-6 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-gray-200 dark:bg-slate-800/50 dark:ring-white/10">
-  <%= form_with url: nodes_path, method: :get, data: { controller: "autosubmit", turbo_frame: "nodes_list", turbo_action: "advance" }, class: "flex flex-wrap items-end gap-4" do |f| %>
+  <%= form_with url: nodes_path, method: :get, 
+      data: { 
+        controller: "autosubmit filter-form", 
+        turbo_frame: "nodes_list", 
+        turbo_action: "advance",
+        filter_form_clear_url_value: nodes_path
+      }, 
+      class: "flex flex-wrap items-end gap-4" do |f| %>
     <%# Search Field %>
     <div class="flex-1 min-w-[200px]">
       <label for="q" class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Search</label>
@@ -43,7 +50,11 @@
         <%= f.text_field :q, 
             value: @filter.search_query,
             placeholder: "Search by hostname or IP...",
-            class: "block w-full rounded-none border-0 bg-gray-50 py-2 pl-10 pr-3 text-sm text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 dark:bg-slate-700 dark:text-white dark:ring-white/10 dark:placeholder:text-slate-500" %>
+            class: "block w-full rounded-none border-0 bg-gray-50 py-2 pl-10 pr-3 text-sm text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 dark:bg-slate-700 dark:text-white dark:ring-white/10 dark:placeholder:text-slate-500",
+            data: { 
+              filter_form_target: "input", 
+              action: "input->filter-form#updateClearButton" 
+            } %>
       </div>
     </div>
 
@@ -54,7 +65,10 @@
           options_for_select([["All Roles", ""]] + Node.roles.keys.map { |r| [r.humanize, r] }, @filter.role),
           {},
           class: "block w-full rounded-none border-0 bg-gray-50 py-2 pl-3 pr-10 text-sm text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-blue-600 dark:bg-slate-700 dark:text-white dark:ring-white/10",
-          data: { action: "change->autosubmit#submit" } %>
+          data: { 
+            action: "change->autosubmit#submit change->filter-form#updateClearButton",
+            filter_form_target: "input"
+          } %>
     </div>
 
     <%# Status Filter %>
@@ -64,7 +78,10 @@
           options_for_select([["All Statuses", ""]] + Nodes::FilterQuery::VALID_STATUSES.map { |s| [s.humanize, s] }, @filter.status),
           {},
           class: "block w-full rounded-none border-0 bg-gray-50 py-2 pl-3 pr-10 text-sm text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-blue-600 dark:bg-slate-700 dark:text-white dark:ring-white/10",
-          data: { action: "change->autosubmit#submit" } %>
+          data: { 
+            action: "change->autosubmit#submit change->filter-form#updateClearButton",
+            filter_form_target: "input"
+          } %>
     </div>
 
     <%# Actions %>
@@ -72,15 +89,22 @@
       <%= f.submit "Search",
           class: "inline-flex items-center rounded-none bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900 transition-colors cursor-pointer" %>
       
-      <% if @filter.filtered? %>
-        <%= link_to "Clear filters", nodes_path,
-            data: { turbo_frame: "_top" },
-            class: "inline-flex items-center rounded-none px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 dark:text-slate-400 dark:hover:text-white dark:hover:bg-white/10 transition-colors" %>
-      <% else %>
-        <span class="inline-flex items-center rounded-none px-3 py-2 text-sm font-medium text-gray-400 cursor-not-allowed dark:text-slate-600">
-          Clear filters
-        </span>
-      <% end %>
+      <% 
+         # Initial classes based on state
+         base_classes = "inline-flex items-center rounded-none px-3 py-2 text-sm font-medium transition-colors"
+         if @filter.filtered?
+           button_classes = "#{base_classes} text-gray-600 hover:text-gray-900 hover:bg-gray-100 dark:text-slate-400 dark:hover:text-white dark:hover:bg-white/10"
+         else
+           button_classes = "#{base_classes} text-gray-400 cursor-not-allowed pointer-events-none"
+         end
+      %>
+      <%= content_tag :a, "Clear filters",
+          href: (@filter.filtered? ? nodes_path : nil),
+          data: { 
+            turbo_frame: "_top",
+            filter_form_target: "clearButton" 
+          },
+          class: button_classes %>
     </div>
   <% end %>
 </div>

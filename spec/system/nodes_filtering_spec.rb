@@ -140,4 +140,19 @@ RSpec.describe "Nodes Filtering", type: :system do
       expect(page).not_to have_content("Build your cluster")
     end
   end
+
+  describe "client-side interactions", :js do
+    it "enables clear button when typing in search" do
+      visit nodes_path
+      expect(page).not_to have_link("Clear filters")
+
+      fill_in "Search", with: "something"
+
+      expect(page).to have_link("Clear filters")
+
+      fill_in "Search", with: ""
+
+      expect(page).not_to have_link("Clear filters")
+    end
+  end
 end
