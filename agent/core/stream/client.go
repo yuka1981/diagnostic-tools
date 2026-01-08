@@ -11,8 +11,8 @@ import (
 	"sync"
 	"time"
 
-	"nhooyr.io/websocket" //nolint:staticcheck
-	"nhooyr.io/websocket/wsjson" //nolint:staticcheck
+	"nhooyr.io/websocket"        //nolint:staticcheck // Deprecated but required for Go 1.22 compatibility
+	"nhooyr.io/websocket/wsjson" //nolint:staticcheck // Deprecated but required for Go 1.22 compatibility
 )
 
 const (
@@ -36,7 +36,7 @@ type Responder interface {
 
 // Client manages the WebSocket connection to the server
 type Client struct {
-	conn      *websocket.Conn //nolint:staticcheck
+	conn      *websocket.Conn //nolint:staticcheck // Deprecated but required for Go 1.22 compatibility
 	handler   CommandHandler
 	serverURL string
 	token     string
@@ -97,7 +97,7 @@ func (c *Client) connectAndListen(ctx context.Context) error {
 	c.writeMu.Unlock()
 
 	defer func() {
-		conn.Close(websocket.StatusInternalError, "connection closed") //nolint:staticcheck
+		conn.Close(websocket.StatusInternalError, "connection closed") //nolint:staticcheck // Deprecated but required for Go 1.22 compatibility
 
 		c.writeMu.Lock()
 		defer c.writeMu.Unlock()
@@ -113,10 +113,10 @@ func (c *Client) connectAndListen(ctx context.Context) error {
 	return c.readLoop(ctx, conn)
 }
 
-func (c *Client) dial(ctx context.Context) (*websocket.Conn, error) { //nolint:staticcheck
+func (c *Client) dial(ctx context.Context) (*websocket.Conn, error) { //nolint:staticcheck // Deprecated but required for Go 1.22 compatibility
 	wsURL := c.prepareURL()
 
-	opts := &websocket.DialOptions{ //nolint:staticcheck
+	opts := &websocket.DialOptions{ //nolint:staticcheck // Deprecated but required for Go 1.22 compatibility
 		HTTPHeader: http.Header{
 			"X-Node-ID": []string{c.nodeID},
 		},
@@ -126,7 +126,7 @@ func (c *Client) dial(ctx context.Context) (*websocket.Conn, error) { //nolint:s
 	}
 
 	log.Printf("Connecting to %s...", wsURL)
-	conn, resp, err := websocket.Dial(ctx, wsURL, opts) //nolint:bodyclose
+	conn, resp, err := websocket.Dial(ctx, wsURL, opts) //nolint:bodyclose // Response body is not closed by Dial on success
 	if resp != nil && resp.Body != nil {
 		resp.Body.Close()
 	}
@@ -136,7 +136,7 @@ func (c *Client) dial(ctx context.Context) (*websocket.Conn, error) { //nolint:s
 	return conn, nil
 }
 
-func (c *Client) subscribe(ctx context.Context, conn *websocket.Conn) error { //nolint:staticcheck
+func (c *Client) subscribe(ctx context.Context, conn *websocket.Conn) error { //nolint:staticcheck // Deprecated but required for Go 1.22 compatibility
 	identifier := fmt.Sprintf(`{"channel":%q}`, DefaultChannel)
 	subscribeMsg := map[string]interface{}{
 		"command":    "subscribe",
@@ -152,7 +152,7 @@ func (c *Client) subscribe(ctx context.Context, conn *websocket.Conn) error { //
 	return nil
 }
 
-func (c *Client) readLoop(ctx context.Context, conn *websocket.Conn) error { //nolint:staticcheck
+func (c *Client) readLoop(ctx context.Context, conn *websocket.Conn) error { //nolint:staticcheck // Deprecated but required for Go 1.22 compatibility
 	for {
 		var msg map[string]interface{}
 		if err := wsjson.Read(ctx, conn, &msg); err != nil {
