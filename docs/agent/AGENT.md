@@ -1,113 +1,99 @@
 # **AGENT.md — HPC Agent Development Specification (TDD)**
 
-Version: 0.1.0  
-Based on: PRD v0.5.2  
+Version: 0.2.0  
+Based on: PRD v0.6.x  
 Language: Go 1.22+  
 Pattern: Hexagonal Architecture (Ports & Adapters)
 
-## **1\. 核心開發原則 (Core Principles)**
+## **1. 核心開發原則 (Core Principles)**
 
-1. **Strict TDD**: Write Test \-\> Fail (Red) \-\> Write Code \-\> Pass (Green) \-\> Refactor.  
+1. **Strict TDD**: Write Test -> Fail (Red) -> Write Code -> Pass (Green) -> Refactor.  
 2. **Interface First**: 所有與作業系統 (FS, Syscall)、網路、外部指令互動的邏輯，必須先定義 interface。  
-3. **Mocking**: 使用 mockgen 或手寫 Mock 來隔離外部依賴，確保測試在非 Linux/HPC 環境下（如 macOS 開發機）也能執行。  
-4. **Static Binary**: 最終產出必須是 CGO\_ENABLED=0 的靜態執行檔。
+3. **Mocking**: 使用手寫 Mock 或 Test Doubles 來隔離外部依賴，確保測試在非 Linux/HPC 環境下也能執行。  
+4. **Static Binary**: 最終產出必須是 `CGO_ENABLED=0` 的靜態執行檔。
 
-## **2\. 系統架構設計 (Architecture)**
+## **2. 系統架構設計 (Architecture)**
+
+### **2.1 核心介面 (Core Ports)**
 
 ```go
-// core/ports/collector.go  
-type SystemCollector interface {  
-    GetHostInfo() (\*model.HostInfo, error)  
-    GetCPUInfo() (\*model.CPUInfo, error)  
-    GetMemInfo() (\*model.MemInfo, error)  
-    GetDiskInfo() (\[\]model.DiskInfo, error)  
-    GetNetInfo() (\[\]model.NetInfo, error)  
+// core/ports/interfaces.go
+
+type SystemCollector interface {
+    GetHostInfo(ctx context.Context) (*model.HostInfo, error)
+    GetCPUInfo(ctx context.Context) (*model.CPUInfo, error)
+    GetMemInfo(ctx context.Context) (*model.MemoryInfo, error)
+    GetDiskInfo(ctx context.Context) ([]model.DiskInfo, error)
+    GetNetInfo(ctx context.Context) ([]model.NetInfo, error)
+    GetDMIInfo(ctx context.Context) (*model.HostDMIInfo, error)
 }
 
-// core/ports/uploader.go  
-type InventoryUploader interface {  
-    Push(ctx context.Context, data \*model.NodeState) error  
-    PushArtifact(ctx context.Context, runID string, file Path) error  
+type InventoryCollector interface {
+    Collect(ctx context.Context) (*model.NodeState, error)
 }
 
-// core/ports/executor.go  
-// 用於隔離 exec.Command，方便測試 HPCG 編譯與執行  
-type CommandRunner interface {  
-    Run(ctx context.Context, dir string, cmd string, args ...string) (output string, err error)  
+type Uploader interface {
+    Upload(ctx context.Context, payload interface{}) error
+    CheckAuth(ctx context.Context) error
+}
+
+type CommandRunner interface {
+    Run(ctx context.Context, dir, name string, args ...string) ([]byte, error)
 }
 ```
 
-## **3\. 功能模組規格 (Modules Specs)**
+### **2.2 串流與命令處理 (Stream & Command Handling)**
 
-### **3.1 基礎設施 (Infrastructure)**
+```go
+// core/stream/client.go
 
-* **Config**: 讀取 config.yaml 或環境變數 (API Endpoint, Token)。  
-* **Logger**: 結構化日誌 (slog or zap)。
+type CommandHandler interface {
+    HandleCommand(ctx context.Context, action string, payload map[string]interface{}, responder Responder) error
+}
+
+type Responder interface {
+    Send(ctx context.Context, payload interface{}) error
+}
+```
+
+## **3. 功能模組規格 (Modules Specs)**
+
+### **3.1 節點身份識別 (Node Identity)**
+
+* **Mechanism**: 首次啟動時於 `/etc/hpc-agent/node_id` (或指定目錄) 生成並儲存 UUID。
+* **Persistence**: 確保 Agent 重啟後 UUID 保持不變，用於伺服器端去重。
 
 ### **3.2 系統資訊收集 (Inventory) - hpc-agent collect**
 
-**TDD 流程**:
+* **DMI (Phase 1)**: 透過 `dmidecode -t 0,1,17` 取得。若執行失敗 (如無權限) 應回傳 Warning 並繼續其他收集任務。
+* **CPU**: 解析 `/proc/cpuinfo` 並輔以 `/sys/devices/system/cpu` 取得頻率與快取。
+* **Memory**: 解析 `/proc/meminfo` 取得 Total, Free, Available, Buffers, Cached, Swap。
+* **Disk**: 讀取 `/proc/mounts` 並使用 `unix.Statfs` 取得空間資訊。
 
-1. **Test**: 建立 MockCollector，預期 GetCPUInfo 返回假資料。  
-2. **Test**: 測試 CollectUseCase 組合各個 Info 並 Marshal 成符合 Schema 的 JSON。  
-3. **Impl**: 實作 LinuxCollector。  
-   * *CPU*: 解析 /proc/cpuinfo 或 lscpu 輸出。  
-   * *Mem*: 解析 /proc/meminfo。  
-   * *Net*: 解析 /sys/class/net 或 ip addr。
+### **3.3 雙向通訊 (Streaming) - hpc-agent start**
 
-**驗收標準**:
+* **Protocol**: ActionCable WebSocket。
+* **Authentication**: 透過 `X-Node-ID` Header 與 `Authorization: Bearer <token>`。
+* **Commands**: 支援 `collect_inventory`, `uninstall`, `ping` 等指令。
 
-* 執行 `hpc-agent collect` 輸出之 JSON 需符合 JSON Schema 驗證。  
-* 執行時間 < 1s。
+### **3.4 HPCG Benchmark**
 
-### **3.3 主動回報 (Push) - hpc-agent inventory push**
+* **Workflow**: 
+    1. 環境載入 (Lmod/Environment Modules)。
+    2. 源碼編譯 (Native Optimization)。
+    3. 設定生成 (hpcg.dat)。
+    4. 執行與日誌解析。
+    5. 產物上傳 (JSON Metrics + Log files)。
 
-**TDD 流程**:
+## **4. CLI 介面 (Cobra)**
 
-1. **Test**: 建立 MockHTTPClient。  
-2. **Test**: 呼叫 Push 方法，驗證 Request Body 是否包含 Token 與正確的 JSON。  
-3. **Test**: 模擬 API 500 錯誤，驗證是否重試 (Retry with Exponential Backoff) 或優雅失敗。
+* `hpc-agent start`: 以常駐程式 (Daemon) 模式執行，連接 WebSocket。
+* `hpc-agent collect`: 單次收集系統資訊並輸出 JSON。
+* `hpc-agent inventory push`: 收集並上傳至伺服器。
+* `hpc-agent check-key`: 驗證 API Token 效力。
 
-### **3.4 HPCG Benchmark - hpc-agent benchmark hpcg**
+## **5. 測試策略 (Test Strategy)**
 
-這是最複雜的模組，需拆解為子任務測試。
-
-#### **A. 環境準備 (Environment Setup)**
-
-* **Interface**: ModuleLoader  
-* **Test**: 模擬執行 module load \<profile\>，驗證環境變數變更。
-
-#### **B. 原生編譯 (Native Compilation)**
-
-* **Test**: 模擬 make 指令執行。若目標執行檔 xhpcg 已存在且 Hash 相同，則跳過 (Build Cache 雖為 Non-goal，但基本檢查要有)。
-
-#### **C. 設定檔生成 (Config Generation)**
-
-* **Logic**: 根據 hpcg.dat 格式生成檔案。  
-* **Test**: 輸入參數 nx=104, ny=104...，驗證生成的 hpcg.dat 內容是否正確。
-
-#### **D. 執行與解析 (Run & Parse)**
-
-* **Input**: 模擬的 HPCG stdout/log 檔案內容。  
-* **Test (Regex)**:  
-  * Case 1: 成功。擷取 GFLOPS, Time, Status=PASS。  
-  * Case 2: 失敗 (Residual error)。擷取 Status=FAIL。  
-  * Case 3: 崩潰 (Crash)。
-
-#### **E. 產物上傳 (Artifact Upload)**
-
-* **Logic**: 原子寫入 (.tmp \-\> rename)。  
-* **Test**: 驗證檔案操作序列。
-
-## **4\. CLI 介面 (Cobra)**
-
-* main.go: Entrypoint。  
-* cmd/collect.go: 綁定 CollectUseCase。  
-* cmd/push.go: 綁定 PushUseCase。  
-* cmd/hpcg.go: 綁定 HPCGUseCase。
-
-## **5\. 測試策略 (Test Strategy)**
-
-* **Unit Tests**: 覆蓋率目標 \> 80%。針對所有 Parser 與 Logic。  
-* **Integration Tests**: 在 CI 環境中使用 Docker 模擬 Linux 環境，測試 /proc 讀取（部分）。  
-* **Golden Files**: 對於 JSON 輸出與 Log 解析，使用 Golden File 測試法確保格式不變。
+* **Unit Tests**: 核心 Parser (CPU, Mem, DMI) 必須有完整 Unit Test。
+* **Mock Runner**: 使用 `MockCommandRunner` 模擬外部指令輸出，避免真實執行。
+* **JSON Verification**: 確保輸出格式符合後端 `NodeState` 定義。
