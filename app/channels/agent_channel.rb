@@ -26,11 +26,18 @@ class AgentChannel < ApplicationCable::Channel
     if data["action"] == "report_result"
       if data["status"] == "success"
         payload = data["payload"]
+        Rails.logger.info "Processing inventory report from #{current_node.hostname}"
 
-        Inventory::ProcessStateService.new(
+        result = Inventory::ProcessStateService.new(
           node_id: current_node.id,
           raw_json: payload
         ).call
+
+        if result.success?
+          Rails.logger.info "Inventory processed successfully for #{current_node.hostname}"
+        else
+          Rails.logger.error "Inventory processing failed for #{current_node.hostname}: #{result.error}"
+        end
       else
         error_message = data["error"] || "Unknown error from agent"
         correlation_id = data["correlation_id"]

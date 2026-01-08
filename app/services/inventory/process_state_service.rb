@@ -61,22 +61,23 @@ module Inventory
 
       result = if state_changed?(current_state, new_state_data)
                  create_new_state(node, new_state_data)
-      else
-                                  touch_node(node, current_state)
-      end
+               else
+                 touch_node(node, current_state)
+               end
 
-                       broadcast_update(node, result.node_state) if result.success?
-                       result
-                     end
+      broadcast_update(node, result.node_state) if result.success?
+      result
+    end
 
-                     def broadcast_update(node, state)
-                       Turbo::StreamsChannel.broadcast_replace_to(
-                         node,
-                         target: ActionView::RecordIdentifier.dom_id(node, :details),
-                         partial: "nodes/details",
-                         locals: { node: node, selected_state: state, current_user: nil }
-                       )
-                     end
+    def broadcast_update(node, state)
+      Turbo::StreamsChannel.broadcast_replace_to(
+        node,
+        target: ActionView::RecordIdentifier.dom_id(node, :details),
+        partial: "nodes/details",
+        locals: { node: node, selected_state: state, current_user: nil }
+      )
+    end
+
     def build_state_data
       cpu_data = (@raw_json[:cpu] || {}).to_h
       # Include specific fields if they are missing from the top-level :cpu but present in :raw_json
