@@ -137,7 +137,7 @@ RSpec.describe "Benchmark Runs Filtering", type: :system do
       end
 
       # Click clear filters
-      click_link "Clear filters"
+      click_link "Clear"
 
       # Should show all runs
       within("tbody") do

@@ -69,6 +69,10 @@ class Node < ApplicationRecord
     jump_host.present?
   end
 
+  def status
+    online? ? :online : :offline
+  end
+
   private
 
   def generate_uuid

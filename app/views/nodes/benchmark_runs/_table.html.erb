@@ -1,0 +1,28 @@
+<div class="overflow-x-auto">
+  <table class="min-w-full divide-y divide-slate-200">
+    <thead class="bg-slate-50">
+      <tr>
+        <th class="px-3 py-2 text-left text-xs font-bold uppercase text-slate-500">ID</th>
+        <th class="px-3 py-2 text-left text-xs font-bold uppercase text-slate-500">Recipe</th>
+        <th class="px-3 py-2 text-left text-xs font-bold uppercase text-slate-500">Status</th>
+        <th class="px-3 py-2 text-right text-xs font-bold uppercase text-slate-500">Date</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-slate-100">
+      <% benchmark_runs.each do |run| %>
+        <tr id="<%= dom_id(run) %>" class="hover:bg-slate-50">
+          <td class="px-3 py-2 text-xs font-mono text-slate-900">
+            <%= link_to run.id.to_s[0..7], benchmark_run_path(run), class: "text-teal-600 hover:underline" %>
+          </td>
+          <td class="px-3 py-2 text-xs text-slate-900"><%= run.benchmark_recipe&.name || "N/A" %></td>
+          <td class="px-3 py-2 text-xs">
+            <%# Reuse status helper or inline for now since we are in a rush %>
+            <% status_color = case run.status; when 'completed', 'success' then 'text-emerald-600'; when 'failed' then 'text-red-600'; else 'text-slate-500'; end %>
+            <span class="font-medium <%= status_color %>"><%= run.status.humanize %></span>
+          </td>
+          <td class="px-3 py-2 text-xs text-right text-slate-500"><%= time_ago_in_words(run.created_at) %> ago</td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>

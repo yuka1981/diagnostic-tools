@@ -20,4 +20,23 @@ module ApplicationHelper
       "#{mbps} Mbps"
     end
   end
+
+  def node_status_badge(status)
+    base_classes = "px-2 py-0.5 rounded text-xs font-bold shadow-sm text-white"
+
+    color_classes = case status.to_s
+    when "online", "success", "passed"
+      "bg-emerald-500"
+    when "offline", "failed", "error"
+      "bg-red-500"
+    when "running"
+      "bg-blue-500 animate-pulse"
+    when "unknown", "warning"
+      "bg-yellow-500"
+    else
+      "bg-slate-500"
+    end
+
+    "#{base_classes} #{color_classes}"
+  end
 end

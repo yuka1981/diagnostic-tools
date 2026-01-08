@@ -1,8 +1,8 @@
 <%= form_with(model: @node, class: "space-y-6") do |f| %>
   <% if @node.errors.any? %>
-    <div id="error_explanation" class="rounded-lg bg-red-50 p-4 text-sm text-red-700 dark:bg-red-900/20 dark:text-red-400">
-      <h2 class="font-bold"><%= pluralize(@node.errors.count, "error") %> prohibited this node from being saved:</h2>
-      <ul class="list-disc list-inside mt-2">
+    <div id="error_explanation" class="rounded-lg bg-red-50 p-4 text-sm text-red-700 border border-red-200">
+      <h2 class="font-bold mb-2"><%= pluralize(@node.errors.count, "error") %> prohibited this node from being saved:</h2>
+      <ul class="list-disc list-inside">
         <% @node.errors.full_messages.each do |message| %>
           <li><%= message %></li>
         <% end %>
@@ -10,118 +10,117 @@
     </div>
   <% end %>
 
-  <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
-    <div>
-      <%= f.label :hostname, class: "block text-sm font-medium text-gray-700 dark:text-slate-300" %>
-      <%= f.text_field :hostname, required: true,
-          placeholder: "node-001",
-          class: "mt-1 block w-full rounded-none border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-slate-800 dark:border-white/10 dark:text-white sm:text-sm" %>
+  <%# Section: Node Properties %>
+  <div class="card">
+    <div class="card-header">
+      <h3 class="card-title">Node Properties</h3>
     </div>
-
-    <div>
-      <%= f.label :ip, "IP Address", class: "block text-sm font-medium text-gray-700 dark:text-slate-300" %>
-      <%= f.text_field :ip,
-          placeholder: "10.0.0.1",
-          class: "mt-1 block w-full rounded-none border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-slate-800 dark:border-white/10 dark:text-white sm:text-sm" %>
-    </div>
-
-    <div>
-      <%= f.label :role, class: "block text-sm font-medium text-gray-700 dark:text-slate-300" %>
-      <%= f.select :role, Node.roles.keys.map { |r| [r.humanize, r] }, {},
-          class: "mt-1 block w-full rounded-none border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-slate-800 dark:border-white/10 dark:text-white sm:text-sm" %>
-    </div>
-
-    <div>
-      <%= f.label :arch, "Architecture", class: "block text-sm font-medium text-gray-700 dark:text-slate-300" %>
-      <%= f.select :arch, [["x86_64", "x86_64"], ["aarch64/arm64", "aarch64"]], { include_blank: "Select Architecture" },
-          class: "mt-1 block w-full rounded-none border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-slate-800 dark:border-white/10 dark:text-white sm:text-sm" %>
-    </div>
-  </div>
-
-  <div class="border-t border-gray-200 pt-6 dark:border-white/10" data-controller="ssh-settings">
-    <div class="mb-4">
-      <h4 class="text-sm font-semibold text-gray-900 dark:text-white">SSH Configuration</h4>
-      <p class="text-xs text-gray-500 dark:text-slate-400">Choose how the system connects to this node.</p>
-    </div>
-
-    <div class="mb-6">
-      <%= f.label :ssh_connect_method, "Connection Method", class: "block text-sm font-medium text-gray-700 dark:text-slate-300" %>
-      <%= f.select :ssh_connect_method, 
-          Node.ssh_connect_methods.keys.map { |m| [m.humanize, m] }, 
-          {},
-          class: "mt-1 block w-full rounded-none border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-slate-800 dark:border-white/10 dark:text-white sm:text-sm",
-          data: { action: "change->ssh-settings#toggle" } %>
-    </div>
-
-    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2" data-ssh-settings-target="fields">
+    <div class="p-4 grid grid-cols-1 gap-6 sm:grid-cols-2">
       <div>
-        <%= f.label :ssh_port, "SSH Port", class: "block text-sm font-medium text-gray-700 dark:text-slate-300" %>
-        <%= f.number_field :ssh_port, min: 1, max: 65535,
-            class: "mt-1 block w-full rounded-none border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-slate-800 dark:border-white/10 dark:text-white sm:text-sm" %>
+        <%= f.label :hostname, class: "block text-sm font-bold text-slate-700 mb-1" %>
+        <%= f.text_field :hostname, required: true,
+            placeholder: "node-001",
+            class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" %>
+        <p class="mt-1 text-xs text-slate-500">Unique hostname for the node.</p>
       </div>
 
       <div>
-        <%= f.label :ssh_user, "SSH User", class: "block text-sm font-medium text-gray-700 dark:text-slate-300" %>
-        <%= f.text_field :ssh_user,
-            placeholder: "root",
-            class: "mt-1 block w-full rounded-none border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-slate-800 dark:border-white/10 dark:text-white sm:text-sm" %>
+        <%= f.label :ip, "IP Address", class: "block text-sm font-bold text-slate-700 mb-1" %>
+        <%= f.text_field :ip,
+            placeholder: "10.0.0.1",
+            class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm font-mono" %>
+        <p class="mt-1 text-xs text-slate-500">IPv4 or IPv6 address.</p>
       </div>
 
       <div>
-        <%= f.label :password, "User password", class: "block text-sm font-medium text-gray-700 dark:text-slate-300" %>
-        <%= f.password_field :password,
-            placeholder: "••••••••",
-            class: "mt-1 block w-full rounded-none border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-slate-800 dark:border-white/10 dark:text-white sm:text-sm" %>
+        <%= f.label :role, class: "block text-sm font-bold text-slate-700 mb-1" %>
+        <%= f.select :role, Node.roles.keys.map { |r| [r.humanize, r] }, {},
+            class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" %>
       </div>
 
       <div>
-        <%= f.label :ssh_key, "SSH Key (optional)", class: "block text-sm font-medium text-gray-700 dark:text-slate-300" %>
-        <%= f.text_area :ssh_key, rows: 1,
-            placeholder: "ssh-rsa AAAAB3Nza...",
-            class: "mt-1 block w-full rounded-none border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-slate-800 dark:border-white/10 dark:text-white sm:text-sm" %>
-      </div>
-    </div>
-    
-    <div class="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2" data-ssh-settings-target="bastionFields">
-      <div class="col-span-2">
-        <h5 class="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-slate-400 mb-3">Custom Bastion Settings</h5>
-      </div>
-      <div>
-        <%= f.label :jump_host, "Jump Host", class: "block text-sm font-medium text-gray-700 dark:text-slate-300" %>
-        <%= f.text_field :jump_host,
-            placeholder: "bastion.example.com",
-            class: "mt-1 block w-full rounded-none border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-slate-800 dark:border-white/10 dark:text-white sm:text-sm" %>
-      </div>
-      <div>
-        <%= f.label :jump_user, "Jump User", class: "block text-sm font-medium text-gray-700 dark:text-slate-300" %>
-        <%= f.text_field :jump_user,
-            placeholder: "root",
-            class: "mt-1 block w-full rounded-none border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-slate-800 dark:border-white/10 dark:text-white sm:text-sm" %>
-      </div>
-      <div>
-        <%= f.label :jump_port, "Jump Port", class: "block text-sm font-medium text-gray-700 dark:text-slate-300" %>
-        <%= f.number_field :jump_port, min: 1, max: 65535,
-            class: "mt-1 block w-full rounded-none border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-slate-800 dark:border-white/10 dark:text-white sm:text-sm" %>
+        <%= f.label :arch, "Architecture", class: "block text-sm font-bold text-slate-700 mb-1" %>
+        <%= f.select :arch, [["x86_64", "x86_64"], ["aarch64/arm64", "aarch64"]], { include_blank: "Select Architecture" },
+            class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" %>
       </div>
     </div>
   </div>
 
-  <div class="mt-6 flex items-center justify-between gap-3 border-t border-gray-200 pt-6 dark:border-white/10">
-    <div class="text-sm text-gray-500 dark:text-slate-400">
-      <% if @node.new_record? %>
-        Need to install hpc-agent first? 
-        <%= link_to "Run Installation Wizard", 
-            new_node_install_path, 
-            class: "text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300 font-medium",
-            data: { turbo_frame: "install_modal" } %>
-      <% end %>
+  <%# Section: SSH Configuration %>
+  <div class="card" data-controller="ssh-settings">
+    <div class="card-header">
+      <h3 class="card-title">SSH Configuration</h3>
     </div>
-    <div class="flex items-center gap-3">
-      <%= link_to "Cancel", nodes_path,
-          class: "rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:bg-slate-800 dark:border-white/10 dark:text-slate-300 dark:hover:bg-slate-700",
-          data: { turbo_frame: "node_modal" } %>
-      <%= f.submit "Save Node",
-          class: "rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 shadow-lg shadow-blue-500/20" %>
+    <div class="p-4 space-y-6">
+      <div>
+        <%= f.label :ssh_connect_method, "Connection Method", class: "block text-sm font-bold text-slate-700 mb-1" %>
+        <%= f.select :ssh_connect_method, 
+            Node.ssh_connect_methods.keys.map { |m| [m.humanize, m] }, 
+            {},
+            class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm",
+            data: { action: "change->ssh-settings#toggle" } %>
+        <p class="mt-1 text-xs text-slate-500">How the system connects to this node.</p>
+      </div>
+
+      <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 border-t border-slate-100 pt-6" data-ssh-settings-target="fields">
+        <div>
+          <%= f.label :ssh_port, "SSH Port", class: "block text-sm font-bold text-slate-700 mb-1" %>
+          <%= f.number_field :ssh_port, min: 1, max: 65535,
+              class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" %>
+        </div>
+
+        <div>
+          <%= f.label :ssh_user, "SSH User", class: "block text-sm font-bold text-slate-700 mb-1" %>
+          <%= f.text_field :ssh_user,
+              placeholder: "root",
+              class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" %>
+        </div>
+
+        <div>
+          <%= f.label :password, "User password", class: "block text-sm font-bold text-slate-700 mb-1" %>
+          <%= f.password_field :password,
+              placeholder: "••••••••",
+              class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" %>
+        </div>
+
+        <div>
+          <%= f.label :ssh_key, "SSH Key (optional)", class: "block text-sm font-bold text-slate-700 mb-1" %>
+          <%= f.text_area :ssh_key, rows: 1,
+              placeholder: "ssh-rsa AAAAB3Nza...",
+              class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" %>
+        </div>
+      </div>
+      
+      <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 border-t border-slate-100 pt-6" data-ssh-settings-target="bastionFields">
+        <div class="col-span-2">
+          <h5 class="text-xs font-bold uppercase tracking-wider text-slate-500">Custom Bastion Settings</h5>
+        </div>
+        <div>
+          <%= f.label :jump_host, "Jump Host", class: "block text-sm font-bold text-slate-700 mb-1" %>
+          <%= f.text_field :jump_host,
+              placeholder: "bastion.example.com",
+              class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" %>
+        </div>
+        <div>
+          <%= f.label :jump_user, "Jump User", class: "block text-sm font-bold text-slate-700 mb-1" %>
+          <%= f.text_field :jump_user,
+              placeholder: "root",
+              class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" %>
+        </div>
+        <div>
+          <%= f.label :jump_port, "Jump Port", class: "block text-sm font-bold text-slate-700 mb-1" %>
+          <%= f.number_field :jump_port, min: 1, max: 65535,
+              class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" %>
+        </div>
+      </div>
     </div>
+  </div>
+
+  <div class="flex items-center justify-end gap-3 pt-4">
+    <%= link_to "Cancel", nodes_path,
+        class: "btn-secondary",
+        data: { turbo_frame: "node_modal" } %>
+    <%= f.submit "Save Node",
+        class: "btn-primary" %>
   </div>
 <% end %>

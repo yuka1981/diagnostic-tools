@@ -1,7 +1,7 @@
 <!DOCTYPE html>
-<html class="h-full">
+<html class="h-full bg-slate-100">
   <head>
-    <title><%= content_for(:title) || "Dashboard - Diagnostic Tools" %></title>
+    <title><%= content_for(:title) || "NetBox Diag" %></title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <%= csrf_meta_tags %>
@@ -13,219 +13,50 @@
     <link rel="icon" href="/icon.png" type="image/png">
     <link rel="icon" href="/icon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="/icon.png">
-    
-    <%# Prevent FOUC for dark mode %>
-    <script>
-      (function() {
-        const stored = localStorage.getItem('theme');
-        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        if (stored === 'dark' || (!stored && prefersDark)) {
-          document.documentElement.classList.add('dark');
-        }
-      })();
-    </script>
 
     <%= stylesheet_link_tag "tailwind", "data-turbo-track": "reload" %>
     <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
     <%= javascript_importmap_tags %>
   </head>
 
-  <body class="h-full">
-    <div class="min-h-full" data-controller="sidebar theme">
+  <body class="h-full font-sans antialiased text-slate-600">
+    <div class="min-h-full" data-controller="sidebar">
       <%# Mobile sidebar overlay %>
       <div data-sidebar-target="overlay" 
            data-action="click->sidebar#close"
-           class="hidden fixed inset-0 z-40 bg-gray-900/60 backdrop-blur-sm lg:hidden"></div>
+           class="hidden fixed inset-0 z-40 bg-slate-900/50 backdrop-blur-sm lg:hidden transition-opacity"></div>
 
-      <%# Sidebar %>
-      <aside data-sidebar-target="menu"
-             class="fixed inset-y-0 left-0 z-50 w-72 -translate-x-full transform transition-transform duration-300 ease-in-out lg:translate-x-0">
-        <%# Glassmorphism background %>
-        <div class="absolute inset-0 bg-gradient-to-b from-slate-900/95 via-slate-800/90 to-slate-900/95 backdrop-blur-xl"></div>
-        
-        <%# Glassmorphism border effect %>
-        <div class="absolute inset-y-0 right-0 w-px bg-gradient-to-b from-white/10 via-white/5 to-white/10"></div>
-        
-        <%# Sidebar content %>
-        <div class="relative flex h-full flex-col">
-          <%# Logo/Brand %>
-          <div class="flex h-16 items-center gap-3 px-6 border-b border-white/5">
-            <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-cyan-400 to-blue-500 shadow-lg shadow-cyan-500/20">
-              <svg class="h-5 w-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                  d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
-              </svg>
-            </div>
-            <div>
-              <span class="text-lg font-semibold text-white tracking-tight">HPC Diagnostics</span>
-              <span class="block text-xs text-slate-400">Cluster Management</span>
-            </div>
-          </div>
+      <%= render "shared/sidebar" %>
 
-          <%# Navigation %>
-          <nav class="flex-1 space-y-1 px-3 py-4 overflow-y-auto">
-            <p class="px-3 text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Overview</p>
-            
-            <%= link_to dashboard_path, 
-                class: "group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-150 #{current_page?(dashboard_path) ? 'bg-white/10 text-white' : 'text-slate-300 hover:bg-white/5 hover:text-white'}" do %>
-              <svg class="h-5 w-5 flex-shrink-0 <%= current_page?(dashboard_path) ? 'text-cyan-400' : 'text-slate-400 group-hover:text-slate-300' %>" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                  d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" />
-              </svg>
-              Dashboard
-            <% end %>
-
-            <p class="px-3 pt-4 text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Inventory</p>
-
-            <%= link_to nodes_path,
-                class: "group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-150 #{request.path.start_with?('/nodes') ? 'bg-white/10 text-white' : 'text-slate-300 hover:bg-white/5 hover:text-white'}" do %>
-              <svg class="h-5 w-5 flex-shrink-0 <%= request.path.start_with?('/nodes') ? 'text-cyan-400' : 'text-slate-400 group-hover:text-slate-300' %>" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                  d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01" />
-              </svg>
-              Nodes
-            <% end %>
-
-            <p class="px-3 pt-4 text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Benchmarks</p>
-
-            <%= link_to benchmark_runs_path,
-                class: "group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-150 #{request.path.start_with?('/benchmark_runs') ? 'bg-white/10 text-white' : 'text-slate-300 hover:bg-white/5 hover:text-white'}" do %>
-              <svg class="h-5 w-5 flex-shrink-0 <%= request.path.start_with?('/benchmark_runs') ? 'text-cyan-400' : 'text-slate-400 group-hover:text-slate-300' %>" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                  d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-              </svg>
-              Benchmark Runs
-            <% end %>
-
-            <%= link_to benchmark_recipes_path,
-                class: "group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-150 #{request.path.start_with?('/benchmark_recipes') ? 'bg-white/10 text-white' : 'text-slate-300 hover:bg-white/5 hover:text-white'}" do %>
-              <svg class="h-5 w-5 flex-shrink-0 <%= request.path.start_with?('/benchmark_recipes') ? 'text-cyan-400' : 'text-slate-400 group-hover:text-slate-300' %>" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                  d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
-              </svg>
-              Recipes
-            <% end %>
-
-            <% if current_user&.approver? %>
-              <p class="px-3 pt-4 text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Management</p>
-              <%= link_to api_keys_path,
-                  class: "group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-150 #{request.path.start_with?('/api_keys') ? 'bg-white/10 text-white' : 'text-slate-300 hover:bg-white/5 hover:text-white'}" do %>
-                <svg class="h-5 w-5 flex-shrink-0 <%= request.path.start_with?('/api_keys') ? 'text-cyan-400' : 'text-slate-400 group-hover:text-slate-300' %>" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 012.93-.707l5.964-5.964A6 6 0 1121 9z" />
-                </svg>
-                API Keys
-              <% end %>
-
-              <%= link_to settings_ssh_path,
-                  class: "group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-150 #{request.path.start_with?('/settings/ssh') ? 'bg-white/10 text-white' : 'text-slate-300 hover:bg-white/5 hover:text-white'}" do %>
-                <svg class="h-5 w-5 flex-shrink-0 <%= request.path.start_with?('/settings/ssh') ? 'text-cyan-400' : 'text-slate-400 group-hover:text-slate-300' %>" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                </svg>
-                SSH Settings
-              <% end %>
-
-              <%= link_to settings_agent_path,
-                  class: "group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-150 #{request.path.start_with?('/settings/agent') ? 'bg-white/10 text-white' : 'text-slate-300 hover:bg-white/5 hover:text-white'}" do %>
-                <svg class="h-5 w-5 flex-shrink-0 <%= request.path.start_with?('/settings/agent') ? 'text-cyan-400' : 'text-slate-400 group-hover:text-slate-300' %>" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-                Agent Configuration
-              <% end %>
-            <% end %>
-          </nav>
-
-          <%# User section %>
-          <div class="border-t border-white/5 p-3">
-            <%# Theme toggle %>
-            <button type="button"
-                    data-action="click->theme#toggle"
-                    class="group flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-300 hover:bg-white/5 hover:text-white transition-all duration-150">
-              <span class="text-slate-400 group-hover:text-slate-300">
-                <%# Sun icon (shown in dark mode to switch to light) %>
-                <svg data-theme-target="sunIcon" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                    d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-                </svg>
-                <%# Moon icon (shown in light mode to switch to dark) %>
-                <svg data-theme-target="moonIcon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                    d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-                </svg>
-              </span>
-              <span data-theme-target="label">Dark Mode</span>
-            </button>
-
-            <% if user_signed_in? %>
-              <div class="flex items-center gap-3 rounded-none px-3 py-2.5 mt-1">
-                <div class="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-purple-400 to-pink-500 text-sm font-medium text-white">
-                  <%= current_user.name&.first&.upcase || current_user.email.first.upcase %>
-                </div>
-                <div class="flex-1 min-w-0">
-                  <p class="text-sm font-medium text-white truncate"><%= current_user.name || current_user.email %></p>
-                  <p class="text-xs text-slate-400 truncate"><%= current_user.role.humanize %></p>
-                </div>
-              </div>
-              <%= link_to destroy_user_session_path, 
-                  data: { turbo_method: :delete },
-                  class: "group flex w-full items-center gap-3 rounded-none px-3 py-2.5 text-sm font-medium text-slate-300 hover:bg-red-500/10 hover:text-red-400 transition-all duration-150" do %>
-                <svg class="h-5 w-5 text-slate-400 group-hover:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                    d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                </svg>
-                Sign out
-              <% end %>
-            <% else %>
-              <%= link_to new_user_session_path,
-                  class: "group flex w-full items-center gap-3 rounded-none px-3 py-2.5 text-sm font-medium text-slate-300 hover:bg-white/5 hover:text-white transition-all duration-150" do %>
-                <svg class="h-5 w-5 text-slate-400 group-hover:text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                    d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                </svg>
-                Sign in
-              <% end %>
-            <% end %>
-          </div>
-        </div>
-      </aside>
-
-      <%# Main content area %>
-      <div class="lg:pl-72">
-        <%# Top bar %>
-        <header class="sticky top-0 z-30 flex h-16 items-center gap-4 border-b border-gray-200 bg-white/80 px-4 backdrop-blur-lg dark:border-white/5 dark:bg-slate-900/80 sm:px-6 lg:px-8">
-          <%# Mobile menu button %>
-          <button type="button"
-                  data-action="click->sidebar#toggle"
-                  class="lg:hidden -ml-2 rounded-none p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:text-slate-400 dark:hover:bg-white/5 dark:hover:text-white">
-            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-          </button>
-
-          <%# Page title %>
-          <h1 class="text-lg font-semibold text-gray-900 dark:text-white">
-            <%= content_for(:page_title) || "Dashboard" %>
-          </h1>
-
-          <div class="flex-1"></div>
-
-          <%# Header actions %>
-          <div class="flex items-center gap-2">
-            <%= yield :header_actions %>
-          </div>
-        </header>
-
-        <%# Flash messages - use shared partial with ID for Turbo Stream updates %>
-        <div id="flash_messages" class="mx-4 mt-4 sm:mx-6 lg:mx-8">
-          <%= render "shared/flash", notice: notice, alert: alert %>
-        </div>
+      <%# Main content wrapper %>
+      <div class="lg:pl-64 flex flex-col min-h-screen">
+        <%= render "shared/navbar" %>
 
         <%# Main content %>
-        <main class="p-4 sm:p-6 lg:p-8">
+        <main class="flex-1 py-8 px-6">
+          <%# Breadcrumbs (Placeholder for now, or dynamic if possible) %>
+          <div class="flex items-center text-xs text-slate-500 mb-4">
+             <%= link_to "Home", dashboard_path, class: "hover:text-slate-700" %>
+             <span class="mx-2">/</span>
+             <span class="font-medium text-slate-700"><%= content_for(:page_title) || "Dashboard" %></span>
+          </div>
+
+          <%# Flash messages %>
+          <div id="flash_messages" class="mb-6">
+            <%= render "shared/flash", notice: notice, alert: alert %>
+          </div>
+
           <%= yield %>
         </main>
+        
+        <%# Footer %>
+        <footer class="mt-auto border-t border-slate-200 bg-white py-4 px-6 text-xs text-slate-400">
+          <div class="flex items-center justify-between">
+            <p>&copy; <%= Time.current.year %> HPC Diagnostics. All rights reserved.</p>
+            <p>v1.0.0</p>
+          </div>
+        </footer>
       </div>
     </div>
   </body>
 </html>
-

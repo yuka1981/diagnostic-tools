@@ -2,43 +2,53 @@
 
 module DashboardHelper
   STATUS_BADGE_CLASSES = {
-    "success" => "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400",
-    "failed" => "bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400",
-    "running" => "bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400",
-    "pending" => "bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400",
-    "cancelled" => "bg-gray-100 text-gray-700 dark:bg-gray-500/20 dark:text-gray-400"
+    "success" => "bg-emerald-100 text-emerald-700 border border-emerald-200",
+    "completed" => "bg-emerald-100 text-emerald-700 border border-emerald-200",
+    "passed" => "bg-emerald-100 text-emerald-700 border border-emerald-200",
+    "online" => "bg-emerald-100 text-emerald-700 border border-emerald-200",
+
+    "failed" => "bg-red-100 text-red-700 border border-red-200",
+    "offline" => "bg-red-100 text-red-700 border border-red-200",
+    "error" => "bg-red-100 text-red-700 border border-red-200",
+
+    "running" => "bg-blue-100 text-blue-700 border border-blue-200",
+    "pending" => "bg-amber-100 text-amber-700 border border-amber-200",
+    "warning" => "bg-amber-100 text-amber-700 border border-amber-200",
+    "unknown" => "bg-amber-100 text-amber-700 border border-amber-200",
+
+    "cancelled" => "bg-slate-100 text-slate-700 border border-slate-200"
   }.freeze
 
   STATUS_BG_CLASSES = {
-    "success" => "bg-emerald-100 dark:bg-emerald-500/20",
-    "failed" => "bg-red-100 dark:bg-red-500/20",
-    "running" => "bg-blue-100 dark:bg-blue-500/20",
-    "pending" => "bg-amber-100 dark:bg-amber-500/20",
-    "cancelled" => "bg-gray-100 dark:bg-gray-500/20"
+    "success" => "bg-emerald-100",
+    "failed" => "bg-red-100",
+    "running" => "bg-blue-100",
+    "pending" => "bg-amber-100",
+    "cancelled" => "bg-slate-100"
   }.freeze
 
   ROLE_BADGE_CLASSES = {
-    "compute" => "bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400",
-    "login" => "bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-400",
-    "admin" => "bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400"
+    "compute" => "bg-blue-100 text-blue-700 border border-blue-200",
+    "login" => "bg-purple-100 text-purple-700 border border-purple-200",
+    "admin" => "bg-amber-100 text-amber-700 border border-amber-200"
   }.freeze
 
-  DEFAULT_BADGE_CLASS = "bg-gray-100 text-gray-700 dark:bg-gray-500/20 dark:text-gray-400"
-  DEFAULT_BG_CLASS = "bg-gray-100 dark:bg-gray-500/20"
+  DEFAULT_BADGE_CLASS = "bg-slate-100 text-slate-700 border border-slate-200"
+  DEFAULT_BG_CLASS = "bg-slate-100"
 
   # Heatmap cell colors based on node role and status
   HEATMAP_COLORS = {
     compute: {
-      online: "bg-emerald-500 hover:bg-emerald-400 dark:bg-emerald-600 dark:hover:bg-emerald-500",
-      offline: "bg-gray-300 hover:bg-gray-200 dark:bg-slate-600 dark:hover:bg-slate-500"
+      online: "bg-emerald-500 hover:bg-emerald-400",
+      offline: "bg-slate-300 hover:bg-slate-200"
     },
     login: {
-      online: "bg-blue-500 hover:bg-blue-400 dark:bg-blue-600 dark:hover:bg-blue-500",
-      offline: "bg-gray-300 hover:bg-gray-200 dark:bg-slate-600 dark:hover:bg-slate-500"
+      online: "bg-blue-500 hover:bg-blue-400",
+      offline: "bg-slate-300 hover:bg-slate-200"
     },
     admin: {
-      online: "bg-amber-500 hover:bg-amber-400 dark:bg-amber-600 dark:hover:bg-amber-500",
-      offline: "bg-gray-300 hover:bg-gray-200 dark:bg-slate-600 dark:hover:bg-slate-500"
+      online: "bg-amber-500 hover:bg-amber-400",
+      offline: "bg-slate-300 hover:bg-slate-200"
     }
   }.freeze
 
