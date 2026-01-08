@@ -151,6 +151,16 @@ module Agent
       end
 
       execute_remote_command(ssh, systemd_cmd, password: @sudo_password)
+
+      # 3.4: dmidecode SUID
+      report_progress "Ensuring dmidecode has SUID permission (4755)"
+      inner_dmi = "which dmidecode && chmod 4755 $(which dmidecode)"
+      dmi_cmd = if via_ssh
+                  "sudo -S ssh -o StrictHostKeyChecking=no root@#{Shellwords.escape(@target_host)} #{Shellwords.escape(inner_dmi)}"
+      else
+                  "sudo -S bash -c #{Shellwords.escape(inner_dmi)}"
+      end
+      execute_remote_command(ssh, dmi_cmd, password: @sudo_password)
     end
 
     def report_progress(message)
