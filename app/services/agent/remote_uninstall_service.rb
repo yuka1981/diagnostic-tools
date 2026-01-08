@@ -13,7 +13,8 @@ module Agent
       connect: "Connecting to host",
       stop_service: "Stopping agent service",
       remove_files: "Removing files",
-      reload_daemon: "Reloading systemd"
+      reload_daemon: "Reloading systemd",
+      restore_permissions: "Restoring permissions"
     }.freeze
 
     def initialize(target_host:, bastion_user: nil, bastion_host: nil, bastion_password: nil, sudo_password:, node: nil, on_progress: nil)
@@ -119,6 +120,10 @@ module Agent
       report_progress(:reload_daemon)
       reload_cmd = "#{prefix}timeout 10s systemctl daemon-reload"
       execute_remote_command(ssh, reload_cmd, password: @sudo_password)
+
+      report_progress(:restore_permissions)
+      restore_cmd = "#{prefix}bash -c '(chmod 755 /usr/sbin/dmidecode || chmod 755 $(which dmidecode)) || true'"
+      execute_remote_command(ssh, restore_cmd, password: @sudo_password)
     end
 
     def report_progress(step)

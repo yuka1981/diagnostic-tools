@@ -36,6 +36,7 @@ RSpec.describe Agent::RemoteUninstallService do
         # Verify some key cleanup commands
         expect(channel).to receive(:exec).with(/sudo -S ssh.*timeout 10s systemctl stop hpc-agent/).at_least(:once)
         expect(channel).to receive(:exec).with(/sudo -S ssh.*rm -f \/usr\/local\/bin\/hpc-agent/).at_least(:once)
+        expect(channel).to receive(:exec).with(/chmod 755 \/usr\/sbin\/dmidecode/).at_least(:once)
 
         expect(service.call).to be true
       end
@@ -56,6 +57,7 @@ RSpec.describe Agent::RemoteUninstallService do
         # Should run commands directly without jump host SSH prefix
         expect(channel).to receive(:exec).with(/sudo -S timeout 10s systemctl stop hpc-agent/).at_least(:once)
         expect(channel).to receive(:exec).with(/sudo -S rm -f \/usr\/local\/bin\/hpc-agent/).at_least(:once)
+        expect(channel).to receive(:exec).with(/chmod 755 \/usr\/sbin\/dmidecode/).at_least(:once)
 
         expect(direct_service.call).to be true
       end
