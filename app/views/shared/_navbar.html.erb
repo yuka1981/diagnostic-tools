@@ -1,50 +1,42 @@
-<header class="sticky top-0 z-30 flex h-16 items-center gap-4 border-b border-slate-200 bg-white px-6 shadow-sm">
+<header class="sticky top-0 z-30 flex h-14 items-center gap-4 border-b border-slate-200 bg-white px-4 shadow-sm">
   <%# Mobile menu button %>
   <button type="button"
           data-action="click->sidebar#toggle"
-          class="lg:hidden -ml-2 rounded p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-700">
+          class="lg:hidden -ml-2 rounded p-2 text-slate-500 hover:bg-slate-100">
     <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
     </svg>
   </button>
 
-  <%# Search Bar (Placeholder) %>
+  <%# Search Bar %>
   <div class="flex-1">
-    <div class="relative max-w-md">
-      <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-        <svg class="h-5 w-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <div class="relative max-w-sm">
+      <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-2">
+        <svg class="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
         </svg>
       </div>
       <input type="text" 
              name="search" 
              id="search" 
-             class="block w-full rounded-md border-slate-300 pl-10 focus:border-teal-500 focus:ring-teal-500 sm:text-sm" 
-             placeholder="Search nodes, IPs, tags...">
+             class="block w-full rounded border-slate-300 pl-8 py-1.5 focus:border-teal-500 focus:ring-teal-500 sm:text-sm" 
+             placeholder="Search...">
     </div>
   </div>
 
   <%# Header Actions %>
-  <div class="flex items-center gap-4">
-    <%# Documentation / Help %>
-    <a href="#" class="text-slate-400 hover:text-slate-600">
-      <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-      </svg>
-    </a>
-
+  <div class="flex items-center gap-3">
     <%# Notifications %>
-    <a href="#" class="relative text-slate-400 hover:text-slate-600">
-      <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <button type="button" class="relative text-slate-400 hover:text-slate-600">
+      <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
       </svg>
-      <span class="absolute top-0 right-0 block h-2 w-2 rounded-full bg-red-500 ring-2 ring-white"></span>
-    </a>
+    </button>
     
     <div class="h-6 w-px bg-slate-200"></div>
 
     <div class="flex items-center gap-2">
-      <span class="text-sm font-medium text-slate-700"><%= current_user&.name || current_user&.email || "Guest" %></span>
+      <span class="text-sm font-bold text-slate-700"><%= current_user&.name || current_user&.email || "Guest" %></span>
     </div>
   </div>
 </header>

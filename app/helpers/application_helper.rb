@@ -22,19 +22,19 @@ module ApplicationHelper
   end
 
   def node_status_badge(status)
-    base_classes = "px-2 py-0.5 rounded text-xs font-bold shadow-sm text-white"
+    base_classes = "px-2 py-0.5 rounded text-xs font-bold shadow-sm"
 
     color_class = case status.to_s
     when "online", "success", "passed"
-      "bg-emerald-500"
+      "bg-green-100 text-green-800 border border-green-200"
     when "offline", "failed", "error"
-      "bg-red-500"
+      "bg-red-100 text-red-800 border border-red-200"
     when "running"
-      "bg-blue-500 animate-pulse"
+      "bg-blue-100 text-blue-800 border border-blue-200 animate-pulse"
     when "unknown", "warning"
-      "bg-yellow-500"
+      "bg-yellow-100 text-yellow-800 border border-yellow-200"
     else
-      "bg-slate-500"
+      "bg-slate-100 text-slate-700 border border-slate-200"
     end
 
     content_tag(:span, status.to_s.humanize, class: "#{base_classes} #{color_class}")

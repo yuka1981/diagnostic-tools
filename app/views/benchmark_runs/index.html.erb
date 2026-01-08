@@ -69,7 +69,7 @@
 
   <%# Runs List (Turbo Frame) %>
   <%= turbo_frame_tag "runs_list", data: { turbo_action: "advance" } do %>
-    <div class="card overflow-hidden">
+    <div class="border border-slate-300 rounded overflow-hidden shadow-sm">
       <% if @benchmark_runs.any? %>
         <%# Filter Summary %>
         <% if @filter.filtered? %>
@@ -84,17 +84,17 @@
         <% end %>
 
         <div class="overflow-x-auto">
-          <table class="min-w-full divide-y divide-slate-200">
+          <table class="min-w-full divide-y divide-slate-200 text-sm">
             <thead class="bg-slate-50">
               <tr>
-                <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wide text-slate-500">Recipe</th>
-                <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wide text-slate-500">Hostname</th>
-                <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wide text-slate-500">Log Path</th>
-                <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wide text-slate-500">Status</th>
-                <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wide text-slate-500">Created At</th>
-                <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wide text-slate-500">Started</th>
-                <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wide text-slate-500">Time</th>
-                <th scope="col" class="relative px-3 py-2">
+                <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Recipe</th>
+                <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Hostname</th>
+                <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Log Path</th>
+                <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Status</th>
+                <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Created At</th>
+                <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Started</th>
+                <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Time</th>
+                <th scope="col" class="relative px-3 py-2 border-b">
                   <span class="sr-only">Actions</span>
                 </th>
               </tr>
@@ -112,13 +112,13 @@
           <div class="border-t border-slate-200 bg-slate-50 px-6 py-4">
             <nav class="flex items-center justify-between" aria-label="Pagination">
               <div class="hidden sm:block">
-                <p class="text-sm text-slate-700">
+                <p class="text-xs font-bold text-slate-500 uppercase">
                   Showing
-                  <span class="font-medium text-slate-900"><%= @benchmark_runs.offset_value + 1 %></span>
+                  <span class="text-slate-700"><%= @benchmark_runs.offset_value + 1 %></span>
                   to
-                  <span class="font-medium text-slate-900"><%= [@benchmark_runs.offset_value + @benchmark_runs.limit_value, @benchmark_runs.total_count].min %></span>
+                  <span class="text-slate-700"><%= [@benchmark_runs.offset_value + @benchmark_runs.limit_value, @benchmark_runs.total_count].min %></span>
                   of
-                  <span class="font-medium text-slate-900"><%= @benchmark_runs.total_count %></span>
+                  <span class="text-slate-700"><%= @benchmark_runs.total_count %></span>
                   results
                 </p>
               </div>

@@ -1,4 +1,10 @@
 <% content_for(:page_title) { @node.hostname } %>
+<% content_for(:breadcrumbs) do %>
+  <span class="mx-2">/</span>
+  <%= link_to "Nodes", nodes_path, class: "hover:text-teal-600 font-bold" %>
+  <span class="mx-2">/</span>
+  <span class="font-medium text-slate-700"><%= @node.hostname %></span>
+<% end %>
 
 <%= turbo_stream_from @node %>
 
@@ -65,52 +71,52 @@
 <div data-controller="tabs" data-tabs-active-index-value="0">
   <%# Tab Navigation %>
   <div class="mb-6 border-b border-slate-200">
-    <nav class="-mb-px flex gap-6 tabs" aria-label="Tabs">
+    <nav class="-mb-px flex gap-6 tabs nav-tabs" aria-label="Tabs">
       <a href="#" 
          data-tabs-target="tab" 
          data-action="click->tabs#select"
-         class="border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700 whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium transition-colors"
+         class="border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700 whitespace-nowrap border-b-2 py-4 px-1 text-sm font-bold uppercase transition-colors"
          aria-current="page">
         Overview
       </a>
       <a href="#" 
          data-tabs-target="tab" 
          data-action="click->tabs#select"
-         class="border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700 whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium transition-colors">
+         class="border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700 whitespace-nowrap border-b-2 py-4 px-1 text-sm font-bold uppercase transition-colors">
         Hardware
       </a>
       <a href="#" 
          data-tabs-target="tab" 
          data-action="click->tabs#select"
-         class="border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700 whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium transition-colors">
+         class="border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700 whitespace-nowrap border-b-2 py-4 px-1 text-sm font-bold uppercase transition-colors">
         Benchmark History
       </a>
       <a href="#" 
          data-tabs-target="tab" 
          data-action="click->tabs#select"
-         class="border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700 whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium transition-colors">
+         class="border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700 whitespace-nowrap border-b-2 py-4 px-1 text-sm font-bold uppercase transition-colors">
         Logs
       </a>
     </nav>
   </div>
 
   <%# Tab Panels %>
-  <div>
+  <div class="grid grid-cols-12 gap-6">
     <%# Panel 1: Overview %>
-    <div data-tabs-target="panel" class="outline-none" role="tabpanel" tabindex="0">
+    <div data-tabs-target="panel" class="col-span-12 outline-none" role="tabpanel" tabindex="0">
       <%= render "nodes/overview", node: @node %>
     </div>
 
     <%# Panel 2: Hardware %>
-    <div data-tabs-target="panel" class="hidden outline-none" role="tabpanel" tabindex="0">
+    <div data-tabs-target="panel" class="hidden col-span-12 outline-none" role="tabpanel" tabindex="0">
       <%= render "nodes/hardware", node: @node %>
     </div>
 
     <%# Panel 3: Benchmark History %>
-    <div data-tabs-target="panel" class="hidden outline-none" role="tabpanel" tabindex="0">
-      <div class="card">
-         <div class="card-header">
-           <h3 class="card-title">Benchmark History</h3>
+    <div data-tabs-target="panel" class="hidden col-span-12 outline-none" role="tabpanel" tabindex="0">
+      <div class="card border border-slate-300 shadow-sm rounded bg-white">
+         <div class="card-header bg-slate-50 px-4 py-2 border-b border-slate-300">
+           <h3 class="card-title text-xs font-bold text-slate-500 uppercase">Benchmark History</h3>
          </div>
          <div class="overflow-x-auto">
             <% if @node.benchmark_runs.any? %>
@@ -123,7 +129,7 @@
     </div>
 
     <%# Panel 4: Logs %>
-    <div data-tabs-target="panel" class="hidden outline-none" role="tabpanel" tabindex="0">
+    <div data-tabs-target="panel" class="hidden col-span-12 outline-none" role="tabpanel" tabindex="0">
       <%= render "nodes/logs", node: @node %>
     </div>
   </div>

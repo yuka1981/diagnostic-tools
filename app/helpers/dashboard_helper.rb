@@ -3,24 +3,24 @@
 module DashboardHelper
   COLOR_MAPS = {
     success: {
-      badge: "bg-emerald-100 text-emerald-700 border border-emerald-200",
-      bg: "bg-emerald-100",
-      text: "text-emerald-600"
+      badge: "bg-green-100 text-green-800 border border-green-200",
+      bg: "bg-green-100",
+      text: "text-green-800"
     },
     error: {
-      badge: "bg-red-100 text-red-700 border border-red-200",
+      badge: "bg-red-100 text-red-800 border border-red-200",
       bg: "bg-red-100",
-      text: "text-red-600"
+      text: "text-red-800"
     },
     running: {
-      badge: "bg-blue-100 text-blue-700 border border-blue-200",
+      badge: "bg-blue-100 text-blue-800 border border-blue-200",
       bg: "bg-blue-100",
-      text: "text-blue-600"
+      text: "text-blue-800"
     },
     warning: {
-      badge: "bg-amber-100 text-amber-700 border border-amber-200",
-      bg: "bg-amber-100",
-      text: "text-amber-600"
+      badge: "bg-yellow-100 text-yellow-800 border border-yellow-200",
+      bg: "bg-yellow-100",
+      text: "text-yellow-800"
     },
     muted: {
       badge: "bg-slate-100 text-slate-700 border border-slate-200",

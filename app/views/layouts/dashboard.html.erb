@@ -34,12 +34,16 @@
 
         <%# Main content %>
         <main class="flex-1 py-8 px-6">
-          <%# Breadcrumbs (Placeholder for now, or dynamic if possible) %>
-          <div class="flex items-center text-xs text-slate-500 mb-4">
-             <%= link_to "Home", dashboard_path, class: "hover:text-slate-700" %>
-             <span class="mx-2">/</span>
-             <span class="font-medium text-slate-700"><%= content_for(:page_title) || "Dashboard" %></span>
-          </div>
+          <%# Breadcrumbs %>
+          <nav class="breadcrumb flex items-center text-xs text-slate-500 mb-4" aria-label="Breadcrumb">
+             <%= link_to "Home", dashboard_path, class: "hover:text-teal-600 font-bold" %>
+             <% if content_for?(:breadcrumbs) %>
+               <%= yield :breadcrumbs %>
+             <% else %>
+               <span class="mx-2">/</span>
+               <span class="font-medium text-slate-700"><%= content_for(:page_title) || "Dashboard" %></span>
+             <% end %>
+          </nav>
 
           <%# Flash messages %>
           <div id="flash_messages" class="mb-6">
