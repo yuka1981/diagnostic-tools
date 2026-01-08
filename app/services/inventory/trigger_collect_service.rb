@@ -57,9 +57,9 @@ module Inventory
         Result.new(success: true, output: parsed)
       rescue JSON::ParserError
         return error_result(output) unless result.success?
-        
+
         # If there's content but it's not JSON, check if it's an error message
-        combined_output = [error, output].reject(&:blank?).join("\n")
+        combined_output = [ error, output ].reject(&:blank?).join("\n")
         error_result("JSON parse error: Unexpected command output: #{combined_output.truncate(200)}")
       end
     end

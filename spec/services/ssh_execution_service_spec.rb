@@ -19,17 +19,17 @@ RSpec.describe SshExecutionService, type: :service do
     it "correctly captures stdout and stderr" do
       # Simulate stdout data
       allow(channel).to receive(:on_data).and_yield(channel, "some stdout")
-      
+
       # Simulate stderr data (extended data)
       # Net::SSH yields (channel, type, data)
       allow(channel).to receive(:on_extended_data).and_yield(channel, 1, "some stderr")
-      
+
       # Simulate exit status
       allow(channel).to receive(:on_request).with("exit-status").and_yield(channel, double(read_long: 0))
       allow(channel).to receive(:on_request).with("exit-signal")
 
       result = service.send(:execute_on_session, session, "ls")
-      
+
       expect(result.success?).to be true
       expect(result.output).to eq("some stdout")
       expect(result.error).to eq("some stderr")
