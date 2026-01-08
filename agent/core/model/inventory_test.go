@@ -250,24 +250,25 @@ func TestNodeState_JSON(t *testing.T) {
 	capturedAt := time.Now().UTC().Truncate(time.Second)
 	original := NodeState{
 		CapturedAt: capturedAt,
-		Host: HostInfo{
+		Host: &HostInfo{
 			Hostname: "test-host",
 			OS:       "linux",
 			Platform: "ubuntu",
 			Arch:     "x86_64",
 		},
-		CPU: CPUInfo{
+		CPU: &CPUInfo{
 			ModelName: "Intel Core i7",
 			Cores:     8,
 			Threads:   16,
 			Sockets:   1,
 			Flags:     []string{"fpu", "vme"},
 		},
-		Memory: MemoryInfo{
+		Memory: &MemoryInfo{
 			Total:     16000000000,
 			Free:      8000000000,
 			Available: 10000000000,
 		},
+
 		Disks: []DiskInfo{
 			{
 				Device:     "/dev/sda1",

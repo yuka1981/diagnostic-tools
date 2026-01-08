@@ -82,10 +82,11 @@ func TestMockInventoryCollector(t *testing.T) {
 
 	t.Run("CustomBehavior", func(t *testing.T) {
 		expectedState := &model.NodeState{
-			Host: model.HostInfo{
+			Host: &model.HostInfo{
 				Hostname: "test-host",
 			},
 		}
+
 		mock := &mockInventoryCollector{
 			collectFunc: func(ctx context.Context) (*model.NodeState, error) {
 				return expectedState, nil

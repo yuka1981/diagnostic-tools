@@ -15,7 +15,7 @@ import (
 func TestHTTPUploader_Upload_NodeState(t *testing.T) {
 	expectedToken := "test-token"
 	expectedNodeState := model.NodeState{
-		Host: model.HostInfo{
+		Host: &model.HostInfo{
 			Hostname: "test-host",
 		},
 	}

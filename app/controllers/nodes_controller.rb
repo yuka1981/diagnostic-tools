@@ -46,13 +46,18 @@ class NodesController < ApplicationController
     trigger_result = trigger_service.call
 
     if trigger_result.success?
-      process_service = Inventory::ProcessStateService.new(node_id: @node.id, raw_json: trigger_result.output)
-      process_result = process_service.call
-
-      if process_result.success?
-        flash.now[:notice] = "System information collected successfully for #{@node.hostname}."
+      if trigger_result.output.is_a?(Hash) && trigger_result.output[:async]
+        @is_async = true
+        flash.now[:notice] = "Collection command sent to agent on #{@node.hostname}. Data will update shortly."
       else
-        flash.now[:alert] = "Collected data but failed to process: #{process_result.error}"
+        process_service = Inventory::ProcessStateService.new(node_id: @node.id, raw_json: trigger_result.output)
+        process_result = process_service.call
+
+        if process_result.success?
+          flash.now[:notice] = "System information collected successfully for #{@node.hostname}."
+        else
+          flash.now[:alert] = "Collected data but failed to process: #{process_result.error}"
+        end
       end
     else
       flash.now[:alert] = "Failed to collect information from #{@node.hostname}: #{trigger_result.error}"

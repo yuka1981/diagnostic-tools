@@ -27,6 +27,7 @@ func (s *InventoryService) Collect(ctx context.Context) (*model.NodeState, error
 	var mem *model.MemoryInfo
 	var disk []model.DiskInfo
 	var net []model.NetInfo
+	var dmi *model.HostDMIInfo
 
 	g, gCtx := errgroup.WithContext(ctx)
 
@@ -55,16 +56,22 @@ func (s *InventoryService) Collect(ctx context.Context) (*model.NodeState, error
 		return err
 	})
 
+	g.Go(func() (err error) {
+		dmi, err = s.collector.GetDMIInfo(gCtx)
+		return err
+	})
+
 	if err := g.Wait(); err != nil {
 		return nil, err
 	}
 
 	return &model.NodeState{
 		CapturedAt: time.Now().UTC(),
-		Host:       *host,
-		CPU:        *cpu,
-		Memory:     *mem,
+		Host:       host,
+		CPU:        cpu,
+		Memory:     mem,
 		Disks:      disk,
 		Network:    net,
+		DMI:        dmi,
 	}, nil
 }

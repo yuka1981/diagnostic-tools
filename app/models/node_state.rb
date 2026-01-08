@@ -23,8 +23,10 @@ class NodeState < ApplicationRecord
         cpu_info: deep_sort_keys(cpu_info),
         mem_info: deep_sort_keys(mem_info),
         disk_info: deep_sort_keys(disk_info),
-        net_info: deep_sort_keys(net_info)
+        net_info: deep_sort_keys(net_info),
+        dmi_info: deep_sort_keys(dmi_info)
       }
+
       Digest::SHA256.hexdigest(JSON.generate(content))
     end
   end

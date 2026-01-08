@@ -63,25 +63,78 @@
         </svg>
         <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Host Information</h3>
       </div>
-      <dl class="grid grid-cols-1 gap-x-4 gap-y-4 sm:grid-cols-2 lg:grid-cols-4">
-        <div>
-          <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">OS</dt>
-          <dd class="mt-1 text-sm text-gray-900 dark:text-white"><%= state.host_info["os"] || "—" %></dd>
-        </div>
-        <div>
-          <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">Kernel</dt>
-          <dd class="mt-1 text-sm text-gray-900 dark:text-white font-mono"><%= state.host_info["kernel"] || "—" %></dd>
-        </div>
-        <div>
-          <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">Platform</dt>
-          <dd class="mt-1 text-sm text-gray-900 dark:text-white text-capitalize"><%= state.host_info["platform"] %> <%= state.host_info["platform_version"] %></dd>
-        </div>
-        <div>
-          <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">Platform Family</dt>
-          <dd class="mt-1 text-sm text-gray-900 dark:text-white text-capitalize"><%= state.host_info["platform_family"] || "—" %></dd>
-        </div>
-      </dl>
+      <div class="grid grid-cols-1 gap-8 lg:grid-cols-2">
+        <dl class="grid grid-cols-1 gap-x-4 gap-y-4 sm:grid-cols-2">
+          <div>
+            <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">OS</dt>
+            <dd class="mt-1 text-sm text-gray-900 dark:text-white"><%= state.host_info["os"] || "—" %></dd>
+          </div>
+          <div>
+            <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">Kernel</dt>
+            <dd class="mt-1 text-sm text-gray-900 dark:text-white font-mono"><%= state.host_info["kernel"] || "—" %></dd>
+          </div>
+          <div>
+            <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">Platform</dt>
+            <dd class="mt-1 text-sm text-gray-900 dark:text-white text-capitalize"><%= state.host_info["platform"] %> <%= state.host_info["platform_version"] %></dd>
+          </div>
+          <div>
+            <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">Platform Family</dt>
+            <dd class="mt-1 text-sm text-gray-900 dark:text-white text-capitalize"><%= state.host_info["platform_family"] || "—" %></dd>
+          </div>
+        </dl>
+
+        <% if state.dmi_info.present? && state.dmi_info["system"].present? %>
+          <div class="border-t border-gray-100 pt-6 lg:border-l lg:border-t-0 lg:pl-8 lg:pt-0 dark:border-white/5">
+            <h4 class="text-xs font-bold text-gray-400 dark:text-slate-500 uppercase tracking-widest mb-4">System & BIOS</h4>
+            <dl class="grid grid-cols-1 gap-x-4 gap-y-4 sm:grid-cols-2">
+              <div class="sm:col-span-2">
+                <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">Product Name</dt>
+                <dd class="mt-1 text-sm font-semibold text-gray-900 dark:text-white"><%= state.dmi_info.dig("system", "product_name") %></dd>
+              </div>
+              <div>
+                <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">Manufacturer</dt>
+                <dd class="mt-1 text-sm text-gray-900 dark:text-white"><%= state.dmi_info.dig("system", "manufacturer") %></dd>
+              </div>
+              <div>
+                <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">Serial Number</dt>
+                <dd class="mt-1 text-sm text-gray-900 dark:text-white font-mono"><%= state.dmi_info.dig("system", "serial_number") %></dd>
+              </div>
+              <div class="sm:col-span-2">
+                <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">UUID</dt>
+                <dd class="mt-1 text-xs text-gray-900 dark:text-white font-mono break-all"><%= state.dmi_info.dig("system", "uuid") %></dd>
+              </div>
+              <% if state.dmi_info.dig("system", "sku_number").present? %>
+                <div>
+                  <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">SKU Number</dt>
+                  <dd class="mt-1 text-sm text-gray-900 dark:text-white"><%= state.dmi_info.dig("system", "sku_number") %></dd>
+                </div>
+              <% end %>
+              <% if state.dmi_info.dig("system", "family").present? %>
+                <div>
+                  <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">Family</dt>
+                  <dd class="mt-1 text-sm text-gray-900 dark:text-white"><%= state.dmi_info.dig("system", "family") %></dd>
+                </div>
+              <% end %>
+              <div>
+                <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">BIOS Version</dt>
+                <dd class="mt-1 text-sm text-gray-900 dark:text-white font-mono"><%= state.dmi_info.dig("bios", "version") %></dd>
+              </div>
+              <div>
+                <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">BIOS Release Date</dt>
+                <dd class="mt-1 text-sm text-gray-900 dark:text-white"><%= state.dmi_info.dig("bios", "release_date") %></dd>
+              </div>
+              <% if state.dmi_info.dig("bios", "rom_size").present? %>
+                <div>
+                  <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">BIOS ROM Size</dt>
+                  <dd class="mt-1 text-sm text-gray-900 dark:text-white"><%= state.dmi_info.dig("bios", "rom_size") %></dd>
+                </div>
+              <% end %>
+            </dl>
+          </div>
+        <% end %>
+      </div>
     </div>
+
 
     <%# CPU Information %>
     <div class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-200 dark:bg-slate-800/50 dark:ring-white/10">
@@ -119,6 +172,18 @@
               <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">Stepping</dt>
               <dd class="text-sm font-semibold text-gray-900 dark:text-white"><%= state.cpu_info["stepping"] || "—" %></dd>
             </div>
+            <% if state.cpu_info["byte_order"].present? %>
+              <div>
+                <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">Byte Order</dt>
+                <dd class="text-sm font-semibold text-gray-900 dark:text-white"><%= state.cpu_info["byte_order"] %></dd>
+              </div>
+            <% end %>
+            <% if state.cpu_info["online_cpus_list"].present? %>
+              <div class="sm:col-span-2">
+                <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">Online CPU(s) list</dt>
+                <dd class="text-sm font-semibold text-gray-900 dark:text-white font-mono"><%= state.cpu_info["online_cpus_list"] %></dd>
+              </div>
+            <% end %>
           </dl>
         </div>
 
@@ -231,33 +296,102 @@
         </svg>
         <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Memory</h3>
       </div>
-      <dl class="grid grid-cols-2 gap-x-4 gap-y-6 sm:grid-cols-4">
-        <div>
-          <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">Total Physical</dt>
-          <dd class="mt-1 text-sm font-semibold text-gray-900 dark:text-white"><%= format_bytes(state.mem_info["total"]) %></dd>
-        </div>
-        <div>
-          <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">Available</dt>
-          <dd class="mt-1 text-sm font-semibold text-emerald-600 dark:text-emerald-400"><%= format_bytes(state.mem_info["available"]) %></dd>
-        </div>
-        <div>
-          <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">Free</dt>
-          <dd class="mt-1 text-sm text-gray-900 dark:text-white"><%= format_bytes(state.mem_info["free"]) %></dd>
-        </div>
-        <div>
-          <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">Page Cache</dt>
-          <dd class="mt-1 text-sm text-gray-900 dark:text-white"><%= format_bytes(state.mem_info["cached"]) %></dd>
-        </div>
-        <div>
-          <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">Swap Total</dt>
-          <dd class="mt-1 text-sm text-gray-900 dark:text-white"><%= format_bytes(state.mem_info["swap_total"]) %></dd>
-        </div>
-        <div>
-          <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">Swap Free</dt>
-          <dd class="mt-1 text-sm text-gray-900 dark:text-white"><%= format_bytes(state.mem_info["swap_free"]) %></dd>
-        </div>
-      </dl>
+      
+      <div class="space-y-8">
+        <dl class="grid grid-cols-2 gap-x-4 gap-y-6 sm:grid-cols-4">
+          <div>
+            <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">Total Usable</dt>
+            <dd class="mt-1 text-sm font-semibold text-gray-900 dark:text-white"><%= format_bytes(state.mem_info["total"]) %></dd>
+          </div>
+          <div>
+            <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">Available</dt>
+            <dd class="mt-1 text-sm font-semibold text-emerald-600 dark:text-emerald-400"><%= format_bytes(state.mem_info["available"]) %></dd>
+          </div>
+          <div>
+            <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">Free</dt>
+            <dd class="mt-1 text-sm text-gray-900 dark:text-white"><%= format_bytes(state.mem_info["free"]) %></dd>
+          </div>
+          <div>
+            <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">Page Cache</dt>
+            <dd class="mt-1 text-sm text-gray-900 dark:text-white"><%= format_bytes(state.mem_info["cached"]) %></dd>
+          </div>
+          <div>
+            <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">Buffers</dt>
+            <dd class="mt-1 text-sm text-gray-900 dark:text-white"><%= format_bytes(state.mem_info["buffers"]) %></dd>
+          </div>
+          <div>
+            <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">Swap Total</dt>
+            <dd class="mt-1 text-sm text-gray-900 dark:text-white"><%= format_bytes(state.mem_info["swap_total"]) %></dd>
+          </div>
+          <div>
+            <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">Swap Free</dt>
+            <dd class="mt-1 text-sm text-gray-900 dark:text-white"><%= format_bytes(state.mem_info["swap_free"]) %></dd>
+          </div>
+        </dl>
+
+        <% if state.dmi_info.present? && state.dmi_info["memory"].present? %>
+          <div class="border-t border-gray-50 pt-6 dark:border-white/5">
+            <h4 class="text-xs font-bold text-gray-400 dark:text-slate-500 uppercase tracking-widest mb-4">Memory Topology (DIMMs)</h4>
+            <div class="overflow-x-auto">
+              <table class="min-w-full divide-y divide-gray-200 dark:divide-white/5">
+                <thead>
+                  <tr>
+                    <th class="px-3 py-2 text-left text-xs font-medium uppercase text-gray-500 dark:text-slate-400">Slot / Locator</th>
+                    <th class="px-3 py-2 text-left text-xs font-medium uppercase text-gray-500 dark:text-slate-400">Status</th>
+                    <th class="px-3 py-2 text-right text-xs font-medium uppercase text-gray-500 dark:text-slate-400">Size</th>
+                    <th class="px-3 py-2 text-left text-xs font-medium uppercase text-gray-500 dark:text-slate-400">Type</th>
+                    <th class="px-3 py-2 text-left text-xs font-medium uppercase text-gray-500 dark:text-slate-400">Speed (Configured/Spec)</th>
+                    <th class="px-3 py-2 text-left text-xs font-medium uppercase text-gray-500 dark:text-slate-400">Manufacturer</th>
+                    <th class="px-3 py-2 text-left text-xs font-medium uppercase text-gray-500 dark:text-slate-400">Part Number</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100 dark:divide-white/5">
+                  <% state.dmi_info["memory"].each do |dimm| %>
+                    <% empty = dimm["size"] == "No Module Installed" %>
+                    <tr class="<%= 'opacity-50 grayscale' if empty %>">
+                      <td class="px-3 py-3 text-xs font-medium text-gray-900 dark:text-white">
+                        <%= dimm["locator"] %>
+                        <div class="text-[10px] text-gray-400 dark:text-slate-500 font-normal"><%= dimm["bank_locator"] %></div>
+                      </td>
+                      <td class="px-3 py-3 text-xs">
+                        <% if empty %>
+                          <span class="inline-flex items-center gap-1 text-gray-400 dark:text-slate-500">
+                            <span class="h-1.5 w-1.5 rounded-full bg-gray-300 dark:bg-slate-600"></span>
+                            Empty
+                          </span>
+                        <% else %>
+                          <span class="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
+                            <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
+                            Installed
+                          </span>
+                        <% end %>
+                      </td>
+                      <td class="px-3 py-3 text-xs text-right font-medium <%= empty ? 'text-gray-400' : 'text-gray-900 dark:text-white' %>">
+                        <%= dimm["size"] %>
+                      </td>
+                      <td class="px-3 py-3 text-xs text-gray-500 dark:text-slate-400"><%= dimm["type"] %></td>
+                      <td class="px-3 py-3 text-xs text-gray-500 dark:text-slate-400">
+                        <% if empty %>
+                          —
+                        <% else %>
+                          <div class="flex flex-col">
+                            <span class="font-semibold"><%= dimm["configured_speed"] || "—" %></span>
+                            <span class="text-[10px] opacity-75"><%= dimm["speed"] || "—" %></span>
+                          </div>
+                        <% end %>
+                      </td>
+                      <td class="px-3 py-3 text-xs text-gray-500 dark:text-slate-400"><%= dimm["manufacturer"] %></td>
+                      <td class="px-3 py-3 text-xs font-mono text-gray-500 dark:text-slate-400"><%= dimm["part_number"] %></td>
+                    </tr>
+                  <% end %>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        <% end %>
+      </div>
     </div>
+
 
     <%# Storage Information %>
     <div class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-200 dark:bg-slate-800/50 dark:ring-white/10">
@@ -273,6 +407,7 @@
             <tr>
               <th class="px-3 py-2 text-left text-xs font-medium uppercase text-gray-500 dark:text-slate-400">Device</th>
               <th class="px-3 py-2 text-left text-xs font-medium uppercase text-gray-500 dark:text-slate-400">Mountpoint</th>
+              <th class="px-3 py-2 text-left text-xs font-medium uppercase text-gray-500 dark:text-slate-400">Type</th>
               <th class="px-3 py-2 text-right text-xs font-medium uppercase text-gray-500 dark:text-slate-400">Total</th>
               <th class="px-3 py-2 text-right text-xs font-medium uppercase text-gray-500 dark:text-slate-400">Used</th>
               <th class="px-3 py-2 text-right text-xs font-medium uppercase text-gray-500 dark:text-slate-400">Free</th>
@@ -288,6 +423,7 @@
               <tr>
                 <td class="px-3 py-3 text-xs font-medium text-gray-900 dark:text-white"><%= disk["device"] %></td>
                 <td class="px-3 py-3 text-xs text-gray-500 dark:text-slate-400"><%= disk["mountpoint"] %></td>
+                <td class="px-3 py-3 text-xs text-gray-500 dark:text-slate-400 font-mono"><%= disk["fstype"] %></td>
                 <td class="px-3 py-3 text-xs text-right text-gray-900 dark:text-white"><%= format_bytes(disk["total"]) %></td>
                 <td class="px-3 py-3 text-xs text-right text-gray-900 dark:text-white"><%= format_bytes(disk["used"]) %></td>
                 <td class="px-3 py-3 text-xs text-right text-gray-900 dark:text-white"><%= format_bytes(disk["free"]) %></td>
@@ -366,23 +502,14 @@
     <p class="mt-1 text-sm text-gray-500 dark:text-slate-400">Trigger a collection to see detailed system information.</p>
     <% if current_user&.approver? %>
       <div class="mt-6">
-        <% if node.agent_push? %>
-          <%= button_to collect_node_path(node), 
-              method: :post,
-              class: "inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600",
-              data: { turbo_submits_with: "Collecting..." } do %>
-            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-            </svg>
-            Collect Now
-          <% end %>
-        <% else %>
-          <span class="inline-flex items-center gap-2 rounded-lg bg-gray-100 px-4 py-2 text-sm font-semibold text-gray-400 cursor-not-allowed dark:bg-white/5 dark:text-gray-500" title="hpc-agent is not installed">
-            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-            </svg>
-            Collect Now
-          </span>
+        <%= button_to collect_node_path(node), 
+            method: :post,
+            class: "inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600",
+            data: { turbo_submits_with: "Collecting..." } do %>
+          <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+          </svg>
+          Collect Now
         <% end %>
       </div>
     <% end %>
