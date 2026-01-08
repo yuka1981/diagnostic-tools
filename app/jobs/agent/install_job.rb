@@ -73,6 +73,16 @@ module Agent
         partial: "nodes/installs/status",
         locals: { status: status, message: message, target_host: target_host }
       )
+
+      # Also update log header if final state to stop spinner
+      if %w[success error].include?(status)
+        Turbo::StreamsChannel.broadcast_replace_to(
+          "agent_install_#{target_host.parameterize}",
+          target: "install_log_header_#{target_host.parameterize}",
+          partial: "nodes/installs/log_header",
+          locals: { status: status, target_host: target_host }
+        )
+      end
     end
   end
 end
