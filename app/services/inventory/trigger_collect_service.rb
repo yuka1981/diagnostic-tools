@@ -65,6 +65,11 @@ module Inventory
     end
 
     def broadcast_command
+      if @target_node.uuid.blank?
+        Rails.logger.error "Cannot broadcast collect_inventory to node #{@target_node.hostname}: UUID is missing"
+        return
+      end
+
       ActionCable.server.broadcast("agent_#{@target_node.uuid}", {
         type: "command",
         action: "collect_inventory",

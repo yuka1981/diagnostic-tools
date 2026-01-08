@@ -24,6 +24,9 @@ class Node < ApplicationRecord
   validates :ssh_user, length: { maximum: 255 }
   validates :arch, inclusion: { in: %w[x86_64 aarch64 arm64], allow_blank: true }
 
+  # Callbacks
+  before_validation :generate_uuid, on: :create
+
   # IP address validation using Ruby's IPAddr library
   validates_each :ip do |record, attr, value|
     next if value.blank?
@@ -64,5 +67,11 @@ class Node < ApplicationRecord
 
   def use_jump_host?
     jump_host.present?
+  end
+
+  private
+
+  def generate_uuid
+    self.uuid ||= SecureRandom.uuid
   end
 end
