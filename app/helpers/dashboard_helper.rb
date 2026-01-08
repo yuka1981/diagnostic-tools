@@ -1,30 +1,47 @@
 # frozen_string_literal: true
 
 module DashboardHelper
-  STATUS_BADGE_CLASSES = {
-    "success" => "bg-emerald-100 text-emerald-700 border border-emerald-200",
-    "completed" => "bg-emerald-100 text-emerald-700 border border-emerald-200",
-    "passed" => "bg-emerald-100 text-emerald-700 border border-emerald-200",
-    "online" => "bg-emerald-100 text-emerald-700 border border-emerald-200",
-
-    "failed" => "bg-red-100 text-red-700 border border-red-200",
-    "offline" => "bg-red-100 text-red-700 border border-red-200",
-    "error" => "bg-red-100 text-red-700 border border-red-200",
-
-    "running" => "bg-blue-100 text-blue-700 border border-blue-200",
-    "pending" => "bg-amber-100 text-amber-700 border border-amber-200",
-    "warning" => "bg-amber-100 text-amber-700 border border-amber-200",
-    "unknown" => "bg-amber-100 text-amber-700 border border-amber-200",
-
-    "cancelled" => "bg-slate-100 text-slate-700 border border-slate-200"
+  COLOR_MAPS = {
+    success: {
+      badge: "bg-emerald-100 text-emerald-700 border border-emerald-200",
+      bg: "bg-emerald-100",
+      text: "text-emerald-600"
+    },
+    error: {
+      badge: "bg-red-100 text-red-700 border border-red-200",
+      bg: "bg-red-100",
+      text: "text-red-600"
+    },
+    running: {
+      badge: "bg-blue-100 text-blue-700 border border-blue-200",
+      bg: "bg-blue-100",
+      text: "text-blue-600"
+    },
+    warning: {
+      badge: "bg-amber-100 text-amber-700 border border-amber-200",
+      bg: "bg-amber-100",
+      text: "text-amber-600"
+    },
+    muted: {
+      badge: "bg-slate-100 text-slate-700 border border-slate-200",
+      bg: "bg-slate-100",
+      text: "text-slate-500"
+    }
   }.freeze
 
-  STATUS_BG_CLASSES = {
-    "success" => "bg-emerald-100",
-    "failed" => "bg-red-100",
-    "running" => "bg-blue-100",
-    "pending" => "bg-amber-100",
-    "cancelled" => "bg-slate-100"
+  STATUS_COLORS = {
+    "success" => :success,
+    "completed" => :success,
+    "passed" => :success,
+    "online" => :success,
+    "failed" => :error,
+    "offline" => :error,
+    "error" => :error,
+    "running" => :running,
+    "pending" => :warning,
+    "warning" => :warning,
+    "unknown" => :warning,
+    "cancelled" => :muted
   }.freeze
 
   ROLE_BADGE_CLASSES = {
@@ -33,8 +50,9 @@ module DashboardHelper
     "admin" => "bg-amber-100 text-amber-700 border border-amber-200"
   }.freeze
 
-  DEFAULT_BADGE_CLASS = "bg-slate-100 text-slate-700 border border-slate-200"
-  DEFAULT_BG_CLASS = "bg-slate-100"
+  DEFAULT_BADGE_CLASS = COLOR_MAPS[:muted][:badge]
+  DEFAULT_BG_CLASS = COLOR_MAPS[:muted][:bg]
+  DEFAULT_TEXT_COLOR = COLOR_MAPS[:muted][:text]
 
   # Heatmap cell colors based on node role and status
   HEATMAP_COLORS = {
@@ -60,11 +78,24 @@ module DashboardHelper
   end
 
   def status_badge_class(status)
-    STATUS_BADGE_CLASSES.fetch(status.to_s, DEFAULT_BADGE_CLASS)
+    color_key = STATUS_COLORS[status.to_s]
+    return DEFAULT_BADGE_CLASS unless color_key
+
+    COLOR_MAPS[color_key][:badge]
   end
 
   def status_bg_class(status)
-    STATUS_BG_CLASSES.fetch(status.to_s, DEFAULT_BG_CLASS)
+    color_key = STATUS_COLORS[status.to_s]
+    return DEFAULT_BG_CLASS unless color_key
+
+    COLOR_MAPS[color_key][:bg]
+  end
+
+  def status_text_color(status)
+    color_key = STATUS_COLORS[status.to_s]
+    return DEFAULT_TEXT_COLOR unless color_key
+
+    COLOR_MAPS[color_key][:text]
   end
 
   def role_badge_class(role)

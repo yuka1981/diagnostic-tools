@@ -16,9 +16,7 @@
           </td>
           <td class="px-3 py-2 text-xs text-slate-900"><%= run.benchmark_recipe&.name || "N/A" %></td>
           <td class="px-3 py-2 text-xs">
-            <%# Reuse status helper or inline for now since we are in a rush %>
-            <% status_color = case run.status; when 'completed', 'success' then 'text-emerald-600'; when 'failed' then 'text-red-600'; else 'text-slate-500'; end %>
-            <span class="font-medium <%= status_color %>"><%= run.status.humanize %></span>
+            <span class="font-medium <%= status_text_color(run.status) %>"><%= run.status.humanize %></span>
           </td>
           <td class="px-3 py-2 text-xs text-right text-slate-500"><%= time_ago_in_words(run.created_at) %> ago</td>
         </tr>

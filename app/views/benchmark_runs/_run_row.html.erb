@@ -10,14 +10,6 @@
     <%= run.log_path.presence || "—" %>
   </td>
   <td class="whitespace-nowrap px-3 py-2">
-    <%# Using inline styles for status just for this row, or reuse helper if updated for non-node objects. 
-        Helper `status_badge_class` is in DashboardHelper. Let's rely on it but ensure it maps to our new design or inline it.
-        Actually, let's reuse the helper but we might need to verify the helper classes. 
-        DashboardHelper uses STATUS_BADGE_CLASSES which I haven't updated yet. 
-        Wait, I updated `application_helper` with `node_status_badge`. 
-        `DashboardHelper` still has old classes.
-        I should update DashboardHelper to match new design system too.
-    %>
     <span class="inline-flex items-center rounded-sm px-2 py-0.5 text-xs font-medium <%= status_badge_class(run.status) %>">
       <%= run.status.humanize %>
     </span>
