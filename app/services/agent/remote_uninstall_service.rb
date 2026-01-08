@@ -74,7 +74,7 @@ module Agent
         # We run commands on the target via SSH from the bastion
         ssh_prefix = "sudo -S ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 root@#{Shellwords.escape(@target_host)} "
 
-        perform_cleanup(ssh, ssh_prefix)
+        perform_cleanup(ssh, ssh_prefix, is_bastion: true)
       end
       true
     rescue => e
@@ -96,7 +96,7 @@ module Agent
       raise UninstallError, "Uninstallation failed: #{e.message}"
     end
 
-    def perform_cleanup(ssh, prefix)
+    def perform_cleanup(ssh, prefix, is_bastion: false)
       report_progress(:stop_service)
 
       # Stop service (use timeout to prevent hanging)
@@ -122,7 +122,15 @@ module Agent
       execute_remote_command(ssh, reload_cmd, password: @sudo_password)
 
       report_progress(:restore_permissions)
-      restore_cmd = "#{prefix}bash -c '(chmod 755 /usr/sbin/dmidecode || chmod 755 $(which dmidecode)) || true'"
+      
+      inner_cmd = "(chmod 755 /usr/sbin/dmidecode || chmod 755 $(which dmidecode)) || true"
+      
+      restore_cmd = if is_bastion
+                      "#{prefix}\"bash -c '#{inner_cmd}'\""
+                    else
+                      "#{prefix}bash -c '#{inner_cmd}'"
+                    end
+      
       execute_remote_command(ssh, restore_cmd, password: @sudo_password)
     end
 
