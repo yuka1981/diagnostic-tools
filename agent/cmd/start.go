@@ -94,7 +94,7 @@ func (h *agentHandler) handleUninstall(ctx context.Context, correlationID interf
 		cmdStr := "systemctl disable --now hpc-agent && " +
 			"rm -f /etc/systemd/system/hpc-agent.service /usr/local/bin/hpc-agent && " +
 			"systemctl daemon-reload && " +
-			"chmod 755 /usr/sbin/dmidecode || true"
+			"(chmod 755 /usr/sbin/dmidecode || chmod 755 $(which dmidecode)) || true"
 
 		cmd := exec.Command("bash", "-c", cmdStr)
 		cmd.SysProcAttr = &syscall.SysProcAttr{
