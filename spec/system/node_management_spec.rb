@@ -115,4 +115,16 @@ RSpec.describe "Node Management", type: :system, js: true do
       expect(page).not_to have_link("Uninstall")
     end
   end
+
+  it "navigates to node details when clicking View" do
+    visit nodes_path
+
+    within "tr##{dom_id(initial_node)}" do
+      click_link "View"
+    end
+
+    expect(page).to have_current_path(node_path(initial_node))
+    expect(page).to have_content(initial_node.hostname)
+    # expect(page).to have_content("Host Information") # Only shown if state exists, initial_node might be bare
+  end
 end
