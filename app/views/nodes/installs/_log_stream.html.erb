@@ -1,8 +1,5 @@
 <div class="space-y-4" data-controller="log-stream" data-log-stream-node-id-value="<%= node.id %>">
-  <div class="rounded-lg bg-gray-900 p-4 font-mono text-sm text-gray-300 shadow-inner h-96 overflow-y-auto whitespace-pre-wrap" data-log-stream-target="output">
-    <%= render "nodes/installs/log_header", target_host: node.hostname, status: "processing" %>
-    <%# Logs will be appended here %>
-  </div>
+  <div class="rounded-lg bg-gray-900 p-4 font-mono text-sm text-gray-300 shadow-inner h-96 overflow-y-auto whitespace-pre-wrap" data-log-stream-target="output"><%= render "nodes/installs/log_header", target_host: node.hostname, status: "processing" %></div>
   
   <div class="flex justify-end">
     <%= link_to "Close", nodes_path, 
