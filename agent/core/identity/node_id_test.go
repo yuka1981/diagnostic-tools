@@ -42,6 +42,18 @@ func TestGetOrGenerateNodeID(t *testing.T) {
 	}
 }
 
+func TestGetOrGenerateNodeID_Error(t *testing.T) {
+	// Try a path that is a file, so MkdirAll fails
+	tmpDir := t.TempDir()
+	filePath := filepath.Join(tmpDir, "file")
+	_ = os.WriteFile(filePath, []byte("not-a-dir"), 0644)
+
+	_, err := GetOrGenerateNodeID(filePath)
+	if err == nil {
+		t.Error("expected error when configDir is a file, got nil")
+	}
+}
+
 func TestGenerateFingerprint(t *testing.T) {
 	fp := GenerateFingerprint()
 	if len(fp) != 64 { // SHA-256 hex string length

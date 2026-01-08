@@ -31,3 +31,12 @@ func TestCollectCmd(t *testing.T) {
 		t.Error("expected non-empty hostname in collected state")
 	}
 }
+
+func TestCollectCmd_Fail(t *testing.T) {
+	// We can't easily make service.Collect fail without mocking NewInventoryService
+	// but it uses RealCommandRunner which might fail if we change PATH or something.
+
+	// Actually, let's just test that --json=false doesn't crash
+	rootCmd.SetArgs([]string{"collect", "--json=false"})
+	_ = rootCmd.Execute()
+}

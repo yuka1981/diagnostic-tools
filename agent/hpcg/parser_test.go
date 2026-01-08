@@ -1,6 +1,8 @@
 package hpcg
 
 import (
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -108,5 +110,30 @@ Final Summary::HPCG result is VALID with a GFLOP/s rating of= 100.0
 				t.Errorf("expected Residual %e, got %e", tc.expectedRes, metrics.Residual)
 			}
 		})
+	}
+}
+
+func TestParseHPCGLogFile(t *testing.T) {
+	tmpDir := t.TempDir()
+	logPath := filepath.Join(tmpDir, "log.txt")
+	content := "Final Summary::HPCG result is VALID with a GFLOP/s rating of= 12.3\n"
+	_ = os.WriteFile(logPath, []byte(content), 0644)
+
+	metrics, status, err := ParseHPCGLogFile(logPath)
+	if err != nil {
+		t.Fatalf("ParseHPCGLogFile failed: %v", err)
+	}
+	if status != model.BenchmarkStatusPass {
+		t.Errorf("expected PASS, got %s", status)
+	}
+	if metrics.GFLOPS != 12.3 {
+		t.Errorf("expected 12.3, got %f", metrics.GFLOPS)
+	}
+}
+
+func TestParseHPCGLogFile_NoFile(t *testing.T) {
+	_, _, err := ParseHPCGLogFile("/non-existent")
+	if err == nil {
+		t.Error("expected error for non-existent file, got nil")
 	}
 }

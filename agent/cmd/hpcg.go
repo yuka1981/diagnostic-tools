@@ -11,6 +11,7 @@ import (
 
 	"github.com/yuka1981/diagnostic-tools/agent/core/identity"
 	"github.com/yuka1981/diagnostic-tools/agent/core/model"
+	"github.com/yuka1981/diagnostic-tools/agent/core/ports"
 	"github.com/yuka1981/diagnostic-tools/agent/core/uploader"
 	"github.com/yuka1981/diagnostic-tools/agent/hpcg"
 	"github.com/yuka1981/diagnostic-tools/agent/infrastructure"
@@ -60,6 +61,12 @@ func NewHPCGCmd() *cobra.Command {
 }
 
 func runHPCG(cmd *cobra.Command, opts *hpcgOptions) error {
+	runner := infrastructure.NewRealCommandRunner()
+	loader := infrastructure.NewRealModuleLoader(runner)
+	return runHPCGWithDeps(cmd, opts, runner, loader)
+}
+
+func runHPCGWithDeps(cmd *cobra.Command, opts *hpcgOptions, runner ports.CommandRunner, loader hpcg.ModuleLoader) error {
 	ctx := cmd.Context()
 	wd, err := os.Getwd()
 	if err != nil {
@@ -71,9 +78,6 @@ func runHPCG(cmd *cobra.Command, opts *hpcgOptions) error {
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Warning: failed to get node identity: %v\n", err)
 	}
-
-	runner := infrastructure.NewRealCommandRunner()
-	loader := infrastructure.NewRealModuleLoader(runner)
 
 	orchestrator := &hpcg.WorkflowOrchestrator{
 		Runner:       runner,

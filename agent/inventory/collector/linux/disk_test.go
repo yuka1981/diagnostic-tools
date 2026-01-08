@@ -45,6 +45,24 @@ tmpfs          817385472         0 817385472   0% /dev/shm
 	}
 }
 
+func TestParseDiskInfo_Errors(t *testing.T) {
+	t.Run("InsufficientFields", func(t *testing.T) {
+		output := "Filesystem 1B-blocks Used\n/dev/sda1 100 50"
+		disks, _ := ParseDiskInfo(output)
+		if len(disks) != 0 {
+			t.Errorf("expected 0 disks, got %d", len(disks))
+		}
+	})
+
+	t.Run("InvalidNumbers", func(t *testing.T) {
+		output := "Filesystem 1B-blocks Used Available Use% Mounted on\n/dev/sda1 abc def ghi 50% /"
+		disks, _ := ParseDiskInfo(output)
+		if len(disks) != 0 {
+			t.Errorf("expected 0 disks, got %d", len(disks))
+		}
+	})
+}
+
 func TestLinuxDiskCollector_Collect(t *testing.T) {
 	mockRunner := &MockCommandRunner{
 		Output: `Filesystem     1B-blocks      Used Available Use% Mounted on

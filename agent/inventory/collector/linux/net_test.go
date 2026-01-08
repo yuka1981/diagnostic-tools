@@ -65,3 +65,20 @@ func TestLinuxNetCollector_Collect(t *testing.T) {
 		t.Error("expected lo interface to be down, but it was up")
 	}
 }
+
+func TestLinuxNetCollector_Collect_Error(t *testing.T) {
+	collector := NewLinuxNetCollector()
+	collector.SysClassNetPath = "/non-existent"
+
+	_, err := collector.Collect(context.Background())
+	if err == nil {
+		t.Error("expected error for non-existent path, got nil")
+	}
+}
+
+func TestReadFile_Error(t *testing.T) {
+	_, err := readFile("/non-existent")
+	if err == nil {
+		t.Error("expected error for non-existent file, got nil")
+	}
+}

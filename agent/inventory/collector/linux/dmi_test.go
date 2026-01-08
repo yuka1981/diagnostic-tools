@@ -50,38 +50,56 @@ Memory Device
 	Size: No Module Installed
 	Locator: DIMM_A2
 	Bank Locator: P0_Node0_Channel0_Dimm1
+	Firmware Version: Not Available
 `
 	dmiInfo := parseDMIDecodeOutput(output)
 
-	if dmiInfo.BIOS.Vendor != "American Megatrends International, LLC." {
-		t.Errorf("expected Vendor American Megatrends International, LLC., got %s", dmiInfo.BIOS.Vendor)
-	}
-	if dmiInfo.System.ProductName != "QuantaGrid D54X-1U" {
-		t.Errorf("expected Product Name QuantaGrid D54X-1U, got %s", dmiInfo.System.ProductName)
-	}
-	if dmiInfo.System.UUID != "7d916442-2c24-11ee-be23-74d4dd2e9195" {
-		t.Errorf("expected UUID 7d916442-2c24-11ee-be23-74d4dd2e9195, got %s", dmiInfo.System.UUID)
-	}
+	t.Run("BIOSInfo", func(t *testing.T) {
+		if dmiInfo.BIOS.Vendor != "American Megatrends International, LLC." {
+			t.Errorf("expected Vendor American Megatrends International, LLC., got %s", dmiInfo.BIOS.Vendor)
+		}
+	})
 
-	if len(dmiInfo.Memory) != 2 {
-		t.Errorf("expected 2 DIMMs, got %d", len(dmiInfo.Memory))
-	}
+	t.Run("SystemInfo", func(t *testing.T) {
+		if dmiInfo.System.ProductName != "QuantaGrid D54X-1U" {
+			t.Errorf("expected Product Name QuantaGrid D54X-1U, got %s", dmiInfo.System.ProductName)
+		}
+		if dmiInfo.System.UUID != "7d916442-2c24-11ee-be23-74d4dd2e9195" {
+			t.Errorf("expected UUID 7d916442-2c24-11ee-be23-74d4dd2e9195, got %s", dmiInfo.System.UUID)
+		}
+	})
 
-	if dmiInfo.Memory[0].Locator != "DIMM_A1" {
-		t.Errorf("expected Locator DIMM_A1, got %s", dmiInfo.Memory[0].Locator)
-	}
-	if dmiInfo.Memory[0].Size != "32 GB" {
-		t.Errorf("expected Size 32 GB, got %s", dmiInfo.Memory[0].Size)
-	}
-	if dmiInfo.Memory[0].FormFactor != "DIMM" {
-		t.Errorf("expected Form Factor DIMM, got %s", dmiInfo.Memory[0].FormFactor)
-	}
-	if dmiInfo.Memory[0].FirmwareVersion != "1.2.3" {
-		t.Errorf("expected Firmware Version 1.2.3, got %s", dmiInfo.Memory[0].FirmwareVersion)
-	}
-	if dmiInfo.Memory[1].Size != "No Module Installed" {
-		t.Errorf("expected Size No Module Installed, got %s", dmiInfo.Memory[1].Size)
-	}
+	t.Run("MemoryInfo", func(t *testing.T) {
+		if len(dmiInfo.Memory) != 2 {
+			t.Fatalf("expected 2 DIMMs, got %d", len(dmiInfo.Memory))
+		}
+
+		t.Run("InstalledDIMM", func(t *testing.T) {
+			dimm := dmiInfo.Memory[0]
+			if dimm.Locator != "DIMM_A1" {
+				t.Errorf("expected Locator DIMM_A1, got %s", dimm.Locator)
+			}
+			if dimm.Size != "32 GB" {
+				t.Errorf("expected Size 32 GB, got %s", dimm.Size)
+			}
+			if dimm.FormFactor != "DIMM" {
+				t.Errorf("expected Form Factor DIMM, got %s", dimm.FormFactor)
+			}
+			if dimm.FirmwareVersion != "1.2.3" {
+				t.Errorf("expected Firmware Version 1.2.3, got %s", dimm.FirmwareVersion)
+			}
+		})
+
+		t.Run("EmptyDIMM", func(t *testing.T) {
+			dimm := dmiInfo.Memory[1]
+			if dimm.Size != "No Module Installed" {
+				t.Errorf("expected Size No Module Installed, got %s", dimm.Size)
+			}
+			if dimm.FirmwareVersion != "" {
+				t.Errorf("expected normalized Firmware Version to be empty, got %q", dimm.FirmwareVersion)
+			}
+		})
+	})
 }
 
 func TestLinuxDMICollector_Collect(t *testing.T) {
@@ -97,5 +115,22 @@ func TestLinuxDMICollector_Collect(t *testing.T) {
 
 	if info.BIOS.Vendor != "Test Vendor" {
 		t.Errorf("expected Test Vendor, got %s", info.BIOS.Vendor)
+	}
+}
+
+func TestLinuxDMICollector_Collect_Error(t *testing.T) {
+	runner := &MockCommandRunner{
+		Err: context.DeadlineExceeded,
+	}
+
+	collector := NewLinuxDMICollector(runner)
+	info, err := collector.Collect(context.Background())
+
+	// Should not return error, just return nil info and log warning
+	if err != nil {
+		t.Errorf("expected nil error, got %v", err)
+	}
+	if info != nil {
+		t.Error("expected nil info on error")
 	}
 }

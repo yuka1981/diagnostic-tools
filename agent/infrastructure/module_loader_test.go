@@ -130,4 +130,59 @@ func TestRealModuleLoader_ParseAndApply(t *testing.T) {
 			t.Errorf("expected %q, got %q", expected, val)
 		}
 	})
+
+	t.Run("Unset", func(t *testing.T) {
+		os.Setenv("AGENT_TO_UNSET", "value")
+		output := "unset AGENT_TO_UNSET;"
+		err := loader.parseAndApply(output)
+		if err != nil {
+			t.Fatalf("parseAndApply failed: %v", err)
+		}
+		if _, exists := os.LookupEnv("AGENT_TO_UNSET"); exists {
+			t.Error("expected AGENT_TO_UNSET to be unset")
+		}
+	})
+
+	t.Run("SingleQuotes", func(t *testing.T) {
+		output := "export AGENT_SINGLE='quoted';"
+		err := loader.parseAndApply(output)
+		if err != nil {
+			t.Fatalf("parseAndApply failed: %v", err)
+		}
+		if os.Getenv("AGENT_SINGLE") != "quoted" {
+			t.Errorf("expected quoted, got %s", os.Getenv("AGENT_SINGLE"))
+		}
+		os.Unsetenv("AGENT_SINGLE")
+	})
+}
+
+func TestRealModuleLoader_LMOD_CMD(t *testing.T) {
+	runner := &mockRunner{output: []byte("")}
+	loader := NewRealModuleLoader(runner)
+
+	os.Setenv("LMOD_CMD", "test-lmod")
+	defer os.Unsetenv("LMOD_CMD")
+
+	_ = loader.Load(context.Background(), []string{"mod1"})
+	if runner.lastCmd != "test-lmod" {
+		t.Errorf("expected test-lmod, got %s", runner.lastCmd)
+	}
+}
+
+func TestRealModuleLoader_RunError(t *testing.T) {
+	runner := &mockRunner{err: context.DeadlineExceeded}
+	loader := NewRealModuleLoader(runner)
+
+	err := loader.Load(context.Background(), []string{"mod1"})
+	if err == nil {
+		t.Error("expected error, got nil")
+	}
+}
+
+func TestRealModuleLoader_Load_EmptyAfterStrip(t *testing.T) {
+	loader := NewRealModuleLoader(nil)
+	err := loader.Load(context.Background(), []string{" "})
+	if err != nil {
+		t.Errorf("expected nil error for empty modules after strip, got %v", err)
+	}
 }

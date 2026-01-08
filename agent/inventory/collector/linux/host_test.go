@@ -85,3 +85,51 @@ func TestLinuxHostCollector_Collect_Fallback(t *testing.T) {
 		t.Errorf("expected platform linux, got %s", info.Platform)
 	}
 }
+
+func TestLinuxHostCollector_Collect_Error(t *testing.T) {
+	runner := &MockCommandRunner{
+		Err: context.DeadlineExceeded,
+	}
+	collector := NewLinuxHostCollector(runner)
+
+	_, err := collector.Collect(context.Background())
+	if err == nil {
+		t.Error("expected error from Collect when runner fails, got nil")
+	}
+}
+
+func TestLinuxHostCollector_getOSRelease_Fallback(t *testing.T) {
+	// We can't easily mock /etc/debian_version without a fake filesystem.
+	// But we can test the function with a file that doesn't have ID_LIKE.
+	tmpDir := t.TempDir()
+	osReleasePath := filepath.Join(tmpDir, "os-release")
+	content := `ID=test-os
+VERSION_ID=1.0
+`
+	_ = os.WriteFile(osReleasePath, []byte(content), 0644)
+
+	runner := &MockCommandRunner{Output: "kernel\n"}
+	collector := NewLinuxHostCollector(runner)
+	collector.OSReleasePath = osReleasePath
+
+	platform, version, family := collector.getOSRelease()
+	if platform != "test-os" {
+		t.Errorf("expected test-os, got %s", platform)
+	}
+	if version != "1.0" {
+		t.Errorf("expected 1.0, got %s", version)
+	}
+	// family might be empty or detected from host depending on environment
+	_ = family
+}
+
+func TestLinuxHostCollector_getOSRelease_NoFile(t *testing.T) {
+	collector := &LinuxHostCollector{OSReleasePath: "/non-existent"}
+	platform, version, family := collector.getOSRelease()
+	if platform != defaultPlatform {
+		t.Errorf("expected %s, got %s", defaultPlatform, platform)
+	}
+	if version != "" || family != "" {
+		t.Errorf("expected empty version and family, got %s, %s", version, family)
+	}
+}

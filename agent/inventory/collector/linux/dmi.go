@@ -11,6 +11,8 @@ import (
 	"github.com/yuka1981/diagnostic-tools/agent/core/ports"
 )
 
+const cmdSudo = "sudo"
+
 // LinuxDMICollector collects DMI information using dmidecode.
 type LinuxDMICollector struct {
 	runner ports.CommandRunner
@@ -27,14 +29,16 @@ func (c *LinuxDMICollector) Collect(ctx context.Context) (*model.HostDMIInfo, er
 	// Phase 1 assumes dmidecode is available and executable (e.g. via SUID).
 	// Phase 2 supports sudo via HPC_DMIDECODE_METHOD=sudo.
 	method := os.Getenv("HPC_DMIDECODE_METHOD")
-	var output []byte
-	var err error
 
-	if method == "sudo" {
-		output, err = c.runner.Run(ctx, "", "sudo", "dmidecode", "-t", "0,1,17")
-	} else {
-		output, err = c.runner.Run(ctx, "", "dmidecode", "-t", "0,1,17")
+	cmd := "dmidecode"
+	args := []string{"-t", "0,1,17"}
+
+	if method == cmdSudo {
+		args = append([]string{cmd}, args...)
+		cmd = cmdSudo
 	}
+
+	output, err := c.runner.Run(ctx, "", cmd, args...)
 
 	if err != nil {
 		// dmidecode may not be installed or may fail. This is not a fatal error for inventory collection.
@@ -113,7 +117,11 @@ func parseDIMMInfo(lines []string) model.DIMMInfo {
 	info.MinVoltage = data["Minimum Voltage"]
 	info.MaxVoltage = data["Maximum Voltage"]
 	info.ConfiguredVoltage = data["Configured Voltage"]
-	info.FirmwareVersion = data["Firmware Version"]
+	fw := data["Firmware Version"]
+	if fw == "Not Available" {
+		fw = ""
+	}
+	info.FirmwareVersion = fw
 	info.FormFactor = data["Form Factor"]
 	return info
 }
