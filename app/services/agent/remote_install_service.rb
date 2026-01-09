@@ -27,6 +27,7 @@ module Agent
     end
 
     def call
+      report_progress "Starting remote installation on #{@target_host}"
       if use_bastion?
         install_via_bastion
       else
@@ -46,8 +47,9 @@ module Agent
     end
 
     def install_via_bastion
-      ssh_options = { password: @bastion_password }.compact
+      ssh_options = default_ssh_options.merge(password: @bastion_password).compact
 
+      Rails.logger.debug "[RemoteInstallService] Connecting to bastion: #{@bastion_user}@#{@bastion_host}"
       Net::SSH.start(@bastion_host, @bastion_user, ssh_options) do |ssh|
         # Phase 1: Upload to Bastion
         report_progress "Uploading binary to bastion host (#{@bastion_host})"
@@ -56,7 +58,8 @@ module Agent
         # Phase 2: Bastion to Target
         report_progress "Transferring binary to target node (#{@target_host})"
         Rails.logger.info "Transferring binary from bastion to target: #{@target_host}"
-        scp_cmd = "sudo -S scp -o StrictHostKeyChecking=no #{BASTION_TMP_PATH} root@#{Shellwords.escape(@target_host)}:#{TARGET_BIN_PATH}"
+        target_spec = @target_host.include?(":") ? "[#{@target_host}]" : @target_host
+        scp_cmd = "sudo -S scp -o StrictHostKeyChecking=no #{BASTION_TMP_PATH} root@#{Shellwords.escape(target_spec)}:#{TARGET_BIN_PATH}"
         execute_remote_command(ssh, scp_cmd, password: @sudo_password)
 
         # Phase 3: Remote Config on Target
@@ -65,13 +68,15 @@ module Agent
       true
     rescue => e
       Rails.logger.error "Remote install via bastion failed: #{e.message}"
+      Rails.logger.error e.backtrace.first(10).join("\n")
       raise InstallError, "Installation failed: #{e.message}"
     end
 
     def install_direct
-      ssh_options = { password: @bastion_password }.compact
+      ssh_options = default_ssh_options.merge(password: @bastion_password).compact
       target_user = @bastion_user # Use the provided user for direct connection
 
+      Rails.logger.debug "[RemoteInstallService] Connecting directly to target: #{target_user}@#{@target_host}"
       Net::SSH.start(@target_host, target_user, ssh_options) do |ssh|
         # Phase 1: Upload directly to target
         report_progress "Uploading binary directly to target host (#{@target_host})"
@@ -89,7 +94,20 @@ module Agent
       true
     rescue => e
       Rails.logger.error "Direct remote install failed: #{e.message}"
+      Rails.logger.error e.backtrace.first(10).join("\n")
       raise InstallError, "Installation failed: #{e.message}"
+    end
+
+    private
+
+    def default_ssh_options
+      {
+        timeout: 15,
+        non_interactive: true,
+        verify_host_key: :never,
+        append_all_supported_algorithms: true,
+        auth_methods: [ "password", "keyboard-interactive" ]
+      }
     end
 
     def configure_target(ssh, via_ssh: false)
@@ -171,8 +189,8 @@ module Agent
     end
 
     def validate_target_host!
-      # Basic validation for hostname or IP address
-      unless @target_host =~ /\A[a-zA-Z0-9.-]+\z/
+      # Basic validation for hostname or IP address (including IPv6 colons)
+      unless @target_host =~ /\A[a-zA-Z0-9.:-]+\z/
         raise InstallError, "Invalid target host format: #{@target_host}"
       end
     end

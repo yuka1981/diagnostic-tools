@@ -8,6 +8,7 @@ module Agent
 
     def perform(node:, target_host:, arch:, bastion_host: nil, bastion_user:, credentials_cache_key:, server_url:, api_key_id: nil)
       Rails.logger.debug "[Agent::InstallJob] Starting install for #{target_host} (arch: #{arch})"
+      local_binary_path = nil
 
       # Retrieve sensitive credentials from cache
       credentials = Rails.cache.read("install_creds_#{credentials_cache_key}")
@@ -37,6 +38,8 @@ module Agent
 
       # 2. Remote Install
       Rails.logger.debug "[Agent::InstallJob] Phase 2: Remote Installation"
+      broadcast_status(target_host, "processing", "Connecting to remote host...")
+
       installer = Agent::RemoteInstallService.new(
         target_host: target_host,
         arch: arch,
