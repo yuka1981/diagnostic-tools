@@ -6,7 +6,7 @@ module Agent
   class InstallJob < ApplicationJob
     queue_as :default
 
-    def perform(node:, target_host:, arch:, bastion_host: nil, bastion_user:, credentials_cache_key:, server_url:)
+    def perform(node:, target_host:, arch:, bastion_host: nil, bastion_user:, credentials_cache_key:, server_url:, api_key_id: nil)
       Rails.logger.debug "[Agent::InstallJob] Starting install for #{target_host} (arch: #{arch})"
 
       # Retrieve sensitive credentials from cache
@@ -18,6 +18,13 @@ module Agent
 
       # Ensure credentials are cleaned up
       Rails.cache.delete("install_creds_#{credentials_cache_key}")
+
+      # Fetch API token if api_key_id is provided
+      agent_token = if api_key_id
+        ApiKey.active.find_by(id: api_key_id)&.token
+      else
+        credentials[:agent_token]
+      end
 
       # Small delay to allow the browser to establish ActionCable connection
       sleep 1 if Rails.env.development?
@@ -39,7 +46,7 @@ module Agent
         sudo_password: credentials[:sudo_password],
         local_binary_path: local_binary_path,
         server_url: server_url,
-        agent_token: credentials[:agent_token], # Use the selected token if available
+        agent_token: agent_token, # Use the selected token if available
         node: node,
         on_progress: ->(msg) {
           Rails.logger.debug "[Agent::InstallJob] Progress: #{msg}"

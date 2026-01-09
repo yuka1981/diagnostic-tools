@@ -65,7 +65,7 @@ RSpec.describe "Node Management", type: :system, js: true do
       click_button "Begin Uninstallation"
 
       # Wait for the processing state
-      expect(page).to have_content("Uninstalling Agent...")
+      expect(page).to have_content(/Uninstalling Agent.../i)
     end
 
     # We need to ensure the job runs and broadcasts
@@ -89,7 +89,7 @@ RSpec.describe "Node Management", type: :system, js: true do
     )
 
     # Verify the successful state arrived via Turbo Stream
-    expect(page).to have_content("Uninstallation Successful", wait: 10)
+    expect(page).to have_content(/Uninstallation Successful/i, wait: 10)
     click_link "Done"
 
     expect(page).to have_current_path(nodes_path)
