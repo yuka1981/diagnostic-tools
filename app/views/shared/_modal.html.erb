@@ -33,7 +33,7 @@
 
       <%# Footer (Optional) %>
       <% if content_for?(:modal_footer) %>
-        <div class="flex items-center justify-end gap-2 bg-slate-50 border-t border-gray-300 px-4 py-3 rounded-b-md">
+        <div id="modal_footer" class="flex items-center justify-end gap-2 bg-slate-50 border-t border-gray-300 px-4 py-3 rounded-b-md">
           <%= yield :modal_footer %>
         </div>
       <% end %>
