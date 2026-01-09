@@ -37,32 +37,32 @@ func TestLinuxNetworkCollector_Collect(t *testing.T) {
 
 	// Mock eth0
 	eth0Dir := filepath.Join(sysClassNet, "eth0")
-	os.MkdirAll(eth0Dir, 0755)
+	_ = os.MkdirAll(eth0Dir, 0755)
 	pci0Dir := filepath.Join(tmpDir, "0000:00:03.0")
-	os.MkdirAll(pci0Dir, 0755)
-	os.Symlink(pci0Dir, filepath.Join(eth0Dir, "device"))
-	os.WriteFile(filepath.Join(pci0Dir, "numa_node"), []byte("0\n"), 0644)
-	os.WriteFile(filepath.Join(eth0Dir, "speed"), []byte("10000\n"), 0644)
+	_ = os.MkdirAll(pci0Dir, 0755)
+	_ = os.Symlink(pci0Dir, filepath.Join(eth0Dir, "device"))
+	_ = os.WriteFile(filepath.Join(pci0Dir, "numa_node"), []byte("0\n"), 0644)
+	_ = os.WriteFile(filepath.Join(eth0Dir, "speed"), []byte("10000\n"), 0644)
 
 	// Mock ib0
 	ib0Dir := filepath.Join(sysClassNet, "ib0")
-	os.MkdirAll(ib0Dir, 0755)
+	_ = os.MkdirAll(ib0Dir, 0755)
 	pci1Dir := filepath.Join(tmpDir, "0000:00:04.0")
-	os.MkdirAll(pci1Dir, 0755)
-	os.Symlink(pci1Dir, filepath.Join(ib0Dir, "device"))
-	os.WriteFile(filepath.Join(ib0Dir, "dev_id"), []byte("0x0\n"), 0644)
-	os.WriteFile(filepath.Join(pci1Dir, "numa_node"), []byte("0\n"), 0644)
+	_ = os.MkdirAll(pci1Dir, 0755)
+	_ = os.Symlink(pci1Dir, filepath.Join(ib0Dir, "device"))
+	_ = os.WriteFile(filepath.Join(ib0Dir, "dev_id"), []byte("0x0\n"), 0644)
+	_ = os.WriteFile(filepath.Join(pci1Dir, "numa_node"), []byte("0\n"), 0644)
 
 	// InfiniBand details for ib0
 	ibDeviceDir := filepath.Join(pci1Dir, "infiniband", "mlx5_0")
-	os.MkdirAll(ibDeviceDir, 0755)
+	_ = os.MkdirAll(ibDeviceDir, 0755)
 
 	// Mock IB sysfs
 	ibPort1Dir := filepath.Join(sysClassIB, "mlx5_0", "ports", "1")
-	os.MkdirAll(ibPort1Dir, 0755)
-	os.WriteFile(filepath.Join(sysClassIB, "mlx5_0", "node_guid"), []byte("52:54:00:12:34:56\n"), 0644)
-	os.WriteFile(filepath.Join(ibPort1Dir, "lid"), []byte("14\n"), 0644)
-	os.WriteFile(filepath.Join(ibPort1Dir, "rate"), []byte("HDR (200 Gbps)\n"), 0644)
+	_ = os.MkdirAll(ibPort1Dir, 0755)
+	_ = os.WriteFile(filepath.Join(sysClassIB, "mlx5_0", "node_guid"), []byte("52:54:00:12:34:56\n"), 0644)
+	_ = os.WriteFile(filepath.Join(ibPort1Dir, "lid"), []byte("14\n"), 0644)
+	_ = os.WriteFile(filepath.Join(ibPort1Dir, "rate"), []byte("200 Gb/sec (4X HDR)\n"), 0644)
 
 	runner := &MultiMockRunner{
 		responses: map[string]string{
@@ -80,16 +80,7 @@ func TestLinuxNetworkCollector_Collect(t *testing.T) {
 				{"ifname": "eth0", "addr_info": [{"local": "192.168.1.10", "prefixlen": 24}]},
 				{"ifname": "ib0", "addr_info": [{"local": "10.0.0.1", "prefixlen": 24}]}
 			]`,
-			"lspci -vmm -D": `Slot: 0000:00:03.0
-Class: Ethernet controller
-Vendor: Red Hat, Inc.
-Device: Virtio network device
-
-Slot: 0000:00:04.0
-Class: InfiniBand controller
-Vendor: Mellanox Technologies
-Device: MT28908 Family [ConnectX-6]
-`,
+			"lspci -vmm -D": "Slot:\t0000:00:03.0\nClass:\tEthernet controller\nVendor:\tRed Hat, Inc.\nDevice:\tVirtio network device\n\nSlot:\t0000:00:04.0\nClass:\tInfiniBand controller\nVendor:\tMellanox Technologies\nDevice:\tMT28908 Family [ConnectX-6]\n",
 		},
 	}
 
@@ -128,8 +119,8 @@ Device: MT28908 Family [ConnectX-6]
 				if iface.InfiniBand.LID != "14" {
 					t.Errorf("ib0: expected LID 14, got %s", iface.InfiniBand.LID)
 				}
-				if iface.Speed != "HDR (200 Gbps)" {
-					t.Errorf("ib0: expected speed HDR (200 Gbps), got %s", iface.Speed)
+				if iface.Speed != "200 Gb/s (4X HDR)" {
+					t.Errorf("ib0: expected speed 200 Gb/s (4X HDR), got %s", iface.Speed)
 				}
 			}
 		}

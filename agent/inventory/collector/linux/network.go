@@ -271,7 +271,7 @@ func (c *LinuxNetworkCollector) collectIBInfo(iface string) *model.IBInfo {
 		ib.GUID = strings.TrimSpace(string(guid))
 	}
 	if rate, err := os.ReadFile(filepath.Join(portPath, "rate")); err == nil {
-		ib.LinkSpeed = strings.TrimSpace(string(rate))
+		ib.LinkSpeed = strings.ReplaceAll(strings.TrimSpace(string(rate)), "Gb/sec", "Gb/s")
 	}
 
 	return ib
