@@ -11,14 +11,15 @@ RSpec.describe "Nodes::Imports", type: :request do
 
   describe "GET /nodes/import/new" do
     it "returns the modal form" do
-      get new_node_import_path
+      get new_node_import_path, headers: { "Turbo-Frame" => "import_modal" }
 
       expect(response).to have_http_status(:success)
       expect(response.body).to include("Import Nodes")
+      expect(response.body).not_to include("<!DOCTYPE html>")
     end
 
     it "renders within turbo frame" do
-      get new_node_import_path
+      get new_node_import_path, headers: { "Turbo-Frame" => "import_modal" }
 
       expect(response.body).to include("turbo-frame")
       expect(response.body).to include('id="import_modal"')
@@ -63,10 +64,12 @@ RSpec.describe "Nodes::Imports", type: :request do
     end
 
     context "with missing file" do
-      it "returns error" do
-        post node_import_index_path
+      it "returns error via turbo stream" do
+        post node_import_index_path, as: :turbo_stream
 
         expect(response).to have_http_status(:unprocessable_content)
+        expect(response.body).to include("turbo-stream")
+        expect(response.body).to include("Please select a CSV file to import")
       end
     end
 
@@ -85,10 +88,11 @@ RSpec.describe "Nodes::Imports", type: :request do
         tempfile.unlink
       end
 
-      it "returns error with details" do
-        post node_import_index_path, params: { file: uploaded_file }
+      it "returns error via turbo stream" do
+        post node_import_index_path, params: { file: uploaded_file }, as: :turbo_stream
 
         expect(response).to have_http_status(:unprocessable_content)
+        expect(response.body).to include("turbo-stream")
         expect(response.body).to include("Missing required header: hostname")
       end
     end
@@ -108,7 +112,7 @@ RSpec.describe "Nodes::Imports", type: :request do
         tempfile.unlink
       end
 
-      it "creates valid nodes and reports errors" do
+      it "creates valid nodes" do
         expect {
           post node_import_index_path, params: { file: uploaded_file }
         }.to change(Node, :count).by(1)

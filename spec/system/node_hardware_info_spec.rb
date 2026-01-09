@@ -28,7 +28,7 @@ RSpec.describe 'Node Hardware Info', type: :system, js: true do
     # Check Memory Topology (Hidden by default)
     within('div.card-netbox', text: /MEMORY TOPOLOGY/i) do
       expect(page).not_to have_selector('div[data-disclosure-target="content"]', visible: true)
-      
+
       # Test Toggle - Show
       find('button[role="switch"]').click
       expect(page).to have_selector('div[data-disclosure-target="content"]', visible: true)
@@ -43,12 +43,12 @@ RSpec.describe 'Node Hardware Info', type: :system, js: true do
       # Test Toggle - Show
       find('button[role="switch"]').click
       expect(page).to have_selector('table', visible: true)
-      
+
       expect(page).to have_content('DIMM_A1')
       expect(page).to have_content('32 GB')
       expect(page).to have_content('Samsung')
       expect(page).to have_css('span', text: /ACTIVE/i)
-      
+
       expect(page).to have_content('DIMM_A2')
       expect(page).to have_css('span', text: /EMPTY/i)
 

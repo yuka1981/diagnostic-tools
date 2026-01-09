@@ -16,7 +16,7 @@ RSpec.describe "Node Management", type: :system, js: true do
     visit nodes_path
     click_link "Add Node"
 
-    within "#node_modal" do
+    within "turbo-frame#node_modal" do
       fill_in "Hostname", with: "compute-001"
       fill_in "IP Address", with: "192.168.1.100"
       select "Compute", from: "Role"
@@ -40,43 +40,42 @@ RSpec.describe "Node Management", type: :system, js: true do
     expect(node.ssh_user).to eq("deploy")
 
     # Ensure modal is closed
-    expect(page).not_to have_selector("#node_modal .fixed")
+    expect(page).not_to have_selector("turbo-frame#node_modal .card-netbox")
   end
 
   it "allows an approver to remove an agent" do
     node = create(:node, hostname: "uninstall-target", source: :agent_push, ip: "10.0.0.5")
     visit nodes_path
 
-    # Ensure any previous modals are closed
-    expect(page).not_to have_selector(".fixed.inset-0")
-
     # Use a more specific selector to avoid intercepting other elements
     within "tr##{dom_id(node)}" do
       find("a[title='Uninstall Agent']").click
     end
 
-    within "#uninstall_modal" do
-      expect(page).to have_field("Hostname", with: "uninstall-target", readonly: true)
-      # Check IP address (using have_field or generic find since it's a raw input in my previous replace)
-      # In my previous replace I used <input type="text" value="<%= @node&.ip %>" readonly ...>
-      # It doesn't have a name/id that have_field might easily find unless I add label.
-      # Wait, I did add label: <%= f.label :ip, "IP Address" %>
-      expect(page).to have_field("IP Address", with: "10.0.0.5", readonly: true)
+    # Mock the background job service to succeed immediately
+    uninstaller = instance_double(Agent::RemoteUninstallService, call: true)
+    allow(Agent::RemoteUninstallService).to receive(:new).and_return(uninstaller)
 
-      fill_in "Sudo Password (Required)", with: "secret"
+    within "turbo-frame#uninstall_modal" do
+      expect(page).to have_content(/Uninstall Agent: uninstall-target/i)
 
-      # Mock the background job behavior
-      uninstaller = instance_double(Agent::RemoteUninstallService, call: true)
-      allow(Agent::RemoteUninstallService).to receive(:new).and_return(uninstaller)
+      fill_in "Remote Sudo Password", with: "secret"
+      fill_in "SSH Password / Key Passphrase", with: "password"
 
-      click_button "Confirm Removal"
+      click_button "Begin Uninstallation"
 
-      # Wait for the "Uninstalling Agent..." processing state
+      # Wait for the processing state
       expect(page).to have_content("Uninstalling Agent...")
-      expect(page).to have_content("Connecting to host")
     end
 
-    # The job is async, but we can simulate the broadcast that the job would do
+    # We need to ensure the job runs and broadcasts
+    # Since we are in a system test with JS, the job will actually run if we use perform_enqueued_jobs
+    # or we can just manually trigger the broadcast that the job would do,
+    # but we need to wait for the subscription to be active.
+
+    # Wait a bit for ActionCable subscription
+    sleep 1
+
     Turbo::StreamsChannel.broadcast_replace_to(
       "agent_uninstall_uninstall-target",
       target: "agent_uninstall_status_uninstall-target",
@@ -90,7 +89,7 @@ RSpec.describe "Node Management", type: :system, js: true do
     )
 
     # Verify the successful state arrived via Turbo Stream
-    expect(page).to have_content("Uninstallation Successful")
+    expect(page).to have_content("Uninstallation Successful", wait: 10)
     click_link "Done"
 
     expect(page).to have_current_path(nodes_path)

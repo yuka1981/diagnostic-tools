@@ -10,8 +10,5 @@
           message: "Starting installation process...", 
           target_host: params[:install][:hostname] %>
     </div>
-
-    <%# Detailed live log terminal (Persistent container) %>
-    <%= render "nodes/installs/log_stream", node: @node %>
   </div>
 <% end %>

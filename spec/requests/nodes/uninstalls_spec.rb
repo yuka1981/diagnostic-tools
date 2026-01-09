@@ -11,12 +11,13 @@ RSpec.describe "Nodes::Uninstalls", type: :request do
 
   describe "GET /nodes/uninstalls/new" do
     it "returns http success" do
-      get new_node_uninstall_path
+      get new_node_uninstall_path, headers: { "Turbo-Frame" => "uninstall_modal" }
       expect(response).to have_http_status(:success)
+      expect(response.body).not_to include("<!DOCTYPE html>")
     end
 
     it "sets target_host from params" do
-      get new_node_uninstall_path(hostname: "compute-001")
+      get new_node_uninstall_path(hostname: "compute-001"), headers: { "Turbo-Frame" => "uninstall_modal" }
       expect(response.body).to include('value="compute-001"')
     end
   end
