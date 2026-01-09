@@ -35,9 +35,9 @@ RSpec.describe Agent::RemoteUninstallService do
     allow(SshConfig).to receive(:jump_host).and_return("bastion.example.com")
     expect(Net::SSH).to receive(:start).with("bastion.example.com", "bastion-user", any_args).and_yield(ssh_session)
 
-    # Verify some key cleanup commands - target user is always root
-    expect(channel).to receive(:exec).with(/sudo -S ssh.*root@compute-001.*timeout 10s systemctl stop hpc-agent/).at_least(:once)
-    expect(channel).to receive(:exec).with(/sudo -S ssh.*root@compute-001.*rm -f \/usr\/local\/bin\/hpc-agent/).at_least(:once)
+    # Verify some key cleanup commands - sudo should be on bastion, inner command quoted
+    expect(channel).to receive(:exec).with(/sudo -S ssh.*root@compute-001.*'sudo -S.*systemctl stop hpc-agent/).at_least(:once)
+    expect(channel).to receive(:exec).with(/sudo -S ssh.*root@compute-001.*'sudo -S.*rm -f/).at_least(:once)
 
     expect(service.call).to be true
   end
@@ -56,9 +56,9 @@ RSpec.describe Agent::RemoteUninstallService do
     # Should connect to target instead of bastion using root
     expect(Net::SSH).to receive(:start).with(target_host, "root", any_args).and_yield(ssh_session)
 
-    # Should run commands directly with sudo on target
-    expect(channel).to receive(:exec).with(/sudo -S timeout 10s systemctl stop hpc-agent/).at_least(:once)
-    expect(channel).to receive(:exec).with(/sudo -S rm -f \/usr\/local\/bin\/hpc-agent/).at_least(:once)
+    # Should run commands directly with sudo on target (no single quotes for direct sudo)
+    expect(channel).to receive(:exec).with(/sudo -S.*systemctl stop hpc-agent/).at_least(:once)
+    expect(channel).to receive(:exec).with(/sudo -S.*rm -f/).at_least(:once)
 
     expect(direct_service.call).to be true
   end

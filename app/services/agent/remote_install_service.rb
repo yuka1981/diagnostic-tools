@@ -244,33 +244,15 @@ module Agent
 
     
 
-          # 3.3: systemctl enable --now
+      # 3.3: systemctl enable --now
+      report_progress "Starting agent service"
 
-          report_progress "Starting agent service"
-
-    
-
-                inner_systemd = "systemctl daemon-reload && systemctl enable --now hpc-agent"
-
-    
-
-                systemd_cmd = if via_ssh
-
-    
-
-                                "sudo -S ssh -o StrictHostKeyChecking=no #{target_user}@#{Shellwords.escape(@target_host)} #{Shellwords.escape(inner_systemd)}"
-
-    
-
-                              else
-
-    
-
-                                "sudo -S bash -c #{Shellwords.escape(inner_systemd)}"
-
-    
-
-                              end
+      inner_systemd = "systemctl daemon-reload && systemctl enable --now hpc-agent"
+      systemd_cmd = if via_ssh
+                      "sudo -S ssh -o StrictHostKeyChecking=no #{target_user}@#{Shellwords.escape(@target_host)} 'bash -c #{Shellwords.escape(inner_systemd)}'"
+                    else
+                      "sudo -S bash -c #{Shellwords.escape(inner_systemd)}"
+                    end
 
     
 
@@ -282,35 +264,14 @@ module Agent
 
     
 
-                # 3.4: dmidecode SUID
-
-    
-
-                report_progress "Ensuring dmidecode has SUID permission (4755)"
-
-    
-
-                inner_dmi = "which dmidecode && chmod 4755 $(which dmidecode)"
-
-    
-
-                dmi_cmd = if via_ssh
-
-    
-
-                            "sudo -S ssh -o StrictHostKeyChecking=no #{target_user}@#{Shellwords.escape(@target_host)} bash -c #{Shellwords.escape(inner_dmi)}"
-
-    
-
-                          else
-
-    
-
-                            "sudo -S bash -c #{Shellwords.escape(inner_dmi)}"
-
-    
-
-                          end
+      # 3.4: dmidecode SUID
+      report_progress "Ensuring dmidecode has SUID permission (4755)"
+      inner_dmi = "which dmidecode && chmod 4755 $(which dmidecode)"
+      dmi_cmd = if via_ssh
+                  "sudo -S ssh -o StrictHostKeyChecking=no #{target_user}@#{Shellwords.escape(@target_host)} 'bash -c #{Shellwords.escape(inner_dmi)}'"
+                else
+                  "sudo -S bash -c #{Shellwords.escape(inner_dmi)}"
+                end
 
     
 

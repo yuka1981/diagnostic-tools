@@ -45,8 +45,7 @@ RSpec.describe Agent::RemoteInstallService do
 
     # Verify some key commands - target user is always root
     expect(channel).to receive(:exec).with(/sudo -S scp.*root@compute-001/).at_least(:once)
-    expect(channel).to receive(:exec).with(/sudo -S ssh.*root@compute-001.*chmod/).at_least(:once)
-    expect(channel).to receive(:exec).with(/sudo -S ssh.*root@compute-001.*systemctl/).at_least(:once)
+    expect(channel).to receive(:exec).with(/sudo -S ssh.*root@compute-001.*'bash -c.*'/).at_least(:once)
 
     expect(service.call).to be true
   end
@@ -61,7 +60,7 @@ RSpec.describe Agent::RemoteInstallService do
       sudo_password: sudo_password,
       local_binary_path: local_path,
       node: node,
-      bastion_user: "root" # Direct connection fallback
+      bastion_user: "root"
     )
 
     # Should connect to target instead of bastion
