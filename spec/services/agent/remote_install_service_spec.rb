@@ -44,7 +44,8 @@ RSpec.describe Agent::RemoteInstallService do
     # Verify some key commands - target user is always root
     expect(scp_handler).to receive(:upload!).with(local_path, "/tmp/agent_bin")
     expect(channel).to receive(:exec).with(/sudo -S scp.*root@compute-001/).at_least(:once)
-    expect(channel).to receive(:exec).with(/sudo -S ssh.*root@compute-001.*bash -c.*/).at_least(:once)
+    # Match bash -c with escaped space (Shellwords.escape)
+    expect(channel).to receive(:exec).with(/sudo -S ssh.*root@compute-001.*bash\\ -c.*/).at_least(:once)
 
     expect(service.call).to be true
   end

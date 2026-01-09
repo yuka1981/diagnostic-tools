@@ -120,6 +120,13 @@ module Agent
       }
     end
 
+    def bash_c_command(cmd)
+      # Wrap command in single quotes for bash -c, escaping existing single quotes
+      # This ensures the command string is passed as a single argument to bash
+      quoted_cmd = "'" + cmd.gsub("'", "'\\\\''") + "'"
+      "bash -c #{quoted_cmd}"
+    end
+
     def configure_target(ssh, via_ssh: false)
       report_progress "Configuring agent service on target"
 
@@ -131,23 +138,23 @@ module Agent
 
 
 
-                chmod_cmd = if via_ssh
+                          chmod_cmd = if via_ssh
 
 
 
-                              "sudo -S ssh -o StrictHostKeyChecking=no #{target_user}@#{Shellwords.escape(@target_host)} #{inner_chmod}"
+                                        "sudo -S ssh -o StrictHostKeyChecking=no #{target_user}@#{Shellwords.escape(@target_host)} #{Shellwords.escape(inner_chmod)}"
 
 
 
-                else
+                          else
 
 
 
-                              "sudo -S #{inner_chmod}"
+                                        "sudo -S #{inner_chmod}"
 
 
 
-                end
+                          end
 
 
 
@@ -246,9 +253,10 @@ module Agent
 
       inner_systemd = "systemctl daemon-reload && systemctl enable --now hpc-agent"
       systemd_cmd = if via_ssh
-                      "sudo -S ssh -o StrictHostKeyChecking=no #{target_user}@#{Shellwords.escape(@target_host)} bash -c #{Shellwords.escape(inner_systemd)}"
+                      remote_cmd = bash_c_command(inner_systemd)
+                      "sudo -S ssh -o StrictHostKeyChecking=no #{target_user}@#{Shellwords.escape(@target_host)} #{Shellwords.escape(remote_cmd)}"
       else
-                      "sudo -S bash -c #{Shellwords.escape(inner_systemd)}"
+                      "sudo -S #{bash_c_command(inner_systemd)}"
       end
 
 
@@ -265,9 +273,10 @@ module Agent
       report_progress "Ensuring dmidecode has SUID permission (4755)"
       inner_dmi = "which dmidecode && chmod 4755 $(which dmidecode)"
       dmi_cmd = if via_ssh
-                  "sudo -S ssh -o StrictHostKeyChecking=no #{target_user}@#{Shellwords.escape(@target_host)} bash -c #{Shellwords.escape(inner_dmi)}"
+                  remote_cmd = bash_c_command(inner_dmi)
+                  "sudo -S ssh -o StrictHostKeyChecking=no #{target_user}@#{Shellwords.escape(@target_host)} #{Shellwords.escape(remote_cmd)}"
       else
-                  "sudo -S bash -c #{Shellwords.escape(inner_dmi)}"
+                  "sudo -S #{bash_c_command(inner_dmi)}"
       end
 
 
