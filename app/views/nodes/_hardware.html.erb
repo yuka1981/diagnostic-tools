@@ -84,7 +84,7 @@
       <div class="p-4 bg-slate-50">
         <% 
           memory_devices = dmi["memory"] || [] 
-          # Group by Processor/Node (e.g., P0, P1 or Node0, Node1)
+          # Group by Processor prefix (e.g., CPU0, CPU1, P0, P1)
           groups = memory_devices.group_by { |d| d["bank_locator"]&.split('_')&.first || "System" }.sort.to_h
         %>
         <% if groups.any? %>
@@ -96,17 +96,19 @@
                     <%= proc_name.scan(/\d+/).first || "?" %>
                   </span>
                   <h4 class="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
-                    <%= proc_name.to_s.start_with?("P") ? "Processor CPU#{proc_name[1..]}" : "Processor #{proc_name}" %>
+                    <%= proc_name.to_s.start_with?("P") ? "CPU #{proc_name[1..]}" : proc_name %>
                   </h4>
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div class="space-y-2">
                   <% devices.group_by { |d| d["bank_locator"] }.each do |bank, slots| %>
-                    <div class="space-y-1">
-                      <div class="text-[8px] font-bold text-slate-400 uppercase truncate px-1" title="<%= bank %>">
-                        <%= bank.split('_').last %>
+                    <div class="flex items-center gap-2">
+                      <div class="w-20 flex-shrink-0 text-right">
+                        <div class="text-[8px] font-bold text-slate-400 uppercase truncate" title="<%= bank %>">
+                          <%= bank.split('_').last %>
+                        </div>
                       </div>
-                      <div class="grid grid-cols-4 gap-1 p-1.5 bg-white border border-slate-200 rounded shadow-sm">
+                      <div class="flex-1 grid grid-cols-1 gap-1 p-1 bg-white border border-slate-200 rounded shadow-sm">
                         <% slots.each do |slot| %>
                           <% 
                             installed = slot["size"] && slot["size"] != "No Module Installed"
@@ -116,8 +118,11 @@
                           %>
                           <div class="relative group">
                             <% if installed %>
-                              <div class="h-7 rounded flex items-center justify-center text-white transition-all hover:scale-110 cursor-default <%= downgraded ? 'bg-amber-500' : 'bg-green-600' %> shadow-sm ring-1 ring-black/5">
-                                <span class="text-[8px] font-black"><%= slot["size"].to_s.gsub(' GB', 'G') %></span>
+                              <div class="h-7 rounded flex items-center justify-center text-white transition-all hover:scale-[1.02] cursor-default <%= downgraded ? 'bg-amber-500' : 'bg-green-600' %> shadow-sm ring-1 ring-black/5">
+                                <div class="flex items-center gap-2 px-2 w-full justify-between">
+                                  <span class="text-[8px] font-black"><%= slot["size"].to_s.gsub(' GB', 'G') %></span>
+                                  <span class="text-[7px] opacity-80 font-mono uppercase"><%= slot["locator"].split('_').last %></span>
+                                </div>
                                 <% if downgraded %>
                                   <div class="absolute -top-1 -right-1 bg-white rounded-full p-0.5 shadow-sm ring-1 ring-amber-200">
                                     <svg class="w-2 h-2 text-amber-500" fill="currentColor" viewBox="0 0 20 20">
@@ -139,6 +144,7 @@
                                 <div class="grid grid-cols-2 gap-x-1 text-[9px] leading-tight">
                                   <span class="text-slate-400">Size:</span><span><%= slot["size"] %></span>
                                   <span class="text-slate-400">Speed:</span><span><%= slot["configured_speed"] %></span>
+                                  <span class="text-slate-400">Type:</span><span><%= slot["type"] %></span>
                                   <span class="text-slate-400">Vendor:</span><span><%= slot["manufacturer"] %></span>
                                   <span class="text-slate-400">Part:</span><span class="font-mono text-[8px]"><%= slot["part_number"] %></span>
                                 </div>
