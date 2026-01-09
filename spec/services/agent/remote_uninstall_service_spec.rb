@@ -35,9 +35,9 @@ RSpec.describe Agent::RemoteUninstallService do
     allow(SshConfig).to receive(:jump_host).and_return("bastion.example.com")
     expect(Net::SSH).to receive(:start).with("bastion.example.com", "bastion-user", any_args).and_yield(ssh_session)
 
-    # Verify some key cleanup commands
-    expect(channel).to receive(:exec).with(/ssh.*#{ssh_user}@compute-001.*sudo -S timeout 10s systemctl stop hpc-agent/).at_least(:once)
-    expect(channel).to receive(:exec).with(/ssh.*#{ssh_user}@compute-001.*sudo -S rm -f \/usr\/local\/bin\/hpc-agent/).at_least(:once)
+    # Verify some key cleanup commands - sudo should be at the start (on bastion)
+    expect(channel).to receive(:exec).with(/sudo -S ssh.*#{ssh_user}@compute-001.*timeout 10s systemctl stop hpc-agent/).at_least(:once)
+    expect(channel).to receive(:exec).with(/sudo -S ssh.*#{ssh_user}@compute-001.*rm -f \/usr\/local\/bin\/hpc-agent/).at_least(:once)
 
     expect(service.call).to be true
   end
@@ -55,7 +55,7 @@ RSpec.describe Agent::RemoteUninstallService do
     # Should connect to target instead of bastion using node's ssh_user
     expect(Net::SSH).to receive(:start).with(target_host, ssh_user, any_args).and_yield(ssh_session)
 
-    # Should run commands directly with sudo on target
+    # Should run commands directly with sudo on target (as there's no bastion)
     expect(channel).to receive(:exec).with(/sudo -S timeout 10s systemctl stop hpc-agent/).at_least(:once)
     expect(channel).to receive(:exec).with(/sudo -S rm -f \/usr\/local\/bin\/hpc-agent/).at_least(:once)
 

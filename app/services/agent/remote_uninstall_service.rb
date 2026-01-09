@@ -77,10 +77,11 @@ module Agent
       report_progress(:connect)
       Net::SSH.start(@bastion_host, @bastion_user, ssh_options) do |ssh|
         # We run commands on the target via SSH from the bastion
+        # sudo is executed on the bastion host
         target_spec = @target_host.include?(":") ? "[#{@target_host}]" : @target_host
-        ssh_command = "ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 #{target_user}@#{Shellwords.escape(target_spec)} "
+        ssh_prefix = "sudo -S ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 #{target_user}@#{Shellwords.escape(target_spec)} "
 
-        perform_cleanup(ssh, ssh_command)
+        perform_cleanup(ssh, ssh_prefix)
       end
       true
     rescue => e
@@ -96,7 +97,7 @@ module Agent
 
       report_progress(:connect)
       Net::SSH.start(@target_host, user, ssh_options) do |ssh|
-        perform_cleanup(ssh, "")
+        perform_cleanup(ssh, "sudo -S ")
       end
       true
     rescue => e
@@ -108,26 +109,25 @@ module Agent
       report_progress(:stop_service)
 
       # Stop service (use timeout to prevent hanging)
-      # We add sudo -S here so it runs on the target
-      stop_cmd = "#{prefix} sudo -S timeout 10s systemctl stop hpc-agent || true"
+      stop_cmd = "#{prefix}timeout 10s systemctl stop hpc-agent || true"
       execute_remote_command(ssh, stop_cmd, password: @sudo_password)
 
       # Disable service
-      disable_cmd = "#{prefix} sudo -S timeout 10s systemctl disable hpc-agent || true"
+      disable_cmd = "#{prefix}timeout 10s systemctl disable hpc-agent || true"
       execute_remote_command(ssh, disable_cmd, password: @sudo_password)
 
       report_progress(:remove_files)
 
       # Remove service file
-      rm_service_cmd = "#{prefix} sudo -S rm -f #{SERVICE_FILE_PATH}"
+      rm_service_cmd = "#{prefix}rm -f #{SERVICE_FILE_PATH}"
       execute_remote_command(ssh, rm_service_cmd, password: @sudo_password)
 
       # Remove binary
-      rm_bin_cmd = "#{prefix} sudo -S rm -f #{TARGET_BIN_PATH}"
+      rm_bin_cmd = "#{prefix}rm -f #{TARGET_BIN_PATH}"
       execute_remote_command(ssh, rm_bin_cmd, password: @sudo_password)
 
       report_progress(:reload_daemon)
-      reload_cmd = "#{prefix} sudo -S timeout 10s systemctl daemon-reload"
+      reload_cmd = "#{prefix}timeout 10s systemctl daemon-reload"
       execute_remote_command(ssh, reload_cmd, password: @sudo_password)
     end
 

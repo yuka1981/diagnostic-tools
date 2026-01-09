@@ -43,10 +43,10 @@ RSpec.describe Agent::RemoteInstallService do
 
     expect(scp_handler).to receive(:upload!).with(local_path, "/tmp/agent_bin")
 
-    # Verify some key commands with simplified regex
-    expect(channel).to receive(:exec).with(/scp.*#{ssh_user}@compute-001:\/tmp\/agent_bin_install/).at_least(:once)
-    expect(channel).to receive(:exec).with(/ssh.*#{ssh_user}@compute-001.*sudo -S mv/).at_least(:once)
-    expect(channel).to receive(:exec).with(/ssh.*#{ssh_user}@compute-001.*sudo -S bash -c.*systemctl/).at_least(:once)
+    # Verify some key commands with simplified regex - sudo should be at the start
+    expect(channel).to receive(:exec).with(/sudo -S scp.*#{ssh_user}@compute-001/).at_least(:once)
+    expect(channel).to receive(:exec).with(/sudo -S ssh.*#{ssh_user}@compute-001.*chmod/).at_least(:once)
+    expect(channel).to receive(:exec).with(/sudo -S ssh.*#{ssh_user}@compute-001.*systemctl/).at_least(:once)
 
     expect(service.call).to be true
   end
@@ -67,8 +67,8 @@ RSpec.describe Agent::RemoteInstallService do
     expect(Net::SSH).to receive(:start).with(target_host, ssh_user, any_args).and_yield(ssh_session)
     expect(scp_handler).to receive(:upload!).with(local_path, "/tmp/agent_bin_install")
 
-    # Should run commands directly without jump host SSH prefix
-    expect(channel).to receive(:exec).with(/sudo -S mv \/tmp\/agent_bin_install/).at_least(:once)
+    # Should run commands directly with sudo on target (as there is no bastion)
+    expect(channel).to receive(:exec).with(/sudo -S mv/).at_least(:once)
     expect(channel).to receive(:exec).with(/sudo -S bash -c.*systemctl/).at_least(:once)
 
     expect(direct_service.call).to be true

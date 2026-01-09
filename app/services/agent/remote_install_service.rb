@@ -61,14 +61,9 @@ module Agent
         report_progress "Transferring binary to target node (#{@target_host})"
         Rails.logger.info "Transferring binary from bastion to target: #{@target_host}"
         target_spec = @target_host.include?(":") ? "[#{@target_host}]" : @target_host
-        # SCP from bastion to target (no sudo on bastion side for SCP)
-        scp_cmd = "scp -o StrictHostKeyChecking=no #{BASTION_TMP_PATH} #{target_user}@#{Shellwords.escape(target_spec)}:/tmp/agent_bin_install"
-        execute_remote_command(ssh, scp_cmd, password: nil) # Password handled by keys if "not required"
-
-        # Move to final location using sudo on target
-        report_progress "Moving binary to #{TARGET_BIN_PATH}"
-        mv_cmd = "ssh -o StrictHostKeyChecking=no #{target_user}@#{Shellwords.escape(target_spec)} sudo -S mv /tmp/agent_bin_install #{TARGET_BIN_PATH}"
-        execute_remote_command(ssh, mv_cmd, password: @sudo_password)
+        # sudo is executed on the bastion host for scp
+        scp_cmd = "sudo -S scp -o StrictHostKeyChecking=no #{BASTION_TMP_PATH} #{target_user}@#{Shellwords.escape(target_spec)}:#{TARGET_BIN_PATH}"
+        execute_remote_command(ssh, scp_cmd, password: @sudo_password)
 
         # Phase 3: Remote Config on Target
         configure_target(ssh, via_ssh: true)
@@ -138,15 +133,27 @@ module Agent
 
     
 
-          chmod_cmd = if via_ssh
+                chmod_cmd = if via_ssh
 
-                        "ssh -o StrictHostKeyChecking=no #{target_user}@#{Shellwords.escape(@target_host)} sudo -S #{inner_chmod}"
+    
 
-                      else
+                              "sudo -S ssh -o StrictHostKeyChecking=no #{target_user}@#{Shellwords.escape(@target_host)} #{inner_chmod}"
 
-                        "sudo -S #{inner_chmod}"
+    
 
-                      end
+                            else
+
+    
+
+                              "sudo -S #{inner_chmod}"
+
+    
+
+                            end
+
+    
+
+          
 
     
 
@@ -200,23 +207,31 @@ module Agent
 
     
 
-          if via_ssh
-
-            # Transfer from bastion to target
-
-            transfer_service_cmd = "scp -o StrictHostKeyChecking=no #{tmp_service_path} #{target_user}@#{Shellwords.escape(@target_host)}:/tmp/hpc-agent.service"
-
-            execute_remote_command(ssh, transfer_service_cmd, password: nil)
+                if via_ssh
 
     
 
-            # Move to final location on target
+                  # Transfer from bastion to target
 
-            mv_service_cmd = "ssh -o StrictHostKeyChecking=no #{target_user}@#{Shellwords.escape(@target_host)} sudo -S mv /tmp/hpc-agent.service #{service_file_path}"
+    
 
-            execute_remote_command(ssh, mv_service_cmd, password: @sudo_password)
+                  # sudo is on bastion side
 
-          else
+    
+
+                  transfer_service_cmd = "sudo -S scp -o StrictHostKeyChecking=no #{tmp_service_path} #{target_user}@#{Shellwords.escape(@target_host)}:#{service_file_path}"
+
+    
+
+                  execute_remote_command(ssh, transfer_service_cmd, password: @sudo_password)
+
+    
+
+                else
+
+    
+
+          
 
             # Move directly on target
 
@@ -234,17 +249,31 @@ module Agent
 
     
 
-          inner_systemd = "systemctl daemon-reload && systemctl enable --now hpc-agent"
+                inner_systemd = "systemctl daemon-reload && systemctl enable --now hpc-agent"
 
-          systemd_cmd = if via_ssh
+    
 
-                          "ssh -o StrictHostKeyChecking=no #{target_user}@#{Shellwords.escape(@target_host)} sudo -S bash -c #{Shellwords.escape(inner_systemd)}"
+                systemd_cmd = if via_ssh
 
-                        else
+    
 
-                          "sudo -S bash -c #{Shellwords.escape(inner_systemd)}"
+                                "sudo -S ssh -o StrictHostKeyChecking=no #{target_user}@#{Shellwords.escape(@target_host)} #{Shellwords.escape(inner_systemd)}"
 
-                        end
+    
+
+                              else
+
+    
+
+                                "sudo -S bash -c #{Shellwords.escape(inner_systemd)}"
+
+    
+
+                              end
+
+    
+
+          
 
     
 
@@ -252,21 +281,39 @@ module Agent
 
     
 
-          # 3.4: dmidecode SUID
+                # 3.4: dmidecode SUID
 
-          report_progress "Ensuring dmidecode has SUID permission (4755)"
+    
 
-          inner_dmi = "which dmidecode && chmod 4755 $(which dmidecode)"
+                report_progress "Ensuring dmidecode has SUID permission (4755)"
 
-          dmi_cmd = if via_ssh
+    
 
-                      "ssh -o StrictHostKeyChecking=no #{target_user}@#{Shellwords.escape(@target_host)} sudo -S bash -c #{Shellwords.escape(inner_dmi)}"
+                inner_dmi = "which dmidecode && chmod 4755 $(which dmidecode)"
 
-                    else
+    
 
-                      "sudo -S bash -c #{Shellwords.escape(inner_dmi)}"
+                dmi_cmd = if via_ssh
 
-                    end
+    
+
+                            "sudo -S ssh -o StrictHostKeyChecking=no #{target_user}@#{Shellwords.escape(@target_host)} bash -c #{Shellwords.escape(inner_dmi)}"
+
+    
+
+                          else
+
+    
+
+                            "sudo -S bash -c #{Shellwords.escape(inner_dmi)}"
+
+    
+
+                          end
+
+    
+
+          
 
           execute_remote_command(ssh, dmi_cmd, password: @sudo_password)
 
