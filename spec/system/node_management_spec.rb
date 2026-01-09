@@ -10,6 +10,11 @@ RSpec.describe "Node Management", type: :system, js: true do
 
   before do
     sign_in user
+    # Hide sidebar to prevent interception in tests
+    if RSpec.current_example.metadata[:js]
+      visit root_path # Ensure we are on a page to execute script
+      page.execute_script("document.querySelector('aside').style.display = 'none'")
+    end
   end
 
   it "allows an approver to add a new node with SSH settings" do
@@ -116,11 +121,11 @@ RSpec.describe "Node Management", type: :system, js: true do
     end
   end
 
-  it "navigates to node details when clicking View" do
+  it "navigates to node details when clicking hostname" do
     visit nodes_path
 
     within "tr##{dom_id(initial_node)}" do
-      click_link "View"
+      click_link initial_node.hostname
     end
 
     expect(page).to have_current_path(node_path(initial_node))

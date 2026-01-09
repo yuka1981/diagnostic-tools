@@ -19,9 +19,9 @@ RSpec.describe "Nodes Filtering", type: :system do
       expect(page).to have_field("Search")
       expect(page).to have_select("Role")
       expect(page).to have_select("Status")
-      # "Clear filters" should be present but disabled (not a link)
-      expect(page).to have_content("Clear filters")
-      expect(page).not_to have_link("Clear filters")
+      # "Clear" should be present but disabled (not a link)
+      expect(page).to have_content("Clear")
+      expect(page).not_to have_link("Clear")
     end
   end
 
@@ -107,7 +107,7 @@ RSpec.describe "Nodes Filtering", type: :system do
         expect(page).not_to have_content("login-001")
       end
 
-      click_link "Clear filters"
+      click_link "Clear"
 
       within("tbody") do
         expect(page).to have_content("compute-001", wait: 5)
@@ -144,15 +144,15 @@ RSpec.describe "Nodes Filtering", type: :system do
   describe "client-side interactions", :js do
     it "enables clear button when typing in search" do
       visit nodes_path
-      expect(page).not_to have_link("Clear filters")
+      expect(page).not_to have_link("Clear")
 
       fill_in "Search", with: "something"
 
-      expect(page).to have_link("Clear filters")
+      expect(page).to have_link("Clear")
 
       fill_in "Search", with: ""
 
-      expect(page).not_to have_link("Clear filters")
+      expect(page).not_to have_link("Clear")
     end
   end
 end
