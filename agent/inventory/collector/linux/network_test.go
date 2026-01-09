@@ -2,6 +2,7 @@ package linux
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
@@ -23,6 +24,10 @@ func (m *MultiMockRunner) Run(ctx context.Context, dir, name string, args ...str
 }
 
 func TestLinuxNetworkCollector_Collect(t *testing.T) {
+	const (
+		ifaceEth0 = "eth0"
+		ifaceIb0  = "ib0"
+	)
 	tmpDir := filepath.Join(os.TempDir(), "network_test")
 	err := os.MkdirAll(tmpDir, 0755)
 	if err != nil {
@@ -36,7 +41,7 @@ func TestLinuxNetworkCollector_Collect(t *testing.T) {
 	_ = os.MkdirAll(sysClassIB, 0755)
 
 	// Mock eth0
-	eth0Dir := filepath.Join(sysClassNet, "eth0")
+	eth0Dir := filepath.Join(sysClassNet, ifaceEth0)
 	_ = os.MkdirAll(eth0Dir, 0755)
 	pci0Dir := filepath.Join(tmpDir, "0000:00:03.0")
 	_ = os.MkdirAll(pci0Dir, 0755)
@@ -45,7 +50,7 @@ func TestLinuxNetworkCollector_Collect(t *testing.T) {
 	_ = os.WriteFile(filepath.Join(eth0Dir, "speed"), []byte("10000\n"), 0644)
 
 	// Mock ib0
-	ib0Dir := filepath.Join(sysClassNet, "ib0")
+	ib0Dir := filepath.Join(sysClassNet, ifaceIb0)
 	_ = os.MkdirAll(ib0Dir, 0755)
 	pci1Dir := filepath.Join(tmpDir, "0000:00:04.0")
 	_ = os.MkdirAll(pci1Dir, 0755)
@@ -66,21 +71,30 @@ func TestLinuxNetworkCollector_Collect(t *testing.T) {
 
 	runner := &MultiMockRunner{
 		responses: map[string]string{
-			"ip -j link show": `[
-				{"ifname": "eth0", "link_type": "ether", "operstate": "UP", "address": "52:54:00:12:34:56", "mtu": 1500},
+			"ip -j link show": fmt.Sprintf(`[
+				{"ifname": "%s", "link_type": "ether", "operstate": "UP", "address": "52:54:00:12:34:56", "mtu": 1500},
 				{
-					"ifname": "ib0",
+					"ifname": "%s",
 					"link_type": "infiniband",
 					"operstate": "UP",
 					"address": "80:00:00:48:fe:80:00:00:00:00:00:00:52:54:00:ff:fe:12:34:56",
 					"mtu": 4096
 				}
-			]`,
-			"ip -j addr show": `[
-				{"ifname": "eth0", "addr_info": [{"local": "192.168.1.10", "prefixlen": 24}]},
-				{"ifname": "ib0", "addr_info": [{"local": "10.0.0.1", "prefixlen": 24}]}
-			]`,
-			"lspci -vmm -D": "Slot:\t0000:00:03.0\nClass:\tEthernet controller\nVendor:\tRed Hat, Inc.\nDevice:\tVirtio network device\n\nSlot:\t0000:00:04.0\nClass:\tInfiniBand controller\nVendor:\tMellanox Technologies\nDevice:\tMT28908 Family [ConnectX-6]\n",
+			]`, ifaceEth0, ifaceIb0),
+			"ip -j addr show": fmt.Sprintf(`[
+				{"ifname": "%s", "addr_info": [{"local": "192.168.1.10", "prefixlen": 24}]},
+				{"ifname": "%s", "addr_info": [{"local": "10.0.0.1", "prefixlen": 24}]}
+			]`, ifaceEth0, ifaceIb0),
+			"lspci -vmm -D": `Slot:	0000:00:03.0
+Class:	Ethernet controller
+Vendor:	Red Hat, Inc.
+Device:	Virtio network device
+
+Slot:	0000:00:04.0
+Class:	InfiniBand controller
+Vendor:	Mellanox Technologies
+Device:	MT28908 Family [ConnectX-6]
+`,
 		},
 	}
 
@@ -96,7 +110,7 @@ func TestLinuxNetworkCollector_Collect(t *testing.T) {
 	}
 
 	for _, iface := range inventory.Interfaces {
-		if iface.Name == "eth0" {
+		if iface.Name == ifaceEth0 {
 			if iface.PCIAddress != "0000:00:03.0" {
 				t.Errorf("eth0: expected PCI address 0000:00:03.0, got %s", iface.PCIAddress)
 			}
@@ -109,7 +123,7 @@ func TestLinuxNetworkCollector_Collect(t *testing.T) {
 			if len(iface.IPAddresses) != 1 || iface.IPAddresses[0] != "192.168.1.10/24" {
 				t.Errorf("eth0: unexpected IPs: %v", iface.IPAddresses)
 			}
-		} else if iface.Name == "ib0" {
+		} else if iface.Name == ifaceIb0 {
 			if iface.InfiniBand == nil {
 				t.Errorf("ib0: expected InfiniBand info, got nil")
 			} else {
@@ -128,9 +142,10 @@ func TestLinuxNetworkCollector_Collect(t *testing.T) {
 }
 
 func TestLinuxNetworkCollector_Collect_PartialFailures(t *testing.T) {
+	const ifaceEth0 = "eth0"
 	runner := &MultiMockRunner{
 		responses: map[string]string{
-			"ip -j link show": `[{"ifname": "eth0", "link_type": "ether"}]`,
+			"ip -j link show": fmt.Sprintf(`[{"ifname": %q, "link_type": "ether"}]`, ifaceEth0),
 			"ip -j addr show": "invalid json",
 			"lspci -vmm -D":   "invalid output",
 		},

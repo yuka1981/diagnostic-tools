@@ -32,6 +32,8 @@ func NewLinuxNetworkCollector(runner ports.CommandRunner) *LinuxNetworkCollector
 }
 
 // ipLink represents the structure of ip -j link show output.
+//
+//nolint:govet,nolintlint // fieldalignment: struct size optimization not required
 type ipLink struct {
 	Flags     []string `json:"flags"`
 	IfName    string   `json:"ifname"`

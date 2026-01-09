@@ -8,6 +8,7 @@ import (
 )
 
 func TestLinuxNetCollector_Collect(t *testing.T) {
+	const ifaceEth0 = "eth0"
 	// Mock the /sys/class/net path by pointing to our testdata directory
 	// In a real implementation, we might inject the base path or interface.
 	// Here we'll use a struct field for the base path.
@@ -27,21 +28,21 @@ func TestLinuxNetCollector_Collect(t *testing.T) {
 	// Verify eth0
 	var eth0 *model.NetInfo
 	for i := range nets {
-		if nets[i].Name == "eth0" {
+		if nets[i].Name == ifaceEth0 {
 			eth0 = &nets[i]
 			break
 		}
 	}
 
 	if eth0 == nil {
-		t.Fatal("eth0 not found")
+		t.Fatal(ifaceEth0 + " not found")
 	}
 
 	if eth0.MacAddress != "00:11:22:33:44:55" {
 		t.Errorf("expected mac 00:11:22:33:44:55, got %s", eth0.MacAddress)
 	}
 	if !eth0.Up {
-		t.Error("expected eth0 to be Up")
+		t.Errorf("expected %s to be Up", ifaceEth0)
 	}
 	if eth0.Speed != 1000 {
 		t.Errorf("expected speed 1000, got %d", eth0.Speed)

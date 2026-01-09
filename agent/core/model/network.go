@@ -6,6 +6,8 @@ type NetworkInventory struct {
 }
 
 // InterfaceInfo represents a single network interface and its properties.
+//
+//nolint:govet,nolintlint // fieldalignment: struct size optimization not required
 type InterfaceInfo struct {
 	InfiniBand  *IBInfo  `json:"infiniband,omitempty"`
 	IPAddresses []string `json:"ip_addresses"`
@@ -17,12 +19,14 @@ type InterfaceInfo struct {
 	PCIAddress  string   `json:"pci_address,omitempty"`
 	Vendor      string   `json:"vendor,omitempty"`
 	Model       string   `json:"model,omitempty"`
-	Speed       string   `json:"speed,omitempty"` // e.g., "10 Gbps", "HDR (200 Gbps)"
-	MTU         int      `json:"mtu"`
+	Speed       string   `json:"speed,omitempty"` // e.g., "10 Gbps", "HDR (200 Gb/s)"
 	NUMANode    int      `json:"numa_node"`
+	MTU         int      `json:"mtu"`
 }
 
 // IBInfo represents InfiniBand specific details.
+//
+//nolint:govet,nolintlint // fieldalignment: struct size optimization not required
 type IBInfo struct {
 	HCAName   string `json:"hca_name"`
 	LID       string `json:"lid"`

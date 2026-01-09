@@ -120,13 +120,15 @@ type HostDMIInfo struct {
 
 // NodeState represents a snapshot of the node's complete inventory state.
 // This matches the structure expected by the backend for versioning.
+//
+//nolint:govet,nolintlint // fieldalignment: struct size optimization not required
 type NodeState struct {
 	Host       *HostInfo         `json:"host"`
 	CPU        *CPUInfo          `json:"cpu"`
 	Memory     *MemoryInfo       `json:"memory"`
 	DMI        *HostDMIInfo      `json:"dmi,omitempty"`
 	NetworkV2  *NetworkInventory `json:"network_v2,omitempty"`
+	CapturedAt time.Time         `json:"captured_at"`
 	Disks      []DiskInfo        `json:"disks"`
 	Network    []NetInfo         `json:"network"`
-	CapturedAt time.Time         `json:"captured_at"`
 }

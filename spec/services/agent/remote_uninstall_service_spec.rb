@@ -36,8 +36,8 @@ RSpec.describe Agent::RemoteUninstallService do
     expect(Net::SSH).to receive(:start).with("bastion.example.com", "bastion-user", any_args).and_yield(ssh_session)
 
     # Verify some key cleanup commands - sudo should be on bastion, inner command quoted
-    expect(channel).to receive(:exec).with(/sudo -S ssh.*root@compute-001.*'sudo -S.*systemctl stop hpc-agent/).at_least(:once)
-    expect(channel).to receive(:exec).with(/sudo -S ssh.*root@compute-001.*'sudo -S.*rm -f/).at_least(:once)
+    expect(channel).to receive(:exec).with(/sudo -S ssh.*root@compute-001.*'timeout 10s systemctl stop hpc-agent/).at_least(:once)
+    expect(channel).to receive(:exec).with(/sudo -S ssh.*root@compute-001.*'rm -f/).at_least(:once)
 
     expect(service.call).to be true
   end

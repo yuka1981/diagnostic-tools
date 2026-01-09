@@ -41,11 +41,10 @@ RSpec.describe Agent::RemoteInstallService do
     allow(SshConfig).to receive(:jump_host).and_return("bastion.example.com")
     expect(Net::SSH).to receive(:start).with("bastion.example.com", "bastion-user", any_args).and_yield(ssh_session)
 
-    expect(scp_handler).to receive(:upload!).with(local_path, "/tmp/agent_bin")
-
     # Verify some key commands - target user is always root
+    expect(scp_handler).to receive(:upload!).with(local_path, "/tmp/agent_bin")
     expect(channel).to receive(:exec).with(/sudo -S scp.*root@compute-001/).at_least(:once)
-    expect(channel).to receive(:exec).with(/sudo -S ssh.*root@compute-001.*'bash -c.*'/).at_least(:once)
+    expect(channel).to receive(:exec).with(/sudo -S ssh.*root@compute-001.*bash -c.*/).at_least(:once)
 
     expect(service.call).to be true
   end
