@@ -39,7 +39,6 @@
 
 <% state = local_assigns[:selected_state] || node.current_state %>
 <% if state %>
-  
   <div class="mt-6 flex flex-col gap-6">
     <%# Host Information %>
     <div class="card-netbox">
@@ -73,11 +72,11 @@
                   <td class="px-4 py-2 text-slate-700"><%= state.dmi_info.dig("system", "manufacturer") %></td>
                 </tr>
                 <tr class="hover:bg-slate-50">
-                  <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200 text-xs">Serial Number</th>
+                  <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200 text-xs text-slate-500 uppercase">Serial Number</th>
                   <td class="px-4 py-2 text-slate-700 font-mono text-[10px]"><%= state.dmi_info.dig("system", "serial_number") %></td>
                 </tr>
                 <tr class="hover:bg-slate-50">
-                  <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200 text-xs">UUID</th>
+                  <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200 text-xs text-slate-500 uppercase">UUID</th>
                   <td class="px-4 py-2 text-slate-600 font-mono text-[9px] break-all"><%= state.dmi_info.dig("system", "uuid") %></td>
                 </tr>
               </tbody>
@@ -87,309 +86,36 @@
       </div>
     </div>
 
-    <%# More sections could be updated similarly, but they are already mirrored in _hardware and _overview %>
-    <%# For simplicity and brevity, I will focus on the primary containers here %>
-  </div>
-<% end %>
-
-
     <%# CPU Information %>
-    <div class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-200 dark:bg-slate-800/50 dark:ring-white/10">
-      <div class="mb-4 flex items-center gap-2 border-b border-gray-100 pb-4 dark:border-white/5">
-        <svg class="h-5 w-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
-        </svg>
-        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">CPU Information</h3>
+    <div class="card-netbox">
+      <div class="card-header">
+        <h3 class="card-title">CPU Information</h3>
       </div>
-      
-      <div class="flex flex-col gap-8">
-        <%# Basic Specs %>
-        <div class="space-y-4">
-          <h4 class="text-[10px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-widest">Base Specifications</h4>
-          <dl class="grid grid-cols-1 gap-y-3 sm:grid-cols-2 lg:grid-cols-4">
-            <div>
-              <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">Architecture</dt>
-              <dd class="text-sm font-semibold text-gray-900 dark:text-white"><%= state.host_info["arch"] || state.cpu_info["architecture"] || "—" %></dd>
-            </div>
-            <% if state.cpu_info["op_modes"].present? %>
-              <div>
-                <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">CPU op-mode(s)</dt>
-                <dd class="text-sm font-semibold text-gray-900 dark:text-white"><%= state.cpu_info["op_modes"] %></dd>
-              </div>
-            <% end %>
-            <div>
-              <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">Vendor ID</dt>
-              <dd class="text-sm font-semibold text-gray-900 dark:text-white"><%= state.cpu_info["vendor_id"] || "—" %></dd>
-            </div>
-            <div>
-              <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">Model Name</dt>
-              <dd class="text-sm font-semibold text-gray-900 dark:text-white"><%= state.cpu_info["model_name"] || "—" %></dd>
-            </div>
-            <div>
-              <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">Stepping</dt>
-              <dd class="text-sm font-semibold text-gray-900 dark:text-white"><%= state.cpu_info["stepping"] || "—" %></dd>
-            </div>
-            <% if state.cpu_info["byte_order"].present? %>
-              <div>
-                <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">Byte Order</dt>
-                <dd class="text-sm font-semibold text-gray-900 dark:text-white"><%= state.cpu_info["byte_order"] %></dd>
-              </div>
-            <% end %>
-            <% if state.cpu_info["online_cpus_list"].present? %>
-              <div class="sm:col-span-2">
-                <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">Online CPU(s) list</dt>
-                <dd class="text-sm font-semibold text-gray-900 dark:text-white font-mono"><%= state.cpu_info["online_cpus_list"] %></dd>
-              </div>
-            <% end %>
-          </dl>
-        </div>
-
-        <%# Topology %>
-        <div class="space-y-4 pt-6 border-t border-gray-50 dark:border-white/5">
-          <h4 class="text-[10px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-widest">Topology</h4>
-          <dl class="grid grid-cols-1 gap-x-4 gap-y-4 sm:grid-cols-2 lg:grid-cols-4">
-            <div>
-              <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">CPU(s)</dt>
-              <dd class="text-sm font-semibold text-gray-900 dark:text-white"><%= state.cpu_info["cpus"] || state.cpu_info["threads"] %></dd>
-            </div>
-            <div>
-              <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">Socket(s)</dt>
-              <dd class="text-sm font-semibold text-gray-900 dark:text-white"><%= state.cpu_info["sockets"] %></dd>
-            </div>
-            <div>
-              <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">Core(s) per socket</dt>
-              <dd class="text-sm font-semibold text-gray-900 dark:text-white"><%= state.cpu_info["cores_per_socket"] || "—" %></dd>
-            </div>
-            <div>
-              <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">Thread(s) per core</dt>
-              <dd class="text-sm font-semibold text-gray-900 dark:text-white"><%= state.cpu_info["threads_per_core"] || "—" %></dd>
-            </div>
-            <div class="sm:col-span-2 lg:col-span-4">
-              <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">NUMA node(s)</dt>
-              <dd class="text-sm font-semibold text-gray-900 dark:text-white mb-2"><%= state.cpu_info["numa_nodes"] || "—" %></dd>
-              <% if state.cpu_info["numa_info"].present? %>
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-                  <% state.cpu_info["numa_info"].sort.each do |node_id, cpu_list| %>
-                    <div class="rounded-lg bg-gray-50 dark:bg-slate-900/50 p-2 border border-gray-100 dark:border-white/5">
-                      <dt class="text-[10px] font-medium text-gray-400 dark:text-slate-500 uppercase">NUMA node<%= node_id %> CPU(s)</dt>
-                      <dd class="text-xs font-mono text-gray-900 dark:text-white break-all"><%= cpu_list %></dd>
-                    </div>
-                  <% end %>
-                </div>
-              <% end %>
-            </div>
-          </dl>
-        </div>
-
-        <%# Frequency & Performance %>
-        <div class="space-y-4 pt-6 border-t border-gray-50 dark:border-white/5">
-          <h4 class="text-[10px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-widest">Performance</h4>
-          <dl class="grid grid-cols-1 gap-x-4 gap-y-4 sm:grid-cols-2 lg:grid-cols-4">
-            <div>
-              <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">CPU max MHz</dt>
-              <dd class="text-sm font-semibold text-gray-900 dark:text-white"><%= state.cpu_info["cpu_max_mhz"] || "—" %></dd>
-            </div>
-            <div>
-              <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">CPU min MHz</dt>
-              <dd class="text-sm font-semibold text-gray-900 dark:text-white"><%= state.cpu_info["cpu_min_mhz"] || "—" %></dd>
-            </div>
-            <div>
-              <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">BogoMIPS</dt>
-              <dd class="text-sm font-semibold text-gray-900 dark:text-white"><%= state.cpu_info["bogomips"] || "—" %></dd>
-            </div>
-          </dl>
-        </div>
-
-        <%# Caches %>
-        <% if state.cpu_info["l1d_cache"].present? || state.cpu_info["l1i_cache"].present? || state.cpu_info["l2_cache"].present? || state.cpu_info["l3_cache"].present? %>
-          <div class="space-y-4 pt-6 border-t border-gray-50 dark:border-white/5">
-            <h4 class="text-[10px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-widest">Caches (sum of all)</h4>
-            <dl class="grid grid-cols-1 gap-x-4 gap-y-4 sm:grid-cols-2 lg:grid-cols-4">
-              <% if state.cpu_info["l1d_cache"].present? %>
-                <div>
-                  <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">L1d</dt>
-                  <dd class="text-sm font-semibold text-gray-900 dark:text-white font-mono"><%= state.cpu_info["l1d_cache"] %></dd>
-                </div>
-              <% end %>
-              <% if state.cpu_info["l1i_cache"].present? %>
-                <div>
-                  <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">L1i</dt>
-                  <dd class="text-sm font-semibold text-gray-900 dark:text-white font-mono"><%= state.cpu_info["l1i_cache"] %></dd>
-                </div>
-              <% end %>
-              <% if state.cpu_info["l2_cache"].present? %>
-                <div>
-                  <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">L2</dt>
-                  <dd class="text-sm font-semibold text-gray-900 dark:text-white font-mono"><%= state.cpu_info["l2_cache"] %></dd>
-                </div>
-              <% end %>
-              <% if state.cpu_info["l3_cache"].present? %>
-                <div>
-                  <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">L3</dt>
-                  <dd class="text-sm font-semibold text-gray-900 dark:text-white font-mono"><%= state.cpu_info["l3_cache"] %></dd>
-                </div>
-              <% end %>
-            </dl>
-          </div>
-        <% end %>
-      </div>
-
-      <%# Flags %>
-      <div class="mt-8 border-t border-gray-50 pt-6 dark:border-white/5">
-        <h4 class="text-[10px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-widest mb-3">Flags / Features</h4>
-        <div class="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto p-3 bg-gray-50 dark:bg-slate-900/50 rounded-xl border border-gray-100 dark:border-white/5">
-          <% (state.cpu_info["flags"] || []).each do |flag| %>
-            <span class="px-2 py-0.5 rounded bg-white dark:bg-white/5 text-[10px] font-mono text-gray-600 dark:text-slate-400 border border-gray-100 dark:border-white/5 shadow-sm hover:border-indigo-300 dark:hover:border-indigo-500/50 transition-colors"><%= flag %></span>
-          <% end %>
-        </div>
-      </div>
-    </div>
-
-    <%# Memory Information %>
-    <div class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-200 dark:bg-slate-800/50 dark:ring-white/10">
-      <div class="mb-4 flex items-center gap-2 border-b border-gray-100 pb-4 dark:border-white/5">
-        <svg class="h-5 w-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-        </svg>
-        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Memory</h3>
-      </div>
-      
-      <div class="space-y-8">
-        <dl class="grid grid-cols-2 gap-x-4 gap-y-6 sm:grid-cols-4">
-          <div>
-            <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">Total Usable</dt>
-            <dd class="mt-1 text-sm font-semibold text-gray-900 dark:text-white"><%= format_bytes(state.mem_info["total"]) %></dd>
-          </div>
-          <div>
-            <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">Available</dt>
-            <dd class="mt-1 text-sm font-semibold text-emerald-600 dark:text-emerald-400"><%= format_bytes(state.mem_info["available"]) %></dd>
-          </div>
-          <div>
-            <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">Free</dt>
-            <dd class="mt-1 text-sm text-gray-900 dark:text-white"><%= format_bytes(state.mem_info["free"]) %></dd>
-          </div>
-          <div>
-            <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">Page Cache</dt>
-            <dd class="mt-1 text-sm text-gray-900 dark:text-white"><%= format_bytes(state.mem_info["cached"]) %></dd>
-          </div>
-          <div>
-            <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">Buffers</dt>
-            <dd class="mt-1 text-sm text-gray-900 dark:text-white"><%= format_bytes(state.mem_info["buffers"]) %></dd>
-          </div>
-          <div>
-            <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">Swap Total</dt>
-            <dd class="mt-1 text-sm text-gray-900 dark:text-white"><%= format_bytes(state.mem_info["swap_total"]) %></dd>
-          </div>
-          <div>
-            <dt class="text-xs font-medium text-gray-500 dark:text-slate-400">Swap Free</dt>
-            <dd class="mt-1 text-sm text-gray-900 dark:text-white"><%= format_bytes(state.mem_info["swap_free"]) %></dd>
-          </div>
-        </dl>
-
-        <% if state.dmi_info.present? && state.dmi_info["memory"].present? %>
-          <div class="border-t border-gray-50 pt-6 dark:border-white/5">
-            <h4 class="text-xs font-bold text-gray-400 dark:text-slate-500 uppercase tracking-widest mb-4">Memory Topology (DIMMs)</h4>
-            <div class="overflow-x-auto">
-              <table class="min-w-full divide-y divide-gray-200 dark:divide-white/5">
-                <thead>
-                  <tr>
-                    <th class="px-3 py-2 text-left text-xs font-medium uppercase text-gray-500 dark:text-slate-400">Slot / Locator</th>
-                    <th class="px-3 py-2 text-left text-xs font-medium uppercase text-gray-500 dark:text-slate-400">Status</th>
-                    <th class="px-3 py-2 text-right text-xs font-medium uppercase text-gray-500 dark:text-slate-400">Size</th>
-                    <th class="px-3 py-2 text-left text-xs font-medium uppercase text-gray-500 dark:text-slate-400">Type</th>
-                    <th class="px-3 py-2 text-left text-xs font-medium uppercase text-gray-500 dark:text-slate-400">Speed (Configured/Spec)</th>
-                    <th class="px-3 py-2 text-left text-xs font-medium uppercase text-gray-500 dark:text-slate-400">Manufacturer</th>
-                    <th class="px-3 py-2 text-left text-xs font-medium uppercase text-gray-500 dark:text-slate-400">Part Number</th>
-                  </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-100 dark:divide-white/5">
-                  <% state.dmi_info["memory"].each do |dimm| %>
-                    <% empty = dimm["size"] == "No Module Installed" %>
-                    <tr class="<%= 'opacity-50 grayscale' if empty %>">
-                      <td class="px-3 py-3 text-xs font-medium text-gray-900 dark:text-white">
-                        <%= dimm["locator"] %>
-                        <div class="text-[10px] text-gray-400 dark:text-slate-500 font-normal"><%= dimm["bank_locator"] %></div>
-                      </td>
-                      <td class="px-3 py-3 text-xs">
-                        <% if empty %>
-                          <span class="inline-flex items-center gap-1 text-gray-400 dark:text-slate-500">
-                            <span class="h-1.5 w-1.5 rounded-full bg-gray-300 dark:bg-slate-600"></span>
-                            Empty
-                          </span>
-                        <% else %>
-                          <span class="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
-                            <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
-                            Installed
-                          </span>
-                        <% end %>
-                      </td>
-                      <td class="px-3 py-3 text-xs text-right font-medium <%= empty ? 'text-gray-400' : 'text-gray-900 dark:text-white' %>">
-                        <%= dimm["size"] %>
-                      </td>
-                      <td class="px-3 py-3 text-xs text-gray-500 dark:text-slate-400"><%= dimm["type"] %></td>
-                      <td class="px-3 py-3 text-xs text-gray-500 dark:text-slate-400">
-                        <% if empty %>
-                          —
-                        <% else %>
-                          <div class="flex flex-col">
-                            <span class="font-semibold"><%= dimm["configured_speed"] || "—" %></span>
-                            <span class="text-[10px] opacity-75"><%= dimm["speed"] || "—" %></span>
-                          </div>
-                        <% end %>
-                      </td>
-                      <td class="px-3 py-3 text-xs text-gray-500 dark:text-slate-400"><%= dimm["manufacturer"] %></td>
-                      <td class="px-3 py-3 text-xs font-mono text-gray-500 dark:text-slate-400"><%= dimm["part_number"] %></td>
-                    </tr>
-                  <% end %>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        <% end %>
-      </div>
-    </div>
-
-
-    <%# Storage Information %>
-    <div class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-200 dark:bg-slate-800/50 dark:ring-white/10">
-      <div class="mb-4 flex items-center gap-2 border-b border-gray-100 pb-4 dark:border-white/5">
-        <svg class="h-5 w-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0a2 2 0 01-2 2H6a2 2 0 01-2-2m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
-        </svg>
-        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Storage</h3>
-      </div>
-      <div class="overflow-x-auto">
-        <table class="min-w-full divide-y divide-gray-200 dark:divide-white/5">
-          <thead>
-            <tr>
-              <th class="px-3 py-2 text-left text-xs font-medium uppercase text-gray-500 dark:text-slate-400">Device</th>
-              <th class="px-3 py-2 text-left text-xs font-medium uppercase text-gray-500 dark:text-slate-400">Mountpoint</th>
-              <th class="px-3 py-2 text-left text-xs font-medium uppercase text-gray-500 dark:text-slate-400">Type</th>
-              <th class="px-3 py-2 text-right text-xs font-medium uppercase text-gray-500 dark:text-slate-400">Total</th>
-              <th class="px-3 py-2 text-right text-xs font-medium uppercase text-gray-500 dark:text-slate-400">Used</th>
-              <th class="px-3 py-2 text-right text-xs font-medium uppercase text-gray-500 dark:text-slate-400">Free</th>
-              <th class="px-3 py-2 text-center text-xs font-medium uppercase text-gray-500 dark:text-slate-400">Usage</th>
+      <div class="p-0">
+        <table class="w-full text-sm text-left">
+          <tbody class="divide-y divide-slate-100">
+            <tr class="hover:bg-slate-50">
+              <th class="px-4 py-2 font-bold text-slate-700 w-1/3 border-r border-slate-200">Model Name</th>
+              <td class="px-4 py-2 text-slate-700 font-bold"><%= state.cpu_info["model_name"] || "—" %></td>
             </tr>
-          </thead>
-          <tbody class="divide-y divide-gray-100 dark:divide-white/5">
-            <% state.disk_info.each do |disk| %>
-              <% 
-                usage_pct = disk["total"].to_i > 0 ? (disk["used"].to_f / disk["total"].to_f * 100).round(1) : 0 
-                bar_color = usage_pct > 90 ? "bg-red-500" : (usage_pct > 75 ? "bg-amber-500" : "bg-blue-500")
-              %>
-              <tr>
-                <td class="px-3 py-3 text-xs font-medium text-gray-900 dark:text-white"><%= disk["device"] %></td>
-                <td class="px-3 py-3 text-xs text-gray-500 dark:text-slate-400"><%= disk["mountpoint"] %></td>
-                <td class="px-3 py-3 text-xs text-gray-500 dark:text-slate-400 font-mono"><%= disk["fstype"] %></td>
-                <td class="px-3 py-3 text-xs text-right text-gray-900 dark:text-white"><%= format_bytes(disk["total"]) %></td>
-                <td class="px-3 py-3 text-xs text-right text-gray-900 dark:text-white"><%= format_bytes(disk["used"]) %></td>
-                <td class="px-3 py-3 text-xs text-right text-gray-900 dark:text-white"><%= format_bytes(disk["free"]) %></td>
-                <td class="px-3 py-3 w-32">
-                  <div class="flex items-center gap-2">
-                    <div class="flex-1 h-1.5 rounded-full bg-gray-100 dark:bg-white/5 overflow-hidden">
-                      <div class="h-full <%= bar_color %>" style="width: <%= usage_pct %>%"></div>
-                    </div>
-                    <span class="text-[10px] font-medium text-gray-500 dark:text-slate-400"><%= usage_pct %>%</span>
+            <tr class="hover:bg-slate-50">
+              <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">Topology</th>
+              <td class="px-4 py-2 text-slate-700">
+                <%= state.cpu_info["cpus"] || state.cpu_info["threads"] %> CPUs / <%= state.cpu_info["sockets"] %> Sockets / 
+                <%= state.cpu_info["cores_per_socket"] || "—" %> Cores per Socket
+              </td>
+            </tr>
+            <% if state.cpu_info["numa_info"].present? %>
+              <tr class="hover:bg-slate-50">
+                <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">NUMA Topology</th>
+                <td class="px-4 py-2 text-slate-700">
+                  <div class="flex flex-wrap gap-1">
+                    <% state.cpu_info["numa_info"].sort.each do |node_id, cpu_list| %>
+                      <div class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-sm bg-slate-100 border border-slate-200 text-[9px]">
+                        <span class="font-black text-slate-500">NODE <%= node_id %>:</span>
+                        <span class="font-mono text-slate-700"><%= cpu_list %></span>
+                      </div>
+                    <% end %>
                   </div>
                 </td>
               </tr>
@@ -399,69 +125,79 @@
       </div>
     </div>
 
-    <%# Network Interfaces %>
-    <div class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-200 dark:bg-slate-800/50 dark:ring-white/10">
-      <div class="mb-4 flex items-center gap-2 border-b border-gray-100 pb-4 dark:border-white/5">
-        <svg class="h-5 w-5 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0" />
-        </svg>
-        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Network Interfaces</h3>
+    <%# Memory Information %>
+    <div class="card-netbox">
+      <div class="card-header">
+        <h3 class="card-title">Memory</h3>
       </div>
-      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <% state.net_info.each do |iface| %>
-          <div class="rounded-xl border border-gray-100 p-4 dark:border-white/5 bg-gray-50/30 dark:bg-white/5">
-            <div class="flex items-center justify-between mb-3">
-              <div class="flex items-center gap-2">
-                <span class="text-sm font-bold text-gray-900 dark:text-white"><%= iface["name"] %></span>
-                <% if iface["name"]&.start_with?("ib") %>
-                  <span class="rounded bg-blue-100 px-1.5 py-0.5 text-[10px] font-bold text-blue-700 dark:bg-blue-500/20 dark:text-blue-400 uppercase">IB</span>
-                <% end %>
-              </div>
-              <% if iface["up"] %>
-                <span class="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400 uppercase">Up</span>
-              <% else %>
-                <span class="rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-bold text-gray-500 dark:bg-white/10 dark:text-slate-400 uppercase">Down</span>
-              <% end %>
-            </div>
-            <div class="space-y-2">
-              <div class="flex flex-col gap-1">
-                <span class="text-[10px] font-bold text-gray-400 dark:text-slate-500 uppercase">Hardware Address</span>
-                <span class="font-mono text-[10px] break-all leading-tight text-gray-900 dark:text-white bg-white dark:bg-slate-900 p-1.5 rounded border border-gray-100 dark:border-white/5">
-                  <%= iface["mac_address"] || "—" %>
-                </span>
-              </div>
-              <div class="flex justify-between items-center py-1">
-                <span class="text-[10px] font-bold text-gray-400 dark:text-slate-500 uppercase">Speed</span>
-                <span class="text-xs font-semibold text-gray-900 dark:text-white"><%= format_megabits(iface["speed"]) %></span>
-              </div>
-              <% if iface["ip_addresses"].present? %>
-                <div class="mt-2 pt-2 border-t border-gray-100 dark:border-white/5">
-                  <span class="text-[10px] font-bold text-gray-400 dark:text-slate-500 uppercase block mb-1">IP Addresses</span>
-                  <div class="flex flex-wrap gap-1">
-                    <% iface["ip_addresses"].each do |ip| %>
-                      <span class="inline-block px-1.5 py-0.5 rounded bg-gray-100 dark:bg-white/10 text-[10px] font-mono text-gray-700 dark:text-slate-300"><%= ip %></span>
-                    <% end %>
+      <div class="p-0">
+        <table class="w-full text-sm text-left">
+          <tbody class="divide-y divide-slate-100">
+            <tr class="hover:bg-slate-50">
+              <th class="px-4 py-2 font-bold text-slate-700 w-1/3 border-r border-slate-200">Total Usable</th>
+              <td class="px-4 py-2 text-slate-700 font-bold"><%= format_bytes(state.mem_info["total"]) %></td>
+            </tr>
+            <tr class="hover:bg-slate-50">
+              <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">Available</th>
+              <td class="px-4 py-2 text-green-700 font-bold"><%= format_bytes(state.mem_info["available"]) %></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <%# Storage Information %>
+    <div class="card-netbox">
+      <div class="card-header">
+        <h3 class="card-title">Storage</h3>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-slate-200 text-sm">
+          <thead class="bg-slate-50">
+            <tr>
+              <th class="px-3 py-2 text-left text-xs font-bold uppercase text-slate-500 border-b">Device</th>
+              <th class="px-3 py-2 text-left text-xs font-bold uppercase text-slate-500 border-b">Mount</th>
+              <th class="px-3 py-2 text-right text-xs font-bold uppercase text-slate-500 border-b">Total</th>
+              <th class="px-3 py-2 text-center text-xs font-bold uppercase text-slate-500 border-b">Usage</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100 bg-white">
+            <% state.disk_info.each do |disk| %>
+              <% 
+                usage_pct = disk_usage_percentage(disk)
+                bar_color = disk_usage_bar_color(usage_pct)
+              %>
+              <tr class="hover:bg-slate-50 border-b border-slate-200">
+                <td class="px-3 py-2 font-bold text-slate-700 text-xs"><%= disk["device"] %></td>
+                <td class="px-3 py-2 text-slate-600 text-xs"><%= disk["mountpoint"] %></td>
+                <td class="px-3 py-2 text-right text-slate-700 text-xs"><%= format_bytes(disk["total"]) %></td>
+                <td class="px-3 py-2 w-32">
+                  <div class="flex items-center gap-2">
+                    <div class="flex-1 h-1.5 rounded-full bg-slate-100 overflow-hidden">
+                      <div class="h-full <%= bar_color %>" style="width: <%= usage_pct %>%"></div>
+                    </div>
+                    <span class="text-[9px] font-bold text-slate-500"><%= usage_pct %>%</span>
                   </div>
-                </div>
-              <% end %>
-            </div>
-          </div>
-        <% end %>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
       </div>
     </div>
   </div>
 <% else %>
-  <div class="mt-8 rounded-2xl border-2 border-dashed border-gray-200 p-12 text-center dark:border-white/10">
-    <svg class="mx-auto h-12 w-12 text-gray-400 dark:text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+  <div class="mt-6 card-netbox bg-slate-50 border-dashed border-2 p-12 text-center">
+    <svg class="mx-auto h-12 w-12 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
     </svg>
-    <h3 class="mt-2 text-sm font-semibold text-gray-900 dark:text-white">No data collected</h3>
-    <p class="mt-1 text-sm text-gray-500 dark:text-slate-400">Trigger a collection to see detailed system information.</p>
+    <h3 class="mt-2 text-xs font-black text-slate-500 uppercase tracking-widest">No data collected</h3>
+    <p class="mt-1 text-[10px] text-slate-400 italic">Trigger a collection to see detailed system information.</p>
     <% if current_user&.approver? %>
       <div class="mt-6">
         <%= button_to collect_node_path(node), 
             method: :post,
-            class: "inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600",
+            class: "btn-primary",
             data: { turbo_submits_with: "Collecting..." } do %>
           <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
