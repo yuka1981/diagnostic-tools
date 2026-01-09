@@ -76,35 +76,126 @@
       </div>
     </div>
 
+    <div class="grid grid-cols-12 gap-6">
+      <%# Existing Host Information (OS/Kernel) - Simplified %>
+      <div class="col-span-12 lg:col-span-6">
+        <div class="card-netbox h-full">
+          <div class="card-header">
+            <h3 class="card-title text-xs font-bold text-slate-500 uppercase">Operating System</h3>
+          </div>
+          <div class="p-0">
+            <table class="w-full text-sm text-left">
+              <tbody class="divide-y divide-slate-100">
+                <tr class="hover:bg-slate-50">
+                  <th class="px-4 py-2 font-bold text-slate-700 w-1/3 border-r border-slate-200">OS</th>
+                  <td class="px-4 py-2 text-slate-700"><%= state.host_info["os"] || "—" %></td>
+                </tr>
+                <tr class="hover:bg-slate-50">
+                  <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">Kernel</th>
+                  <td class="px-4 py-2 font-mono text-slate-700 text-xs"><%= state.host_info["kernel"] || "—" %></td>
+                </tr>
+                <tr class="hover:bg-slate-50">
+                  <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">Platform</th>
+                  <td class="px-4 py-2 text-slate-700"><%= state.host_info["platform"] %> <%= state.host_info["platform_version"] %></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <%# CPU Information %>
+      <div class="col-span-12 lg:col-span-6">
+        <div class="card-netbox h-full">
+          <div class="card-header">
+            <h3 class="card-title text-xs font-bold text-slate-500 uppercase">CPU Detail</h3>
+          </div>
+          <div class="p-0">
+            <table class="w-full text-sm text-left">
+              <tbody class="divide-y divide-slate-100">
+                <tr class="hover:bg-slate-50">
+                  <th class="px-4 py-2 font-bold text-slate-700 w-1/3 border-r border-slate-200">Architecture</th>
+                  <td class="px-4 py-2 text-slate-700"><%= state.host_info["arch"] || state.cpu_info["architecture"] || "—" %></td>
+                </tr>
+                <tr class="hover:bg-slate-50">
+                  <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">Model Name</th>
+                  <td class="px-4 py-2 text-slate-700"><%= state.cpu_info["model_name"] || "—" %></td>
+                </tr>
+                <tr class="hover:bg-slate-50">
+                  <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">CPUs / Sockets</th>
+                  <td class="px-4 py-2 text-slate-700"><%= state.cpu_info["cpus"] || state.cpu_info["threads"] %> / <%= state.cpu_info["sockets"] %></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <%# Memory Information (OS View) %>
+      <div class="col-span-12 lg:col-span-6">
+        <div class="card-netbox h-full">
+          <div class="card-header">
+            <h3 class="card-title text-xs font-bold text-slate-500 uppercase">Memory (OS View)</h3>
+          </div>
+          <div class="p-0">
+            <table class="w-full text-sm text-left">
+              <tbody class="divide-y divide-slate-100">
+                <tr class="hover:bg-slate-50">
+                  <th class="px-4 py-2 font-bold text-slate-700 w-1/3 border-r border-slate-200">Total Usable</th>
+                  <td class="px-4 py-2 text-slate-700 font-bold"><%= format_bytes(state.mem_info["total"]) %></td>
+                </tr>
+                <tr class="hover:bg-slate-50">
+                  <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">Available</th>
+                  <td class="px-4 py-2 text-green-700 font-bold"><%= format_bytes(state.mem_info["available"]) %></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <%# Memory Topology (Visual Map) %>
-    <div class="card-netbox">
+    <div class="card-netbox" data-controller="disclosure" data-disclosure-visible-value="false">
       <div class="card-header">
         <h3 class="card-title">Memory Topology</h3>
+        <div class="flex items-center gap-2">
+          <span class="text-[10px] font-bold text-slate-500 uppercase tracking-tight">Show Map</span>
+          <button type="button" 
+                  data-action="click->disclosure#toggle"
+                  class="relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 bg-slate-200"
+                  role="switch" 
+                  aria-checked="false"
+                  data-disclosure-target="button">
+            <span aria-hidden="true" 
+                  class="pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out translate-x-0"></span>
+          </button>
+        </div>
       </div>
-      <div class="p-4 bg-slate-50">
+      <div class="p-4 bg-slate-50" data-disclosure-target="content" style="display: none;">
         <% 
           memory_devices = dmi["memory"] || [] 
           # Group by Processor prefix (e.g., CPU0, CPU1, P0, P1)
           groups = memory_devices.group_by { |d| d["bank_locator"]&.split('_')&.first || "System" }.sort.to_h
         %>
         <% if groups.any? %>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-8">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
             <% groups.each do |proc_name, devices| %>
-              <div class="space-y-3">
-                <div class="flex items-center gap-2 border-b border-slate-200 pb-1.5">
-                  <span class="flex h-5 w-5 items-center justify-center rounded-full bg-slate-600 text-[9px] font-bold text-white shadow-sm">
+              <div class="space-y-4">
+                <div class="flex items-center gap-2 border-b-2 border-slate-300 pb-1.5">
+                  <span class="flex h-6 w-6 items-center justify-center rounded bg-slate-700 text-[10px] font-bold text-white shadow-sm">
                     <%= proc_name.scan(/\d+/).first || "?" %>
                   </span>
-                  <h4 class="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
+                  <h4 class="text-[12px] font-extrabold text-slate-800 uppercase tracking-widest">
                     <%= proc_name.to_s.start_with?("P") ? "CPU #{proc_name[1..]}" : proc_name %>
                   </h4>
                 </div>
 
-                <div class="space-y-2">
+                <div class="space-y-3">
                   <% devices.group_by { |d| d["bank_locator"] }.each do |bank, slots| %>
-                    <div class="flex items-center gap-2">
-                      <div class="w-20 flex-shrink-0 text-right">
-                        <div class="text-[8px] font-bold text-slate-400 uppercase truncate" title="<%= bank %>">
+                    <div class="flex items-center gap-3">
+                      <div class="w-24 flex-shrink-0 text-right">
+                        <div class="text-[9px] font-bold text-slate-500 uppercase truncate" title="<%= bank %>">
                           <%= bank.split('_').last %>
                         </div>
                       </div>
@@ -138,7 +229,7 @@
                             <% end %>
                             
                             <%# Tooltip %>
-                            <div class="absolute z-10 hidden group-hover:block w-48 p-2 mt-1 text-xs bg-slate-800 text-white rounded shadow-xl -left-2 top-full pointer-events-none">
+                            <div class="absolute z-10 hidden group-hover:block w-48 p-2 mt-1 text-xs bg-slate-800 text-white rounded shadow-xl -left-2 top-full pointer-events-none border border-slate-600">
                               <div class="font-bold border-b border-slate-600 mb-1 pb-1 text-[10px]"><%= slot["locator"] %></div>
                               <% if installed %>
                                 <div class="grid grid-cols-2 gap-x-1 text-[9px] leading-tight">
@@ -168,11 +259,23 @@
     </div>
 
     <%# Memory Detailed Table %>
-    <div class="card-netbox">
+    <div class="card-netbox" data-controller="disclosure" data-disclosure-visible-value="false">
       <div class="card-header">
         <h3 class="card-title">Memory Devices</h3>
+        <div class="flex items-center gap-2">
+          <span class="text-[10px] font-bold text-slate-500 uppercase tracking-tight">Show Details</span>
+          <button type="button" 
+                  data-action="click->disclosure#toggle"
+                  class="relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 bg-slate-200"
+                  role="switch" 
+                  aria-checked="false"
+                  data-disclosure-target="button">
+            <span aria-hidden="true" 
+                  class="pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out translate-x-0"></span>
+          </button>
+        </div>
       </div>
-      <div class="overflow-x-auto">
+      <div class="overflow-x-auto" data-disclosure-target="content" style="display: none;">
         <table class="w-full text-sm text-left">
           <thead class="bg-slate-50 border-b border-slate-200">
             <tr>
@@ -225,128 +328,47 @@
       </div>
     </div>
 
-    <div class="grid grid-cols-12 gap-6">
-      <%# Existing Host Information (OS/Kernel) - Simplified %>
-      <div class="col-span-12 lg:col-span-6">
-        <div class="card-netbox">
-          <div class="card-header">
-            <h3 class="card-title text-xs font-bold text-slate-500 uppercase">Operating System</h3>
-          </div>
-          <div class="p-0">
-            <table class="w-full text-sm text-left">
-              <tbody class="divide-y divide-slate-100">
-                <tr class="hover:bg-slate-50">
-                  <th class="px-4 py-2 font-bold text-slate-700 w-1/3 border-r border-slate-200">OS</th>
-                  <td class="px-4 py-2 text-slate-700"><%= state.host_info["os"] || "—" %></td>
-                </tr>
-                <tr class="hover:bg-slate-50">
-                  <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">Kernel</th>
-                  <td class="px-4 py-2 font-mono text-slate-700 text-xs"><%= state.host_info["kernel"] || "—" %></td>
-                </tr>
-                <tr class="hover:bg-slate-50">
-                  <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">Platform</th>
-                  <td class="px-4 py-2 text-slate-700"><%= state.host_info["platform"] %> <%= state.host_info["platform_version"] %></td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
+    <%# Storage Information %>
+    <div class="card-netbox">
+      <div class="card-header">
+        <h3 class="card-title text-xs font-bold text-slate-500 uppercase">Storage</h3>
       </div>
-
-      <%# CPU Information %>
-      <div class="col-span-12 lg:col-span-6">
-        <div class="card-netbox">
-          <div class="card-header">
-            <h3 class="card-title text-xs font-bold text-slate-500 uppercase">CPU Detail</h3>
-          </div>
-          <div class="p-0">
-            <table class="w-full text-sm text-left">
-              <tbody class="divide-y divide-slate-100">
-                <tr class="hover:bg-slate-50">
-                  <th class="px-4 py-2 font-bold text-slate-700 w-1/3 border-r border-slate-200">Architecture</th>
-                  <td class="px-4 py-2 text-slate-700"><%= state.host_info["arch"] || state.cpu_info["architecture"] || "—" %></td>
-                </tr>
-                <tr class="hover:bg-slate-50">
-                  <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">Model Name</th>
-                  <td class="px-4 py-2 text-slate-700"><%= state.cpu_info["model_name"] || "—" %></td>
-                </tr>
-                <tr class="hover:bg-slate-50">
-                  <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">CPUs / Sockets</th>
-                  <td class="px-4 py-2 text-slate-700"><%= state.cpu_info["cpus"] || state.cpu_info["threads"] %> / <%= state.cpu_info["sockets"] %></td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
-      <%# Memory Information (OS View) %>
-      <div class="col-span-12 lg:col-span-6">
-        <div class="card-netbox">
-          <div class="card-header">
-            <h3 class="card-title text-xs font-bold text-slate-500 uppercase">Memory (OS View)</h3>
-          </div>
-          <div class="p-0">
-            <table class="w-full text-sm text-left">
-              <tbody class="divide-y divide-slate-100">
-                <tr class="hover:bg-slate-50">
-                  <th class="px-4 py-2 font-bold text-slate-700 w-1/3 border-r border-slate-200">Total Usable</th>
-                  <td class="px-4 py-2 text-slate-700 font-bold"><%= format_bytes(state.mem_info["total"]) %></td>
-                </tr>
-                <tr class="hover:bg-slate-50">
-                  <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">Available</th>
-                  <td class="px-4 py-2 text-green-700 font-bold"><%= format_bytes(state.mem_info["available"]) %></td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
-      <%# Storage Information %>
-      <div class="col-span-12">
-        <div class="card-netbox">
-          <div class="card-header">
-            <h3 class="card-title text-xs font-bold text-slate-500 uppercase">Storage</h3>
-          </div>
-          <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-slate-200 text-sm">
-              <thead class="bg-slate-50">
-                <tr>
-                  <th class="px-3 py-2 text-left text-xs font-bold uppercase text-slate-500 border-b">Device</th>
-                  <th class="px-3 py-2 text-left text-xs font-bold uppercase text-slate-500 border-b">Mount</th>
-                  <th class="px-3 py-2 text-left text-xs font-bold uppercase text-slate-500 border-b">Type</th>
-                  <th class="px-3 py-2 text-right text-xs font-bold uppercase text-slate-500 border-b">Total</th>
-                  <th class="px-3 py-2 text-right text-xs font-bold uppercase text-slate-500 border-b">Used</th>
-                  <th class="px-3 py-2 text-center text-xs font-bold uppercase text-slate-500 border-b">Usage</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-slate-100 bg-white">
-                <% state.disk_info.each do |disk| %>
-                  <% 
-                    usage_pct = disk_usage_percentage(disk)
-                    bar_color = disk_usage_bar_color(usage_pct)
-                  %>
-                  <tr class="hover:bg-teal-50 border-b border-slate-200">
-                    <td class="px-3 py-2 font-bold text-slate-700"><%= disk["device"] %></td>
-                    <td class="px-3 py-2 text-slate-600"><%= disk["mountpoint"] %></td>
-                    <td class="px-3 py-2 text-slate-500 font-mono text-xs"><%= disk["fstype"] %></td>
-                    <td class="px-3 py-2 text-right text-slate-700"><%= format_bytes(disk["total"]) %></td>
-                    <td class="px-3 py-2 text-right text-slate-700"><%= format_bytes(disk["used"]) %></td>
-                    <td class="px-3 py-2 w-32">
-                      <div class="flex items-center gap-2">
-                        <div class="flex-1 h-2 rounded-full bg-slate-200 overflow-hidden shadow-inner">
-                          <div class="h-full <%= bar_color %>" style="width: <%= usage_pct %>%"></div>
-                        </div>
-                        <span class="text-[10px] font-bold text-slate-600"><%= usage_pct %>%</span>
-                      </div>
-                    </td>
-                  </tr>
-                <% end %>
-              </tbody>
-            </table>
-          </div>
-        </div>
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-slate-200 text-sm">
+          <thead class="bg-slate-50">
+            <tr>
+              <th class="px-3 py-2 text-left text-xs font-bold uppercase text-slate-500 border-b">Device</th>
+              <th class="px-3 py-2 text-left text-xs font-bold uppercase text-slate-500 border-b">Mount</th>
+              <th class="px-3 py-2 text-left text-xs font-bold uppercase text-slate-500 border-b">Type</th>
+              <th class="px-3 py-2 text-right text-xs font-bold uppercase text-slate-500 border-b">Total</th>
+              <th class="px-3 py-2 text-right text-xs font-bold uppercase text-slate-500 border-b">Used</th>
+              <th class="px-3 py-2 text-center text-xs font-bold uppercase text-slate-500 border-b">Usage</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100 bg-white">
+            <% state.disk_info.each do |disk| %>
+              <% 
+                usage_pct = disk_usage_percentage(disk)
+                bar_color = disk_usage_bar_color(usage_pct)
+              %>
+              <tr class="hover:bg-teal-50 border-b border-slate-200">
+                <td class="px-3 py-2 font-bold text-slate-700"><%= disk["device"] %></td>
+                <td class="px-3 py-2 text-slate-600"><%= disk["mountpoint"] %></td>
+                <td class="px-3 py-2 text-slate-500 font-mono text-xs"><%= disk["fstype"] %></td>
+                <td class="px-3 py-2 text-right text-slate-700"><%= format_bytes(disk["total"]) %></td>
+                <td class="px-3 py-2 text-right text-slate-700"><%= format_bytes(disk["used"]) %></td>
+                <td class="px-3 py-2 w-32">
+                  <div class="flex items-center gap-2">
+                    <div class="flex-1 h-2 rounded-full bg-slate-200 overflow-hidden shadow-inner">
+                      <div class="h-full <%= bar_color %>" style="width: <%= usage_pct %>%"></div>
+                    </div>
+                    <span class="text-[10px] font-bold text-slate-600"><%= usage_pct %>%</span>
+                  </div>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
       </div>
     </div>
   </div>
