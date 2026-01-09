@@ -41,7 +41,7 @@ module Agent
     private
 
     def target_user
-      @node&.ssh_user.presence || "root"
+      "root"
     end
 
     def uninstall_via_websocket
@@ -93,7 +93,7 @@ module Agent
       # Fallback to sudo_password if bastion_password is blank
       effective_password = @bastion_password.presence || @sudo_password
       ssh_options = { password: effective_password, timeout: 10 }.compact
-      user = target_user
+      user = @bastion_user.presence || "root"
 
       report_progress(:connect)
       Net::SSH.start(@target_host, user, ssh_options) do |ssh|

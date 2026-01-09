@@ -43,10 +43,10 @@ RSpec.describe Agent::RemoteInstallService do
 
     expect(scp_handler).to receive(:upload!).with(local_path, "/tmp/agent_bin")
 
-    # Verify some key commands with simplified regex - sudo should be at the start
-    expect(channel).to receive(:exec).with(/sudo -S scp.*#{ssh_user}@compute-001/).at_least(:once)
-    expect(channel).to receive(:exec).with(/sudo -S ssh.*#{ssh_user}@compute-001.*chmod/).at_least(:once)
-    expect(channel).to receive(:exec).with(/sudo -S ssh.*#{ssh_user}@compute-001.*systemctl/).at_least(:once)
+    # Verify some key commands - target user is always root
+    expect(channel).to receive(:exec).with(/sudo -S scp.*root@compute-001/).at_least(:once)
+    expect(channel).to receive(:exec).with(/sudo -S ssh.*root@compute-001.*chmod/).at_least(:once)
+    expect(channel).to receive(:exec).with(/sudo -S ssh.*root@compute-001.*systemctl/).at_least(:once)
 
     expect(service.call).to be true
   end
@@ -60,15 +60,16 @@ RSpec.describe Agent::RemoteInstallService do
       bastion_host: nil,
       sudo_password: sudo_password,
       local_binary_path: local_path,
-      node: node
+      node: node,
+      bastion_user: "root" # Direct connection fallback
     )
 
-    # Should connect to target instead of bastion using node's ssh_user
-    expect(Net::SSH).to receive(:start).with(target_host, ssh_user, any_args).and_yield(ssh_session)
+    # Should connect to target instead of bastion
+    expect(Net::SSH).to receive(:start).with(target_host, "root", any_args).and_yield(ssh_session)
     expect(scp_handler).to receive(:upload!).with(local_path, "/tmp/agent_bin_install")
 
-    # Should run commands directly with sudo on target (as there is no bastion)
-    expect(channel).to receive(:exec).with(/sudo -S mv/).at_least(:once)
+    # Should run commands directly with sudo on target
+    expect(channel).to receive(:exec).with(/sudo -S mv \/tmp\/agent_bin_install/).at_least(:once)
     expect(channel).to receive(:exec).with(/sudo -S bash -c.*systemctl/).at_least(:once)
 
     expect(direct_service.call).to be true
@@ -85,7 +86,8 @@ RSpec.describe Agent::RemoteInstallService do
       sudo_password: sudo_password,
       local_binary_path: local_path,
       server_url: custom_url,
-      node: node
+      node: node,
+      bastion_user: "root"
     )
 
     allow(Net::SSH).to receive(:start).and_yield(ssh_session)
@@ -103,7 +105,8 @@ RSpec.describe Agent::RemoteInstallService do
       bastion_host: nil,
       sudo_password: sudo_password,
       local_binary_path: local_path,
-      node: node
+      node: node,
+      bastion_user: "root"
     )
 
     expect(Net::SSH).to receive(:start).with(target_host, "root", any_args).and_yield(ssh_session)

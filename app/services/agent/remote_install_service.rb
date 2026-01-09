@@ -79,7 +79,8 @@ module Agent
       # Fallback to sudo_password if bastion_password is blank
       effective_password = @bastion_password.presence || @sudo_password
       ssh_options = default_ssh_options.merge(password: effective_password).compact
-      user = @node&.ssh_user.presence || @bastion_user
+      # For consistency with the user requirement, try root first if no explicit bastion_user provided
+      user = @bastion_user.presence || "root"
 
       Rails.logger.debug "[RemoteInstallService] Connecting directly to target: #{user}@#{@target_host}"
       Net::SSH.start(@target_host, user, ssh_options) do |ssh|
@@ -106,7 +107,7 @@ module Agent
     private
 
     def target_user
-      @node&.ssh_user.presence || "root"
+      "root"
     end
 
     private
