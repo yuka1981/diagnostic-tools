@@ -19,7 +19,7 @@ type InterfaceInfo struct {
 	Model       string   `json:"model,omitempty"`
 	Speed       string   `json:"speed,omitempty"` // e.g., "10 Gbps", "HDR (200 Gbps)"
 	MTU         int      `json:"mtu"`
-	NUMANode    int      `json:"numa_node,omitempty"`
+	NUMANode    int      `json:"numa_node"`
 }
 
 // IBInfo represents InfiniBand specific details.

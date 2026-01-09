@@ -109,25 +109,25 @@ module Agent
       report_progress(:stop_service)
 
       # Stop service (use timeout to prevent hanging)
-      stop_cmd = "#{prefix} 'sudo -S timeout 10s systemctl stop hpc-agent || true'"
+      stop_cmd = "#{prefix} 'timeout 10s systemctl stop hpc-agent || true'"
       execute_remote_command(ssh, stop_cmd, password: @sudo_password)
 
       # Disable service
-      disable_cmd = "#{prefix} 'sudo -S timeout 10s systemctl disable hpc-agent || true'"
+      disable_cmd = "#{prefix} 'timeout 10s systemctl disable hpc-agent || true'"
       execute_remote_command(ssh, disable_cmd, password: @sudo_password)
 
       report_progress(:remove_files)
 
       # Remove service file
-      rm_service_cmd = "#{prefix} 'sudo -S rm -f #{SERVICE_FILE_PATH}'"
+      rm_service_cmd = "#{prefix} 'rm -f #{SERVICE_FILE_PATH}'"
       execute_remote_command(ssh, rm_service_cmd, password: @sudo_password)
 
       # Remove binary
-      rm_bin_cmd = "#{prefix} 'sudo -S rm -f #{TARGET_BIN_PATH}'"
+      rm_bin_cmd = "#{prefix} 'rm -f #{TARGET_BIN_PATH}'"
       execute_remote_command(ssh, rm_bin_cmd, password: @sudo_password)
 
       report_progress(:reload_daemon)
-      reload_cmd = "#{prefix} 'sudo -S timeout 10s systemctl daemon-reload'"
+      reload_cmd = "#{prefix} 'timeout 10s systemctl daemon-reload'"
       execute_remote_command(ssh, reload_cmd, password: @sudo_password)
     end
 
@@ -173,7 +173,7 @@ module Agent
         # Log the full error context
         Rails.logger.error "[RemoteUninstallService] Command failed: #{cmd}"
         Rails.logger.error "[RemoteUninstallService] Error output: #{clean_stderr}"
-        
+
         raise UninstallError, "Command failed with exit code #{exit_code}. Error: #{clean_stderr}"
       end
 

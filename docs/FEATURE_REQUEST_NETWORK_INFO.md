@@ -125,7 +125,7 @@ type InterfaceInfo struct {
     PCIAddress  string   `json:"pci_address,omitempty"`
     Vendor      string   `json:"vendor,omitempty"`
     Model       string   `json:"model,omitempty"`
-    NUMANode    int      `json:"numa_node,omitempty"`
+    NUMANode    int      `json:"numa_node"`
 
     // L3: InfiniBand - Optional
     InfiniBand  *IBInfo  `json:"infiniband,omitempty"`

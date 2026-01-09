@@ -110,8 +110,6 @@ module Agent
       "root"
     end
 
-    private
-
     def default_ssh_options
       {
         timeout: 15,
@@ -122,45 +120,44 @@ module Agent
       }
     end
 
-        def configure_target(ssh, via_ssh: false)
+    def configure_target(ssh, via_ssh: false)
+      report_progress "Configuring agent service on target"
 
-          report_progress "Configuring agent service on target"
 
-    
 
           # 3.1: chmod +x
 
           inner_chmod = "chmod +x #{TARGET_BIN_PATH}"
 
-    
+
 
                 chmod_cmd = if via_ssh
 
-    
+
 
                               "sudo -S ssh -o StrictHostKeyChecking=no #{target_user}@#{Shellwords.escape(@target_host)} #{inner_chmod}"
 
-    
 
-                            else
 
-    
+                else
+
+
 
                               "sudo -S #{inner_chmod}"
 
-    
 
-                            end
 
-    
+                end
 
-          
 
-    
+
+
+
+
 
           execute_remote_command(ssh, chmod_cmd, password: @sudo_password)
 
-    
+
 
           # 3.2: Create systemd service
 
@@ -172,7 +169,7 @@ module Agent
 
             After=network.target
 
-    
+
 
             [Service]
 
@@ -182,7 +179,7 @@ module Agent
 
             User=root
 
-    
+
 
             [Install]
 
@@ -190,13 +187,13 @@ module Agent
 
           SERVICE
 
-    
+
 
           service_file_path = "/etc/systemd/system/hpc-agent.service"
 
           tmp_service_path = "/tmp/hpc-agent.service"
 
-    
+
 
           # Write content to temp file on the current session (bastion or target)
 
@@ -206,33 +203,33 @@ module Agent
 
           ssh.exec!("cat << 'EOF' > #{tmp_service_path}\n#{service_content}EOF")
 
-    
+
 
                 if via_ssh
 
-    
+
 
                   # Transfer from bastion to target
 
-    
+
 
                   # sudo is on bastion side
 
-    
+
 
                   transfer_service_cmd = "sudo -S scp -o StrictHostKeyChecking=no #{tmp_service_path} #{target_user}@#{Shellwords.escape(@target_host)}:#{service_file_path}"
 
-    
+
 
                   execute_remote_command(ssh, transfer_service_cmd, password: @sudo_password)
 
-    
+
 
                 else
 
-    
 
-          
+
+
 
             # Move directly on target
 
@@ -240,48 +237,47 @@ module Agent
 
             execute_remote_command(ssh, mv_service_cmd, password: @sudo_password)
 
-          end
+                end
 
-    
+
 
       # 3.3: systemctl enable --now
       report_progress "Starting agent service"
 
       inner_systemd = "systemctl daemon-reload && systemctl enable --now hpc-agent"
       systemd_cmd = if via_ssh
-                      "sudo -S ssh -o StrictHostKeyChecking=no #{target_user}@#{Shellwords.escape(@target_host)} 'bash -c #{Shellwords.escape(inner_systemd)}'"
-                    else
+                      "sudo -S ssh -o StrictHostKeyChecking=no #{target_user}@#{Shellwords.escape(@target_host)} bash -c #{Shellwords.escape(inner_systemd)}"
+      else
                       "sudo -S bash -c #{Shellwords.escape(inner_systemd)}"
-                    end
+      end
 
-    
 
-          
 
-    
+
+
+
 
           execute_remote_command(ssh, systemd_cmd, password: @sudo_password)
 
-    
+
 
       # 3.4: dmidecode SUID
       report_progress "Ensuring dmidecode has SUID permission (4755)"
       inner_dmi = "which dmidecode && chmod 4755 $(which dmidecode)"
       dmi_cmd = if via_ssh
-                  "sudo -S ssh -o StrictHostKeyChecking=no #{target_user}@#{Shellwords.escape(@target_host)} 'bash -c #{Shellwords.escape(inner_dmi)}'"
-                else
+                  "sudo -S ssh -o StrictHostKeyChecking=no #{target_user}@#{Shellwords.escape(@target_host)} bash -c #{Shellwords.escape(inner_dmi)}"
+      else
                   "sudo -S bash -c #{Shellwords.escape(inner_dmi)}"
-                end
+      end
 
-    
 
-          
+
+
 
           execute_remote_command(ssh, dmi_cmd, password: @sudo_password)
-
         end
 
-    
+
 
     def report_progress(message)
       @on_progress&.call(message)

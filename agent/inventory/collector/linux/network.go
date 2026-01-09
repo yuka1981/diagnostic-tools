@@ -54,7 +54,11 @@ type ipAddr struct {
 // Collect gathers all network interface information.
 func (c *LinuxNetworkCollector) Collect(ctx context.Context) (*model.NetworkInventory, error) {
 	// 1. PCI Discovery
-	pciMap, _ := c.getPCIMap(ctx)
+	pciMap, err := c.getPCIMap(ctx)
+	if err != nil {
+		// Log error but continue with empty map
+		pciMap = make(map[string]pciDevice)
+	}
 
 	// 2. Link Discovery
 	links, err := c.getLinks(ctx)
@@ -196,7 +200,7 @@ func (c *LinuxNetworkCollector) getAddrs(ctx context.Context) (map[string][]stri
 }
 
 func (c *LinuxNetworkCollector) resolvePCIAddress(iface string) (string, error) {
-	devicePath := filepath.Join(c.SysClassNet, iface, "device")
+	devicePath := filepath.Join(c.SysClassNet, filepath.Base(iface), "device")
 	link, err := os.Readlink(devicePath)
 	if err != nil {
 		return "", err
@@ -206,7 +210,7 @@ func (c *LinuxNetworkCollector) resolvePCIAddress(iface string) (string, error) 
 }
 
 func (c *LinuxNetworkCollector) getNUMANode(iface string) int {
-	numaPath := filepath.Join(c.SysClassNet, iface, "device", "numa_node")
+	numaPath := filepath.Join(c.SysClassNet, filepath.Base(iface), "device", "numa_node")
 	content, err := os.ReadFile(numaPath)
 	if err != nil {
 		return -1
@@ -219,7 +223,7 @@ func (c *LinuxNetworkCollector) getNUMANode(iface string) int {
 }
 
 func (c *LinuxNetworkCollector) getEthernetSpeed(iface string) string {
-	speedPath := filepath.Join(c.SysClassNet, iface, "speed")
+	speedPath := filepath.Join(c.SysClassNet, filepath.Base(iface), "speed")
 	content, err := os.ReadFile(speedPath)
 	if err != nil {
 		return ""
@@ -240,7 +244,7 @@ func (c *LinuxNetworkCollector) collectIBInfo(iface string) *model.IBInfo {
 	// For InfiniBand, we need to find the HCA name.
 	// Often it's in /sys/class/net/<iface>/device/infiniband_verbs/uverbs0/device/infiniband/
 	// Actually, /sys/class/net/<iface>/device/infiniband/ contains the HCA name
-	ibDir := filepath.Join(c.SysClassNet, iface, "device", "infiniband")
+	ibDir := filepath.Join(c.SysClassNet, filepath.Base(iface), "device", "infiniband")
 	entries, err := os.ReadDir(ibDir)
 	if err != nil || len(entries) == 0 {
 		return nil
