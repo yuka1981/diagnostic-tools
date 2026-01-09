@@ -103,11 +103,6 @@ Device: MT28908 Family [ConnectX-6]
 		t.Fatalf("Collect failed: %v", err)
 	}
 
-	t.Logf("Inventory: %+v", inventory)
-	for _, iface := range inventory.Interfaces {
-		t.Logf("Interface: %+v", iface)
-	}
-
 	for _, iface := range inventory.Interfaces {
 		if iface.Name == "eth0" {
 			if iface.PCIAddress != "0000:00:03.0" {

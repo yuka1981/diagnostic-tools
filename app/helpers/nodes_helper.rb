@@ -48,4 +48,15 @@ module NodesHelper
     config_speed = slot["configured_speed"]&.scan(/\d+/)&.first&.to_i || 0
     installed && config_speed > 0 && spec_speed > 0 && config_speed < spec_speed
   end
+
+  def net_interface_status_badge(status)
+    case status.to_s.downcase
+    when "up", "active"
+      content_tag :span, "Active", class: "inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-green-500 text-white shadow-sm uppercase tracking-wider"
+    when "down"
+      content_tag :span, "Down", class: "inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-red-500 text-white shadow-sm uppercase tracking-wider"
+    else
+      content_tag :span, status.to_s.upcase, class: "inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-slate-500 text-white shadow-sm uppercase tracking-wider"
+    end
+  end
 end

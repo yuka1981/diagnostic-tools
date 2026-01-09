@@ -8,6 +8,7 @@ FactoryBot.define do
     mem_info { {} }
     disk_info { [] }
     net_info { [] }
+    network_inventory { {} }
     captured_at { Time.current }
 
     trait :with_host_info do

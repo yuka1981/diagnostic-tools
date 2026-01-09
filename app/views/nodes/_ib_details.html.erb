@@ -1,0 +1,116 @@
+<%= turbo_frame_tag "slide_over_content" do %>
+  <% if interface %>
+    <div class="space-y-6">
+      <div class="flex items-center gap-3 pb-4 border-b border-slate-100">
+        <div class="p-2 rounded bg-blue-50 text-blue-600">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+          </svg>
+        </div>
+        <div>
+          <h3 class="text-lg font-black text-slate-900"><%= interface["name"] %></h3>
+          <p class="text-xs text-slate-500 font-bold uppercase tracking-tighter"><%= interface["type"] %> Interface</p>
+        </div>
+      </div>
+
+      <% if interface["type"] == "infiniband" && interface["infiniband"].present? %>
+        <% ib = interface["infiniband"] %>
+        <div class="card-netbox">
+          <div class="card-header bg-slate-50/50 py-2">
+            <h4 class="text-[10px] font-black text-slate-500 uppercase tracking-widest">HCA Details</h4>
+          </div>
+          <table class="w-full text-sm">
+            <tbody class="divide-y divide-slate-100">
+              <tr>
+                <th class="px-4 py-3 text-left font-bold text-slate-600 w-1/3">HCA Name</th>
+                <td class="px-4 py-3 text-slate-900 font-mono"><%= ib["hca_name"] %></td>
+              </tr>
+              <tr>
+                <th class="px-4 py-3 text-left font-bold text-slate-600">Port</th>
+                <td class="px-4 py-3 text-slate-900"><%= ib["port"] %></td>
+              </tr>
+              <tr>
+                <th class="px-4 py-3 text-left font-bold text-slate-600">LID</th>
+                <td class="px-4 py-3">
+                  <span class="px-2 py-1 rounded bg-blue-50 text-blue-700 font-bold font-mono">
+                    <%= ib["lid"] %>
+                  </span>
+                </td>
+              </tr>
+              <tr>
+                <th class="px-4 py-3 text-left font-bold text-slate-600">GUID</th>
+                <td class="px-4 py-3 text-slate-700 font-mono text-xs break-all"><%= ib["guid"] %></td>
+              </tr>
+              <tr>
+                <th class="px-4 py-3 text-left font-bold text-slate-600">Speed</th>
+                <td class="px-4 py-3">
+                  <span class="px-2 py-1 rounded bg-teal-50 text-teal-700 font-bold">
+                    <%= ib["link_speed"] %>
+                  </span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      <% end %>
+
+      <div class="card-netbox">
+        <div class="card-header bg-slate-50/50 py-2">
+          <h4 class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Hardware Context</h4>
+        </div>
+        <table class="w-full text-sm">
+          <tbody class="divide-y divide-slate-100">
+            <tr>
+              <th class="px-4 py-3 text-left font-bold text-slate-600 w-1/3">PCI Address</th>
+              <td class="px-4 py-3 text-blue-600 font-mono"><%= interface["pci_address"] || "—" %></td>
+            </tr>
+            <tr>
+              <th class="px-4 py-3 text-left font-bold text-slate-600">Vendor</th>
+              <td class="px-4 py-3 text-slate-700"><%= interface["vendor"] || "—" %></td>
+            </tr>
+            <tr>
+              <th class="px-4 py-3 text-left font-bold text-slate-600">Model</th>
+              <td class="px-4 py-3 text-slate-700"><%= interface["model"] || "—" %></td>
+            </tr>
+            <tr>
+              <th class="px-4 py-3 text-left font-bold text-slate-600">NUMA Node</th>
+              <td class="px-4 py-3">
+                <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-slate-100 text-slate-700 font-bold text-xs">
+                  <%= interface["numa_node"] || "—" %>
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card-netbox">
+        <div class="card-header bg-slate-50/50 py-2">
+          <h4 class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Logical Configuration</h4>
+        </div>
+        <table class="w-full text-sm">
+          <tbody class="divide-y divide-slate-100">
+            <tr>
+              <th class="px-4 py-3 text-left font-bold text-slate-600 w-1/3">MTU</th>
+              <td class="px-4 py-3 text-slate-700"><%= interface["mtu"] %></td>
+            </tr>
+            <tr>
+              <th class="px-4 py-3 text-left font-bold text-slate-600">MAC Address</th>
+              <td class="px-4 py-3 text-slate-500 font-mono text-xs"><%= interface["mac_address"] %></td>
+            </tr>
+            <% if interface["master"].present? %>
+              <tr>
+                <th class="px-4 py-3 text-left font-bold text-slate-600">Master</th>
+                <td class="px-4 py-3 text-slate-700 font-bold"><%= interface["master"] %></td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  <% else %>
+    <div class="flex flex-col items-center justify-center h-full py-12 text-center text-slate-500">
+      <p>Interface information not found.</p>
+    </div>
+  <% end %>
+<% end %>
