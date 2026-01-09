@@ -3,20 +3,20 @@
 module NodesHelper
   def group_memory_topology(memory_devices)
     memory_devices ||= []
-    
+
     # v2 Flexible Grouper: Extract Socket and Channel
     # Strategy: Match CPU#, P#, Socket#, Node#
     memory_devices.each_with_object({}) do |dev, acc|
       bank = dev["bank_locator"] || ""
-      
+
       # Extract Socket (CPU 0, P0, etc.)
       socket_match = bank.match(/(CPU\s?\d+|P\d+|Socket\s?\d+|Node\s?\d+)/i)
       socket_name = socket_match ? socket_match[0].upcase.gsub(/\s+/, "") : "System"
-      
+
       # Extract Channel (Channel 0, CH0, etc.)
       channel_match = bank.match(/(Channel\s?\d+|CH\d+|NODE\d+)/i)
       channel_name = channel_match ? channel_match[0].upcase.gsub(/\s+/, "") : "Default"
-      
+
       acc[socket_name] ||= {}
       acc[socket_name][channel_name] ||= []
       acc[socket_name][channel_name] << dev
@@ -32,7 +32,7 @@ module NodesHelper
     spec_speed = slot["speed"]&.scan(/\d+/)&.first&.to_i || 0
     config_speed = slot["configured_speed"]&.scan(/\d+/)&.first&.to_i || 0
     downgraded = installed && config_speed > 0 && spec_speed > 0 && config_speed < spec_speed
-    
+
     if !installed
       "bg-slate-50 border-dashed border-2 border-slate-200 text-slate-300"
     elsif downgraded
