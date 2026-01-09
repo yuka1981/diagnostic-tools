@@ -72,7 +72,7 @@ RSpec.describe "Dashboard Heatmap", type: :system do
         visit dashboard_path
 
         within("#filtered_runs") do
-          expect(page).to have_content("Recent Benchmark Runs")
+          expect(page).to have_content(/Recent Benchmark Runs/i)
           expect(page).to have_content(node1.hostname)
           expect(page).to have_content(node2.hostname)
         end
@@ -84,7 +84,7 @@ RSpec.describe "Dashboard Heatmap", type: :system do
         visit dashboard_path(node_id: node1.id)
 
         within("#filtered_runs") do
-          expect(page).to have_content("Benchmark Runs for #{node1.hostname}")
+          expect(page).to have_content(/Benchmark Runs: #{node1.hostname}/i)
           expect(page).to have_content(node1.hostname)
           expect(page).not_to have_content(node2.hostname)
         end
@@ -94,8 +94,8 @@ RSpec.describe "Dashboard Heatmap", type: :system do
         visit dashboard_path(node_id: node1.id)
 
         within("#filtered_runs") do
-          expect(page).to have_content("Benchmark Runs for compute-001")
-          expect(page).to have_content("Compute node")
+          expect(page).to have_content(/Benchmark Runs: compute-001/i)
+          expect(page).to have_content(/Compute node/i)
         end
       end
     end
@@ -107,8 +107,8 @@ RSpec.describe "Dashboard Heatmap", type: :system do
         visit dashboard_path(node_id: node3.id)
 
         within("#filtered_runs") do
-          expect(page).to have_content("No benchmark runs for compute-003")
-          expect(page).to have_content("Run a benchmark on this node")
+          expect(page).to have_content(/No runs for compute-003/i)
+          expect(page).to have_content(/Run a benchmark on this node/i)
         end
       end
     end
@@ -161,12 +161,12 @@ RSpec.describe "Dashboard Heatmap", type: :system do
       find("[data-node-id='#{node1.id}']").click(force: true)
 
       # Wait for the selected label to appear (visible, not hidden)
-      expect(page).to have_css("[data-heatmap-target='selectedLabel']:not(.hidden)", text: "Filtered by: compute-001")
+      expect(page).to have_css("[data-heatmap-target='selectedLabel']:not(.hidden)", text: /Filtered by: compute-001/i)
 
       # Wait for Turbo Frame to update with filtered content
       within("#filtered_runs") do
-        expect(page).to have_content("Benchmark Runs for compute-001", wait: 5)
-        expect(page).to have_content(run1.benchmark_recipe.display_name)
+        expect(page).to have_content(/Benchmark Runs: compute-001/i, wait: 5)
+        expect(page).to have_content(/#{Regexp.escape(run1.benchmark_recipe.display_name)}/i)
         expect(page).not_to have_content(run2.node.hostname)
       end
     end
@@ -197,7 +197,7 @@ RSpec.describe "Dashboard Heatmap", type: :system do
 
       # Runs list resets to show all
       within("#filtered_runs") do
-        expect(page).to have_content("Recent Benchmark Runs", wait: 5)
+        expect(page).to have_content(/Recent Benchmark Runs/i, wait: 5)
       end
     end
 
