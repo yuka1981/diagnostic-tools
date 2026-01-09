@@ -183,6 +183,7 @@
               <th class="px-4 py-2 font-bold text-slate-500 uppercase text-[10px]">Type</th>
               <th class="px-4 py-2 font-bold text-slate-500 uppercase text-[10px]">Speed</th>
               <th class="px-4 py-2 font-bold text-slate-500 uppercase text-[10px]">Manufacturer / Part Number</th>
+              <th class="px-4 py-2 font-bold text-slate-500 uppercase text-[10px]">Serial Number</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-100">
@@ -216,6 +217,7 @@
                     <span class="text-slate-500 font-mono text-[10px]"><%= slot["part_number"] %></span>
                   </div>
                 </td>
+                <td class="px-4 py-2 font-mono text-[10px] text-slate-600"><%= slot["serial_number"] %></td>
               </tr>
             <% end %>
           </tbody>
