@@ -125,6 +125,40 @@
                   <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">CPUs / Sockets</th>
                   <td class="px-4 py-2 text-slate-700"><%= state.cpu_info["cpus"] || state.cpu_info["threads"] %> / <%= state.cpu_info["sockets"] %></td>
                 </tr>
+                <tr class="hover:bg-slate-50">
+                  <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">NUMA Nodes</th>
+                  <td class="px-4 py-2 text-slate-700"><%= state.cpu_info["numa_nodes"] || "—" %></td>
+                </tr>
+                <% if state.cpu_info["numa_info"].present? %>
+                  <tr class="hover:bg-slate-50">
+                    <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">NUMA Topology</th>
+                    <td class="px-4 py-2 text-slate-700">
+                      <div class="flex flex-wrap gap-1">
+                        <% state.cpu_info["numa_info"].sort.each do |node_id, cpu_list| %>
+                          <div class="inline-flex items-center gap-1.5 px-1.5 py-0.5 rounded bg-slate-100 border border-slate-200 text-[10px]">
+                            <span class="font-black text-slate-500">NODE <%= node_id %>:</span>
+                            <span class="font-mono text-slate-700"><%= cpu_list %></span>
+                          </div>
+                        <% end %>
+                      </div>
+                    </td>
+                  </tr>
+                <% end %>
+                <% if state.cpu_info["flags"].present? %>
+                  <tr class="hover:bg-slate-50">
+                    <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200 text-xs">Flags</th>
+                    <td class="px-4 py-2">
+                      <div class="relative group">
+                        <div class="text-[10px] text-slate-500 font-mono truncate max-w-xs">
+                          <%= state.cpu_info["flags"].join(" ") %>
+                        </div>
+                        <div class="absolute z-20 hidden group-hover:block w-80 p-3 mt-2 text-[10px] bg-slate-900/95 text-white rounded-lg shadow-2xl -left-2 top-full pointer-events-none border border-slate-700 backdrop-blur-sm max-h-48 overflow-y-auto font-mono leading-relaxed">
+                          <%= state.cpu_info["flags"].join(" ") %>
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                <% end %>
               </tbody>
             </table>
           </div>
