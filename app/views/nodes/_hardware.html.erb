@@ -148,13 +148,12 @@
                   <tr class="hover:bg-slate-50">
                     <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200 text-xs">Flags</th>
                     <td class="px-4 py-2">
-                      <div class="relative group">
-                        <div class="text-[10px] text-slate-500 font-mono truncate max-w-xs">
-                          <%= state.cpu_info["flags"].join(" ") %>
-                        </div>
-                        <div class="absolute z-20 hidden group-hover:block w-80 p-3 mt-2 text-[10px] bg-slate-900/95 text-white rounded-lg shadow-2xl -left-2 top-full pointer-events-none border border-slate-700 backdrop-blur-sm max-h-48 overflow-y-auto font-mono leading-relaxed">
-                          <%= state.cpu_info["flags"].join(" ") %>
-                        </div>
+                      <div class="flex flex-wrap gap-1 max-w-4xl">
+                        <% state.cpu_info["flags"].each do |flag| %>
+                          <span class="inline-flex items-center px-1.5 py-0.5 rounded-sm bg-slate-100 text-slate-600 font-mono text-[9px] border border-slate-200 uppercase tracking-tighter">
+                            <%= flag %>
+                          </span>
+                        <% end %>
                       </div>
                     </td>
                   </tr>
