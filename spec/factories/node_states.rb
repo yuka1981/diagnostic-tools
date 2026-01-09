@@ -84,12 +84,55 @@ FactoryBot.define do
       end
     end
 
+    trait :with_dmi_info do
+      dmi_info do
+        {
+          "system" => {
+            "manufacturer" => "Manufacturer Inc.",
+            "product_name" => "SuperServer 123",
+            "serial_number" => "SN123456789",
+            "uuid" => "7d916442-2c24-11ee-be23-74d4dd2e9195",
+            "sku_number" => "SKU-999",
+            "family" => "Compute Node"
+          },
+          "bios" => {
+            "vendor" => "AMI",
+            "version" => "V1.2.3",
+            "release_date" => "01/01/2025",
+            "rom_size" => "64 MB"
+          },
+          "memory" => [
+            {
+              "locator" => "DIMM_A1",
+              "bank_locator" => "P0_Node0_Channel0",
+              "size" => "32 GB",
+              "type" => "DDR4",
+              "speed" => "3200 MT/s",
+              "configured_speed" => "3200 MT/s",
+              "manufacturer" => "Samsung",
+              "part_number" => "M393A4K40CB2",
+              "serial_number" => "123456"
+            },
+            {
+              "locator" => "DIMM_A2",
+              "bank_locator" => "P0_Node0_Channel0",
+              "size" => "No Module Installed",
+              "type" => "DDR4",
+              "speed" => "Unknown",
+              "configured_speed" => "Unknown"
+            }
+          ]
+        }
+      end
+    end
+
     trait :complete do
       with_host_info
       with_cpu_info
       with_mem_info
       with_disk_info
       with_net_info
+      with_dmi_info
     end
   end
 end
