@@ -150,8 +150,11 @@
                     <td class="px-4 py-2">
                       <div class="flex flex-wrap gap-1 max-w-4xl">
                         <% state.cpu_info["flags"].each do |flag| %>
-                          <% is_avx512 = flag.downcase.start_with?("avx512") %>
-                          <span class="inline-flex items-center px-1.5 py-0.5 rounded-sm font-mono text-[9px] border uppercase tracking-tighter <%= is_avx512 ? "bg-teal-50 text-teal-700 border-teal-200 font-bold shadow-sm" : "bg-slate-100 text-slate-600 border-slate-200" %>">
+                          <% 
+                            f_down = flag.downcase
+                            is_highlighted = f_down.start_with?("avx") || f_down.start_with?("amx") || f_down.start_with?("sse")
+                          %>
+                          <span class="inline-flex items-center px-1.5 py-0.5 rounded-sm font-mono text-[9px] border uppercase tracking-tighter <%= is_highlighted ? "bg-teal-50 text-teal-700 border-teal-200 font-bold shadow-sm" : "bg-slate-100 text-slate-600 border-slate-200" %>">
                             <%= flag %>
                           </span>
                         <% end %>
