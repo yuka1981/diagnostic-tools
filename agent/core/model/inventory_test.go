@@ -246,6 +246,57 @@ func TestNetInfo_JSON(t *testing.T) {
 	})
 }
 
+func TestHostDMIInfo_JSON(t *testing.T) {
+	original := HostDMIInfo{
+		System: SystemInfo{
+			Manufacturer: "Test Manufacturer",
+			ProductName:  "Test Product",
+			UUID:         "test-uuid",
+		},
+		BIOS: BIOSInfo{
+			Vendor:  "Test Vendor",
+			Version: "1.0.0",
+		},
+		Memory: []DIMMInfo{
+			{
+				Locator:     "DIMM_A1",
+				BankLocator: "P0_Node0",
+				Size:        "16 GB",
+				FormFactor:  "DIMM",
+			},
+		},
+	}
+
+	t.Run("Marshal", func(t *testing.T) {
+		data, err := json.Marshal(original)
+		if err != nil {
+			t.Fatalf("failed to marshal HostDMIInfo: %v", err)
+		}
+		if len(data) == 0 {
+			t.Error("expected non-empty JSON data")
+		}
+	})
+
+	t.Run("Unmarshal", func(t *testing.T) {
+		data, _ := json.Marshal(original)
+		var decoded HostDMIInfo
+		err := json.Unmarshal(data, &decoded)
+		if err != nil {
+			t.Fatalf("failed to unmarshal HostDMIInfo: %v", err)
+		}
+
+		if decoded.System.Manufacturer != original.System.Manufacturer {
+			t.Errorf("expected System.Manufacturer %q, got %q", original.System.Manufacturer, decoded.System.Manufacturer)
+		}
+		if len(decoded.Memory) != len(original.Memory) {
+			t.Errorf("expected %d DIMMs, got %d", len(original.Memory), len(decoded.Memory))
+		}
+		if decoded.Memory[0].FormFactor != original.Memory[0].FormFactor {
+			t.Errorf("expected Memory[0].FormFactor %q, got %q", original.Memory[0].FormFactor, decoded.Memory[0].FormFactor)
+		}
+	})
+}
+
 func TestNodeState_JSON(t *testing.T) {
 	capturedAt := time.Now().UTC().Truncate(time.Second)
 	original := NodeState{
@@ -268,7 +319,9 @@ func TestNodeState_JSON(t *testing.T) {
 			Free:      8000000000,
 			Available: 10000000000,
 		},
-
+		DMI: &HostDMIInfo{
+			System: SystemInfo{Manufacturer: "Test"},
+		},
 		Disks: []DiskInfo{
 			{
 				Device:     "/dev/sda1",
@@ -316,6 +369,9 @@ func TestNodeState_JSON(t *testing.T) {
 		}
 		if decoded.Memory.Total != original.Memory.Total {
 			t.Errorf("expected Memory.Total %d, got %d", original.Memory.Total, decoded.Memory.Total)
+		}
+		if decoded.DMI.System.Manufacturer != original.DMI.System.Manufacturer {
+			t.Errorf("expected DMI.System.Manufacturer %q, got %q", original.DMI.System.Manufacturer, decoded.DMI.System.Manufacturer)
 		}
 		if len(decoded.Disks) != len(original.Disks) {
 			t.Errorf("expected %d disks, got %d", len(original.Disks), len(decoded.Disks))

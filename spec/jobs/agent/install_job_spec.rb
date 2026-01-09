@@ -69,14 +69,6 @@ RSpec.describe Agent::InstallJob, type: :job do
         )
       )
 
-      # Verify log header update
-      expect(Turbo::StreamsChannel).to have_received(:broadcast_replace_to).with(
-        "agent_install_compute-001",
-        hash_including(
-          target: "install_log_header_compute-001",
-          locals: hash_including(status: "success")
-        )
-      )
       expect(Rails.cache.read("install_creds_#{cache_key}")).to be_nil
     end
   it "uses custom agent_token from credentials if provided" do

@@ -63,4 +63,17 @@ RSpec.describe 'UI NetBox Theme Migration', type: :system do
       expect(page).to have_css('input[class*="focus:ring-teal-500"]')
     end
   end
+
+  describe 'Modals' do
+    it 'applies NetBox card styling to modals', js: true do
+      visit nodes_path
+      click_link 'Add Node'
+
+      within('turbo-frame#node_modal') do
+        expect(page).to have_css('.card-netbox')
+        expect(page).to have_css('.card-header')
+        expect(page).to have_css('.card-title')
+      end
+    end
+  end
 end

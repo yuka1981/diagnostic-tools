@@ -83,7 +83,8 @@ RSpec.describe NodeState, type: :model do
         cpu_info: state1.cpu_info,
         mem_info: state1.mem_info,
         disk_info: state1.disk_info,
-        net_info: state1.net_info
+        net_info: state1.net_info,
+        dmi_info: state1.dmi_info
       )
       expect(state1.content_hash).to eq(state2.content_hash)
     end
@@ -104,7 +105,8 @@ RSpec.describe NodeState, type: :model do
         cpu_info: state1.cpu_info,
         mem_info: state1.mem_info,
         disk_info: state1.disk_info,
-        net_info: state1.net_info
+        net_info: state1.net_info,
+        dmi_info: state1.dmi_info
       )
       expect(state1.same_content_as?(state2)).to be true
     end

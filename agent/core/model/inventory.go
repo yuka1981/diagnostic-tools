@@ -104,6 +104,8 @@ type DIMMInfo struct {
 	SerialNumber      string `json:"serial_number"`
 	AssetTag          string `json:"asset_tag"`
 	Rank              string `json:"rank"`
+	FirmwareVersion   string `json:"firmware_version"`
+	FormFactor        string `json:"form_factor"`
 	MinVoltage        string `json:"min_voltage"`
 	MaxVoltage        string `json:"max_voltage"`
 	ConfiguredVoltage string `json:"configured_voltage"`

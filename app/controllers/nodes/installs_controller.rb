@@ -4,7 +4,6 @@ require "resolv"
 
 module Nodes
   class InstallsController < ApplicationController
-    layout "dashboard"
     before_action :authenticate_user!
     before_action :authorize_approver!
 
@@ -42,15 +41,11 @@ module Nodes
       end
       @node.save!
 
-      # Find selected API key token if provided
-      selected_token = ApiKey.active.find_by(id: install_params[:api_key_id])&.token
-
       # Store sensitive credentials in a short-lived cache to avoid passing them as job arguments
       cache_key = SecureRandom.hex(16)
       credentials = {
         bastion_password: install_params[:bastion_password],
-        sudo_password: install_params[:sudo_password],
-        agent_token: selected_token # Optional override for agent token
+        sudo_password: install_params[:sudo_password]
       }
       Rails.cache.write("install_creds_#{cache_key}", credentials, expires_in: 5.minutes)
 
@@ -61,7 +56,8 @@ module Nodes
         bastion_host: install_params[:bastion_host],
         bastion_user: install_params[:bastion_user],
         credentials_cache_key: cache_key,
-        server_url: install_params[:server_url].presence || request.base_url
+        server_url: install_params[:server_url].presence || request.base_url,
+        api_key_id: install_params[:api_key_id]
       )
 
       respond_to do |format|
