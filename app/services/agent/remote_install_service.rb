@@ -47,7 +47,9 @@ module Agent
     end
 
     def install_via_bastion
-      ssh_options = default_ssh_options.merge(password: @bastion_password).compact
+      # Fallback to sudo_password if bastion_password is blank
+      effective_password = @bastion_password.presence || @sudo_password
+      ssh_options = default_ssh_options.merge(password: effective_password).compact
 
       Rails.logger.debug "[RemoteInstallService] Connecting to bastion: #{@bastion_user}@#{@bastion_host}"
       Net::SSH.start(@bastion_host, @bastion_user, ssh_options) do |ssh|
@@ -59,8 +61,14 @@ module Agent
         report_progress "Transferring binary to target node (#{@target_host})"
         Rails.logger.info "Transferring binary from bastion to target: #{@target_host}"
         target_spec = @target_host.include?(":") ? "[#{@target_host}]" : @target_host
-        scp_cmd = "sudo -S scp -o StrictHostKeyChecking=no #{BASTION_TMP_PATH} root@#{Shellwords.escape(target_spec)}:#{TARGET_BIN_PATH}"
-        execute_remote_command(ssh, scp_cmd, password: @sudo_password)
+        # SCP from bastion to target (no sudo on bastion side for SCP)
+        scp_cmd = "scp -o StrictHostKeyChecking=no #{BASTION_TMP_PATH} #{target_user}@#{Shellwords.escape(target_spec)}:/tmp/agent_bin_install"
+        execute_remote_command(ssh, scp_cmd, password: nil) # Password handled by keys if "not required"
+
+        # Move to final location using sudo on target
+        report_progress "Moving binary to #{TARGET_BIN_PATH}"
+        mv_cmd = "ssh -o StrictHostKeyChecking=no #{target_user}@#{Shellwords.escape(target_spec)} sudo -S mv /tmp/agent_bin_install #{TARGET_BIN_PATH}"
+        execute_remote_command(ssh, mv_cmd, password: @sudo_password)
 
         # Phase 3: Remote Config on Target
         configure_target(ssh, via_ssh: true)
@@ -73,11 +81,13 @@ module Agent
     end
 
     def install_direct
-      ssh_options = default_ssh_options.merge(password: @bastion_password).compact
-      target_user = @bastion_user # Use the provided user for direct connection
+      # Fallback to sudo_password if bastion_password is blank
+      effective_password = @bastion_password.presence || @sudo_password
+      ssh_options = default_ssh_options.merge(password: effective_password).compact
+      user = @node&.ssh_user.presence || @bastion_user
 
-      Rails.logger.debug "[RemoteInstallService] Connecting directly to target: #{target_user}@#{@target_host}"
-      Net::SSH.start(@target_host, target_user, ssh_options) do |ssh|
+      Rails.logger.debug "[RemoteInstallService] Connecting directly to target: #{user}@#{@target_host}"
+      Net::SSH.start(@target_host, user, ssh_options) do |ssh|
         # Phase 1: Upload directly to target
         report_progress "Uploading binary directly to target host (#{@target_host})"
         # Upload to /tmp first as we might not have permission for /usr/local/bin yet
@@ -100,6 +110,12 @@ module Agent
 
     private
 
+    def target_user
+      @node&.ssh_user.presence || "root"
+    end
+
+    private
+
     def default_ssh_options
       {
         timeout: 15,
@@ -110,76 +126,153 @@ module Agent
       }
     end
 
-    def configure_target(ssh, via_ssh: false)
-      report_progress "Configuring agent service on target"
+        def configure_target(ssh, via_ssh: false)
 
-      # 3.1: chmod +x
-      # We construct the inner command first
-      inner_chmod = "chmod +x #{TARGET_BIN_PATH}"
+          report_progress "Configuring agent service on target"
 
-      chmod_cmd = if via_ssh
-                    "sudo -S ssh -o StrictHostKeyChecking=no root@#{Shellwords.escape(@target_host)} #{Shellwords.escape(inner_chmod)}"
-      else
-                    "sudo -S #{inner_chmod}"
-      end
+    
 
-      execute_remote_command(ssh, chmod_cmd, password: @sudo_password)
+          # 3.1: chmod +x
 
-      # 3.2: Create systemd service
-      service_content = <<~SERVICE
-        [Unit]
-        Description=HPC Diagnostic Agent
-        After=network.target
+          inner_chmod = "chmod +x #{TARGET_BIN_PATH}"
 
-        [Service]
-        ExecStart=#{TARGET_BIN_PATH} inventory push --server "#{@server_url}" --token "#{@agent_token}"
-        Restart=always
-        User=root
+    
 
-        [Install]
-        WantedBy=multi-user.target
-      SERVICE
+          chmod_cmd = if via_ssh
 
-      service_file_path = "/etc/systemd/system/hpc-agent.service"
-      tmp_service_path = "/tmp/hpc-agent.service"
+                        "ssh -o StrictHostKeyChecking=no #{target_user}@#{Shellwords.escape(@target_host)} sudo -S #{inner_chmod}"
 
-      # Write content to temp file on the current session (bastion or target)
-      # We use a simple heredoc. Shellwords.escape isn't ideal for whole files,
-      # but we trust our own service_content.
-      ssh.exec!("cat << 'EOF' > #{tmp_service_path}\n#{service_content}EOF")
+                      else
 
-      if via_ssh
-        # Transfer from bastion to target
-        transfer_service_cmd = "sudo -S scp -o StrictHostKeyChecking=no #{tmp_service_path} root@#{Shellwords.escape(@target_host)}:#{service_file_path}"
-        execute_remote_command(ssh, transfer_service_cmd, password: @sudo_password)
-      else
-        # Move directly on target
-        mv_service_cmd = "sudo -S mv #{tmp_service_path} #{service_file_path}"
-        execute_remote_command(ssh, mv_service_cmd, password: @sudo_password)
-      end
+                        "sudo -S #{inner_chmod}"
 
-      # 3.3: systemctl enable --now
-      report_progress "Starting agent service"
+                      end
 
-      inner_systemd = "systemctl daemon-reload && systemctl enable --now hpc-agent"
-      systemd_cmd = if via_ssh
-                      "sudo -S ssh -o StrictHostKeyChecking=no root@#{Shellwords.escape(@target_host)} #{Shellwords.escape(inner_systemd)}"
-      else
-                      "sudo -S bash -c #{Shellwords.escape(inner_systemd)}"
-      end
+    
 
-      execute_remote_command(ssh, systemd_cmd, password: @sudo_password)
+          execute_remote_command(ssh, chmod_cmd, password: @sudo_password)
 
-      # 3.4: dmidecode SUID
-      report_progress "Ensuring dmidecode has SUID permission (4755)"
-      inner_dmi = "which dmidecode && chmod 4755 $(which dmidecode)"
-      dmi_cmd = if via_ssh
-                  "sudo -S ssh -o StrictHostKeyChecking=no root@#{Shellwords.escape(@target_host)} #{Shellwords.escape(inner_dmi)}"
-      else
-                  "sudo -S bash -c #{Shellwords.escape(inner_dmi)}"
-      end
-      execute_remote_command(ssh, dmi_cmd, password: @sudo_password)
-    end
+    
+
+          # 3.2: Create systemd service
+
+          service_content = <<~SERVICE
+
+            [Unit]
+
+            Description=HPC Diagnostic Agent
+
+            After=network.target
+
+    
+
+            [Service]
+
+            ExecStart=#{TARGET_BIN_PATH} inventory push --server "#{@server_url}" --token "#{@agent_token}"
+
+            Restart=always
+
+            User=root
+
+    
+
+            [Install]
+
+            WantedBy=multi-user.target
+
+          SERVICE
+
+    
+
+          service_file_path = "/etc/systemd/system/hpc-agent.service"
+
+          tmp_service_path = "/tmp/hpc-agent.service"
+
+    
+
+          # Write content to temp file on the current session (bastion or target)
+
+          # We use a simple heredoc. Shellwords.escape isn't ideal for whole files,
+
+          # but we trust our own service_content.
+
+          ssh.exec!("cat << 'EOF' > #{tmp_service_path}\n#{service_content}EOF")
+
+    
+
+          if via_ssh
+
+            # Transfer from bastion to target
+
+            transfer_service_cmd = "scp -o StrictHostKeyChecking=no #{tmp_service_path} #{target_user}@#{Shellwords.escape(@target_host)}:/tmp/hpc-agent.service"
+
+            execute_remote_command(ssh, transfer_service_cmd, password: nil)
+
+    
+
+            # Move to final location on target
+
+            mv_service_cmd = "ssh -o StrictHostKeyChecking=no #{target_user}@#{Shellwords.escape(@target_host)} sudo -S mv /tmp/hpc-agent.service #{service_file_path}"
+
+            execute_remote_command(ssh, mv_service_cmd, password: @sudo_password)
+
+          else
+
+            # Move directly on target
+
+            mv_service_cmd = "sudo -S mv #{tmp_service_path} #{service_file_path}"
+
+            execute_remote_command(ssh, mv_service_cmd, password: @sudo_password)
+
+          end
+
+    
+
+          # 3.3: systemctl enable --now
+
+          report_progress "Starting agent service"
+
+    
+
+          inner_systemd = "systemctl daemon-reload && systemctl enable --now hpc-agent"
+
+          systemd_cmd = if via_ssh
+
+                          "ssh -o StrictHostKeyChecking=no #{target_user}@#{Shellwords.escape(@target_host)} sudo -S bash -c #{Shellwords.escape(inner_systemd)}"
+
+                        else
+
+                          "sudo -S bash -c #{Shellwords.escape(inner_systemd)}"
+
+                        end
+
+    
+
+          execute_remote_command(ssh, systemd_cmd, password: @sudo_password)
+
+    
+
+          # 3.4: dmidecode SUID
+
+          report_progress "Ensuring dmidecode has SUID permission (4755)"
+
+          inner_dmi = "which dmidecode && chmod 4755 $(which dmidecode)"
+
+          dmi_cmd = if via_ssh
+
+                      "ssh -o StrictHostKeyChecking=no #{target_user}@#{Shellwords.escape(@target_host)} sudo -S bash -c #{Shellwords.escape(inner_dmi)}"
+
+                    else
+
+                      "sudo -S bash -c #{Shellwords.escape(inner_dmi)}"
+
+                    end
+
+          execute_remote_command(ssh, dmi_cmd, password: @sudo_password)
+
+        end
+
+    
 
     def report_progress(message)
       @on_progress&.call(message)
@@ -235,7 +328,11 @@ module Agent
 
       if exit_code != 0
         # Filter out the sudo password prompt if it exists in stderr
-        clean_stderr = stderr.gsub(/\\[sudo\\] password for .*: /, "").strip
+        clean_stderr = stderr.gsub(/\[sudo\] password for .*: /, "").strip
+        # Log the full error context
+        Rails.logger.error "[RemoteInstallService] Command failed: #{cmd}"
+        Rails.logger.error "[RemoteInstallService] Error output: #{clean_stderr}"
+
         raise InstallError, "Command failed with exit code #{exit_code}. Error: #{clean_stderr}"
       end
 
