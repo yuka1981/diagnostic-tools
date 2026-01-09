@@ -38,6 +38,7 @@ Memory Device
 	Part Number: M393A4K40CB2-CTD
 	Rank: 2
 	Configured Memory Speed: 2400 MT/s
+	Firmware Version: 1.2.3
 	Minimum Voltage: 1.2 V
 	Maximum Voltage: 1.2 V
 	Configured Voltage: 1.2 V
@@ -72,6 +73,13 @@ Memory Device
 	if dmiInfo.Memory[0].Size != "32 GB" {
 		t.Errorf("expected Size 32 GB, got %s", dmiInfo.Memory[0].Size)
 	}
+	if dmiInfo.Memory[0].FormFactor != "DIMM" {
+		t.Errorf("expected Form Factor DIMM, got %s", dmiInfo.Memory[0].FormFactor)
+	}
+	if dmiInfo.Memory[0].FirmwareVersion != "1.2.3" {
+		t.Errorf("expected Firmware Version 1.2.3, got %s", dmiInfo.Memory[0].FirmwareVersion)
+	}
+
 	if dmiInfo.Memory[1].Size != "No Module Installed" {
 		t.Errorf("expected Size No Module Installed, got %s", dmiInfo.Memory[1].Size)
 	}
@@ -90,5 +98,23 @@ func TestLinuxDMICollector_Collect(t *testing.T) {
 
 	if info.BIOS.Vendor != "Test Vendor" {
 		t.Errorf("expected Test Vendor, got %s", info.BIOS.Vendor)
+	}
+}
+
+func TestLinuxDMICollector_Collect_Sudo(t *testing.T) {
+	t.Setenv("HPC_DMIDECODE_METHOD", "sudo")
+
+	runner := &MockCommandRunner{
+		Output: "Handle 0x0000, DMI type 0, 26 bytes\nBIOS Information\n\tVendor: Sudo Vendor\n",
+	}
+
+	collector := NewLinuxDMICollector(runner)
+	info, err := collector.Collect(context.Background())
+	if err != nil {
+		t.Fatalf("Collect failed: %v", err)
+	}
+
+	if info.BIOS.Vendor != "Sudo Vendor" {
+		t.Errorf("expected Sudo Vendor, got %s", info.BIOS.Vendor)
 	}
 }
