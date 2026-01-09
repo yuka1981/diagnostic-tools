@@ -30,6 +30,9 @@ Rails.application.routes.draw do
       post :collect
     end
     resources :benchmark_runs, only: %i[new create], controller: "nodes/benchmark_runs"
+    resource :network, only: [], controller: "nodes/network" do
+      get :ib_details
+    end
     collection do
       resources :imports, only: %i[new create], controller: "nodes/imports", as: :node_import
       resources :installs, only: %i[new create], controller: "nodes/installs", as: :node_install

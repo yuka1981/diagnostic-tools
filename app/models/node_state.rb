@@ -24,6 +24,7 @@ class NodeState < ApplicationRecord
         mem_info: deep_sort_keys(mem_info),
         disk_info: deep_sort_keys(disk_info),
         net_info: deep_sort_keys(net_info),
+        network_inventory: deep_sort_keys(network_inventory),
         dmi_info: deep_sort_keys(dmi_info)
       }
 

@@ -20,11 +20,11 @@ module Agent
       @target_host = target_host
       validate_target_host!
 
+      @node = node
       @bastion_host = bastion_host.presence
       @bastion_user = bastion_user.presence || "root"
       @bastion_password = bastion_password
       @sudo_password = sudo_password
-      @node = node
       @on_progress = on_progress
     end
 
@@ -39,6 +39,10 @@ module Agent
     end
 
     private
+
+    def target_user
+      "root"
+    end
 
     def uninstall_via_websocket
       report_progress(:connect) # Reuse connect step to indicate contact
@@ -66,12 +70,16 @@ module Agent
     end
 
     def uninstall_via_bastion
-      ssh_options = { password: @bastion_password, timeout: 10 }.compact
+      # Fallback to sudo_password if bastion_password is blank
+      effective_password = @bastion_password.presence || @sudo_password
+      ssh_options = { password: effective_password, timeout: 10 }.compact
 
       report_progress(:connect)
       Net::SSH.start(@bastion_host, @bastion_user, ssh_options) do |ssh|
         # We run commands on the target via SSH from the bastion
-        ssh_prefix = "sudo -S ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 root@#{Shellwords.escape(@target_host)} "
+        # sudo is executed on the bastion host
+        target_spec = @target_host.include?(":") ? "[#{@target_host}]" : @target_host
+        ssh_prefix = "sudo -S ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 #{target_user}@#{Shellwords.escape(target_spec)} "
 
         perform_cleanup(ssh, ssh_prefix)
       end
@@ -82,11 +90,13 @@ module Agent
     end
 
     def uninstall_direct
-      ssh_options = { password: @bastion_password, timeout: 10 }.compact
-      target_user = @bastion_user
+      # Fallback to sudo_password if bastion_password is blank
+      effective_password = @bastion_password.presence || @sudo_password
+      ssh_options = { password: effective_password, timeout: 10 }.compact
+      user = @bastion_user.presence || "root"
 
       report_progress(:connect)
-      Net::SSH.start(@target_host, target_user, ssh_options) do |ssh|
+      Net::SSH.start(@target_host, user, ssh_options) do |ssh|
         perform_cleanup(ssh, "sudo -S ")
       end
       true
@@ -99,25 +109,25 @@ module Agent
       report_progress(:stop_service)
 
       # Stop service (use timeout to prevent hanging)
-      stop_cmd = "#{prefix}timeout 10s systemctl stop hpc-agent || true"
+      stop_cmd = "#{prefix} 'timeout 10s systemctl stop hpc-agent || true'"
       execute_remote_command(ssh, stop_cmd, password: @sudo_password)
 
       # Disable service
-      disable_cmd = "#{prefix}timeout 10s systemctl disable hpc-agent || true"
+      disable_cmd = "#{prefix} 'timeout 10s systemctl disable hpc-agent || true'"
       execute_remote_command(ssh, disable_cmd, password: @sudo_password)
 
       report_progress(:remove_files)
 
       # Remove service file
-      rm_service_cmd = "#{prefix}rm -f #{SERVICE_FILE_PATH}"
+      rm_service_cmd = "#{prefix} 'rm -f #{SERVICE_FILE_PATH}'"
       execute_remote_command(ssh, rm_service_cmd, password: @sudo_password)
 
       # Remove binary
-      rm_bin_cmd = "#{prefix}rm -f #{TARGET_BIN_PATH}"
+      rm_bin_cmd = "#{prefix} 'rm -f #{TARGET_BIN_PATH}'"
       execute_remote_command(ssh, rm_bin_cmd, password: @sudo_password)
 
       report_progress(:reload_daemon)
-      reload_cmd = "#{prefix}timeout 10s systemctl daemon-reload"
+      reload_cmd = "#{prefix} 'timeout 10s systemctl daemon-reload'"
       execute_remote_command(ssh, reload_cmd, password: @sudo_password)
     end
 
@@ -159,9 +169,11 @@ module Agent
       Rails.logger.debug "[RemoteUninstallService] Stderr: #{stderr}" if stderr.present?
 
       if exit_code != 0
-        clean_stderr = stderr.gsub(/\\[sudo\\] password for .*: /, "").strip
-        # Some systemd commands might output to stderr even on success (warnings)
-        # But if exit code is non-zero, it's an error.
+        clean_stderr = stderr.gsub(/\[sudo\] password for .*: /, "").strip
+        # Log the full error context
+        Rails.logger.error "[RemoteUninstallService] Command failed: #{cmd}"
+        Rails.logger.error "[RemoteUninstallService] Error output: #{clean_stderr}"
+
         raise UninstallError, "Command failed with exit code #{exit_code}. Error: #{clean_stderr}"
       end
 

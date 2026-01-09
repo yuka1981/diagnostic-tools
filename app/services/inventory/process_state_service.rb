@@ -102,6 +102,7 @@ module Inventory
         mem_info: @raw_json[:memory] || {},
         disk_info: @raw_json[:disks] || [],
         net_info: @raw_json[:network] || [],
+        network_inventory: @raw_json[:network_v2] || {},
         dmi_info: @raw_json[:dmi] || {}
       }
     end

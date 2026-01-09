@@ -1,0 +1,137 @@
+<div class="card-netbox" data-controller="slide-over">
+  <div class="card-header">
+    <h3 class="card-title text-xs font-bold text-slate-500 uppercase">Network Interfaces</h3>
+  </div>
+  <div class="overflow-x-auto">
+    <table class="w-full text-sm text-left">
+      <thead class="bg-slate-50 border-b border-slate-200">
+        <tr>
+          <th class="px-4 py-2 font-bold text-slate-500 uppercase text-[10px]">Name</th>
+          <th class="px-4 py-2 font-bold text-slate-500 uppercase text-[10px]">Status</th>
+          <th class="px-4 py-2 font-bold text-slate-500 uppercase text-[10px]">Type</th>
+          <th class="px-4 py-2 font-bold text-slate-500 uppercase text-[10px]">IP Addresses</th>
+          <th class="px-4 py-2 font-bold text-slate-500 uppercase text-[10px]">Speed</th>
+          <th class="px-4 py-2 font-bold text-slate-500 uppercase text-[10px]">PCI Address</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-slate-100 bg-white">
+        <% if state.network_inventory.present? && state.network_inventory["interfaces"].present? %>
+          <% state.network_inventory["interfaces"].each do |iface| %>
+            <tr class="hover:bg-slate-50 transition-colors">
+              <td class="px-4 py-2 font-bold">
+                <div class="flex items-center gap-2">
+                  <% if iface["master"].present? %>
+                    <span class="text-slate-400 font-normal ml-4">↳</span>
+                  <% end %>
+                  
+                  <% if iface["type"] == "infiniband" %>
+                    <%= link_to ib_details_node_network_path(node_id: state.node_id, interface_name: iface["name"], state_id: state.id), 
+                                class: "text-blue-600 hover:underline flex items-center gap-1",
+                                data: { turbo_frame: "slide_over_content", action: "click->slide-over#open" } do %>
+                      <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <%= iface["name"] %>
+                    <% end %>
+                  <% else %>
+                    <span class="text-slate-900"><%= iface["name"] %></span>
+                  <% end %>
+                </div>
+              </td>
+              <td class="px-4 py-2">
+                <%= net_interface_status_badge(iface["oper_state"]) %>
+              </td>
+              <td class="px-4 py-2">
+                <span class="px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200 text-[10px] font-mono uppercase">
+                  <%= iface["type"] %>
+                </span>
+              </td>
+              <td class="px-4 py-2 font-mono text-xs text-slate-600">
+                <% if iface["ip_addresses"].present? %>
+                  <div class="flex flex-col gap-1">
+                    <% iface["ip_addresses"].each do |ip| %>
+                      <span><%= ip %></span>
+                    <% end %>
+                  </div>
+                <% else %>
+                  <span class="text-slate-300">—</span>
+                <% end %>
+              </td>
+              <td class="px-4 py-2 text-slate-700 font-medium">
+                <% if iface["speed"].present? %>
+                  <span class="<%= iface["type"] == "infiniband" ? "text-teal-600 font-bold" : "text-slate-700 font-bold" %>">
+                    <%= iface["speed"] %>
+                  </span>
+                <% else %>
+                  <span class="text-slate-300">—</span>
+                <% end %>
+              </td>
+              <td class="px-4 py-2">
+                <% if iface["pci_address"].present? %>
+                  <div class="flex flex-col">
+                    <span class="text-blue-600 font-mono text-[10px]"><%= iface["pci_address"] %></span>
+                    <span class="text-[9px] text-slate-400 truncate max-w-[150px]" title="<%= iface["vendor"] %> <%= iface["model"] %>">
+                      <%= iface["vendor"] %> <%= iface["model"] %>
+                    </span>
+                  </div>
+                <% else %>
+                  <span class="text-slate-300">—</span>
+                <% end %>
+              </td>
+            </tr>
+          <% end %>
+        <% else %>
+          <tr>
+            <td colspan="6" class="px-4 py-8 text-center text-slate-500 italic">
+              No detailed network inventory available.
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+
+  <%# Slide-over Panel for IB Details %>
+  <%# Backdrop %>
+  <div data-slide-over-target="backdrop"
+       data-action="click->slide-over#backdropClick"
+       class="hidden fixed inset-0 z-40 bg-slate-900/60 backdrop-blur-sm opacity-0 transition-opacity duration-300 ease-in-out">
+  </div>
+
+  <%# Panel %>
+  <div data-slide-over-target="panel"
+       role="dialog"
+       aria-modal="true"
+       aria-labelledby="slide-over-title"
+       class="hidden fixed inset-y-0 right-0 z-50 w-full max-w-md transform translate-x-full transition-transform duration-300 ease-in-out">
+    
+    <div class="flex h-full flex-col bg-white shadow-2xl ring-1 ring-slate-200">
+      <%# Header %>
+      <div class="flex items-center justify-between border-b border-slate-200 px-6 py-4 bg-slate-50">
+        <h2 id="slide-over-title" class="text-sm font-bold text-slate-900 uppercase tracking-widest">
+          Interface Details
+        </h2>
+        <button type="button"
+                data-slide-over-target="closeButton"
+                data-action="click->slide-over#close"
+                class="rounded-lg p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-500 transition-colors">
+          <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <%# Content %>
+      <div class="flex-1 overflow-y-auto p-6">
+        <%= turbo_frame_tag "slide_over_content" do %>
+          <div class="flex flex-col items-center justify-center h-full py-12 text-center">
+            <div class="animate-pulse flex flex-col items-center">
+              <div class="h-8 w-8 bg-slate-200 rounded-full mb-4"></div>
+              <div class="h-4 w-32 bg-slate-100 rounded"></div>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>

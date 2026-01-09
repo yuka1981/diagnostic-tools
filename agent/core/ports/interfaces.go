@@ -19,6 +19,7 @@ type SystemCollector interface {
 	GetMemInfo(ctx context.Context) (*model.MemoryInfo, error)
 	GetDiskInfo(ctx context.Context) ([]model.DiskInfo, error)
 	GetNetInfo(ctx context.Context) ([]model.NetInfo, error)
+	GetNetworkInventory(ctx context.Context) (*model.NetworkInventory, error)
 	GetDMIInfo(ctx context.Context) (*model.HostDMIInfo, error)
 }
 

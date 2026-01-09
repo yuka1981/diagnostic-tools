@@ -38,6 +38,10 @@ func (c *SystemCollector) GetNetInfo(ctx context.Context) ([]model.NetInfo, erro
 	return nil, fmt.Errorf("not implemented on this OS")
 }
 
+func (c *SystemCollector) GetNetworkInventory(ctx context.Context) (*model.NetworkInventory, error) {
+	return nil, fmt.Errorf("not implemented on this OS")
+}
+
 func (c *SystemCollector) GetDMIInfo(ctx context.Context) (*model.HostDMIInfo, error) {
 	return nil, fmt.Errorf("not implemented on this OS")
 }

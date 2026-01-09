@@ -30,16 +30,19 @@ module Agent
       end
 
       Rails.logger.debug "[CompilerService] Starting build for #{@arch} to #{static_build_path}"
+      agent_dir = Rails.root.join("agent").to_s
+      Rails.logger.debug "[CompilerService] Working directory: #{agent_dir}"
+      Rails.logger.debug "[CompilerService] Environment: #{env.inspect}"
 
       # Use array form of capture3 with explicit env and arguments to avoid shell execution
       # We must run this from the 'agent' directory to correctly pick up the go.mod file
-      agent_dir = Rails.root.join("agent").to_s
-      stdout, stderr, status = Open3.capture3(env, "go", "build", "-o", static_build_path, ".", chdir: agent_dir)
+      stdout, stderr, status = Open3.capture3(env, "go", "build", "-v", "-o", static_build_path, ".", chdir: agent_dir)
 
       if status.success?
         Rails.logger.debug "[CompilerService] Build successful"
       else
-        Rails.logger.error "[CompilerService] Build failed: #{stderr}"
+        Rails.logger.error "[CompilerService] Build failed with status #{status.exitstatus}"
+        Rails.logger.error "[CompilerService] Stderr: #{stderr}"
         raise CompilationError, "Failed to compile hpc-agent for #{@arch}: #{stderr}"
       end
 
