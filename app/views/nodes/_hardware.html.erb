@@ -234,93 +234,93 @@
         %>
 
         <% if grouped_topology.any? %>
-          <div class="grid grid-cols-1 gap-8">
+          <div class="space-y-6">
             <% grouped_topology.sort.each do |socket, channels| %>
-              <div class="bg-white border border-slate-300 rounded-lg shadow-sm p-4 !overflow-visible w-full">
-                <div class="flex items-center gap-2 mb-4 border-b border-slate-100 pb-2">
-                  <div class="w-2 h-4 bg-teal-500 rounded-full"></div>
-                  <h4 class="text-sm font-black text-slate-800 uppercase tracking-tighter">
+              <div class="card-netbox !overflow-visible">
+                <div class="card-header bg-slate-50/80 py-1.5 px-4 border-b border-slate-200">
+                  <h4 class="card-title text-slate-700 font-black">
                     <%= socket.gsub(/^(P|NODE)(\d+)$/i, "CPU \\2") %>
                   </h4>
                 </div>
-
-                <div class="flex flex-wrap gap-6">
-                  <% channels.sort.each do |channel, slots| %>
-                    <div class="flex flex-col items-center">
-                      <div class="text-[8px] font-bold text-slate-400 uppercase mb-2 tracking-widest">
-                        <%= channel %>
-                      </div>
-                      <div class="flex gap-1.5 border-x border-slate-100 px-2 py-1">
-                        <% slots.each do |slot| %>
-                          <% 
-                            installed = slot["size"] && slot["size"] != "No Module Installed"
-                            spec_speed = slot["speed"]&.scan(/\d+/)&.first&.to_i || 0
-                            config_speed = slot["configured_speed"]&.scan(/\d+/)&.first&.to_i || 0
-                            downgraded = installed && config_speed > 0 && spec_speed > 0 && config_speed < spec_speed
-                            
-                            status_classes = if !installed
-                              "bg-slate-50 border-dashed border-2 border-slate-200 text-slate-300"
-                            elsif downgraded
-                              "bg-yellow-100 border-2 border-yellow-400 text-yellow-800"
-                            else
-                              "bg-green-500 border-2 border-green-600 text-white"
-                            end
-                          %>
-                          <div class="relative group">
-                            <div class="w-10 h-24 rounded-md flex flex-col items-center justify-between p-1 transition-all hover:-translate-y-1 cursor-default <%= status_classes %> shadow-sm">
-                              <%# Top: Locator %>
-                              <span class="text-[7px] font-bold leading-none truncate w-full text-center">
-                                <%= slot["locator"].split('_').last %>
-                              </span>
+                <div class="p-6 bg-white overflow-x-auto">
+                  <div class="flex flex-nowrap gap-x-10 gap-y-8">
+                    <% channels.sort.each do |channel, slots| %>
+                      <div class="flex flex-col min-w-max">
+                        <h5 class="text-[9px] font-black text-slate-400 uppercase mb-4 tracking-widest border-b border-slate-100 pb-1">
+                          <%= channel %>
+                        </h5>
+                        <div class="flex gap-2">
+                          <% slots.each do |slot| %>
+                            <% 
+                              installed = slot["size"] && slot["size"] != "No Module Installed"
+                              spec_speed = slot["speed"]&.scan(/\d+/)&.first&.to_i || 0
+                              config_speed = slot["configured_speed"]&.scan(/\d+/)&.first&.to_i || 0
+                              downgraded = installed && config_speed > 0 && spec_speed > 0 && config_speed < spec_speed
                               
-                              <%# Middle: Size %>
-                              <div class="flex flex-col items-center">
-                                <% if installed %>
-                                  <span class="text-[9px] font-black leading-tight">
-                                    <%= slot["size"].to_s.gsub(' GB', 'G') %>
-                                  </span>
-                                <% else %>
-                                  <span class="text-[7px] font-medium opacity-50 italic">MT</span>
+                              status_classes = if !installed
+                                "bg-slate-50 border-dashed border-2 border-slate-200 text-slate-300"
+                              elsif downgraded
+                                "bg-amber-50 border-2 border-amber-400 text-amber-800"
+                              else
+                                "bg-teal-600 border-2 border-teal-700 text-white shadow-sm"
+                              end
+                            %>
+                            <div class="relative group">
+                              <div class="w-10 h-24 rounded-sm flex flex-col items-center justify-between p-1 transition-all hover:-translate-y-1 cursor-default <%= status_classes %>">
+                                <%# Top: Locator %>
+                                <span class="text-[7px] font-bold leading-none truncate w-full text-center uppercase tracking-tighter">
+                                  <%= slot["locator"].split('_').last %>
+                                </span>
+                                
+                                <%# Middle: Size %>
+                                <div class="flex flex-col items-center">
+                                  <% if installed %>
+                                    <span class="text-[10px] font-black leading-tight">
+                                      <%= slot["size"].to_s.gsub(' GB', 'G') %>
+                                    </span>
+                                  <% else %>
+                                    <span class="text-[7px] font-bold opacity-40">MT</span>
+                                  <% end %>
+                                </div>
+
+                                <%# Bottom: Type %>
+                                <span class="text-[6px] font-black uppercase opacity-80 tracking-widest">
+                                  <%= slot["type"].presence || "—" %>
+                                </span>
+
+                                <% if downgraded %>
+                                  <div class="absolute -top-1.5 -right-1.5 bg-white rounded-full p-0.5 shadow-sm ring-1 ring-amber-300 animate-pulse">
+                                    <svg class="w-3 h-3 text-amber-600" fill="currentColor" viewBox="0 0 20 20">
+                                      <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                                    </svg>
+                                  </div>
                                 <% end %>
                               </div>
-
-                              <%# Bottom: Type %>
-                              <span class="text-[6px] font-bold uppercase opacity-80">
-                                <%= slot["type"].presence || "—" %>
-                              </span>
-
-                              <% if downgraded %>
-                                <div class="absolute -top-1.5 -right-1.5 bg-white rounded-full p-0.5 shadow-sm ring-1 ring-yellow-300 animate-pulse">
-                                  <svg class="w-3 h-3 text-yellow-600" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
-                                  </svg>
+                              
+                              <%# Tooltip %>
+                              <div class="absolute z-50 hidden group-hover:block w-56 p-3 mt-2 text-xs bg-slate-900/95 text-white rounded-lg shadow-2xl -left-2 top-full pointer-events-none border border-slate-700 backdrop-blur-sm">
+                                <div class="flex items-center justify-between border-b border-slate-700 mb-2 pb-1.5">
+                                  <span class="font-black text-teal-400 tracking-wider"><%= slot["locator"] %></span>
+                                  <span class="text-[9px] px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 font-black tracking-widest"><%= installed ? 'ACTIVE' : 'EMPTY' %></span>
                                 </div>
-                              <% end %>
-                            </div>
-                            
-                            <%# Tooltip %>
-                            <div class="absolute z-50 hidden group-hover:block w-56 p-3 mt-2 text-xs bg-slate-900/95 text-white rounded-lg shadow-2xl -left-2 top-full pointer-events-none border border-slate-700 backdrop-blur-sm">
-                              <div class="flex items-center justify-between border-b border-slate-700 mb-2 pb-1.5">
-                                <span class="font-black text-teal-400 tracking-wider"><%= slot["locator"] %></span>
-                                <span class="text-[9px] px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700"><%= installed ? 'ACTIVE' : 'EMPTY' %></span>
+                                <% if installed %>
+                                  <div class="grid grid-cols-2 gap-y-1.5 text-[10px]">
+                                    <span class="text-slate-400">Manufacturer</span><span class="text-right font-bold"><%= slot["manufacturer"] %></span>
+                                    <span class="text-slate-400">Part Number</span><span class="text-right font-mono text-[9px]"><%= slot["part_number"] %></span>
+                                    <span class="text-slate-400">Speed (Config)</span><span class="text-right font-bold text-teal-400"><%= slot["configured_speed"] %></span>
+                                    <span class="text-slate-400">Speed (Spec)</span><span class="text-right font-medium"><%= slot["speed"] %></span>
+                                    <span class="text-slate-400">Serial</span><span class="text-right font-mono text-[9px]"><%= slot["serial_number"] %></span>
+                                  </div>
+                                <% else %>
+                                  <div class="italic text-slate-500 py-1 text-center">No module detected in this slot</div>
+                                <% end %>
                               </div>
-                              <% if installed %>
-                                <div class="grid grid-cols-2 gap-y-1.5 text-[10px]">
-                                  <span class="text-slate-400">Manufacturer</span><span class="text-right font-medium"><%= slot["manufacturer"] %></span>
-                                  <span class="text-slate-400">Part Number</span><span class="text-right font-mono text-[9px]"><%= slot["part_number"] %></span>
-                                  <span class="text-slate-400">Speed (Config)</span><span class="text-right font-medium"><%= slot["configured_speed"] %></span>
-                                  <span class="text-slate-400">Speed (Spec)</span><span class="text-right font-medium"><%= slot["speed"] %></span>
-                                  <span class="text-slate-400">Serial</span><span class="text-right font-mono text-[9px]"><%= slot["serial_number"] %></span>
-                                </div>
-                              <% else %>
-                                <div class="italic text-slate-500 py-1 text-center">No module detected in this slot</div>
-                              <% end %>
                             </div>
-                          </div>
-                        <% end %>
+                          <% end %>
+                        </div>
                       </div>
-                    </div>
-                  <% end %>
+                    <% end %>
+                  </div>
                 </div>
               </div>
             <% end %>
