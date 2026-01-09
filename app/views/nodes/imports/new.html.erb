@@ -25,17 +25,36 @@
       <div id="import_errors"></div>
 
       <%= form_with(url: node_import_index_path, method: :post, class: "space-y-4") do |f| %>
-        <div>
-          <%= f.label :file, "Select CSV File", class: "block text-sm font-bold text-slate-700 mb-1" %>
-          <%= f.file_field :file, required: true,
-              accept: ".csv",
-              class: "block w-full text-sm text-slate-500
-                file:mr-4 file:py-2 file:px-4
-                file:rounded-none file:border-0
-                file:text-sm file:font-semibold
-                file:bg-teal-50 file:text-teal-700
-                hover:file:bg-teal-100
-                border border-slate-300 rounded" %>
+        <div data-controller="file-drop"
+             data-action="dragover->file-drop#dragOver dragenter->file-drop#dragEnter dragleave->file-drop#dragLeave drop->file-drop#drop"
+             class="group relative">
+          <label for="file" class="block text-xs font-bold text-slate-700 uppercase mb-1">Select CSV File</label>
+          
+          <div data-file-drop-target="zone"
+               class="relative flex flex-col items-center justify-center rounded border-2 border-dashed border-slate-300 bg-slate-50 p-8 text-center transition-all hover:border-teal-400 hover:bg-teal-50">
+            
+            <div class="flex h-12 w-12 items-center justify-center rounded bg-white text-slate-400 shadow-sm border border-slate-200 mb-4 group-hover:text-teal-500 group-hover:border-teal-200 transition-colors">
+              <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+              </svg>
+            </div>
+
+            <div class="space-y-1">
+              <p class="text-xs font-bold text-slate-700 uppercase tracking-tight" data-file-drop-target="label">
+                Click to upload or drag and drop
+              </p>
+              <p class="text-[10px] text-slate-500 italic">CSV file only (hostname, ip, role)</p>
+            </div>
+
+            <%= f.file_field :file, 
+                required: true,
+                accept: ".csv",
+                data: { 
+                  file_drop_target: "input",
+                  action: "change->file-drop#fileSelected"
+                },
+                class: "absolute inset-0 h-full w-full cursor-pointer opacity-0" %>
+          </div>
         </div>
 
         <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">

@@ -23,17 +23,12 @@ func NewLinuxDMICollector(runner ports.CommandRunner) *LinuxDMICollector {
 
 // Collect gathers DMI info for System (1), BIOS (0), and Memory (17).
 func (c *LinuxDMICollector) Collect(ctx context.Context) (*model.HostDMIInfo, error) {
-	method := os.Getenv("HPC_DMIDECODE_METHOD")
-	var output []byte
-	var err error
-
-	if method == "sudo" {
-		output, err = c.runner.Run(ctx, "", "sudo", "dmidecode", "-t", "0,1,17")
-	} else {
-		// Default to direct (Phase 1: SUID or permission granted)
-		output, err = c.runner.Run(ctx, "", "dmidecode", "-t", "0,1,17")
+	command := []string{"dmidecode", "-t", "0,1,17"}
+	if os.Getenv("HPC_DMIDECODE_METHOD") == "sudo" {
+		command = append([]string{"sudo"}, command...)
 	}
 
+	output, err := c.runner.Run(ctx, "", command[0], command[1:]...)
 	if err != nil {
 		// dmidecode may not be installed or may fail. This is not a fatal error for inventory collection.
 		// We can log this and return nil to indicate DMI info is unavailable.

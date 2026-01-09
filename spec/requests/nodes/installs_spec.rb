@@ -57,6 +57,24 @@ RSpec.describe "Nodes::Installs", type: :request do
       expect(response).to redirect_to(nodes_path)
     end
 
+    it "enqueues Agent::InstallJob with optional server_url and api_key_id" do
+      api_key = create(:api_key)
+      full_params = install_params.merge(
+        server_url: "https://custom-portal.com",
+        api_key_id: api_key.id.to_s
+      )
+
+      expect {
+        post node_install_index_path, params: { install: full_params }
+      }.to enqueue_job(Agent::InstallJob).with(
+        hash_including(
+          target_host: "compute-001",
+          server_url: "https://custom-portal.com",
+          api_key_id: api_key.id.to_s
+        )
+      )
+    end
+
     it "returns turbo stream if requested" do
       post node_install_index_path, params: { install: install_params }, as: :turbo_stream
       expect(response.media_type).to eq("text/vnd.turbo-stream.html")

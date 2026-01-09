@@ -210,28 +210,7 @@
         </div>
       </div>
       <div class="p-6 bg-slate-50" data-disclosure-target="content" style="display: none;">
-        <% 
-          memory_devices = dmi["memory"] || [] 
-          
-          # v2 Flexible Grouper: Extract Socket and Channel
-          # Strategy: Match CPU#, P#, Socket#, Node#
-          grouped_topology = memory_devices.each_with_object({}) do |dev, acc|
-            bank = dev["bank_locator"] || ""
-            loc = dev["locator"] || ""
-            
-            # Extract Socket (CPU 0, P0, etc.)
-            socket_match = bank.match(/(CPU\s?\d+|P\d+|Socket\s?\d+|Node\s?\d+)/i)
-            socket_name = socket_match ? socket_match[0].upcase.gsub(/\s+/, "") : "System"
-            
-            # Extract Channel (Channel 0, CH0, etc.)
-            channel_match = bank.match(/(Channel\s?\d+|CH\d+|NODE\d+)/i)
-            channel_name = channel_match ? channel_match[0].upcase.gsub(/\s+/, "") : "Default"
-            
-            acc[socket_name] ||= {}
-            acc[socket_name][channel_name] ||= []
-            acc[socket_name][channel_name] << dev
-          end
-        %>
+        <% grouped_topology = group_memory_topology(dmi["memory"]) %>
 
         <% if grouped_topology.any? %>
           <div class="space-y-6">
@@ -239,7 +218,7 @@
               <div class="card-netbox !overflow-visible">
                 <div class="card-header bg-slate-50/80 py-1.5 px-4 border-b border-slate-200">
                   <h4 class="card-title text-slate-700 font-black">
-                    <%= socket.gsub(/^(P|NODE)(\d+)$/i, "CPU \\2") %>
+                    <%= format_socket_name(socket) %>
                   </h4>
                 </div>
                 <div class="p-6 bg-white !overflow-visible">
@@ -253,20 +232,10 @@
                           <% slots.each do |slot| %>
                             <% 
                               installed = slot["size"] && slot["size"] != "No Module Installed"
-                              spec_speed = slot["speed"]&.scan(/\d+/)&.first&.to_i || 0
-                              config_speed = slot["configured_speed"]&.scan(/\d+/)&.first&.to_i || 0
-                              downgraded = installed && config_speed > 0 && spec_speed > 0 && config_speed < spec_speed
-                              
-                              status_classes = if !installed
-                                "bg-slate-50 border-dashed border-2 border-slate-200 text-slate-300"
-                              elsif downgraded
-                                "bg-amber-50 border-2 border-amber-400 text-amber-800"
-                              else
-                                "bg-teal-600 border-2 border-teal-700 text-white shadow-sm"
-                              end
+                              downgraded = memory_slot_downgraded?(slot)
                             %>
                             <div class="relative group">
-                              <div class="w-10 h-24 rounded-sm flex flex-col items-center justify-between p-1 transition-all hover:-translate-y-1 cursor-default <%= status_classes %>">
+                              <div class="w-10 h-24 rounded-sm flex flex-col items-center justify-between p-1 transition-all hover:-translate-y-1 cursor-default <%= memory_slot_status_classes(slot) %>">
                                 <%# Top: Locator %>
                                 <span class="text-[7px] font-bold leading-none truncate w-full text-center uppercase tracking-tighter">
                                   <%= slot["locator"].split('_').last %>
@@ -365,7 +334,7 @@
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-100">
-            <% memory_devices.each do |slot| %>
+            <% (dmi["memory"] || []).each do |slot| %>
               <% installed = slot["size"] && slot["size"] != "No Module Installed" %>
               <tr class="hover:bg-blue-50 transition-colors">
                 <td class="px-4 py-2 font-bold text-blue-600 font-mono text-xs"><%= slot["locator"] %></td>
