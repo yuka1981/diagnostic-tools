@@ -14,13 +14,16 @@ export default class extends Controller {
   }
 
   close(event) {
+    if (event) event.preventDefault()
     // Navigate back to close the modal via turbo
-    // Note: disconnect() will be called automatically when the frame is cleared,
-    // which handles removing overflow-hidden from body
     const frame = this.element.closest("turbo-frame")
     if (frame) {
       frame.innerHTML = ""
     }
+  }
+
+  cancel(event) {
+    this.close(event)
   }
 }
 

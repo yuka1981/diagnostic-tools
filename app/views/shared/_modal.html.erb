@@ -1,0 +1,42 @@
+<div class="fixed inset-0 z-50 overflow-y-auto" data-controller="modal">
+  <%# Backdrop %>
+  <div class="fixed inset-0 bg-black/50 transition-opacity"></div>
+
+  <%# Modal Container %>
+  <div class="flex min-h-full items-center justify-center p-4">
+    <div class="relative w-full <%= local_assigns[:max_width] || 'max-w-2xl' %> transform rounded-md bg-white shadow-xl transition-all border border-gray-300">
+      <%# Header %>
+      <div class="flex items-center justify-between bg-slate-800 px-4 py-3 rounded-t-md">
+        <div class="flex items-center gap-2">
+          <% if local_assigns[:icon] %>
+            <div class="text-white opacity-80">
+              <%= icon %>
+            </div>
+          <% end %>
+          <h3 class="text-base font-bold text-white uppercase tracking-wider">
+            <%= title %>
+          </h3>
+        </div>
+        <button type="button" 
+                class="text-white/70 hover:text-white transition-colors"
+                data-action="click->modal#close">
+          <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <%# Body %>
+      <div class="px-4 py-5">
+        <%= yield %>
+      </div>
+
+      <%# Footer (Optional) %>
+      <% if content_for?(:modal_footer) %>
+        <div class="flex items-center justify-end gap-2 bg-slate-50 border-t border-gray-300 px-4 py-3 rounded-b-md">
+          <%= yield :modal_footer %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

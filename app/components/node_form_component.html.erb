@@ -1,4 +1,4 @@
-<%= form_with(model: @node, class: "space-y-6") do |f| %>
+<%= form_with(model: @node, id: dom_id(@node, :form), class: "space-y-6") do |f| %>
   <% if @node.errors.any? %>
     <div id="error_explanation" class="rounded-lg bg-red-50 p-4 text-sm text-red-700 border border-red-200">
       <h2 class="font-bold mb-2"><%= pluralize(@node.errors.count, "error") %> prohibited this node from being saved:</h2>
@@ -116,11 +116,13 @@
     </div>
   </div>
 
-  <div class="flex items-center justify-end gap-3 pt-4">
-    <%= link_to "Cancel", nodes_path,
-        class: "btn-secondary",
-        data: { turbo_frame: "node_modal" } %>
-    <%= f.submit "Save Node",
-        class: "btn-primary" %>
-  </div>
+  <% if @show_actions %>
+    <div class="flex items-center justify-end gap-3 pt-4">
+      <%= link_to "Cancel", nodes_path,
+          class: "btn-secondary",
+          data: { turbo_frame: "node_modal" } %>
+      <%= f.submit "Save Node",
+          class: "btn-primary" %>
+    </div>
+  <% end %>
 <% end %>

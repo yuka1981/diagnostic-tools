@@ -36,9 +36,15 @@
   }
 
   .btn-secondary {
+    @apply inline-flex items-center rounded border border-slate-300 bg-white px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-slate-700 shadow-sm hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 transition-all;
+  }
 
-    @apply bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 py-1.5 px-3 rounded shadow-sm transition-colors inline-flex items-center gap-2 text-sm;
+  .btn-danger {
+    @apply inline-flex items-center rounded border border-red-700 bg-red-600 px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-white shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-all;
+  }
 
+  .btn-success {
+    @apply inline-flex items-center rounded border border-green-700 bg-green-600 px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-white shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-all;
   }
 
   .btn-danger {
