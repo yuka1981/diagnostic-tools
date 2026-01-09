@@ -31,15 +31,13 @@ Agent 需整合多個來源的資訊，並將其關聯（例如：將 `ib0` 介�
 
 ### **2.2 L2: Logical Interfaces (Ethernet & IB)**
 
-* **Source**: `ip -j link show`, `ip -j addr show`
-* **Fields**:
-* **Interface Name**: (e.g., `eth0`, `ib0`)
-* **Type**: (e.g., `ether`, `infiniband`, `loopback`)
-* **OperState**: (e.g., `UP`, `DOWN`, `LOWERLAYERDOWN`)
-* **MAC Address**: (Permanent & Current)
-* **MTU**: (e.g., 1500, 9000, 4096)
-* **IPv4/IPv6 Addresses**: List of CIDRs.
-* **Master (LAG)**: 指示該介面是否屬於某個 Bond (e.g., `bond0`)。
+* **MTU**:
+  * Source: `ip -j link show` -> `.mtu` (JSON key)
+  * Value: Integer (e.g., 1500, 9000)
+* **Speed (Bandwidth)**:
+  * **Ethernet Source**: Read content of `/sys/class/net/<iface>/speed`. Note: Output is in Mbits/sec (e.g., "10000" for 10G). Handle error if file usually returns -1 for virtual interfaces.
+  * **InfiniBand Source**: Parse `ibv_devinfo` or read `/sys/class/infiniband/<hca>/ports/<port>/rate`.
+  * **UI Display**: Convert to human readable string (e.g., "10 Gbps", "200 Gbps (HDR)").
 
 ### **2.3 L3: InfiniBand Specifics (HPC)**
 

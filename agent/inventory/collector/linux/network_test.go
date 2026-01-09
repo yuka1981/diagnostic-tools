@@ -42,6 +42,7 @@ func TestLinuxNetworkCollector_Collect(t *testing.T) {
 	os.MkdirAll(pci0Dir, 0755)
 	os.Symlink(pci0Dir, filepath.Join(eth0Dir, "device"))
 	os.WriteFile(filepath.Join(pci0Dir, "numa_node"), []byte("0\n"), 0644)
+	os.WriteFile(filepath.Join(eth0Dir, "speed"), []byte("10000\n"), 0644)
 
 	// Mock ib0
 	ib0Dir := filepath.Join(sysClassNet, "ib0")
@@ -111,6 +112,9 @@ Device: MT28908 Family [ConnectX-6]
 			if iface.Vendor != "Red Hat, Inc." {
 				t.Errorf("eth0: expected vendor Red Hat, Inc., got %s", iface.Vendor)
 			}
+			if iface.Speed != "10 Gbps" {
+				t.Errorf("eth0: expected speed 10 Gbps, got %s", iface.Speed)
+			}
 			if len(iface.IPAddresses) != 1 || iface.IPAddresses[0] != "192.168.1.10/24" {
 				t.Errorf("eth0: unexpected IPs: %v", iface.IPAddresses)
 			}
@@ -123,6 +127,9 @@ Device: MT28908 Family [ConnectX-6]
 				}
 				if iface.InfiniBand.LID != "14" {
 					t.Errorf("ib0: expected LID 14, got %s", iface.InfiniBand.LID)
+				}
+				if iface.Speed != "HDR (200 Gbps)" {
+					t.Errorf("ib0: expected speed HDR (200 Gbps), got %s", iface.Speed)
 				}
 			}
 		}

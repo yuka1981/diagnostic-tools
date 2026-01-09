@@ -94,9 +94,14 @@ func (c *LinuxNetworkCollector) Collect(ctx context.Context) (*model.NetworkInve
 			info.NUMANode = c.getNUMANode(link.IfName)
 		}
 
-		// InfiniBand Enrichment
+		// Speed collection
 		if link.LinkType == "infiniband" {
 			info.InfiniBand = c.collectIBInfo(link.IfName)
+			if info.InfiniBand != nil {
+				info.Speed = info.InfiniBand.LinkSpeed
+			}
+		} else {
+			info.Speed = c.getEthernetSpeed(link.IfName)
 		}
 
 		inventory.Interfaces = append(inventory.Interfaces, info)
@@ -211,6 +216,24 @@ func (c *LinuxNetworkCollector) getNUMANode(iface string) int {
 		return -1
 	}
 	return numa
+}
+
+func (c *LinuxNetworkCollector) getEthernetSpeed(iface string) string {
+	speedPath := filepath.Join(c.SysClassNet, iface, "speed")
+	content, err := os.ReadFile(speedPath)
+	if err != nil {
+		return ""
+	}
+
+	speedMbps, err := strconv.Atoi(strings.TrimSpace(string(content)))
+	if err != nil || speedMbps <= 0 {
+		return ""
+	}
+
+	if speedMbps >= 1000 {
+		return fmt.Sprintf("%g Gbps", float64(speedMbps)/1000)
+	}
+	return fmt.Sprintf("%d Mbps", speedMbps)
 }
 
 func (c *LinuxNetworkCollector) collectIBInfo(iface string) *model.IBInfo {

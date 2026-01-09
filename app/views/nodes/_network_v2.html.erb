@@ -58,10 +58,12 @@
                 <% end %>
               </td>
               <td class="px-4 py-2 text-slate-700 font-medium">
-                <% if iface["type"] == "infiniband" && iface["infiniband"].present? %>
-                  <span class="text-teal-600 font-bold"><%= iface["infiniband"]["link_speed"] %></span>
+                <% if iface["speed"].present? %>
+                  <span class="<%= iface["type"] == "infiniband" ? "text-teal-600 font-bold" : "text-slate-700 font-bold" %>">
+                    <%= iface["speed"] %>
+                  </span>
                 <% else %>
-                  <%= iface["mtu"] %> MTU
+                  <span class="text-slate-400 text-[10px]"><%= iface["mtu"] %> MTU</span>
                 <% end %>
               </td>
               <td class="px-4 py-2">

@@ -17,6 +17,7 @@ type InterfaceInfo struct {
 	PCIAddress  string   `json:"pci_address,omitempty"`
 	Vendor      string   `json:"vendor,omitempty"`
 	Model       string   `json:"model,omitempty"`
+	Speed       string   `json:"speed,omitempty"` // e.g., "10 Gbps", "HDR (200 Gbps)"
 	MTU         int      `json:"mtu"`
 	NUMANode    int      `json:"numa_node,omitempty"`
 }
