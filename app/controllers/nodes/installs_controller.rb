@@ -17,6 +17,7 @@ module Nodes
 
       @api_keys = ApiKey.active.order(:name)
       @ssh_setting = SshSetting.current
+      @server_url = @ssh_setting.server_url.presence || request.base_url
 
       # Adjust preloaded settings based on node configuration
       if @node&.direct?

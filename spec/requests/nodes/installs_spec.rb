@@ -31,6 +31,12 @@ RSpec.describe "Nodes::Installs", type: :request do
       # In my current view implementation, server_url might be there but not bastion_host directly in the form
       expect(response.body).to include('Install Agent: preloaded-node')
     end
+
+    it "preloads server_url from SshSetting" do
+      SshSetting.current.update!(server_url: "https://agent.example.com")
+      get new_node_install_path(hostname: "compute-001"), headers: { "Turbo-Frame" => "install_modal" }
+      expect(response.body).to include('value="https://agent.example.com"')
+    end
   end
 
   describe "POST /nodes/installs" do
