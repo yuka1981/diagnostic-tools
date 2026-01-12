@@ -127,30 +127,36 @@ module Agent
       report_progress(:stop_service)
 
       # Stop service (use timeout to prevent hanging)
-      stop_cmd = "#{prefix} 'timeout 10s systemctl stop hpc-agent || true'"
-      execute_remote_command(ssh, stop_cmd, password: @sudo_password)
+      stop_cmd = "timeout 10s systemctl stop hpc-agent || true"
+      execute_remote_command(ssh, "#{prefix}#{bash_c_command(stop_cmd)}", password: @sudo_password)
 
       # Disable service
-      disable_cmd = "#{prefix} 'timeout 10s systemctl disable hpc-agent || true'"
-      execute_remote_command(ssh, disable_cmd, password: @sudo_password)
+      disable_cmd = "timeout 10s systemctl disable hpc-agent || true"
+      execute_remote_command(ssh, "#{prefix}#{bash_c_command(disable_cmd)}", password: @sudo_password)
 
       report_progress(:remove_files)
 
       # Remove service file
-      rm_service_cmd = "#{prefix} 'rm -f #{SERVICE_FILE_PATH}'"
-      execute_remote_command(ssh, rm_service_cmd, password: @sudo_password)
+      rm_service_cmd = "rm -f #{SERVICE_FILE_PATH}"
+      execute_remote_command(ssh, "#{prefix}#{bash_c_command(rm_service_cmd)}", password: @sudo_password)
 
       # Remove binary
-      rm_bin_cmd = "#{prefix} 'rm -f #{TARGET_BIN_PATH}'"
-      execute_remote_command(ssh, rm_bin_cmd, password: @sudo_password)
+      rm_bin_cmd = "rm -f #{TARGET_BIN_PATH}"
+      execute_remote_command(ssh, "#{prefix}#{bash_c_command(rm_bin_cmd)}", password: @sudo_password)
 
       # Remove temporary installation files
-      rm_tmp_cmd = "#{prefix} 'rm -f /tmp/agent_bin_install /tmp/hpc-agent.service'"
-      execute_remote_command(ssh, rm_tmp_cmd, password: @sudo_password)
+      rm_tmp_cmd = "rm -f /tmp/agent_bin_install /tmp/hpc-agent.service"
+      execute_remote_command(ssh, "#{prefix}#{bash_c_command(rm_tmp_cmd)}", password: @sudo_password)
 
       report_progress(:reload_daemon)
-      reload_cmd = "#{prefix} 'timeout 10s systemctl daemon-reload'"
-      execute_remote_command(ssh, reload_cmd, password: @sudo_password)
+      reload_cmd = "timeout 10s systemctl daemon-reload"
+      execute_remote_command(ssh, "#{prefix}#{bash_c_command(reload_cmd)}", password: @sudo_password)
+    end
+
+    def bash_c_command(cmd)
+      # Wrap command in single quotes for bash -c, escaping existing single quotes
+      quoted_cmd = "'" + cmd.gsub("'", "'\\\\''") + "'"
+      "bash -c #{quoted_cmd}"
     end
 
     def report_progress(step)
