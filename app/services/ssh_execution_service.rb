@@ -150,6 +150,8 @@ class SshExecutionService
     {
       user: config[:user] || default_ssh_user,
       keys: Array(config[:keys] || default_ssh_keys),
+      key_data: Array(config[:key_data] || @target_node.ssh_key.presence),
+      password: config[:password] || @target_node.password.presence,
       timeout: config[:timeout] || default_ssh_timeout,
       verify_host_key: config[:verify_host_key] || default_verify_host_key
     }
