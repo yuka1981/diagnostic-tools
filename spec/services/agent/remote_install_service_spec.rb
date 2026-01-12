@@ -150,6 +150,29 @@ RSpec.describe Agent::RemoteInstallService do
     expect(direct_service.call).to be true
   end
 
+  it "tries hostname if IP connection fails with timeout" do
+    allow(SshConfig).to receive(:jump_host).and_return(nil)
+    node.update!(ip: "192.168.1.100")
+
+    direct_service = described_class.new(
+      target_host: target_host,
+      arch: "x86_64",
+      bastion_host: nil,
+      sudo_password: sudo_password,
+      local_binary_path: local_path,
+      node: node,
+      bastion_user: "root"
+    )
+
+    # First attempt with IP fails
+    expect(Net::SSH).to receive(:start).with("192.168.1.100", "root", any_args).and_raise(Net::SSH::ConnectionTimeout)
+
+    # Second attempt with hostname succeeds
+    expect(Net::SSH).to receive(:start).with(target_host, "root", any_args).and_yield(ssh_session)
+
+    expect(direct_service.call).to be true
+  end
+
   it "raises error if a command fails" do
     allow(SshConfig).to receive(:jump_host).and_return("bastion.example.com")
     allow(Net::SSH).to receive(:start).and_yield(ssh_session)

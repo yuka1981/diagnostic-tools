@@ -95,10 +95,24 @@ module Agent
       ssh_options = { password: effective_password, timeout: 10 }.compact
       user = @bastion_user.presence || "root"
 
-      report_progress(:connect)
-      Net::SSH.start(ssh_target_host, user, ssh_options) do |ssh|
-        perform_cleanup(ssh, "sudo -S ")
+      connect_host = ssh_target_host
+
+      begin
+        report_progress(:connect)
+        Net::SSH.start(connect_host, user, ssh_options) do |ssh|
+          perform_cleanup(ssh, "sudo -S ")
+        end
+      rescue Net::SSH::ConnectionTimeout, Errno::ETIMEDOUT, Errno::EHOSTUNREACH => e
+        # If we used IP and failed, try hostname if it's different
+        if connect_host == @node&.ip && @target_host != @node&.ip
+          Rails.logger.warn "[RemoteUninstallService] Connection to IP #{connect_host} failed: #{e.message}. Retrying with hostname: #{@target_host}"
+
+          connect_host = @target_host
+          retry
+        end
+        raise e
       end
+
       true
     rescue => e
       Rails.logger.error "Direct remote uninstall failed: #{e.message}"

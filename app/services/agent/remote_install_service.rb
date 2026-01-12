@@ -83,26 +83,44 @@ module Agent
       user = @bastion_user.presence || "root"
 
       connect_host = ssh_target_host
-      Rails.logger.debug "[RemoteInstallService] Connecting directly to target: #{user}@#{connect_host}"
-      Net::SSH.start(connect_host, user, ssh_options) do |ssh|
-        # Phase 1: Upload directly to target
-        report_progress "Uploading binary directly to target host (#{connect_host})"
-        # Upload to /tmp first as we might not have permission for /usr/local/bin yet
-        ssh.scp.upload!(@local_binary_path, "/tmp/agent_bin_install")
 
-        # Move to final location using sudo
-        report_progress "Moving binary to #{TARGET_BIN_PATH}"
-        mv_cmd = "sudo -S mv /tmp/agent_bin_install #{TARGET_BIN_PATH}"
-        execute_remote_command(ssh, mv_cmd, password: @sudo_password)
+      begin
+        Rails.logger.debug "[RemoteInstallService] Connecting directly to target: #{user}@#{connect_host}"
+        Net::SSH.start(connect_host, user, ssh_options) do |ssh|
+          perform_direct_install(ssh, connect_host)
+        end
+      rescue Net::SSH::ConnectionTimeout, Errno::ETIMEDOUT, Errno::EHOSTUNREACH => e
+        # If we used IP and failed, try hostname if it's different
+        if connect_host == @node&.ip && @target_host != @node&.ip
+          Rails.logger.warn "[RemoteInstallService] Connection to IP #{connect_host} failed: #{e.message}. Retrying with hostname: #{@target_host}"
+          report_progress "Connection to IP failed. Retrying with hostname #{@target_host}..."
 
-        # Phase 2: Config
-        configure_target(ssh, via_ssh: false)
+          connect_host = @target_host
+          retry
+        end
+        raise e
       end
+
       true
     rescue => e
       Rails.logger.error "Direct remote install failed: #{e.message}"
       Rails.logger.error e.backtrace.first(10).join("\n")
       raise InstallError, "Installation failed: #{e.message}"
+    end
+
+    def perform_direct_install(ssh, host_display)
+      # Phase 1: Upload directly to target
+      report_progress "Uploading binary directly to target host (#{host_display})"
+      # Upload to /tmp first as we might not have permission for /usr/local/bin yet
+      ssh.scp.upload!(@local_binary_path, "/tmp/agent_bin_install")
+
+      # Move to final location using sudo
+      report_progress "Moving binary to #{TARGET_BIN_PATH}"
+      mv_cmd = "sudo -S mv /tmp/agent_bin_install #{TARGET_BIN_PATH}"
+      execute_remote_command(ssh, mv_cmd, password: @sudo_password)
+
+      # Phase 2: Config
+      configure_target(ssh, via_ssh: false)
     end
 
     private
