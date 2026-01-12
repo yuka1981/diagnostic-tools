@@ -144,6 +144,10 @@ module Agent
       rm_bin_cmd = "#{prefix} 'rm -f #{TARGET_BIN_PATH}'"
       execute_remote_command(ssh, rm_bin_cmd, password: @sudo_password)
 
+      # Remove temporary installation files
+      rm_tmp_cmd = "#{prefix} 'rm -f /tmp/agent_bin_install /tmp/hpc-agent.service'"
+      execute_remote_command(ssh, rm_tmp_cmd, password: @sudo_password)
+
       report_progress(:reload_daemon)
       reload_cmd = "#{prefix} 'timeout 10s systemctl daemon-reload'"
       execute_remote_command(ssh, reload_cmd, password: @sudo_password)
