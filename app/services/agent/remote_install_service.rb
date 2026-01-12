@@ -82,10 +82,11 @@ module Agent
       # For consistency with the user requirement, try root first if no explicit bastion_user provided
       user = @bastion_user.presence || "root"
 
-      Rails.logger.debug "[RemoteInstallService] Connecting directly to target: #{user}@#{@target_host}"
-      Net::SSH.start(@target_host, user, ssh_options) do |ssh|
+      connect_host = ssh_target_host
+      Rails.logger.debug "[RemoteInstallService] Connecting directly to target: #{user}@#{connect_host}"
+      Net::SSH.start(connect_host, user, ssh_options) do |ssh|
         # Phase 1: Upload directly to target
-        report_progress "Uploading binary directly to target host (#{@target_host})"
+        report_progress "Uploading binary directly to target host (#{connect_host})"
         # Upload to /tmp first as we might not have permission for /usr/local/bin yet
         ssh.scp.upload!(@local_binary_path, "/tmp/agent_bin_install")
 
@@ -105,6 +106,10 @@ module Agent
     end
 
     private
+
+    def ssh_target_host
+      @node&.ip.present? ? @node.ip : @target_host
+    end
 
     def target_user
       "root"

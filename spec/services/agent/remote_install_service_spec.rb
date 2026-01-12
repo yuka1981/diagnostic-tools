@@ -64,7 +64,7 @@ RSpec.describe Agent::RemoteInstallService do
     )
 
     # Should connect to target instead of bastion
-    expect(Net::SSH).to receive(:start).with(target_host, "root", any_args).and_yield(ssh_session)
+    expect(Net::SSH).to receive(:start).with(node.ip, "root", any_args).and_yield(ssh_session)
     expect(scp_handler).to receive(:upload!).with(local_path, "/tmp/agent_bin_install")
 
     # Should run commands directly with sudo on target
@@ -108,8 +108,46 @@ RSpec.describe Agent::RemoteInstallService do
       bastion_user: "root"
     )
 
-    expect(Net::SSH).to receive(:start).with(target_host, "root", any_args).and_yield(ssh_session)
+    expect(Net::SSH).to receive(:start).with(node.ip, "root", any_args).and_yield(ssh_session)
     service_no_user.call
+  end
+
+  it "falls back to hostname if node IP is missing" do
+    allow(SshConfig).to receive(:jump_host).and_return(nil)
+    node.update!(ip: nil)
+    
+    fallback_service = described_class.new(
+      target_host: target_host,
+      arch: "x86_64",
+      bastion_host: nil,
+      sudo_password: sudo_password,
+      local_binary_path: local_path,
+      node: node,
+      bastion_user: "root"
+    )
+
+    expect(Net::SSH).to receive(:start).with(target_host, "root", any_args).and_yield(ssh_session)
+    fallback_service.call
+  end
+
+  it "uses node IP for connection if available during direct installation" do
+    allow(SshConfig).to receive(:jump_host).and_return(nil)
+    node.update!(ip: "192.168.1.100")
+
+    direct_service = described_class.new(
+      target_host: target_host,
+      arch: "x86_64",
+      bastion_host: nil,
+      sudo_password: sudo_password,
+      local_binary_path: local_path,
+      node: node,
+      bastion_user: "root"
+    )
+
+    # Should connect to IP (192.168.1.100) instead of hostname (compute-001)
+    expect(Net::SSH).to receive(:start).with("192.168.1.100", "root", any_args).and_yield(ssh_session)
+
+    expect(direct_service.call).to be true
   end
 
   it "raises error if a command fails" do
