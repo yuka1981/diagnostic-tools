@@ -85,9 +85,9 @@ RSpec.describe Agent::InstallJob, type: :job do
   it "handles empty string api_key_id gracefully" do
     # When api_key_id is empty string (e.g. from prompt select), it should NOT try to look it up
     # and should result in nil agent_token (falling back to credentials/env)
-    
+
     # We deliberately don't put token in credentials here to verify it becomes nil
-    
+
     described_class.perform_now(**params.merge(api_key_id: ""))
 
     expect(Agent::RemoteInstallService).to have_received(:new).with(hash_including(
@@ -104,7 +104,7 @@ RSpec.describe Agent::InstallJob, type: :job do
       "agent_install_compute-001",
       hash_including(locals: hash_including(status: "error", message: "Failed"))
     )
-    
+
     expect(node.reload.source).to eq("manual")
   end
 

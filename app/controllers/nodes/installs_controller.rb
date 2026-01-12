@@ -40,7 +40,7 @@ module Nodes
       if install_params[:hostname] =~ Regexp.union(Resolv::IPv4::Regex, Resolv::IPv6::Regex)
         @node.ip = install_params[:hostname]
       end
-      
+
       # For direct connections, save the password to the node record so future collections can use it
       if @node.direct?
         password_to_save = install_params[:bastion_password].presence || install_params[:sudo_password].presence
