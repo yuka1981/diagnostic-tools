@@ -115,7 +115,7 @@ RSpec.describe Agent::RemoteInstallService do
   it "falls back to hostname if node IP is missing" do
     allow(SshConfig).to receive(:jump_host).and_return(nil)
     node.update!(ip: nil)
-    
+
     fallback_service = described_class.new(
       target_host: target_host,
       arch: "x86_64",

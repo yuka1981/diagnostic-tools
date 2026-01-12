@@ -96,13 +96,17 @@ module Agent
       user = @bastion_user.presence || "root"
 
       report_progress(:connect)
-      Net::SSH.start(@target_host, user, ssh_options) do |ssh|
+      Net::SSH.start(ssh_target_host, user, ssh_options) do |ssh|
         perform_cleanup(ssh, "sudo -S ")
       end
       true
     rescue => e
       Rails.logger.error "Direct remote uninstall failed: #{e.message}"
       raise UninstallError, "Uninstallation failed: #{e.message}"
+    end
+
+    def ssh_target_host
+      @node&.ip.present? ? @node.ip : @target_host
     end
 
     def perform_cleanup(ssh, prefix)
