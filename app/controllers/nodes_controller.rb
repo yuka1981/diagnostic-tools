@@ -95,6 +95,7 @@ class NodesController < ApplicationController
 
   def create
     @node = Node.new(node_params)
+    @node.role = params[:node][:role] if params[:node][:role].present?
     @node.source = :manual
 
     if @node.save
@@ -110,6 +111,7 @@ class NodesController < ApplicationController
   def edit; end
 
   def update
+    @node.role = params[:node][:role] if params[:node][:role].present?
     if @node.update(node_params)
       respond_to do |format|
         format.html { redirect_to nodes_path, notice: "Node was successfully updated." }
@@ -135,7 +137,7 @@ class NodesController < ApplicationController
   end
 
   def node_params
-    params.require(:node).permit(:hostname, :ip, :role, :arch, :ssh_port, :ssh_user, :ssh_key, :password, :ssh_connect_method, :jump_host, :jump_user, :jump_port)
+    params.require(:node).permit(:hostname, :ip, :arch, :ssh_port, :ssh_user, :ssh_key, :password, :ssh_connect_method, :jump_host, :jump_user, :jump_port)
   end
 
   def authorize_approver!
