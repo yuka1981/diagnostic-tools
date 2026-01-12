@@ -140,10 +140,10 @@ class SshExecutionService
             timeout: @ssh_config[:timeout],
             non_interactive: true
           }
-      
+
           if @ssh_config[:verify_host_key]
       options[:verify_host_key] = @ssh_config[:verify_host_key]
-    end
+          end
 
     options.compact
   end
