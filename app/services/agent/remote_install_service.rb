@@ -271,6 +271,19 @@ module Agent
 
 
 
+      # 3.2.5 Ensure ownership is root:root
+      report_progress "Setting file ownership to root:root"
+      inner_chown = "chown root:root #{TARGET_BIN_PATH} #{service_file_path}"
+      chown_cmd = if via_ssh
+                    remote_cmd = bash_c_command(inner_chown)
+                    "sudo -S ssh -o StrictHostKeyChecking=no #{target_user}@#{Shellwords.escape(@target_host)} #{Shellwords.escape(remote_cmd)}"
+      else
+                    "sudo -S #{bash_c_command(inner_chown)}"
+      end
+      execute_remote_command(ssh, chown_cmd, password: @sudo_password)
+
+
+
       # 3.3: systemctl enable --now
       report_progress "Starting agent service"
 

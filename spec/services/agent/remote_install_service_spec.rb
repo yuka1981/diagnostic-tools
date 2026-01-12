@@ -69,6 +69,7 @@ RSpec.describe Agent::RemoteInstallService do
 
     # Should run commands directly with sudo on target
     expect(channel).to receive(:exec).with(/sudo -S mv \/tmp\/agent_bin_install/).at_least(:once)
+    expect(channel).to receive(:exec).with(/sudo -S bash -c.*chown root:root/).at_least(:once)
     expect(channel).to receive(:exec).with(/sudo -S bash -c.*systemctl/).at_least(:once)
 
     expect(direct_service.call).to be true
