@@ -31,6 +31,12 @@ RSpec.describe "Nodes::Installs", type: :request do
       # In my current view implementation, server_url might be there but not bastion_host directly in the form
       expect(response.body).to include('Install Agent: preloaded-node')
     end
+
+    it "preloads server_url from SshSetting" do
+      SshSetting.current.update!(server_url: "https://agent.example.com")
+      get new_node_install_path(hostname: "compute-001"), headers: { "Turbo-Frame" => "install_modal" }
+      expect(response.body).to include('value="https://agent.example.com"')
+    end
   end
 
   describe "POST /nodes/installs" do
@@ -80,6 +86,20 @@ RSpec.describe "Nodes::Installs", type: :request do
       expect(response.media_type).to eq("text/vnd.turbo-stream.html")
       expect(response.body).to include("turbo-stream")
       expect(response.body).to include('id="agent_install_status_compute-001"')
+    end
+
+    it "saves password to node if direct connection" do
+      # Create node with direct connection method
+      node = create(:node, hostname: "direct-node", ssh_connect_method: :direct)
+
+      direct_params = install_params.merge(
+        hostname: "direct-node",
+        bastion_password: "ssh-password"
+      )
+
+      post node_install_index_path, params: { install: direct_params }
+
+      expect(node.reload.password).to eq("ssh-password")
     end
   end
 end

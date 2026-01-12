@@ -17,6 +17,7 @@ module Nodes
 
       @api_keys = ApiKey.active.order(:name)
       @ssh_setting = SshSetting.current
+      @server_url = @ssh_setting.server_url.presence || request.base_url
 
       # Adjust preloaded settings based on node configuration
       if @node&.direct?
@@ -39,6 +40,13 @@ module Nodes
       if install_params[:hostname] =~ Regexp.union(Resolv::IPv4::Regex, Resolv::IPv6::Regex)
         @node.ip = install_params[:hostname]
       end
+
+      # For direct connections, save the password to the node record so future collections can use it
+      if @node.direct?
+        password_to_save = install_params[:bastion_password].presence || install_params[:sudo_password].presence
+        @node.password = password_to_save if password_to_save
+      end
+
       @node.save!
 
       # Store sensitive credentials in a short-lived cache to avoid passing them as job arguments

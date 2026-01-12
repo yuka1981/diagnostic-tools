@@ -88,7 +88,8 @@ module Inventory
         # For now, we wrap it.
 
         # We need to construct the ssh command string to run on the gateway
-        ssh_cmd = "ssh #{Shellwords.escape(@target_node.hostname)} #{cmd}"
+        target_host = @target_node.ip.presence || @target_node.hostname
+        ssh_cmd = "ssh #{Shellwords.escape(target_host)} #{cmd}"
 
         # We temporarily swap target_node to gateway to reuse base logic for connection
         original_node = @target_node

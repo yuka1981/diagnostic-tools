@@ -3,9 +3,6 @@
 require "ipaddr"
 
 class Node < ApplicationRecord
-  # Virtual attributes for form
-  attr_accessor :ssh_key, :password
-
   # Associations
   has_many :node_states, dependent: :destroy
   has_many :benchmark_runs, dependent: :destroy

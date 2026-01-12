@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_01_09_062941) do
+ActiveRecord::Schema[7.2].define(version: 2026_01_12_032903) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -100,6 +100,8 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_09_062941) do
     t.string "agent_path"
     t.string "uuid"
     t.integer "ssh_connect_method"
+    t.text "ssh_key"
+    t.string "password"
     t.index ["hostname"], name: "index_nodes_on_hostname", unique: true
     t.index ["role"], name: "index_nodes_on_role"
     t.index ["source"], name: "index_nodes_on_source"

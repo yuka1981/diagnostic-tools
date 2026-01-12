@@ -1,8 +1,8 @@
 # **PRD v0.6.0 — HPC System Detection & Benchmark Tool**
 
-Version: 0.6.0  
+Version: 0.7.0  
 Status: Active Development  
-Last Updated: 2026-01-09  
+Last Updated: 2026-01-12  
 Changes: Standardized UI with NetBox theme, implemented v2 Host Hardware Info (Memory Topology), and added remote agent management.
 
 ## **1. 背景與目標 (Background & Objectives)**
@@ -47,6 +47,18 @@ Changes: Standardized UI with NetBox theme, implemented v2 Host Hardware Info (M
 * **Styling**: **Tailwind CSS**.
 * **Database**: **PostgreSQL 16+**.
 * **Design System**: NetBox-inspired (Data-dense, slate headers, bold uppercase titles, square corners).
+
+### 3.2 Hardware Inventory & Telemetry
+* **Core Info**: CPU (Model, Cores), RAM (DIMM details, Topology), Disk, Network.
+* **Advanced Telemetry (New)**: Integration with **Intel PerfSpect** for architectural profiling.
+* **Collection Strategy**:
+    * **Primary**: PerfSpect (requires external binary).
+    * **Fallback**: standard `dmidecode` / `lshw`.
+* **Deployment Flow**:
+    * The web server prepares the correct PerfSpect binary for the target server architecture.
+    * The web server pushes the matching binary to the target server and installs it in the same folder as the `hpc-agent` binary.
+* **Versioning**: Parsers are strictly bound to specific PerfSpect release versions to ensure data integrity.
+
 
 ## **4. 核心決策 (Core Decisions)**
 

@@ -135,13 +135,15 @@ class SshExecutionService
   def ssh_options
     options = {
       keys: @ssh_config[:keys],
-      timeout: @ssh_config[:timeout],
-      non_interactive: true
-    }
+      key_data: @ssh_config[:key_data],
+      password: @ssh_config[:password],
+            timeout: @ssh_config[:timeout],
+            non_interactive: true
+          }
 
-    if @ssh_config[:verify_host_key]
+          if @ssh_config[:verify_host_key]
       options[:verify_host_key] = @ssh_config[:verify_host_key]
-    end
+          end
 
     options.compact
   end
@@ -150,6 +152,8 @@ class SshExecutionService
     {
       user: config[:user] || default_ssh_user,
       keys: Array(config[:keys] || default_ssh_keys),
+      key_data: Array(config[:key_data] || @target_node.ssh_key.presence),
+      password: config[:password] || @target_node.password.presence,
       timeout: config[:timeout] || default_ssh_timeout,
       verify_host_key: config[:verify_host_key] || default_verify_host_key
     }
