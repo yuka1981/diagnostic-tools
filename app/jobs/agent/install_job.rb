@@ -65,6 +65,13 @@ module Agent
     rescue => e
       Rails.logger.error "[Agent::InstallJob] Error: #{e.message}"
       Rails.logger.error e.backtrace.first(10).join("\n")
+      
+      # Revert node source to manual so the user can retry
+      if node&.persisted?
+        Rails.logger.info "[Agent::InstallJob] Reverting node #{target_host} source to manual due to failure"
+        node.update(source: :manual)
+      end
+
       broadcast_status(target_host, "error", e.message)
     ensure
       # Cleanup local binary if it was created

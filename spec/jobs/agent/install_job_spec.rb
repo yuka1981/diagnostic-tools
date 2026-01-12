@@ -91,6 +91,8 @@ RSpec.describe Agent::InstallJob, type: :job do
       "agent_install_compute-001",
       hash_including(locals: hash_including(status: "error", message: "Failed"))
     )
+    
+    expect(node.reload.source).to eq("manual")
   end
 
   it "broadcasts error if credentials expired" do
