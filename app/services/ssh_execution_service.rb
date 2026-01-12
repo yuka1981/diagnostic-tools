@@ -135,11 +135,13 @@ class SshExecutionService
   def ssh_options
     options = {
       keys: @ssh_config[:keys],
-      timeout: @ssh_config[:timeout],
-      non_interactive: true
-    }
-
-    if @ssh_config[:verify_host_key]
+      key_data: @ssh_config[:key_data],
+      password: @ssh_config[:password],
+            timeout: @ssh_config[:timeout],
+            non_interactive: true
+          }
+      
+          if @ssh_config[:verify_host_key]
       options[:verify_host_key] = @ssh_config[:verify_host_key]
     end
 
