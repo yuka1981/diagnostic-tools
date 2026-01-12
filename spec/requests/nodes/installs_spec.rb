@@ -87,5 +87,19 @@ RSpec.describe "Nodes::Installs", type: :request do
       expect(response.body).to include("turbo-stream")
       expect(response.body).to include('id="agent_install_status_compute-001"')
     end
+
+    it "saves password to node if direct connection" do
+      # Create node with direct connection method
+      node = create(:node, hostname: "direct-node", ssh_connect_method: :direct)
+      
+      direct_params = install_params.merge(
+        hostname: "direct-node", 
+        bastion_password: "ssh-password"
+      )
+
+      post node_install_index_path, params: { install: direct_params }
+      
+      expect(node.reload.password).to eq("ssh-password")
+    end
   end
 end
