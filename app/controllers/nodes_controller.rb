@@ -95,7 +95,7 @@ class NodesController < ApplicationController
 
   def create
     @node = Node.new(node_params)
-    @node.role = params[:node][:role] if params[:node][:role].present?
+    set_sensitive_params
     @node.source = :manual
 
     if @node.save
@@ -111,7 +111,7 @@ class NodesController < ApplicationController
   def edit; end
 
   def update
-    @node.role = params[:node][:role] if params[:node][:role].present?
+    set_sensitive_params
     if @node.update(node_params)
       respond_to do |format|
         format.html { redirect_to nodes_path, notice: "Node was successfully updated." }
@@ -137,7 +137,12 @@ class NodesController < ApplicationController
   end
 
   def node_params
-    params.require(:node).permit(:hostname, :ip, :role, :arch, :ssh_port, :ssh_user, :ssh_key, :sudo_credential, :ssh_connect_method, :jump_host, :jump_user, :jump_port, :agent_path, :benchmark_work_dir, :api_token)
+    params.require(:node).permit(:hostname, :ip, :arch, :ssh_port, :ssh_user, :ssh_key, :sudo_credential, :ssh_connect_method, :jump_host, :jump_user, :jump_port, :agent_path, :benchmark_work_dir)
+  end
+
+  def set_sensitive_params
+    @node.role = params[:node][:role] if params[:node][:role].present?
+    @node.api_token = params[:node][:api_token] if params[:node][:api_token].present?
   end
 
   def authorize_approver!
