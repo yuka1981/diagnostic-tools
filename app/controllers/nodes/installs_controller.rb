@@ -44,7 +44,7 @@ module Nodes
       # For direct connections, save the password to the node record so future collections can use it
       if @node.direct?
         password_to_save = install_params[:bastion_password].presence || install_params[:sudo_password].presence
-        @node.password = password_to_save if password_to_save
+        @node.sudo_password = password_to_save if password_to_save
       end
 
       @node.save!

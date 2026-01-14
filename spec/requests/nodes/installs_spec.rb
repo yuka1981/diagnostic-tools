@@ -99,7 +99,7 @@ RSpec.describe "Nodes::Installs", type: :request do
 
       post node_install_index_path, params: { install: direct_params }
 
-      expect(node.reload.password).to eq("ssh-password")
+      expect(node.reload.sudo_password).to eq("ssh-password")
     end
   end
 end
