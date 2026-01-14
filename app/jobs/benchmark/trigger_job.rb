@@ -14,7 +14,11 @@ module Benchmark
       )
       result = trigger_service.call
 
-      unless result.success?
+      if result.success?
+        # Optimistically mark as running since SSH command was accepted
+        # Agent will update to success/failed when complete
+        run.update!(status: :running, started_at: Time.current)
+      else
         run.update!(status: :failed, error_message: result.error)
       end
     end
