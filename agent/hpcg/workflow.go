@@ -14,6 +14,9 @@ import (
 	"github.com/yuka1981/diagnostic-tools/agent/core/ports"
 )
 
+// HPCGRepoURL is the official HPCG benchmark repository.
+const HPCGRepoURL = "https://github.com/hpcg-benchmark/hpcg.git"
+
 // ModuleLoader defines interface for loading environment modules.
 type ModuleLoader interface {
 	Load(ctx context.Context, modules []string) error
@@ -42,6 +45,11 @@ func (w *WorkflowOrchestrator) Run(ctx context.Context, params *RunParams) (*mod
 	// Ensure workdir exists
 	if err := os.MkdirAll(w.WorkDir, 0755); err != nil {
 		return nil, fmt.Errorf("failed to create workdir: %w", err)
+	}
+
+	// 0. Ensure HPCG source is available (auto-clone if needed)
+	if err := w.ensureHPCGSource(ctx); err != nil {
+		return nil, err
 	}
 
 	// 1. Environment Setup
@@ -175,6 +183,62 @@ func (w *WorkflowOrchestrator) setupEnvironment(ctx context.Context, modules []s
 			return fmt.Errorf("failed to load modules: %w", err)
 		}
 	}
+	return nil
+}
+
+// ensureHPCGSource checks if HPCG source is available and clones it if needed.
+// It looks for the setup/ directory which indicates HPCG source is present.
+func (w *WorkflowOrchestrator) ensureHPCGSource(ctx context.Context) error {
+	setupDir := filepath.Join(w.WorkDir, "setup")
+
+	// Check if setup directory exists (indicates HPCG source is present)
+	if _, err := os.Stat(setupDir); err == nil {
+		return nil // HPCG source already exists
+	}
+
+	fmt.Fprintf(os.Stderr, "HPCG source not found, cloning from %s...\n", HPCGRepoURL)
+
+	// Clone HPCG repository into a temporary directory, then move contents
+	// We clone to a temp dir first because git clone needs an empty or non-existent target
+	tempDir := w.WorkDir + ".tmp"
+	defer os.RemoveAll(tempDir) // Clean up temp dir regardless of outcome
+
+	// Clone the repository
+	cloneCmd := fmt.Sprintf("git clone --depth 1 %s %s", HPCGRepoURL, tempDir)
+	if output, err := w.Runner.Run(ctx, filepath.Dir(w.WorkDir), "bash", "-c", cloneCmd); err != nil {
+		return fmt.Errorf("failed to clone HPCG repository: %w\nOutput:\n%s", err, string(output))
+	}
+
+	// Move contents from temp to work dir
+	// First, list all files in temp dir
+	entries, err := os.ReadDir(tempDir)
+	if err != nil {
+		return fmt.Errorf("failed to read cloned directory: %w", err)
+	}
+
+	for _, entry := range entries {
+		src := filepath.Join(tempDir, entry.Name())
+		dst := filepath.Join(w.WorkDir, entry.Name())
+
+		// Skip if destination already exists
+		if _, err := os.Stat(dst); err == nil {
+			continue
+		}
+
+		if err := os.Rename(src, dst); err != nil {
+			// If rename fails (cross-device), try copy
+			if entry.IsDir() {
+				copyCmd := fmt.Sprintf("cp -r %s %s", src, dst)
+				if _, copyErr := w.Runner.Run(ctx, w.WorkDir, "bash", "-c", copyCmd); copyErr != nil {
+					return fmt.Errorf("failed to copy %s: %w", entry.Name(), copyErr)
+				}
+			} else {
+				return fmt.Errorf("failed to move %s: %w", entry.Name(), err)
+			}
+		}
+	}
+
+	fmt.Fprintln(os.Stderr, "HPCG source cloned successfully.")
 	return nil
 }
 

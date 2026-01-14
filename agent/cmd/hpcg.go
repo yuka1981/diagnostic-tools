@@ -66,22 +66,44 @@ func runHPCG(cmd *cobra.Command, opts *hpcgOptions) error {
 		return fmt.Errorf("failed to get current working directory: %w", err)
 	}
 
-	// 0. Identity
-	nodeID, err := identity.GetOrGenerateNodeID(opts.configDir)
+	nodeID := getNodeID(opts.configDir)
+	orchestrator := createOrchestrator(wd)
+	params := buildRunParams(opts)
+
+	fmt.Fprintln(cmd.OutOrStdout(), "Starting HPCG workflow...")
+	warnIfNoToken(opts.pushToken)
+	sendInitialStatus(ctx, cmd, opts, nodeID)
+
+	result, err := orchestrator.Run(ctx, &params)
+	if err != nil {
+		notifyFailure(ctx, opts, nodeID)
+		return fmt.Errorf("HPCG workflow failed: %w", err)
+	}
+
+	outputResult(cmd, result)
+	return uploadFinalResult(ctx, cmd, opts, nodeID, result)
+}
+
+func getNodeID(configDir string) string {
+	nodeID, err := identity.GetOrGenerateNodeID(configDir)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Warning: failed to get node identity: %v\n", err)
 	}
+	return nodeID
+}
 
+func createOrchestrator(workDir string) *hpcg.WorkflowOrchestrator {
 	runner := infrastructure.NewRealCommandRunner()
 	loader := infrastructure.NewRealModuleLoader(runner)
-
-	orchestrator := &hpcg.WorkflowOrchestrator{
+	return &hpcg.WorkflowOrchestrator{
 		Runner:       runner,
 		ModuleLoader: loader,
-		WorkDir:      wd,
+		WorkDir:      workDir,
 	}
+}
 
-	params := hpcg.RunParams{
+func buildRunParams(opts *hpcgOptions) hpcg.RunParams {
+	return hpcg.RunParams{
 		RunID:    opts.runID,
 		Modules:  opts.modules,
 		BuildCmd: opts.buildCmd,
@@ -92,35 +114,62 @@ func runHPCG(cmd *cobra.Command, opts *hpcgOptions) error {
 			NX: opts.nx, NY: opts.ny, NZ: opts.nz, RunTimeSeconds: opts.rt,
 		},
 	}
+}
 
-	fmt.Fprintln(cmd.OutOrStdout(), "Starting HPCG workflow...")
-
-	// Send initial status update
-	_ = uploadBenchmarkStatus(ctx, opts.pushServer, opts.pushToken, nodeID, opts.runID, model.BenchmarkStatusRunning)
-
-	result, err := orchestrator.Run(ctx, &params)
-	if err != nil {
-		return fmt.Errorf("HPCG workflow failed: %w", err)
+func warnIfNoToken(token string) {
+	if token == "" {
+		fmt.Fprintln(os.Stderr, "Warning: No authentication token provided (--token or AGENT_TOKEN env var).")
+		fmt.Fprintln(os.Stderr, "         Benchmark results will NOT be uploaded to the server.")
 	}
+}
 
-	// Output result to stdout
+func sendInitialStatus(ctx context.Context, cmd *cobra.Command, opts *hpcgOptions, nodeID string) {
+	statusErr := uploadBenchmarkStatus(
+		ctx, opts.pushServer, opts.pushToken, nodeID, opts.runID, model.BenchmarkStatusRunning,
+	)
+	if statusErr != nil {
+		fmt.Fprintf(os.Stderr, "Warning: Failed to send initial status update: %v\n", statusErr)
+		fmt.Fprintln(os.Stderr, "         The benchmark will continue, but the server may not show 'Running' status.")
+	} else if opts.pushToken != "" {
+		fmt.Fprintln(cmd.OutOrStdout(), "Initial status update sent successfully.")
+	}
+}
+
+func notifyFailure(ctx context.Context, opts *hpcgOptions, nodeID string) {
+	failErr := uploadBenchmarkStatus(
+		ctx, opts.pushServer, opts.pushToken, nodeID, opts.runID, model.BenchmarkStatusFail,
+	)
+	if failErr != nil {
+		fmt.Fprintf(os.Stderr, "Warning: Failed to send failure status: %v\n", failErr)
+	}
+}
+
+func outputResult(cmd *cobra.Command, result *model.BenchmarkRun) {
 	output, _ := json.MarshalIndent(result, "", "  ")
 	fmt.Fprintln(cmd.OutOrStdout(), string(output))
+}
 
-	// Upload final result
-	if opts.pushToken != "" {
-		fmt.Fprintln(cmd.OutOrStdout(), "Uploading result...")
-		if err := uploadBenchmarkResult(ctx, opts.pushServer, opts.pushToken, nodeID, result); err != nil {
-			return fmt.Errorf("upload failed: %w", err)
-		}
-		fmt.Fprintln(cmd.OutOrStdout(), "Upload successful.")
+func uploadFinalResult(
+	ctx context.Context,
+	cmd *cobra.Command,
+	opts *hpcgOptions,
+	nodeID string,
+	result *model.BenchmarkRun,
+) error {
+	if opts.pushToken == "" {
+		return nil
 	}
-
+	fmt.Fprintln(cmd.OutOrStdout(), "Uploading result...")
+	if err := uploadBenchmarkResult(ctx, opts.pushServer, opts.pushToken, nodeID, result); err != nil {
+		return fmt.Errorf("upload failed: %w", err)
+	}
+	fmt.Fprintln(cmd.OutOrStdout(), "Upload successful.")
 	return nil
 }
 
 func uploadBenchmarkStatus(ctx context.Context, server, token, nodeID, runID string, status model.BenchmarkStatus) error {
 	if token == "" {
+		// No token means no upload - this is handled by the caller with a warning
 		return nil
 	}
 	up := uploader.NewHTTPUploader(server, token)
@@ -133,7 +182,10 @@ func uploadBenchmarkStatus(ctx context.Context, server, token, nodeID, runID str
 		Status:    status,
 		StartTime: time.Now(),
 	}
-	return up.Upload(ctx, run)
+	if err := up.Upload(ctx, run); err != nil {
+		return fmt.Errorf("upload to %s failed: %w", server, err)
+	}
+	return nil
 }
 
 func uploadBenchmarkResult(ctx context.Context, server, token, nodeID string, result *model.BenchmarkRun) error {
@@ -144,7 +196,10 @@ func uploadBenchmarkResult(ctx context.Context, server, token, nodeID string, re
 	if nodeID != "" {
 		up.SetNodeID(nodeID)
 	}
-	return up.Upload(ctx, result)
+	if err := up.Upload(ctx, result); err != nil {
+		return fmt.Errorf("upload to %s failed (run_id=%s): %w", server, result.RunID, err)
+	}
+	return nil
 }
 
 func init() {

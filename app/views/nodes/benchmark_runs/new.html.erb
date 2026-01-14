@@ -1,37 +1,133 @@
 <%= turbo_frame_tag "modal" do %>
-  <%= render "shared/modal", title: "Run Benchmark: #{@node.hostname}", max_width: 'max-w-lg' do %>
+  <%= render "shared/modal", title: "Run Benchmark: #{@node.hostname}", max_width: 'max-w-xl' do %>
     <div class="space-y-4">
-      <p class="text-sm text-gray-500">
-        Configure and start a new HPCG benchmark run on <strong><%= @node.hostname %></strong>.
-      </p>
-      
-      <%= form_with model: @form, url: node_benchmark_runs_path(@node), method: :post, data: { turbo_frame: "_top" }, class: "mt-4 space-y-4" do |f| %>
-        <% if @form.errors.any? %>
-          <div class="rounded-md bg-red-50 p-4 border border-red-200">
-            <h3 class="text-sm font-bold text-red-800">Please correct the errors below</h3>
-            <div class="mt-2 text-xs text-red-700">
-              <ul role="list" class="list-disc pl-5 space-y-1">
-                <% @form.errors.full_messages.each do |msg| %>
-                  <li><%= msg %></li>
+      <%# Configuration Summary %>
+      <div class="card-netbox">
+        <div class="card-header bg-slate-50">
+          <h4 class="text-xs font-bold uppercase text-slate-600">Configuration</h4>
+        </div>
+        <table class="w-full text-sm">
+          <tbody class="divide-y divide-slate-100">
+            <tr>
+              <td class="px-3 py-2 text-slate-500 font-medium w-1/3">Working Directory</td>
+              <td class="px-3 py-2 font-mono text-slate-700"><%= @preflight.config[:work_dir] %></td>
+              <td class="px-3 py-1 text-right">
+                <% case @preflight.config[:work_dir_source] %>
+                <% when :node %>
+                  <span class="inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-medium text-blue-700">Node</span>
+                <% when :global %>
+                  <span class="inline-flex items-center rounded-full bg-purple-50 px-2 py-0.5 text-[10px] font-medium text-purple-700">Global</span>
+                <% else %>
+                  <span class="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-600">Default</span>
                 <% end %>
-              </ul>
+              </td>
+            </tr>
+            <tr>
+              <td class="px-3 py-2 text-slate-500 font-medium">Agent Path</td>
+              <td class="px-3 py-2 font-mono text-slate-700" colspan="2"><%= @preflight.config[:agent_path] %></td>
+            </tr>
+            <% if @preflight.config[:server_url].present? %>
+            <tr>
+              <td class="px-3 py-2 text-slate-500 font-medium">Callback URL</td>
+              <td class="px-3 py-2 font-mono text-slate-700 text-xs" colspan="2"><%= @preflight.config[:server_url] %></td>
+            </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+
+      <%# Preflight Checks %>
+      <div class="card-netbox">
+        <div class="card-header bg-slate-50">
+          <h4 class="text-xs font-bold uppercase text-slate-600">Pre-flight Checks</h4>
+        </div>
+        <div class="divide-y divide-slate-100">
+          <% @preflight.checks.each do |check| %>
+            <div class="px-3 py-2 flex items-start gap-3">
+              <% if check.passed %>
+                <svg class="h-5 w-5 text-green-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd" />
+                </svg>
+              <% else %>
+                <svg class="h-5 w-5 text-red-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clip-rule="evenodd" />
+                </svg>
+              <% end %>
+              <div class="flex-1 min-w-0">
+                <p class="text-sm font-medium text-slate-700"><%= check.name %></p>
+                <p class="text-xs text-slate-500"><%= check.message %></p>
+                <% if check.details.present? && !check.passed %>
+                  <div class="mt-1 text-xs text-slate-600 bg-slate-50 rounded p-2 whitespace-pre-wrap font-mono"><%= check.details %></div>
+                <% end %>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      </div>
+
+      <%# Error with Quick Fix Links %>
+      <% if @preflight.failed_checks.any? %>
+        <div class="rounded-md bg-amber-50 p-4 border border-amber-200">
+          <div class="flex">
+            <svg class="h-5 w-5 text-amber-400 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
+            </svg>
+            <div class="ml-3">
+              <h3 class="text-sm font-bold text-amber-800">Configuration issues detected</h3>
+              <div class="mt-2 text-xs text-amber-700">
+                <p>Please fix the issues above before running the benchmark.</p>
+              </div>
+              <div class="mt-3 flex flex-wrap gap-2">
+                <%= link_to "Edit Node Settings", edit_node_path(@node),
+                    class: "inline-flex items-center rounded-md bg-amber-100 px-2.5 py-1.5 text-xs font-semibold text-amber-800 hover:bg-amber-200",
+                    data: { turbo_frame: "_top" } %>
+                <%= link_to "Global Settings", settings_agent_path,
+                    class: "inline-flex items-center rounded-md bg-amber-100 px-2.5 py-1.5 text-xs font-semibold text-amber-800 hover:bg-amber-200",
+                    data: { turbo_frame: "_top" } %>
+                <%= link_to "API Keys", api_keys_path,
+                    class: "inline-flex items-center rounded-md bg-amber-100 px-2.5 py-1.5 text-xs font-semibold text-amber-800 hover:bg-amber-200",
+                    data: { turbo_frame: "_top" } %>
+              </div>
             </div>
           </div>
-        <% end %>
-
-        <div>
-          <%= f.label :log_path, "Log File Path (Optional)", class: "block text-sm font-bold text-slate-700 mb-1" %>
-          <%= f.text_field :log_path, 
-              class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm font-mono", 
-              placeholder: "/tmp/hpcg.log" %>
-          <p class="mt-1 text-[10px] text-slate-500 italic">
-            Leave blank to use the default generated log file.
-          </p>
         </div>
+      <% end %>
 
+      <%# Form - only show if preflight passed %>
+      <% if @preflight.success? %>
+        <%= form_with model: @form, url: node_benchmark_runs_path(@node), method: :post, data: { turbo_frame: "_top" }, class: "space-y-4" do |f| %>
+          <% if @form.errors.any? %>
+            <div class="rounded-md bg-red-50 p-4 border border-red-200">
+              <h3 class="text-sm font-bold text-red-800">Please correct the errors below</h3>
+              <div class="mt-2 text-xs text-red-700">
+                <ul role="list" class="list-disc pl-5 space-y-1">
+                  <% @form.errors.full_messages.each do |msg| %>
+                    <li><%= msg %></li>
+                  <% end %>
+                </ul>
+              </div>
+            </div>
+          <% end %>
+
+          <div>
+            <%= f.label :log_path, "Log File Path (Optional)", class: "block text-sm font-bold text-slate-700 mb-1" %>
+            <%= f.text_field :log_path,
+                class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm font-mono",
+                placeholder: "/tmp/hpcg.log" %>
+            <p class="mt-1 text-[10px] text-slate-500 italic">
+              Leave blank to use the default generated log file.
+            </p>
+          </div>
+
+          <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
+            <button type="button" class="btn-secondary" data-action="modal#close">Cancel</button>
+            <%= f.submit "Start Benchmark", class: "btn-primary" %>
+          </div>
+        <% end %>
+      <% else %>
         <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
-          <button type="button" class="btn-secondary" data-action="modal#close">Cancel</button>
-          <%= f.submit "Start Benchmark", class: "btn-primary" %>
+          <button type="button" class="btn-secondary" data-action="modal#close">Close</button>
+          <button type="button" class="btn-primary opacity-50 cursor-not-allowed" disabled>Start Benchmark</button>
         </div>
       <% end %>
     </div>

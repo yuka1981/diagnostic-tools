@@ -4,6 +4,7 @@ Rails.application.routes.draw do
   # API routes
   namespace :api do
     namespace :v1 do
+      get "health", to: "health#show"
       post "inventory/push", to: "inventory#push"
       resources :benchmark_runs, only: [ :create, :update ]
     end

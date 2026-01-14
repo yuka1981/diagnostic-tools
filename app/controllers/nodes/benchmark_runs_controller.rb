@@ -9,6 +9,11 @@ module Nodes
 
     def new
       @form = Benchmark::RunForm.new
+      @preflight = Benchmark::PreflightService.new(
+        @node,
+        server_url: request.base_url,
+        agent_token: agent_token
+      ).call
     end
 
     def create
@@ -29,7 +34,7 @@ module Nodes
           @node,
           run,
           request.base_url,
-          Rails.application.credentials.dig(:api, :agent_token) || ENV["API_AGENT_TOKEN"]
+          agent_token
         )
 
         redirect_to node_path(@node), notice: "Benchmark triggered successfully."
@@ -52,6 +57,10 @@ module Nodes
 
     def run_params
       params.require(:benchmark_run_form).permit(:log_path)
+    end
+
+    def agent_token
+      Rails.application.credentials.dig(:api, :agent_token) || ENV["API_AGENT_TOKEN"]
     end
   end
 end
