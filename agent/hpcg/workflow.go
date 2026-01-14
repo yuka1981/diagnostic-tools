@@ -74,12 +74,16 @@ func (w *WorkflowOrchestrator) Run(ctx context.Context, params *RunParams) (*mod
 
 	metrics, finalStatus := w.parseResults(output, start, execStatus, targetLogPath)
 
+	// 6. Capture log content for API reporting
+	logContent := w.captureLogContent(output, targetLogPath, start)
+
 	result := &model.BenchmarkRun{
-		RunID:     params.RunID,
-		RecipeID:  "hpcg",
-		StartTime: start,
-		EndTime:   end,
-		Status:    finalStatus,
+		RunID:      params.RunID,
+		RecipeID:   "hpcg",
+		StartTime:  start,
+		EndTime:    end,
+		Status:     finalStatus,
+		LogContent: logContent,
 	}
 
 	if targetLogPath != "" {
@@ -238,6 +242,42 @@ func (w *WorkflowOrchestrator) parseResults(
 	}
 
 	return metrics, finalStatus
+}
+
+// captureLogContent gathers log content from command output and log files.
+// Returns combined content truncated to reasonable size for API transmission.
+func (w *WorkflowOrchestrator) captureLogContent(output []byte, targetLogPath string, startTime time.Time) string {
+	var sb strings.Builder
+	const maxLogSize = 100000 // 100KB limit for log content
+
+	// Include command output
+	if len(output) > 0 {
+		sb.WriteString("=== Command Output ===\n")
+		sb.Write(output)
+		sb.WriteString("\n")
+	}
+
+	// Try to read the log file content
+	logToRead := targetLogPath
+	if logToRead == "" {
+		if latestLog, err := w.findLatestLog(startTime); err == nil {
+			logToRead = latestLog
+		}
+	}
+
+	if logToRead != "" {
+		if content, err := os.ReadFile(logToRead); err == nil {
+			sb.WriteString("\n=== HPCG Log File ===\n")
+			sb.Write(content)
+		}
+	}
+
+	result := sb.String()
+	if len(result) > maxLogSize {
+		result = result[:maxLogSize] + "\n... (truncated)"
+	}
+
+	return result
 }
 
 func (w *WorkflowOrchestrator) findLatestLog(startTime time.Time) (string, error) {

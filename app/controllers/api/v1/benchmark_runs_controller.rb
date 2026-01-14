@@ -46,7 +46,8 @@ module Api
           status: status_map[params[:status]] || run.status,
           metrics: params[:metrics],
           started_at: params[:start_time],
-          finished_at: params[:end_time]
+          finished_at: params[:end_time],
+          log_content: params[:log_content]
         }
 
         if run.update(update_params)

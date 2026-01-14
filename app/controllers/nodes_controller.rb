@@ -137,7 +137,7 @@ class NodesController < ApplicationController
   end
 
   def node_params
-    params.require(:node).permit(:hostname, :ip, :arch, :ssh_port, :ssh_user, :ssh_key, :password, :ssh_connect_method, :jump_host, :jump_user, :jump_port)
+    params.require(:node).permit(:hostname, :ip, :arch, :ssh_port, :ssh_user, :ssh_key, :password, :ssh_connect_method, :jump_host, :jump_user, :jump_port, :agent_path, :benchmark_work_dir)
   end
 
   def authorize_approver!

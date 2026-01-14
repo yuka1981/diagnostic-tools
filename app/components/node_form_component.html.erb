@@ -116,6 +116,37 @@
     </div>
   </div>
 
+  <%# Section: Agent & Benchmark Configuration %>
+  <div class="card-netbox">
+    <div class="card-header">
+      <h3 class="card-title">Agent & Benchmark Configuration</h3>
+    </div>
+    <div class="p-4 grid grid-cols-1 gap-6 sm:grid-cols-2">
+      <div>
+        <%= f.label :agent_path, "Agent Path", class: "block text-sm font-bold text-slate-700 mb-1" %>
+        <%= f.text_field :agent_path,
+            placeholder: "hpc-agent",
+            class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm font-mono" %>
+        <p class="mt-1 text-xs text-slate-500">Path to the hpc-agent binary on this node. Leave blank to use default.</p>
+      </div>
+
+      <div>
+        <%= f.label :benchmark_work_dir, "Benchmark Working Directory", class: "block text-sm font-bold text-slate-700 mb-1" %>
+        <%= f.text_field :benchmark_work_dir,
+            placeholder: BenchmarkConfig.global_work_dir.presence || BenchmarkConfig::DEFAULT_WORK_DIR,
+            class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm font-mono" %>
+        <p class="mt-1 text-xs text-slate-500">
+          Directory where benchmark source code is located.
+          <% if BenchmarkConfig.global_work_dir.present? %>
+            Global default: <code class="bg-slate-100 px-1 rounded"><%= BenchmarkConfig.global_work_dir %></code>
+          <% else %>
+            Defaults to <code class="bg-slate-100 px-1 rounded"><%= BenchmarkConfig::DEFAULT_WORK_DIR %></code>
+          <% end %>
+        </p>
+      </div>
+    </div>
+  </div>
+
   <div class="flex items-center justify-end gap-3 pt-4">
     <%= link_to "Cancel", nodes_path,
         class: "btn-secondary",

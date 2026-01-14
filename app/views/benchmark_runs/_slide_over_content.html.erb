@@ -164,10 +164,16 @@
            aria-hidden="true"
            class="hidden"
            data-tabs-target="panel">
-        
-        <div class="text-center py-12 card-netbox bg-slate-50 border-dashed">
-          <p class="text-slate-500 font-bold uppercase text-xs">No logs available</p>
-        </div>
+
+        <% if benchmark_run.log_content.present? %>
+          <div class="card-netbox overflow-hidden">
+            <pre class="p-4 text-xs font-mono text-slate-700 bg-slate-50 overflow-x-auto max-h-96 whitespace-pre-wrap break-words"><%= benchmark_run.log_content %></pre>
+          </div>
+        <% else %>
+          <div class="text-center py-12 card-netbox bg-slate-50 border-dashed">
+            <p class="text-slate-500 font-bold uppercase text-xs">No logs available</p>
+          </div>
+        <% end %>
       </div>
 
       <%# Artifacts Tab Panel %>

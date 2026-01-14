@@ -98,5 +98,16 @@ RSpec.describe "Api::V1::BenchmarkRuns", type: :request do
       expect(run.artifact_indices.pluck(:path)).to contain_exactly("/path/to/hpcg.log", "/path/to/hpcg.dat")
       expect(run.artifact_indices.find_by(path: "/path/to/hpcg.log").file_type).to eq("log")
     end
+
+    it "saves log_content when provided" do
+      log_content = "=== Command Output ===\nHPCG benchmark started\n\n=== HPCG Log File ===\nFinal GFLOPS: 123.45"
+      payload = valid_payload.merge(log_content: log_content)
+      post "/api/v1/benchmark_runs",
+           params: payload.to_json,
+           headers: { "Authorization" => "Bearer #{valid_token}", "Content-Type" => "application/json" }
+
+      expect(response).to have_http_status(:success)
+      expect(run.reload.log_content).to eq(log_content)
+    end
   end
 end
