@@ -9,6 +9,7 @@ import (
 	"github.com/jaypipes/ghw/pkg/memory"
 	"github.com/jaypipes/ghw/pkg/option"
 	"github.com/shirou/gopsutil/v3/mem"
+
 	"github.com/yuka1981/diagnostic-tools/agent/core/model"
 )
 

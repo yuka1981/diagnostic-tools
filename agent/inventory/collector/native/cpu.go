@@ -8,6 +8,7 @@ import (
 	"github.com/jaypipes/ghw/pkg/cpu"
 	"github.com/jaypipes/ghw/pkg/option"
 	"github.com/jaypipes/ghw/pkg/topology"
+
 	"github.com/yuka1981/diagnostic-tools/agent/core/model"
 )
 

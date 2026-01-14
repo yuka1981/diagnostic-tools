@@ -12,6 +12,9 @@ import (
 	"github.com/yuka1981/diagnostic-tools/agent/core/model"
 )
 
+// Test constant for interface name.
+const testInterfaceEth0 = "eth0"
+
 // MockCPUCollector is a mock for NativeCPUCollector.
 type MockCPUCollector struct {
 	Result *model.CPUInfo
@@ -152,8 +155,8 @@ func TestHybridMemoryCollector_Collect(t *testing.T) {
 
 // MockDiskCollector mocks for disk collection.
 type MockDiskCollector struct {
-	Result []model.DiskInfo
 	Err    error
+	Result []model.DiskInfo
 }
 
 func (m *MockDiskCollector) Collect(ctx context.Context) ([]model.DiskInfo, error) {
@@ -161,8 +164,8 @@ func (m *MockDiskCollector) Collect(ctx context.Context) ([]model.DiskInfo, erro
 }
 
 type MockLegacyDiskCollector struct {
-	Result []model.DiskInfo
 	Err    error
+	Result []model.DiskInfo
 }
 
 func (m *MockLegacyDiskCollector) Collect(ctx context.Context) ([]model.DiskInfo, error) {
@@ -207,8 +210,8 @@ func TestHybridDiskCollector_Collect(t *testing.T) {
 
 // MockNetCollector mocks for network collection.
 type MockNetCollector struct {
-	Result []model.NetInfo
 	Err    error
+	Result []model.NetInfo
 }
 
 func (m *MockNetCollector) Collect(ctx context.Context) ([]model.NetInfo, error) {
@@ -216,8 +219,8 @@ func (m *MockNetCollector) Collect(ctx context.Context) ([]model.NetInfo, error)
 }
 
 type MockLegacyNetCollector struct {
-	Result []model.NetInfo
 	Err    error
+	Result []model.NetInfo
 }
 
 func (m *MockLegacyNetCollector) Collect(ctx context.Context) ([]model.NetInfo, error) {
@@ -226,7 +229,7 @@ func (m *MockLegacyNetCollector) Collect(ctx context.Context) ([]model.NetInfo, 
 
 func TestHybridNetCollector_Collect(t *testing.T) {
 	t.Run("Success_NativeWorks", func(t *testing.T) {
-		nativeResult := []model.NetInfo{{Name: "eth0", Up: true}}
+		nativeResult := []model.NetInfo{{Name: testInterfaceEth0, Up: true}}
 		native := &MockNetCollector{Result: nativeResult}
 		legacy := &MockLegacyNetCollector{Result: []model.NetInfo{{Name: "eth0-legacy"}}}
 
@@ -237,7 +240,7 @@ func TestHybridNetCollector_Collect(t *testing.T) {
 			t.Fatalf("expected no error, got %v", err)
 		}
 
-		if result[0].Name != "eth0" {
+		if result[0].Name != testInterfaceEth0 {
 			t.Errorf("expected native result, got %q", result[0].Name)
 		}
 	})

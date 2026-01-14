@@ -9,6 +9,7 @@ import (
 	"github.com/jaypipes/ghw/pkg/net"
 	"github.com/jaypipes/ghw/pkg/option"
 	gopsnet "github.com/shirou/gopsutil/v3/net"
+
 	"github.com/yuka1981/diagnostic-tools/agent/core/model"
 )
 
@@ -39,13 +40,13 @@ type NetworkInterface struct {
 	Name        string   `json:"name"`
 	MacAddress  string   `json:"mac_address"`
 	IPAddresses []string `json:"ip_addresses"`
-	MTU         int      `json:"mtu"`
-	Up          bool     `json:"up"`
 	Flags       []string `json:"flags"`
 	BytesSent   uint64   `json:"bytes_sent"`
 	BytesRecv   uint64   `json:"bytes_recv"`
 	PacketsSent uint64   `json:"packets_sent"`
 	PacketsRecv uint64   `json:"packets_recv"`
+	MTU         int      `json:"mtu"`
+	Up          bool     `json:"up"`
 }
 
 // NativeNetworkCollector collects network interface information using gopsutil.

@@ -14,12 +14,12 @@ import (
 
 // MockNetworkProvider is a mock implementation for testing.
 type MockNetworkProvider struct {
-	NetworkInfo    *net.Info
-	InterfaceStats gopsnet.InterfaceStatList
-	IOCountersData []gopsnet.IOCountersStat
 	NetworkErr     error
 	InterfaceErr   error
 	IOCountersErr  error
+	NetworkInfo    *net.Info
+	InterfaceStats gopsnet.InterfaceStatList
+	IOCountersData []gopsnet.IOCountersStat
 }
 
 func (m *MockNetworkProvider) Network(opts ...*option.Option) (*net.Info, error) {

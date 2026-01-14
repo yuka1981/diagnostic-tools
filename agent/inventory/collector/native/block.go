@@ -9,7 +9,15 @@ import (
 	"github.com/jaypipes/ghw/pkg/block"
 	"github.com/jaypipes/ghw/pkg/option"
 	"github.com/shirou/gopsutil/v3/disk"
+
 	"github.com/yuka1981/diagnostic-tools/agent/core/model"
+)
+
+// String constants for drive and storage controller types.
+const (
+	driveTypeUnknown = "Unknown"
+	driveTypeSSD     = "SSD"
+	busTypeNVMe      = "NVMe"
 )
 
 // BlockProvider abstracts ghw block and gopsutil disk functions for testability.
@@ -37,13 +45,13 @@ func (r *RealBlockProvider) Usage(path string) (*disk.UsageStat, error) {
 // PhysicalDisk represents a physical storage device.
 type PhysicalDisk struct {
 	Name         string `json:"name"`
-	SizeBytes    uint64 `json:"size_bytes"`
 	Vendor       string `json:"vendor"`
 	Model        string `json:"model"`
 	SerialNumber string `json:"serial_number"`
 	BusType      string `json:"bus_type"`
 	DriveType    string `json:"drive_type"`
 	WWN          string `json:"wwn,omitempty"`
+	SizeBytes    uint64 `json:"size_bytes"`
 }
 
 // NativeBlockCollector collects block device information using ghw and gopsutil.
@@ -75,13 +83,13 @@ func (c *NativeBlockCollector) CollectPhysicalDisks(_ context.Context) ([]Physic
 	for _, d := range blockInfo.Disks {
 		disk := PhysicalDisk{
 			Name:         d.Name,
-			SizeBytes:    d.SizeBytes,
 			Vendor:       d.Vendor,
 			Model:        d.Model,
 			SerialNumber: d.SerialNumber,
 			BusType:      storageControllerToString(d.StorageController),
 			DriveType:    driveTypeToString(d.DriveType),
 			WWN:          d.WWN,
+			SizeBytes:    d.SizeBytes,
 		}
 		disks = append(disks, disk)
 	}
@@ -158,7 +166,7 @@ func storageControllerToString(sc block.StorageController) string {
 	case block.StorageControllerSCSI:
 		return "SCSI"
 	case block.StorageControllerNVMe:
-		return "NVMe"
+		return busTypeNVMe
 	case block.StorageControllerVirtIO:
 		return "VirtIO"
 	case block.StorageControllerMMC:
@@ -166,7 +174,7 @@ func storageControllerToString(sc block.StorageController) string {
 	case block.StorageControllerLoop:
 		return "Loop"
 	default:
-		return "Unknown"
+		return driveTypeUnknown
 	}
 }
 
@@ -176,12 +184,12 @@ func driveTypeToString(dt block.DriveType) string {
 	case block.DriveTypeHDD:
 		return "HDD"
 	case block.DriveTypeSSD:
-		return "SSD"
+		return driveTypeSSD
 	case block.DriveTypeFDD:
 		return "FDD"
 	case block.DriveTypeODD:
 		return "ODD"
 	default:
-		return "Unknown"
+		return driveTypeUnknown
 	}
 }

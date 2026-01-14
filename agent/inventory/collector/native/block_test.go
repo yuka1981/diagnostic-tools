@@ -12,14 +12,17 @@ import (
 	"github.com/shirou/gopsutil/v3/disk"
 )
 
+// Test constants to avoid goconst warnings.
+const testDeviceNvme0n1p1 = "/dev/nvme0n1p1"
+
 // MockBlockProvider is a mock implementation for testing.
 type MockBlockProvider struct {
-	BlockInfo      *block.Info
-	PartitionStats []disk.PartitionStat
-	UsageStats     map[string]*disk.UsageStat
 	BlockErr       error
 	PartErr        error
+	UsageStats     map[string]*disk.UsageStat
 	UsageErrMap    map[string]error
+	BlockInfo      *block.Info
+	PartitionStats []disk.PartitionStat
 }
 
 func (m *MockBlockProvider) Block(opts ...*option.Option) (*block.Info, error) {
@@ -142,7 +145,7 @@ func TestNativeBlockCollector_CollectPartitions(t *testing.T) {
 		mockProvider := &MockBlockProvider{
 			PartitionStats: []disk.PartitionStat{
 				{
-					Device:     "/dev/nvme0n1p1",
+					Device:     testDeviceNvme0n1p1,
 					Mountpoint: "/",
 					Fstype:     "ext4",
 				},
@@ -177,8 +180,8 @@ func TestNativeBlockCollector_CollectPartitions(t *testing.T) {
 			t.Fatalf("expected 2 partitions, got %d", len(disks))
 		}
 
-		if disks[0].Device != "/dev/nvme0n1p1" {
-			t.Errorf("expected Device '/dev/nvme0n1p1', got %q", disks[0].Device)
+		if disks[0].Device != testDeviceNvme0n1p1 {
+			t.Errorf("expected Device %q, got %q", testDeviceNvme0n1p1, disks[0].Device)
 		}
 		if disks[0].Mountpoint != "/" {
 			t.Errorf("expected Mountpoint '/', got %q", disks[0].Mountpoint)
