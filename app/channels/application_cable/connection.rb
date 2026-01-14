@@ -19,8 +19,26 @@ module ApplicationCable
       token = extract_token
       return nil unless valid_token?(token)
 
-      node_id = request.headers["X-Node-ID"]
-      Node.find_by(uuid: node_id)
+      agent_uuid = request.headers["X-Node-ID"]
+      return nil if agent_uuid.blank?
+
+      # First, try to find node by agent's UUID (fingerprint)
+      node = Node.find_by(uuid: agent_uuid)
+      return node if node
+
+      # If not found, try to find by IP and sync the UUID
+      # This handles the case where node was created manually/SSH before agent install
+      client_ip = request.ip
+      if client_ip.present?
+        node = Node.find_by(ip: client_ip)
+        if node && node.uuid != agent_uuid
+          Rails.logger.info "Syncing node #{node.hostname} UUID from #{node.uuid} to agent fingerprint #{agent_uuid}"
+          node.update!(uuid: agent_uuid)
+          return node
+        end
+      end
+
+      nil
     end
 
     def extract_token
