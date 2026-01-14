@@ -16,12 +16,21 @@ class AgentChannel < ApplicationCable::Channel
   end
 
   def unsubscribed
+    return unless current_node
+
     Rails.logger.info "Node #{current_node.hostname} (#{current_node.uuid}) disconnected from AgentChannel"
   end
 
   def receive(data)
     # Handle incoming data (e.g. command results)
-    Rails.logger.info "Received data from #{current_node.hostname}: #{data}"
+    Rails.logger.debug "Received data from #{current_node.hostname}: #{data}"
+
+    # Handle heartbeat from agent - update last_seen_at timestamp
+    if data["action"] == "heartbeat"
+      current_node&.touch(:last_seen_at)
+      Rails.logger.debug "Heartbeat received from #{current_node.hostname}"
+      return
+    end
 
     if data["action"] == "report_result"
       if data["status"] == "success"
