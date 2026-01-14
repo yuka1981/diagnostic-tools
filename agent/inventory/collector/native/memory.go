@@ -92,18 +92,18 @@ func (c *NativeMemoryCollector) CollectDIMMs(_ context.Context) ([]model.DIMMInf
 	return dimms, nil
 }
 
-// formatBytes converts bytes to a human-readable string.
+// formatBytes converts bytes to a human-readable string using binary prefixes.
 func formatBytes(bytes int64) string {
 	const (
-		GB = 1024 * 1024 * 1024
-		MB = 1024 * 1024
+		GiB = 1024 * 1024 * 1024
+		MiB = 1024 * 1024
 	)
 
-	if bytes >= GB {
-		return fmt.Sprintf("%d GB", bytes/GB)
+	if bytes >= GiB {
+		return fmt.Sprintf("%d GiB", bytes/GiB)
 	}
-	if bytes >= MB {
-		return fmt.Sprintf("%d MB", bytes/MB)
+	if bytes >= MiB {
+		return fmt.Sprintf("%d MiB", bytes/MiB)
 	}
 	return fmt.Sprintf("%d bytes", bytes)
 }

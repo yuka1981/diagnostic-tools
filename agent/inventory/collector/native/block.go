@@ -20,6 +20,29 @@ const (
 	busTypeNVMe      = "NVMe"
 )
 
+// skipFsTypes contains virtual/special filesystems that should be filtered out.
+var skipFsTypes = map[string]bool{
+	"tmpfs":      true,
+	"overlay":    true,
+	"devtmpfs":   true,
+	"proc":       true,
+	"sysfs":      true,
+	"devpts":     true,
+	"cgroup":     true,
+	"cgroup2":    true,
+	"securityfs": true,
+	"pstore":     true,
+	"efivarfs":   true,
+	"bpf":        true,
+	"debugfs":    true,
+	"tracefs":    true,
+	"hugetlbfs":  true,
+	"mqueue":     true,
+	"fusectl":    true,
+	"configfs":   true,
+	"squashfs":   true,
+}
+
 // BlockProvider abstracts ghw block and gopsutil disk functions for testability.
 type BlockProvider interface {
 	Block(opts ...*option.Option) (*block.Info, error)
@@ -134,28 +157,7 @@ func (c *NativeBlockCollector) CollectPartitions(_ context.Context) ([]model.Dis
 
 // shouldSkipFilesystem returns true for virtual/special filesystems.
 func shouldSkipFilesystem(fstype string) bool {
-	skipTypes := map[string]bool{
-		"tmpfs":      true,
-		"overlay":    true,
-		"devtmpfs":   true,
-		"proc":       true,
-		"sysfs":      true,
-		"devpts":     true,
-		"cgroup":     true,
-		"cgroup2":    true,
-		"securityfs": true,
-		"pstore":     true,
-		"efivarfs":   true,
-		"bpf":        true,
-		"debugfs":    true,
-		"tracefs":    true,
-		"hugetlbfs":  true,
-		"mqueue":     true,
-		"fusectl":    true,
-		"configfs":   true,
-		"squashfs":   true,
-	}
-	return skipTypes[fstype]
+	return skipFsTypes[fstype]
 }
 
 // storageControllerToString converts a block.StorageController to a string.

@@ -4,6 +4,8 @@ package native
 
 import (
 	"context"
+	"strconv"
+	"strings"
 
 	"github.com/jaypipes/ghw/pkg/cpu"
 	"github.com/jaypipes/ghw/pkg/option"
@@ -84,39 +86,20 @@ func (c *NativeCPUCollector) Collect(_ context.Context) (*model.CPUInfo, error) 
 				if node.Cores == nil {
 					continue
 				}
-				cpuList := ""
+				var cpuListBuilder strings.Builder
 				for i, core := range node.Cores {
 					for j, lp := range core.LogicalProcessors {
 						if i > 0 || j > 0 {
-							cpuList += ","
+							cpuListBuilder.WriteString(",")
 						}
-						cpuList += string(rune('0' + lp))
+						cpuListBuilder.WriteString(strconv.Itoa(lp))
 					}
 				}
-				// Use a proper string conversion for node ID
-				nodeIDStr := ""
-				if node.ID < 10 {
-					nodeIDStr = string(rune('0' + node.ID))
-				} else {
-					nodeIDStr = intToString(node.ID)
-				}
-				info.NUMAInfo[nodeIDStr] = cpuList
+				nodeIDStr := strconv.Itoa(node.ID)
+				info.NUMAInfo[nodeIDStr] = cpuListBuilder.String()
 			}
 		}
 	}
 
 	return info, nil
-}
-
-// intToString converts an int to string without importing strconv.
-func intToString(n int) string {
-	if n == 0 {
-		return "0"
-	}
-	result := ""
-	for n > 0 {
-		result = string(rune('0'+n%10)) + result
-		n /= 10
-	}
-	return result
 }
