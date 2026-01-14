@@ -22,6 +22,8 @@ const (
 	RetryWaitMin = 1 * time.Second
 	// RetryWaitMax is the maximum wait time for reconnection
 	RetryWaitMax = 30 * time.Second
+	// HeartbeatInterval is how often the agent sends heartbeats to the server
+	HeartbeatInterval = 30 * time.Second
 )
 
 // CommandHandler handles commands received from the server
@@ -96,7 +98,11 @@ func (c *Client) connectAndListen(ctx context.Context) error {
 	c.conn = conn
 	c.writeMu.Unlock()
 
+	// Create a cancellable context for this connection
+	connCtx, connCancel := context.WithCancel(ctx)
+
 	defer func() {
+		connCancel()                                                   // Stop heartbeat goroutine
 		conn.Close(websocket.StatusInternalError, "connection closed") //nolint:staticcheck // Deprecated but required for Go 1.22 compatibility
 
 		c.writeMu.Lock()
@@ -106,11 +112,14 @@ func (c *Client) connectAndListen(ctx context.Context) error {
 		}
 	}()
 
-	if err := c.subscribe(ctx, conn); err != nil {
+	if err := c.subscribe(connCtx, conn); err != nil {
 		return err
 	}
 
-	return c.readLoop(ctx, conn)
+	// Start heartbeat goroutine to keep connection alive
+	go c.heartbeatLoop(connCtx)
+
+	return c.readLoop(connCtx, conn)
 }
 
 //nolint:staticcheck // Deprecated but required for Go 1.22 compatibility
@@ -167,9 +176,42 @@ func (c *Client) readLoop(ctx context.Context, conn *websocket.Conn) error {
 	}
 }
 
+// heartbeatLoop sends periodic heartbeats to keep the connection alive
+// and ensure the server updates the node's last_seen_at timestamp.
+func (c *Client) heartbeatLoop(ctx context.Context) {
+	ticker := time.NewTicker(HeartbeatInterval)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-ticker.C:
+			if err := c.sendHeartbeat(ctx); err != nil {
+				log.Printf("Failed to send heartbeat: %v", err)
+			}
+		}
+	}
+}
+
+// sendHeartbeat sends a heartbeat message to the server.
+func (c *Client) sendHeartbeat(ctx context.Context) error {
+	return c.Send(ctx, map[string]interface{}{
+		"action":    "heartbeat",
+		"timestamp": time.Now().UTC().Format(time.RFC3339),
+	})
+}
+
 func (c *Client) handleMessage(ctx context.Context, msg map[string]interface{}) {
 	msgType, _ := msg["type"].(string)
-	if msgType == "ping" || msgType == "welcome" {
+
+	// Respond to ActionCable ping to keep connection alive (Fix 3)
+	if msgType == "ping" {
+		c.respondToPing(ctx)
+		return
+	}
+
+	if msgType == "welcome" {
 		return
 	}
 
@@ -187,6 +229,26 @@ func (c *Client) handleMessage(ctx context.Context, msg map[string]interface{}) 
 				}
 			}(action, message)
 		}
+	}
+}
+
+// respondToPing sends a pong response to ActionCable ping messages.
+// This keeps the WebSocket connection alive and prevents timeouts.
+func (c *Client) respondToPing(ctx context.Context) {
+	c.writeMu.Lock()
+	defer c.writeMu.Unlock()
+
+	if c.conn == nil {
+		return
+	}
+
+	// ActionCable expects a simple message back, not a full channel message
+	pongMsg := map[string]interface{}{
+		"type": "pong",
+	}
+
+	if err := wsjson.Write(ctx, c.conn, pongMsg); err != nil {
+		log.Printf("Failed to send pong: %v", err)
 	}
 }
 

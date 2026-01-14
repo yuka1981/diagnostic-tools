@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "net/ssh"
+require "shellwords"
 
 module Agent
   class RemoteUninstallService
@@ -81,7 +82,7 @@ module Agent
         target_spec = @target_host.include?(":") ? "[#{@target_host}]" : @target_host
         ssh_prefix = "sudo -S ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 #{target_user}@#{Shellwords.escape(target_spec)} "
 
-        perform_cleanup(ssh, ssh_prefix)
+        perform_cleanup(ssh, ssh_prefix, via_ssh: true)
       end
       true
     rescue => e
@@ -100,7 +101,7 @@ module Agent
       begin
         report_progress(:connect)
         Net::SSH.start(connect_host, user, ssh_options) do |ssh|
-          perform_cleanup(ssh, "sudo -S ")
+          perform_cleanup(ssh, "sudo -S ", via_ssh: false)
         end
       rescue Net::SSH::ConnectionTimeout, Errno::ETIMEDOUT, Errno::EHOSTUNREACH => e
         # If we used IP and failed, try hostname if it's different
@@ -123,34 +124,46 @@ module Agent
       @node&.ip.present? ? @node.ip : @target_host
     end
 
-    def perform_cleanup(ssh, prefix)
+    def perform_cleanup(ssh, prefix, via_ssh: false)
       report_progress(:stop_service)
 
       # Stop service (use timeout to prevent hanging)
       stop_cmd = "timeout 10s systemctl stop hpc-agent || true"
-      execute_remote_command(ssh, "#{prefix}#{bash_c_command(stop_cmd)}", password: @sudo_password)
+      execute_remote_command(ssh, build_command(prefix, stop_cmd, via_ssh: via_ssh), password: @sudo_password)
 
       # Disable service
       disable_cmd = "timeout 10s systemctl disable hpc-agent || true"
-      execute_remote_command(ssh, "#{prefix}#{bash_c_command(disable_cmd)}", password: @sudo_password)
+      execute_remote_command(ssh, build_command(prefix, disable_cmd, via_ssh: via_ssh), password: @sudo_password)
 
       report_progress(:remove_files)
 
       # Remove service file
       rm_service_cmd = "rm -f #{SERVICE_FILE_PATH}"
-      execute_remote_command(ssh, "#{prefix}#{bash_c_command(rm_service_cmd)}", password: @sudo_password)
+      execute_remote_command(ssh, build_command(prefix, rm_service_cmd, via_ssh: via_ssh), password: @sudo_password)
 
       # Remove binary
       rm_bin_cmd = "rm -f #{TARGET_BIN_PATH}"
-      execute_remote_command(ssh, "#{prefix}#{bash_c_command(rm_bin_cmd)}", password: @sudo_password)
+      execute_remote_command(ssh, build_command(prefix, rm_bin_cmd, via_ssh: via_ssh), password: @sudo_password)
 
       # Remove temporary installation files
       rm_tmp_cmd = "rm -f /tmp/agent_bin_install /tmp/hpc-agent.service"
-      execute_remote_command(ssh, "#{prefix}#{bash_c_command(rm_tmp_cmd)}", password: @sudo_password)
+      execute_remote_command(ssh, build_command(prefix, rm_tmp_cmd, via_ssh: via_ssh), password: @sudo_password)
 
       report_progress(:reload_daemon)
       reload_cmd = "timeout 10s systemctl daemon-reload"
-      execute_remote_command(ssh, "#{prefix}#{bash_c_command(reload_cmd)}", password: @sudo_password)
+      execute_remote_command(ssh, build_command(prefix, reload_cmd, via_ssh: via_ssh), password: @sudo_password)
+    end
+
+    def build_command(prefix, cmd, via_ssh: false)
+      # Wrap command for bash -c
+      remote_cmd = bash_c_command(cmd)
+      if via_ssh
+        # When going through SSH, we need to escape the command so quotes are preserved
+        "#{prefix}#{Shellwords.escape(remote_cmd)}"
+      else
+        # Direct connection, no additional escaping needed
+        "#{prefix}#{remote_cmd}"
+      end
     end
 
     def bash_c_command(cmd)
