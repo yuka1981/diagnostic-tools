@@ -39,6 +39,12 @@ module Nodes
 
         redirect_to node_path(@node), notice: "Benchmark triggered successfully."
       else
+        # Re-run preflight checks for re-rendering the form
+        @preflight = Benchmark::PreflightService.new(
+          @node,
+          server_url: request.base_url,
+          agent_token: agent_token
+        ).call
         render :new, status: :unprocessable_entity
       end
     end
@@ -60,7 +66,8 @@ module Nodes
     end
 
     def agent_token
-      Rails.application.credentials.dig(:api, :agent_token) || ENV["API_AGENT_TOKEN"]
+      # Prefer per-node token, fall back to global token
+      @node.api_token.presence || Rails.application.credentials.dig(:api, :agent_token) || ENV["API_AGENT_TOKEN"]
     end
   end
 end

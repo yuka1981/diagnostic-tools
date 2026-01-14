@@ -74,8 +74,19 @@ module Benchmark
         agent_path: resolve_agent_path,
         node_hostname: @target_node.hostname,
         server_url: @server_url,
-        api_configured: @server_url.present? && @agent_token.present?
+        api_configured: @server_url.present? && @agent_token.present?,
+        token_source: token_source
       }
+    end
+
+    def token_source
+      if @target_node&.api_token.present?
+        :node
+      elsif @agent_token.present?
+        :global
+      else
+        :none
+      end
     end
 
     def work_dir_source

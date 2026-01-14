@@ -114,9 +114,11 @@ module Benchmark
     end
 
     def build_agent_command(agent_bin)
-      cmd = "#{Shellwords.escape(agent_bin)} hpcg"
+      # Set OMP_NUM_THREADS to use all physical cores for OpenMP parallelization
+      # nproc returns the number of available processing units
+      cmd = "OMP_NUM_THREADS=$(nproc) #{Shellwords.escape(agent_bin)} hpcg"
       cmd += " --id #{Shellwords.escape(@run_id || generate_run_id)}"
-      cmd += " --build #{Shellwords.escape('make arch=Linux_Serial')}"
+      cmd += " --build #{Shellwords.escape('make arch=Linux_OpenMP')}"
       cmd += " --run #{Shellwords.escape('./bin/xhpcg')}"
       cmd += " --nx 104 --ny 104 --nz 104 --rt 60"
       cmd += " --log-path #{Shellwords.escape(@log_path)}" if @log_path.present?

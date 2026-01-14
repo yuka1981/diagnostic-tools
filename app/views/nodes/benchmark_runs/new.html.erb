@@ -32,6 +32,27 @@
               <td class="px-3 py-2 font-mono text-slate-700 text-xs" colspan="2"><%= @preflight.config[:server_url] %></td>
             </tr>
             <% end %>
+            <tr>
+              <td class="px-3 py-2 text-slate-500 font-medium">API Token</td>
+              <td class="px-3 py-2 text-slate-700">
+                <% case @preflight.config[:token_source] %>
+                <% when :node %>
+                  <span class="text-green-600">Configured</span>
+                <% when :global %>
+                  <span class="text-green-600">Using global</span>
+                <% else %>
+                  <span class="text-amber-600">Not configured</span>
+                <% end %>
+              </td>
+              <td class="px-3 py-1 text-right">
+                <% case @preflight.config[:token_source] %>
+                <% when :node %>
+                  <span class="inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-medium text-blue-700">Node</span>
+                <% when :global %>
+                  <span class="inline-flex items-center rounded-full bg-purple-50 px-2 py-0.5 text-[10px] font-medium text-purple-700">Global</span>
+                <% end %>
+              </td>
+            </tr>
           </tbody>
         </table>
       </div>
