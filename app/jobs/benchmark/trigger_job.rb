@@ -14,6 +14,11 @@ module Benchmark
       )
       result = trigger_service.call
 
+      # Reload to check current state - status may have changed during SSH call
+      # (e.g., user cancelled, or fast agent already reported completion)
+      run.reload
+      return unless run.pending?
+
       if result.success?
         # Optimistically mark as running since SSH command was accepted
         # Agent will update to success/failed when complete
