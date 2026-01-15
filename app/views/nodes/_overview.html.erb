@@ -84,18 +84,9 @@
              <th class="px-3 py-2 text-right text-xs font-bold uppercase text-slate-500">Date</th>
            </tr>
          </thead>
-         <tbody class="divide-y divide-slate-100">
+         <tbody id="node_recent_runs_tbody" class="divide-y divide-slate-100">
            <% node.benchmark_runs.order(created_at: :desc).limit(5).each do |run| %>
-             <tr id="<%= dom_id(run) %>" class="hover:bg-teal-50">
-               <td class="px-3 py-2 font-mono text-slate-700">
-                 <%= link_to run.id.to_s[0..7], benchmark_run_path(run), class: "text-teal-600 font-bold hover:underline" %>
-               </td>
-               <td class="px-3 py-2 text-slate-700"><%= run.benchmark_recipe&.name || "N/A" %></td>
-               <td class="px-3 py-2">
-                 <span class="font-medium <%= status_text_color(run.status) %>"><%= run.status.humanize %></span>
-               </td>
-               <td class="px-3 py-2 text-right text-slate-500"><%= time_ago_in_words(run.created_at) %> ago</td>
-             </tr>
+             <%= render "nodes/benchmark_run_row", run: run %>
            <% end %>
          </tbody>
        </table>

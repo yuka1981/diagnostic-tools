@@ -50,6 +50,7 @@ class BenchmarkRun < ApplicationRecord
   end
 
   def broadcast_new_run
+    # Broadcast to global benchmark runs list
     broadcast_prepend_to(
       "benchmark_runs",
       target: "benchmark_runs_tbody",
@@ -57,15 +58,17 @@ class BenchmarkRun < ApplicationRecord
       locals: { run: self }
     )
 
-    broadcast_replace_to(
+    # Broadcast to node page - prepend to recent runs table
+    broadcast_prepend_to(
       node,
-      target: "latest_benchmark_node_#{node.id}",
-      partial: "nodes/latest_benchmark",
-      locals: { node: node }
+      target: "node_recent_runs_tbody",
+      partial: "nodes/benchmark_run_row",
+      locals: { run: self }
     )
   end
 
   def broadcast_status_update
+    # Broadcast to global benchmark runs list
     broadcast_replace_to(
       "benchmark_runs",
       target: "benchmark_run_#{id}",
@@ -73,11 +76,12 @@ class BenchmarkRun < ApplicationRecord
       locals: { run: self }
     )
 
+    # Broadcast to node page - update the run row
     broadcast_replace_to(
       node,
-      target: "latest_benchmark_node_#{node.id}",
-      partial: "nodes/latest_benchmark",
-      locals: { node: node }
+      target: "benchmark_run_#{id}",
+      partial: "nodes/benchmark_run_row",
+      locals: { run: self }
     )
   end
 end
