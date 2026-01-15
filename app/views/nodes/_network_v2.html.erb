@@ -98,14 +98,15 @@
        class="hidden fixed inset-0 z-40 bg-slate-900/60 backdrop-blur-sm opacity-0 transition-opacity duration-300 ease-in-out">
   </div>
 
-  <%# Panel %>
+  <%# Centered Modal Panel %>
   <div data-slide-over-target="panel"
+       data-action="click->slide-over#panelClick"
        role="dialog"
        aria-modal="true"
        aria-labelledby="slide-over-title"
-       class="hidden fixed inset-y-0 right-0 z-50 w-full max-w-md transform translate-x-full transition-transform duration-300 ease-in-out">
-    
-    <div class="flex h-full flex-col bg-white shadow-2xl ring-1 ring-slate-200">
+       class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 opacity-0 scale-95 transition-all duration-300 ease-in-out">
+
+    <div data-slide-over-target="modalContent" class="w-full max-w-2xl bg-white shadow-2xl ring-1 ring-slate-200 rounded-lg overflow-hidden" style="height: 60vh;">
       <%# Header %>
       <div class="flex items-center justify-between border-b border-slate-200 px-6 py-4 bg-slate-50">
         <h2 id="slide-over-title" class="text-sm font-bold text-slate-900 uppercase tracking-widest">
@@ -122,7 +123,7 @@
       </div>
 
       <%# Content %>
-      <div class="flex-1 overflow-y-auto p-6">
+      <div class="overflow-y-auto p-6" style="height: calc(60vh - 65px);">
         <%= turbo_frame_tag "slide_over_content" do %>
           <div class="flex flex-col items-center justify-center h-full py-12 text-center">
             <div class="animate-pulse flex flex-col items-center">
