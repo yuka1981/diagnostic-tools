@@ -4,98 +4,108 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-HPC System Detection & Benchmark Tool - A hybrid system for monitoring HPC cluster nodes and managing HPCG benchmark runs.
+HPC System Detection & Benchmark Tool - A web application for monitoring HPC cluster nodes and managing benchmark runs. Consists of two main components:
 
-- **Web Application**: Ruby on Rails 7.2.3 monolith with Hotwire (Turbo + Stimulus) and Tailwind CSS
-- **Agent**: Go 1.22+ CLI tool deployed on compute nodes for system info collection
-- **Database**: PostgreSQL 16+
-- **Communication**: ActionCable WebSocket for bidirectional agent-server messaging
+1. **Web Application (Rails)**: Dashboard for node inventory, benchmark management, and visualization
+2. **Agent (Go)**: CLI tool deployed on compute nodes for system info collection and benchmark execution
 
-## Common Commands
+## Development Commands
 
-### Rails Development
+### Rails Backend
+
 ```bash
-bin/dev                              # Start dev server (Rails + Tailwind watcher)
-bin/rspec                            # Run all tests
-bin/rspec spec/models/node_spec.rb   # Run single test file
-COVERAGE=true bin/rspec              # Run tests with coverage
-bin/rubocop                          # Check Ruby style
-bin/rubocop -a                       # Auto-fix Ruby style issues
-bin/brakeman                         # Security scan
+# Start development server
+bin/dev
+
+# Run all tests
+bin/rspec
+
+# Run specific test
+bin/rspec spec/models/node_spec.rb
+
+# Lint
+bin/rubocop -f github
+
+# Auto-fix lint issues
+bin/rubocop -a
+
+# Security scan
+bin/brakeman
+
+# Database operations
+bin/rails db:migrate
+bin/rails db:rollback
 ```
 
-### Go Agent Development
+### Go Agent (run from `agent/` directory)
+
 ```bash
 cd agent
-go build -o hpc-agent .              # Build agent binary
-go test ./...                        # Run all tests
-go test -v ./...                     # Verbose test output
-golangci-lint run ./...              # Lint Go code
-CGO_ENABLED=0 go build -o hpc-agent . # Static binary build
-```
 
-### Database
-```bash
-bin/rails db:migrate                 # Run migrations
-bin/rails db:rollback                # Rollback last migration
+# Build
+go build -o hpc-agent .
+
+# Run tests
+go test ./...
+
+# Lint
+golangci-lint run
 ```
 
 ## Architecture
 
-### Hybrid Push/Pull Execution Model
-- **Pull (SSH via Gateway)**: Web server triggers `hpc-agent collect` on nodes via SSH through Admin/Bastion host
-- **Push (Agent API)**: Agents can proactively push inventory via `hpc-agent inventory push`
-- **WebSocket**: Online nodes communicate via ActionCable for real-time operations
+### Rails Application (Hotwire + Tailwind)
 
-### Rails Service Objects Pattern
-All complex business logic lives in `app/services/`, keeping controllers skinny:
-- `Inventory::TriggerCollectService` - SSH/WebSocket-based node data collection
-- `Inventory::ProcessStateService` - State versioning with change detection
-- `Inventory::ImportCsvService` - CSV parsing and node import
-- `Dashboard::MetricsService` - Dashboard metrics calculations
-- `Agent::RemoteInstallService` / `Agent::RemoteUninstallService` - Remote agent management
+- **Framework**: Rails 7.2.3 with Hotwire (Turbo + Stimulus)
+- **Database**: PostgreSQL 16+
+- **Styling**: Tailwind CSS with NetBox-inspired design (slate sidebar, teal accents)
+- **Testing**: RSpec with FactoryBot and Capybara
+
+Key directories:
+- `app/services/` - Business logic (SSH collection, inventory services)
+- `app/jobs/` - Background jobs for async operations
+- `app/components/` - ViewComponents
+- `app/views/shared/` - Reusable partials including sidebar and modals
+
+### Go Agent (Cobra CLI)
+
+- **Framework**: Cobra for CLI
+- **Module**: `github.com/yuka1981/diagnostic-tools/agent`
+
+Key directories:
+- `agent/cmd/` - CLI commands (collect, inventory push, hpcg)
+- `agent/core/model/` - Data structures for inventory
+- `agent/core/ports/` - Interface definitions
+- `agent/inventory/collector/linux/` - System info collectors (CPU, memory, disk, network, DMI)
+- `agent/hpcg/` - HPCG benchmark workflow
+
+Agent commands:
+- `hpc-agent collect` - Output system info JSON to stdout
+- `hpc-agent inventory push --server URL --token TOKEN` - Push inventory to API
+- `hpc-agent hpcg` - Run HPCG benchmark workflow
+
+### Data Flow
+
+1. **Pull (Server-initiated)**: Rails SSH to Admin Node → Admin Node SSH to Compute Node → `hpc-agent collect` → JSON returned → DB update
+2. **Push (Agent-initiated)**: Agent runs `hpc-agent inventory push` → POST to Rails API → DB update
+3. **Benchmarks**: Slurm Job triggers Agent → Agent builds/runs benchmark → Results uploaded to API + artifacts to shared storage
 
 ### Node State Versioning
-- `NodeState` records are immutable snapshots of hardware info
-- Each collection that detects changes creates a new `NodeState` record (no overwrites)
-- Content hash comparison determines if new state should be created
 
-### Go Agent Hexagonal Architecture
-- **Core Interfaces** (`agent/core/ports/`): Define boundaries for collectors, uploaders, command runners
-- **Models** (`agent/core/model/`): Data structures (HostInfo, CPUInfo, MemoryInfo, etc.)
-- **Native Collectors** (`agent/inventory/collector/`): Hardware collection using ghw, gopsutil, dmidecode
-- **Stream Client** (`agent/core/stream/`): ActionCable WebSocket implementation
+Each inventory collection creates a new `node_state` record (versioned history), not overwrites. The latest record represents current state.
 
-### Agent CLI Commands
-- `hpc-agent start` - Daemon mode with WebSocket connection
-- `hpc-agent collect` - Output system info as JSON to stdout
-- `hpc-agent inventory push` - Collect and upload to server API
-- `hpc-agent hpcg` - Run HPCG benchmark workflow (build, configure, run, parse)
+## Quality Gates
 
-## Testing
+Before committing, ensure:
 
-### Rails (RSpec)
-- Model specs: `spec/models/`
-- Request specs: `spec/requests/`
-- Service specs: `spec/services/`
-- System specs: `spec/system/` (Capybara + Playwright)
-- Factories: `spec/factories/`
+**Rails**: `bin/rubocop -f github` (no offenses) AND `bin/rspec` (all green)
 
-### Go
-- Unit tests with stdlib `testing` package
-- Interface-based mocking (hand-written mocks)
-- Tests in `*_test.go` files alongside source
+**Go**: `golangci-lint run` (no issues) AND `go test ./...` (all pass)
 
-## Key Patterns
+## Configuration
 
-### Hotwire-First Frontend
-- Turbo Drive for SPA-like navigation
-- Turbo Frames for component isolation
-- Turbo Streams for real-time ActionCable updates
-- Stimulus.js only when Turbo isn't sufficient
-- ViewComponent for reusable UI components
+SSH settings via Rails credentials or environment variables:
+- `SSH_USER`, `SSH_KEY_PATH`, `SSH_TIMEOUT`, `SSH_VERIFY_HOST_KEY`
+- Jump host: `JUMP_HOST`, `JUMP_USER`, `JUMP_PORT`
 
-### NetBox-Inspired UI Theme
-- Data-dense layouts with slate headers
-- Bold uppercase titles, square corners
-- Component: `card-netbox` for standardized cards
+Agent token via `AGENT_TOKEN` environment variable.

@@ -10,16 +10,16 @@ type NetworkInventory struct {
 //nolint:govet,nolintlint // fieldalignment: struct size optimization not required
 type InterfaceInfo struct {
 	InfiniBand  *IBInfo  `json:"infiniband,omitempty"`
-	IPAddresses []string `json:"ip_addresses"`
+	Master      string   `json:"master"`
 	Name        string   `json:"name"`
-	Type        string   `json:"type"`       // ether, infiniband, loopback
-	OperState   string   `json:"oper_state"` // UP, DOWN
+	Type        string   `json:"type"`
+	OperState   string   `json:"oper_state"`
 	MACAddress  string   `json:"mac_address"`
-	Master      string   `json:"master"` // For bonding (e.g., "bond0")
 	PCIAddress  string   `json:"pci_address,omitempty"`
 	Vendor      string   `json:"vendor,omitempty"`
 	Model       string   `json:"model,omitempty"`
-	Speed       string   `json:"speed,omitempty"` // e.g., "10 Gbps", "HDR (200 Gb/s)"
+	Speed       string   `json:"speed,omitempty"`
+	IPAddresses []string `json:"ip_addresses"`
 	NUMANode    int      `json:"numa_node"`
 	MTU         int      `json:"mtu"`
 }
