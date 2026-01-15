@@ -116,7 +116,17 @@ module Benchmark
     def build_agent_command(agent_bin)
       # Set OMP_NUM_THREADS to use all physical cores for OpenMP parallelization
       # nproc returns the number of available processing units
-      cmd = "env OMP_NUM_THREADS=$(nproc) #{Shellwords.escape(agent_bin)} hpcg"
+      #
+      # Command structure: hpc-agent [global-flags] hpcg [subcommand-flags]
+      # The --node-uuid flag is a global persistent flag that must come before the subcommand
+      cmd = "env OMP_NUM_THREADS=$(nproc) #{Shellwords.escape(agent_bin)}"
+
+      # Inject node UUID to ensure identity consistency between Rails and Agent
+      # This prevents the agent from generating a new UUID that doesn't match the node in Rails
+      cmd += " --node-uuid #{Shellwords.escape(@target_node.uuid)}" if @target_node&.uuid.present?
+
+      # Subcommand and its flags
+      cmd += " hpcg"
       cmd += " --id #{Shellwords.escape(@run_id || generate_run_id)}"
       cmd += " --build #{Shellwords.escape('make arch=Linux_OpenMP')}"
       cmd += " --run #{Shellwords.escape('./bin/xhpcg')}"

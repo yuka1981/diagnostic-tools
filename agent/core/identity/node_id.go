@@ -15,11 +15,33 @@ const (
 	DefaultIDPath = "node_id"
 )
 
+// forcedNodeID stores an externally-injected node ID (e.g., from CLI flag)
+// When set, this takes priority over file-based or generated IDs
+var forcedNodeID string
+
+// SetForcedNodeID sets an externally-provided node ID that takes priority
+// over any file-based or generated ID. This is used when the server
+// injects a known UUID via CLI flag to ensure identity consistency.
+func SetForcedNodeID(id string) {
+	forcedNodeID = id
+}
+
+// GetForcedNodeID returns the currently forced node ID, if any
+func GetForcedNodeID() string {
+	return forcedNodeID
+}
+
 // GetOrGenerateNodeID implements the Hybrid UUID Strategy
+// Priority: 1) Forced ID (from CLI), 2) File-based ID, 3) Generated ID
 func GetOrGenerateNodeID(configDir string) (string, error) {
+	// Priority 1: Check for forced/injected node ID (from CLI flag)
+	if forcedNodeID != "" {
+		return forcedNodeID, nil
+	}
+
 	idPath := filepath.Join(configDir, DefaultIDPath)
 
-	// 1. Try reading existing ID from file
+	// Priority 2: Try reading existing ID from file
 	if data, err := os.ReadFile(idPath); err == nil {
 		id := strings.TrimSpace(string(data))
 		if id != "" {
@@ -27,10 +49,10 @@ func GetOrGenerateNodeID(configDir string) (string, error) {
 		}
 	}
 
-	// 2. Generate from hardware fingerprint
+	// Priority 3: Generate from hardware fingerprint
 	id := GenerateFingerprint()
 
-	// 3. Persist generated ID
+	// Persist generated ID for future use
 	if err := os.MkdirAll(configDir, 0755); err != nil {
 		return id, fmt.Errorf("failed to create config directory: %w", err)
 	}
