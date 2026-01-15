@@ -24,9 +24,47 @@ class BenchmarkRunsController < ApplicationController
            layout: false
   end
 
+  def download_artifact
+    @benchmark_run = BenchmarkRun.find(params[:id])
+    @artifact = @benchmark_run.artifact_indices.find(params[:artifact_id])
+
+    # Security check: ensure file exists and is within allowed paths
+    unless File.exist?(@artifact.path)
+      flash[:alert] = "Artifact file not found on server."
+      redirect_to benchmark_run_path(@benchmark_run) and return
+    end
+
+    # Send the file for download
+    send_file @artifact.path,
+              filename: File.basename(@artifact.path),
+              type: mime_type_for(@artifact),
+              disposition: "attachment"
+  end
+
   private
 
   def filter_params
     params.permit(:status, :node_id, :recipe_id, :q)
+  end
+
+  def mime_type_for(artifact)
+    case artifact.file_type.to_s.downcase
+    when "txt", "log"
+      "text/plain"
+    when "yaml", "yml"
+      "text/yaml"
+    when "json"
+      "application/json"
+    when "csv"
+      "text/csv"
+    when "pdf"
+      "application/pdf"
+    when "tar", "gz", "tgz"
+      "application/gzip"
+    when "zip"
+      "application/zip"
+    else
+      "application/octet-stream"
+    end
   end
 end

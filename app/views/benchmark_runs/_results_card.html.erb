@@ -1,0 +1,109 @@
+<%# Results Card - Shows benchmark metrics and results %>
+<% run = local_assigns[:run] || benchmark_run %>
+
+<div class="card-netbox">
+  <div class="card-header">
+    <div class="flex items-center justify-between">
+      <h3 class="card-title">Results</h3>
+      <% if run.completed? %>
+        <% if run.success? %>
+          <span class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-bold text-green-800">
+            <svg class="mr-1 h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd" />
+            </svg>
+            PASS
+          </span>
+        <% elsif run.failed? %>
+          <span class="inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-bold text-red-800">
+            <svg class="mr-1 h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clip-rule="evenodd" />
+            </svg>
+            FAIL
+          </span>
+        <% elsif run.cancelled? %>
+          <span class="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-bold text-slate-600">
+            Cancelled
+          </span>
+        <% end %>
+      <% end %>
+    </div>
+  </div>
+
+  <div class="p-0">
+    <% if run.pending? || run.running? %>
+      <%# Waiting state %>
+      <div class="px-4 py-8 text-center bg-slate-50">
+        <% if run.running? %>
+          <div class="flex items-center justify-center mb-3">
+            <svg class="animate-spin h-6 w-6 text-teal-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+          </div>
+          <p class="text-slate-600 font-bold">Benchmark in progress...</p>
+          <% if run.current_phase.present? %>
+            <p class="text-sm text-slate-500 mt-1">Phase: <%= run.current_phase %></p>
+          <% end %>
+        <% else %>
+          <svg class="mx-auto h-8 w-8 text-slate-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <p class="text-slate-500 font-bold">Waiting for results...</p>
+          <p class="text-xs text-slate-400 mt-1">Results will appear once the benchmark completes</p>
+        <% end %>
+      </div>
+
+    <% elsif run.metrics.present? && run.metrics.any? %>
+      <%# Metrics table %>
+      <table class="w-full text-sm text-left">
+        <tbody class="divide-y divide-slate-100">
+          <% # Prioritize key metrics at the top %>
+          <% priority_keys = %w[gflops gflop_s bandwidth result score] %>
+          <% sorted_metrics = run.metrics.sort_by { |k, _| priority_keys.index(k.to_s.downcase) || 999 } %>
+
+          <% sorted_metrics.each do |key, value| %>
+            <tr class="hover:bg-slate-50">
+              <th class="px-4 py-2 font-bold text-slate-700 w-1/2 border-r border-slate-200">
+                <%= format_metric_key(key) %>
+              </th>
+              <td class="px-4 py-2 font-mono">
+                <% if key.to_s.downcase == "result" %>
+                  <% if value.to_s.upcase == "PASS" || value.to_s.upcase == "VALID" %>
+                    <span class="text-green-600 font-bold"><%= value %></span>
+                  <% elsif value.to_s.upcase == "FAIL" || value.to_s.upcase == "INVALID" %>
+                    <span class="text-red-600 font-bold"><%= value %></span>
+                  <% else %>
+                    <span class="text-slate-700"><%= value %></span>
+                  <% end %>
+                <% elsif value.is_a?(Numeric) %>
+                  <span class="text-slate-800 font-bold"><%= number_with_precision(value, precision: 4, strip_insignificant_zeros: true) %></span>
+                  <% if key.to_s.downcase.include?("gflop") %>
+                    <span class="text-slate-400 text-xs ml-1">GFLOP/s</span>
+                  <% elsif key.to_s.downcase.include?("bandwidth") %>
+                    <span class="text-slate-400 text-xs ml-1">GB/s</span>
+                  <% elsif key.to_s.downcase.include?("time") || key.to_s.downcase.include?("duration") %>
+                    <span class="text-slate-400 text-xs ml-1">seconds</span>
+                  <% end %>
+                <% else %>
+                  <span class="text-slate-700"><%= value %></span>
+                <% end %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+
+    <% else %>
+      <%# No metrics available for completed run %>
+      <div class="px-4 py-8 text-center bg-slate-50">
+        <svg class="mx-auto h-8 w-8 text-slate-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+        <p class="text-slate-500 font-bold">No metrics recorded</p>
+        <% if run.failed? %>
+          <p class="text-xs text-slate-400 mt-1">The benchmark failed before producing results</p>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+</div>
