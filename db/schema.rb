@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_01_15_033253) do
+ActiveRecord::Schema[7.2].define(version: 2026_01_15_061733) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -40,8 +40,14 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_15_033253) do
     t.jsonb "default_profile", default: {}
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "slug"
+    t.string "command"
+    t.text "description"
+    t.integer "timeout_seconds", default: 3600
+    t.integer "status", default: 0, null: false
     t.index ["name", "version"], name: "index_benchmark_recipes_on_name_and_version", unique: true
     t.index ["name"], name: "index_benchmark_recipes_on_name"
+    t.index ["slug"], name: "index_benchmark_recipes_on_slug", unique: true
   end
 
   create_table "benchmark_runs", force: :cascade do |t|
@@ -59,6 +65,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_15_033253) do
     t.datetime "last_heartbeat_at"
     t.string "current_phase"
     t.text "log_content"
+    t.jsonb "arguments", default: {}
     t.index ["benchmark_recipe_id"], name: "index_benchmark_runs_on_benchmark_recipe_id"
     t.index ["node_id", "started_at"], name: "index_benchmark_runs_on_node_id_and_started_at", order: { started_at: :desc }
     t.index ["node_id"], name: "index_benchmark_runs_on_node_id"

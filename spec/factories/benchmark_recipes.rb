@@ -4,11 +4,18 @@ FactoryBot.define do
   factory :benchmark_recipe do
     sequence(:name) { |n| "benchmark-#{n}" }
     sequence(:version) { |n| "1.#{n}.0" }
+    sequence(:slug) { |n| "benchmark-#{n}-slug" }
+    command { "benchmark" }
     default_profile { {} }
+    timeout_seconds { 3600 }
+    status { :active }
 
     trait :hpcg do
       name { "hpcg" }
       version { "3.1" }
+      slug { "hpcg-3-1" }
+      command { "hpcg" }
+      description { "High Performance Conjugate Gradients benchmark" }
       default_profile do
         {
           "nx" => 104,
@@ -23,6 +30,9 @@ FactoryBot.define do
     trait :hpl do
       name { "hpl" }
       version { "2.3" }
+      slug { "hpl-2-3" }
+      command { "hpl" }
+      description { "High Performance Linpack benchmark" }
       default_profile do
         {
           "problem_size" => 10000,
@@ -30,6 +40,10 @@ FactoryBot.define do
           "modules" => %w[gcc/12.2.0 openmpi/4.1.4 openblas/0.3.21]
         }
       end
+    end
+
+    trait :archived do
+      status { :archived }
     end
   end
 end

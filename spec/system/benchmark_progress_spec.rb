@@ -40,13 +40,14 @@ RSpec.describe "Benchmark Progress", type: :system, js: true do
     visit node_path(node)
 
     # Should see the empty state initially
-    expect(page).to have_text(/Latest Benchmark/i)
-    expect(page).to have_text("—")
+    expect(page).to have_text(/Recent Benchmark Runs/i)
+    expect(page).to have_text("No benchmarks run yet.")
 
     click_link "Benchmark"
 
     # In the modal
     within "#modal" do
+      select recipe.display_name, from: "Benchmark Recipe"
       fill_in "Log File Path (Optional)", with: "/tmp/hpcg.log"
       click_button "Start Benchmark"
     end
@@ -55,24 +56,26 @@ RSpec.describe "Benchmark Progress", type: :system, js: true do
     expect(page).to have_current_path(node_path(node))
     expect(page).to have_content("Benchmark triggered successfully")
 
-    # Should see the pending run in the Latest Benchmark section
-    within "##{dom_id(node, :latest_benchmark)}" do
+    # Get the created run
+    run = BenchmarkRun.last
+
+    # Should see the pending run in the Recent Benchmark Runs section
+    within "##{dom_id(run)}" do
       expect(page).to have_content("Pending")
     end
 
     # Simulate agent reporting back "RUNNING" via DB update
-    run = BenchmarkRun.last
     run.update!(status: :running, started_at: Time.current)
 
     # Wait for Turbo Stream update on node show page
-    within "##{dom_id(node, :latest_benchmark)}" do
+    within "##{dom_id(run)}" do
       expect(page).to have_content("Running", wait: 10)
     end
 
     # Simulate agent reporting back "PASS" (Success)
     run.update!(status: :success, finished_at: Time.current)
 
-    within "##{dom_id(node, :latest_benchmark)}" do
+    within "##{dom_id(run)}" do
       expect(page).to have_content("Success")
     end
   end

@@ -53,11 +53,13 @@ export default class extends Controller {
       })
     }
 
-    // Show modal with scale and fade-in animation
+    // Show panel with scale/opacity animation (centered modal style)
     if (this.hasPanelTarget) {
-      this.panelTarget.classList.remove("hidden", "opacity-0", "scale-95")
+      this.panelTarget.classList.remove("hidden")
       requestAnimationFrame(() => {
-        this.panelTarget.classList.add("opacity-100", "scale-100")
+        // Remove opacity-0 and scale-95 to animate panel in
+        this.panelTarget.classList.remove("opacity-0", "scale-95", "translate-x-full")
+        this.panelTarget.classList.add("opacity-100", "scale-100", "translate-x-0")
       })
     }
 
@@ -79,7 +81,7 @@ export default class extends Controller {
       this.backdropTarget.classList.add("opacity-0")
     }
 
-    // Scale down and fade out modal, then hide after transition completes
+    // Animate panel out with scale/opacity, then hide after transition completes
     if (this.hasPanelTarget) {
       const onTransitionEnd = () => {
         if (!this.openValue) {
@@ -92,8 +94,9 @@ export default class extends Controller {
       }
       this.panelTarget.addEventListener("transitionend", onTransitionEnd)
 
-      this.panelTarget.classList.remove("opacity-100", "scale-100")
-      this.panelTarget.classList.add("opacity-0", "scale-95")
+      // Animate panel out with opacity and scale
+      this.panelTarget.classList.remove("opacity-100", "scale-100", "translate-x-0")
+      this.panelTarget.classList.add("opacity-0", "scale-95", "translate-x-full")
     }
 
     // Re-enable body scroll

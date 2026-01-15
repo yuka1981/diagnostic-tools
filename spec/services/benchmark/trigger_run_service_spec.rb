@@ -5,7 +5,8 @@ require "rails_helper"
 RSpec.describe Benchmark::TriggerRunService do
   let(:node) { create(:node, hostname: "test-node", ssh_port: 22, ssh_user: "user") }
   let(:run_id) { "test-run-123" }
-  let(:service) { described_class.new(node, run_id: run_id) }
+  let(:recipe) { create(:benchmark_recipe, :hpcg) }
+  let(:service) { described_class.new(node, run_id: run_id, benchmark_recipe: recipe) }
 
   def mock_ssh_session(stdout: "{}", stderr: "", exit_code: 0)
     mock_channel = instance_double(Net::SSH::Connection::Channel)
@@ -168,17 +169,17 @@ RSpec.describe Benchmark::TriggerRunService do
 
   describe "#resolve_agent_path" do
     it "resolves default hpc-agent to parent directory" do
-      service = described_class.new(node, agent_path: "hpc-agent")
+      service = described_class.new(node, agent_path: "hpc-agent", benchmark_recipe: recipe)
       expect(service.send(:resolve_agent_path)).to eq("../hpc-agent")
     end
 
     it "keeps absolute paths unchanged" do
-      service = described_class.new(node, agent_path: "/usr/local/bin/hpc-agent")
+      service = described_class.new(node, agent_path: "/usr/local/bin/hpc-agent", benchmark_recipe: recipe)
       expect(service.send(:resolve_agent_path)).to eq("/usr/local/bin/hpc-agent")
     end
 
     it "prepends parent directory to relative paths" do
-      service = described_class.new(node, agent_path: "bin/hpc-agent")
+      service = described_class.new(node, agent_path: "bin/hpc-agent", benchmark_recipe: recipe)
       expect(service.send(:resolve_agent_path)).to eq("../bin/hpc-agent")
     end
   end
@@ -190,23 +191,93 @@ RSpec.describe Benchmark::TriggerRunService do
     end
 
     it "includes server URL when provided" do
-      service = described_class.new(node, run_id: run_id, server_url: "https://example.com")
+      service = described_class.new(node, run_id: run_id, benchmark_recipe: recipe, server_url: "https://example.com")
       cmd = service.send(:build_agent_command, "../hpc-agent")
       expect(cmd).to include("--server")
       expect(cmd).to include("https://example.com")
     end
 
     it "includes token when provided" do
-      service = described_class.new(node, run_id: run_id, agent_token: "secret-token")
+      service = described_class.new(node, run_id: run_id, benchmark_recipe: recipe, agent_token: "secret-token")
       cmd = service.send(:build_agent_command, "../hpc-agent")
       expect(cmd).to include("--token")
     end
 
     it "includes log path when provided" do
-      service = described_class.new(node, run_id: run_id, log_path: "/var/log/hpcg")
+      service = described_class.new(node, run_id: run_id, benchmark_recipe: recipe, log_path: "/var/log/hpcg")
       cmd = service.send(:build_agent_command, "../hpc-agent")
       expect(cmd).to include("--log-path")
       expect(cmd).to include("/var/log/hpcg")
+    end
+
+    context "with recipe" do
+      it "uses recipe command as subcommand" do
+        cmd = service.send(:build_agent_command, "../hpc-agent")
+        expect(cmd).to include(" hpcg")
+      end
+
+      it "uses recipe timeout when provided" do
+        recipe.update!(timeout_seconds: 7200)
+        cmd = service.send(:build_agent_command, "../hpc-agent")
+        expect(cmd).to include("--rt 7200")
+      end
+
+      it "uses recipe default profile values" do
+        cmd = service.send(:build_agent_command, "../hpc-agent")
+        expect(cmd).to include("--nx=104")
+        expect(cmd).to include("--ny=104")
+        expect(cmd).to include("--nz=104")
+      end
+    end
+
+    context "with argument overrides" do
+      let(:overrides) { { "nx" => 128, "ny" => 128 } }
+      let(:service) { described_class.new(node, run_id: run_id, benchmark_recipe: recipe, argument_overrides: overrides) }
+
+      it "merges overrides with recipe defaults" do
+        cmd = service.send(:build_agent_command, "../hpc-agent")
+        expect(cmd).to include("--nx=128")
+        expect(cmd).to include("--ny=128")
+        expect(cmd).to include("--nz=104") # From default
+      end
+
+      it "excludes array values from CLI flags" do
+        # The recipe has "modules" as array which should be excluded
+        cmd = service.send(:build_agent_command, "../hpc-agent")
+        expect(cmd).not_to include("--modules")
+      end
+    end
+  end
+
+  describe "#merged_arguments" do
+    context "with recipe defaults only" do
+      it "returns recipe default profile" do
+        args = service.send(:merged_arguments)
+        expect(args["nx"]).to eq(104)
+        expect(args["ny"]).to eq(104)
+        expect(args["nz"]).to eq(104)
+      end
+    end
+
+    context "with argument overrides" do
+      let(:overrides) { { "nx" => 256, "custom_flag" => "value" } }
+      let(:service) { described_class.new(node, run_id: run_id, benchmark_recipe: recipe, argument_overrides: overrides) }
+
+      it "merges overrides with recipe defaults" do
+        args = service.send(:merged_arguments)
+        expect(args["nx"]).to eq(256) # Override
+        expect(args["ny"]).to eq(104) # Default
+        expect(args["custom_flag"]).to eq("value") # New from override
+      end
+    end
+
+    context "without recipe" do
+      let(:service) { described_class.new(node, run_id: run_id) }
+
+      it "returns empty hash when no recipe provided" do
+        args = service.send(:merged_arguments)
+        expect(args).to eq({})
+      end
     end
   end
 end

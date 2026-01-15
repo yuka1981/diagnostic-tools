@@ -5,6 +5,7 @@ require "rails_helper"
 RSpec.describe "Benchmark Run Feature", type: :system do
   let(:approver) { create(:user, :approver) }
   let(:node) { create(:node, source: :agent_push) }
+  let!(:recipe) { create(:benchmark_recipe, :hpcg) }
 
   before do
     sign_in approver
@@ -53,8 +54,10 @@ RSpec.describe "Benchmark Run Feature", type: :system do
     visit new_node_benchmark_run_path(node)
 
     expect(page).to have_content("Run Benchmark")
+    expect(page).to have_field("Benchmark Recipe")
     expect(page).to have_field("Log File Path (Optional)")
 
+    select recipe.display_name, from: "Benchmark Recipe"
     fill_in "Log File Path (Optional)", with: "/tmp/custom_hpcg.log"
 
     # We need to mock the service call to avoid actual SSH

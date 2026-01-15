@@ -17,6 +17,7 @@ module Nodes
 
     def new
       @form = Benchmark::RunForm.new
+      @benchmark_recipes = BenchmarkRecipe.active.order(:name, :version)
       @preflight = Benchmark::PreflightService.new(
         @node,
         server_url: request.base_url,
@@ -28,13 +29,20 @@ module Nodes
       @form = Benchmark::RunForm.new(run_params)
 
       if @form.valid?
-        # Ensure recipe exists
-        recipe = BenchmarkRecipe.find_or_create_by!(name: "HPCG", version: "3.1")
+        recipe = @form.benchmark_recipe
+        argument_overrides = @form.argument_overrides_hash
 
-        # Create run record
+        # Build merged arguments snapshot using ArgumentBuilderService
+        argument_builder = Benchmark::ArgumentBuilderService.new(
+          defaults: recipe.default_profile,
+          overrides: argument_overrides
+        )
+
+        # Create run record with arguments snapshot
         run = @node.benchmark_runs.create!(
           benchmark_recipe: recipe,
           log_path: @form.log_path,
+          arguments: argument_builder.merged_arguments,
           status: :pending
         )
 
@@ -42,12 +50,14 @@ module Nodes
           @node,
           run,
           request.base_url,
-          agent_token
+          agent_token,
+          argument_overrides
         )
 
         redirect_to node_path(@node), notice: "Benchmark triggered successfully."
       else
         # Re-run preflight checks for re-rendering the form
+        @benchmark_recipes = BenchmarkRecipe.active.order(:name, :version)
         @preflight = Benchmark::PreflightService.new(
           @node,
           server_url: request.base_url,
@@ -70,7 +80,7 @@ module Nodes
     end
 
     def run_params
-      params.require(:benchmark_run_form).permit(:log_path)
+      params.require(:benchmark_run_form).permit(:benchmark_recipe_id, :argument_overrides, :log_path)
     end
 
     def agent_token

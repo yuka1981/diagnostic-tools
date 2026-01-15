@@ -116,7 +116,18 @@
 
       <%# Form - only show if preflight passed %>
       <% if @preflight.success? %>
-        <%= form_with model: @form, url: node_benchmark_runs_path(@node), method: :post, data: { turbo_frame: "_top" }, class: "space-y-4" do |f| %>
+        <%# Build recipe data for Stimulus controller %>
+        <% recipes_data = @benchmark_recipes.each_with_object({}) do |recipe, hash|
+          hash[recipe.id.to_s] = { default_profile: recipe.default_profile }
+        end %>
+
+        <%= form_with model: @form, url: node_benchmark_runs_path(@node), method: :post,
+            data: {
+              turbo_frame: "_top",
+              controller: "benchmark-recipe",
+              benchmark_recipe_recipes_value: recipes_data.to_json
+            },
+            class: "space-y-4" do |f| %>
           <% if @form.errors.any? %>
             <div class="rounded-md bg-red-50 p-4 border border-red-200">
               <h3 class="text-sm font-bold text-red-800">Please correct the errors below</h3>
@@ -129,6 +140,47 @@
               </div>
             </div>
           <% end %>
+
+          <div>
+            <%= f.label :benchmark_recipe_id, "Benchmark Recipe", class: "block text-sm font-bold text-slate-700 mb-1" %>
+            <%= f.select :benchmark_recipe_id,
+                options_from_collection_for_select(@benchmark_recipes, :id, :display_name, @form.benchmark_recipe_id),
+                { prompt: "Select a recipe..." },
+                { class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm",
+                  data: {
+                    benchmark_recipe_target: "select",
+                    action: "change->benchmark-recipe#showDefaults"
+                  } } %>
+            <p class="mt-1 text-[10px] text-slate-500 italic">
+              Select the benchmark recipe to run on this node.
+            </p>
+          </div>
+
+          <div data-benchmark-recipe-target="defaults" class="hidden">
+            <div class="rounded-md bg-slate-50 p-3 border border-slate-200">
+              <div class="flex items-center justify-between mb-2">
+                <h4 class="text-xs font-bold text-slate-600">Recipe Default Profile</h4>
+                <button type="button"
+                        class="text-[10px] text-teal-600 hover:text-teal-800 font-medium"
+                        data-action="click->benchmark-recipe#populateOverrides">
+                  Copy to overrides
+                </button>
+              </div>
+              <pre data-benchmark-recipe-target="defaultsContent" class="text-xs text-slate-700 font-mono whitespace-pre-wrap"></pre>
+            </div>
+          </div>
+
+          <div>
+            <%= f.label :argument_overrides, "Argument Overrides (Optional)", class: "block text-sm font-bold text-slate-700 mb-1" %>
+            <%= f.text_area :argument_overrides,
+                rows: 3,
+                class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm font-mono",
+                placeholder: '{"nx": 128, "ny": 128}',
+                data: { benchmark_recipe_target: "overrides" } %>
+            <p class="mt-1 text-[10px] text-slate-500 italic">
+              Optional JSON to override recipe defaults. Leave blank to use recipe defaults.
+            </p>
+          </div>
 
           <div>
             <%= f.label :log_path, "Log File Path (Optional)", class: "block text-sm font-bold text-slate-700 mb-1" %>

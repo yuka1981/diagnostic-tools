@@ -6,57 +6,163 @@
   <span class="font-medium text-slate-700">Run #<%= @benchmark_run.id %></span>
 <% end %>
 
-<div class="card-netbox mb-6">
-  <div class="card-header">
-    <h3 class="card-title">Run Details</h3>
+<%# Header with status %>
+<div class="mb-6 flex items-start justify-between">
+  <div class="flex items-center gap-4">
+    <div class="flex h-14 w-14 items-center justify-center rounded-lg bg-white border border-slate-300 shadow-sm">
+      <%= status_icon(@benchmark_run.status) %>
+    </div>
+    <div>
+      <h1 class="text-2xl font-bold text-slate-900">
+        <%= @benchmark_run.benchmark_recipe.display_name %>
+      </h1>
+      <p class="text-sm text-slate-500">
+        Run #<%= @benchmark_run.id %> on
+        <%= link_to @benchmark_run.node.hostname, node_path(@benchmark_run.node), class: "text-teal-600 font-bold hover:underline" %>
+      </p>
+    </div>
   </div>
-  <div class="p-0">
-    <table class="w-full text-sm text-left">
-      <tbody class="divide-y divide-slate-100">
-        <tr class="hover:bg-slate-50">
-          <th class="px-4 py-2 font-bold text-slate-700 w-1/3 border-r border-slate-200">Recipe</th>
-          <td class="px-4 py-2 text-slate-700 font-bold"><%= @benchmark_run.benchmark_recipe.display_name %></td>
-        </tr>
-        <tr class="hover:bg-slate-50">
-          <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">Status</th>
-          <td class="px-4 py-2"><%= node_status_badge(@benchmark_run.status) %></td>
-        </tr>
-        <tr class="hover:bg-slate-50">
-          <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">Node</th>
-          <td class="px-4 py-2"><%= link_to @benchmark_run.node.hostname, node_path(@benchmark_run.node), class: "text-teal-600 font-bold hover:underline" %></td>
-        </tr>
-        <tr class="hover:bg-slate-50">
-          <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">Started</th>
-          <td class="px-4 py-2 text-slate-700"><%= @benchmark_run.started_at ? l(@benchmark_run.started_at, format: :short) : "Pending" %></td>
-        </tr>
-        <tr class="hover:bg-slate-50">
-          <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">Duration</th>
-          <td class="px-4 py-2 text-slate-700"><%= @benchmark_run.duration ? distance_of_time_in_words(@benchmark_run.duration) : "—" %></td>
-        </tr>
-      </tbody>
-    </table>
+  <div>
+    <%= node_status_badge(@benchmark_run.status) %>
   </div>
 </div>
 
-<% if @benchmark_run.error_message.present? %>
-  <div class="card-netbox border-red-300 mb-6">
-    <div class="card-header">
-      <h3 class="card-title text-red-800">Error Message</h3>
-    </div>
-    <div class="p-4 bg-red-50 text-red-700 text-sm italic">
-      <%= @benchmark_run.error_message %>
-    </div>
-  </div>
-<% end %>
-
-<% if @benchmark_run.metrics.present? %>
+<%# Top Section: Run Details (left) + Results (right) %>
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+  <%# Run Details Card %>
   <div class="card-netbox">
     <div class="card-header">
-      <h3 class="card-title">Metrics</h3>
+      <h3 class="card-title">Run Details</h3>
     </div>
-    <div class="p-4 bg-slate-50 overflow-x-auto">
-      <pre class="text-xs text-slate-700 font-mono"><%= JSON.pretty_generate(@benchmark_run.metrics) %></pre>
+    <div class="p-0">
+      <table class="w-full text-sm text-left">
+        <tbody class="divide-y divide-slate-100">
+          <tr class="hover:bg-slate-50">
+            <th class="px-4 py-2 font-bold text-slate-700 w-1/3 border-r border-slate-200">Status</th>
+            <td class="px-4 py-2"><%= node_status_badge(@benchmark_run.status) %></td>
+          </tr>
+          <tr class="hover:bg-slate-50">
+            <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">Node</th>
+            <td class="px-4 py-2"><%= link_to @benchmark_run.node.hostname, node_path(@benchmark_run.node), class: "text-teal-600 font-bold hover:underline" %></td>
+          </tr>
+          <tr class="hover:bg-slate-50">
+            <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">Created</th>
+            <td class="px-4 py-2 text-slate-700"><%= l(@benchmark_run.created_at, format: :short) %></td>
+          </tr>
+          <tr class="hover:bg-slate-50">
+            <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">Started</th>
+            <td class="px-4 py-2 text-slate-700"><%= @benchmark_run.started_at ? l(@benchmark_run.started_at, format: :short) : "—" %></td>
+          </tr>
+          <tr class="hover:bg-slate-50">
+            <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">Finished</th>
+            <td class="px-4 py-2 text-slate-700"><%= @benchmark_run.finished_at ? l(@benchmark_run.finished_at, format: :short) : "—" %></td>
+          </tr>
+          <tr class="hover:bg-slate-50">
+            <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">Duration</th>
+            <td class="px-4 py-2 text-slate-700"><%= @benchmark_run.duration ? distance_of_time_in_words(@benchmark_run.duration) : "—" %></td>
+          </tr>
+          <% if @benchmark_run.log_path.present? %>
+            <tr class="hover:bg-slate-50">
+              <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">Log Path</th>
+              <td class="px-4 py-2 font-mono text-xs text-slate-600"><%= @benchmark_run.log_path %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <%# Results Card %>
+  <%= render "benchmark_runs/results_card", run: @benchmark_run %>
+</div>
+
+<%# Error Message Card (full width) %>
+<% if @benchmark_run.error_message.present? %>
+  <div class="card-netbox border-red-300 mb-6">
+    <div class="card-header bg-red-50 border-red-300">
+      <h3 class="card-title text-red-800">Error Message</h3>
+    </div>
+    <div class="p-4 bg-red-50 text-red-700 text-sm">
+      <pre class="whitespace-pre-wrap font-mono text-xs"><%= @benchmark_run.error_message %></pre>
     </div>
   </div>
 <% end %>
 
+<%# Bottom Section: Configuration, Logs, Artifacts (single column) %>
+<div class="space-y-6">
+  <%# Configuration Card %>
+  <%= render "benchmark_runs/configuration_card", run: @benchmark_run %>
+
+  <%# Logs Card (collapsed by default) %>
+  <% if @benchmark_run.log_content.present? %>
+    <div class="card-netbox" data-controller="collapsible" data-collapsible-open-value="false">
+      <div class="card-header cursor-pointer" data-action="click->collapsible#toggle">
+        <div class="flex items-center justify-between w-full">
+          <h3 class="card-title">Logs</h3>
+          <svg data-collapsible-target="icon" class="h-5 w-5 text-slate-400 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+          </svg>
+        </div>
+      </div>
+      <div data-collapsible-target="content" class="hidden">
+        <pre class="p-4 text-xs font-mono text-slate-700 bg-slate-50 overflow-x-auto max-h-96 whitespace-pre-wrap break-words border-t border-slate-200"><%= @benchmark_run.log_content %></pre>
+      </div>
+    </div>
+  <% end %>
+
+  <%# Artifacts Card %>
+  <% if @benchmark_run.artifact_indices.any? %>
+    <div class="card-netbox">
+      <div class="card-header">
+        <h3 class="card-title">Artifacts</h3>
+        <span class="text-xs text-slate-500"><%= @benchmark_run.artifact_indices.count %> files</span>
+      </div>
+      <div class="p-0">
+        <table class="min-w-full divide-y divide-slate-200 text-sm">
+          <thead class="bg-slate-50">
+            <tr>
+              <th class="px-4 py-2 text-left text-xs font-bold uppercase text-slate-500">Name</th>
+              <th class="px-4 py-2 text-left text-xs font-bold uppercase text-slate-500">Type</th>
+              <th class="px-4 py-2 text-left text-xs font-bold uppercase text-slate-500">Size</th>
+              <th class="px-4 py-2 text-right text-xs font-bold uppercase text-slate-500">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100 bg-white">
+            <% @benchmark_run.artifact_indices.each do |artifact| %>
+              <tr class="hover:bg-slate-50">
+                <td class="px-4 py-2">
+                  <div class="font-bold text-slate-700"><%= File.basename(artifact.path) %></div>
+                  <div class="text-[10px] font-mono text-slate-400 truncate max-w-xs"><%= artifact.path %></div>
+                </td>
+                <td class="px-4 py-2 text-slate-600 uppercase text-xs font-bold">
+                  <%= artifact.file_type %>
+                </td>
+                <td class="px-4 py-2 text-slate-600 text-xs">
+                  <%= artifact.size.present? ? number_to_human_size(artifact.size) : "—" %>
+                </td>
+                <td class="px-4 py-2 text-right">
+                  <% if File.exist?(artifact.path) %>
+                    <%= link_to download_artifact_benchmark_run_path(@benchmark_run, artifact_id: artifact.id),
+                        class: "inline-flex items-center gap-1 text-teal-600 hover:text-teal-800 text-xs font-bold" do %>
+                      <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                      </svg>
+                      Download
+                    <% end %>
+                  <% else %>
+                    <span class="inline-flex items-center gap-1 text-slate-400 text-xs font-bold cursor-not-allowed" title="File not found on server">
+                      <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                      </svg>
+                      Unavailable
+                    </span>
+                  <% end %>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  <% end %>
+</div>
