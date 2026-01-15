@@ -14,7 +14,9 @@ module Benchmark
     # @param run_id [String, nil] Optional ID for the benchmark run
     # @param server_url [String, nil] Optional server URL for status updates
     # @param agent_token [String, nil] Optional agent token for status updates
-    def initialize(target_node, ssh_config: {}, agent_path: nil, work_dir: nil, log_path: nil, run_id: nil, server_url: nil, agent_token: nil)
+    # @param benchmark_recipe [BenchmarkRecipe, nil] Optional recipe defining the benchmark
+    # @param argument_overrides [Hash, nil] Optional user overrides for recipe defaults
+    def initialize(target_node, ssh_config: {}, agent_path: nil, work_dir: nil, log_path: nil, run_id: nil, server_url: nil, agent_token: nil, benchmark_recipe: nil, argument_overrides: nil)
       super(target_node, ssh_config: ssh_config)
       @agent_path = agent_path || @target_node.try(:effective_agent_path) || DEFAULT_AGENT_PATH
       @work_dir = work_dir || BenchmarkConfig.work_dir_for(@target_node)
@@ -22,6 +24,16 @@ module Benchmark
       @run_id = run_id
       @server_url = server_url
       @agent_token = agent_token
+      @benchmark_recipe = benchmark_recipe
+      @argument_overrides = argument_overrides || {}
+    end
+
+    # Get the merged arguments (recipe defaults + user overrides)
+    # @return [Hash] Merged arguments for audit/snapshot purposes
+    def merged_arguments
+      return {} unless @benchmark_recipe
+
+      argument_builder.merged_arguments
     end
 
     # Execute the SSH command to run benchmark
@@ -117,7 +129,7 @@ module Benchmark
       # Set OMP_NUM_THREADS to use all physical cores for OpenMP parallelization
       # nproc returns the number of available processing units
       #
-      # Command structure: hpc-agent [global-flags] hpcg [subcommand-flags]
+      # Command structure: hpc-agent [global-flags] <subcommand> [subcommand-flags]
       # The --node-uuid flag is a global persistent flag that must come before the subcommand
       cmd = "env OMP_NUM_THREADS=$(nproc) #{Shellwords.escape(agent_bin)}"
 
@@ -125,16 +137,31 @@ module Benchmark
       # This prevents the agent from generating a new UUID that doesn't match the node in Rails
       cmd += " --node-uuid #{Shellwords.escape(@target_node.uuid)}" if @target_node&.uuid.present?
 
-      # Subcommand and its flags
-      cmd += " hpcg"
+      # Subcommand from recipe (defaults to hpcg for backwards compatibility)
+      subcommand = @benchmark_recipe&.command || "hpcg"
+      cmd += " #{Shellwords.escape(subcommand)}"
       cmd += " --id #{Shellwords.escape(@run_id || generate_run_id)}"
       cmd += " --build #{Shellwords.escape('make arch=Linux_OpenMP')}"
       cmd += " --run #{Shellwords.escape('./bin/xhpcg')}"
-      cmd += " --nx 104 --ny 104 --nz 104 --rt 60"
+
+      # Add timeout from recipe (or default)
+      timeout = @benchmark_recipe&.timeout_seconds || 60
+      cmd += " --rt #{timeout}"
+
+      # Add merged arguments from recipe defaults + overrides
+      cmd += " #{argument_builder.call}" if @benchmark_recipe
+
       cmd += " --log-path #{Shellwords.escape(@log_path)}" if @log_path.present?
       cmd += " --server #{Shellwords.escape(@server_url)}" if @server_url.present?
       cmd += " --token #{Shellwords.escape(@agent_token)}" if @agent_token.present?
       cmd
+    end
+
+    def argument_builder
+      @argument_builder ||= ArgumentBuilderService.new(
+        defaults: @benchmark_recipe&.default_profile || {},
+        overrides: @argument_overrides
+      )
     end
 
     def generate_run_id

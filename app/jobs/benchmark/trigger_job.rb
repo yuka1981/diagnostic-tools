@@ -4,13 +4,15 @@ module Benchmark
   class TriggerJob < ApplicationJob
     queue_as :default
 
-    def perform(node, run, server_url, agent_token)
+    def perform(node, run, server_url, agent_token, argument_overrides = {})
       trigger_service = Benchmark::TriggerRunService.new(
         node,
         log_path: run.log_path,
         run_id: run.uuid,
         server_url: server_url,
-        agent_token: agent_token
+        agent_token: agent_token,
+        benchmark_recipe: run.benchmark_recipe,
+        argument_overrides: argument_overrides
       )
       result = trigger_service.call
 

@@ -47,6 +47,7 @@ RSpec.describe "Benchmark Progress", type: :system, js: true do
 
     # In the modal
     within "#modal" do
+      select recipe.display_name, from: "Benchmark Recipe"
       fill_in "Log File Path (Optional)", with: "/tmp/hpcg.log"
       click_button "Start Benchmark"
     end

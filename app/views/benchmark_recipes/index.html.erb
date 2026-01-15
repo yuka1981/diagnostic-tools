@@ -3,37 +3,90 @@
 <div class="flex items-center justify-between mb-6">
   <div>
     <h1 class="text-2xl font-bold text-slate-900">Benchmark Recipes</h1>
+    <p class="text-sm text-slate-500 mt-1">Manage benchmark test configurations</p>
   </div>
+  <% if current_user.approver? %>
+    <%= link_to new_benchmark_recipe_path, class: "btn-primary" do %>
+      <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+      </svg>
+      Add Recipe
+    <% end %>
+  <% end %>
 </div>
 
-<% if @benchmark_recipes.any? %>
-  <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-    <% @benchmark_recipes.each do |recipe| %>
-      <%= link_to benchmark_recipe_path(recipe), 
-          class: "group block card-netbox transition-all hover:bg-teal-50" do %>
-        <div class="p-4 flex items-center gap-4">
-          <div class="flex h-12 w-12 items-center justify-center rounded-lg bg-white border border-slate-300 shadow-sm">
-            <svg class="h-6 w-6 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
-            </svg>
-          </div>
-          <div class="flex-1 min-w-0">
-            <p class="text-sm font-bold text-slate-900 group-hover:text-teal-600 transition-colors">
-              <%= recipe.name %>
-            </p>
-            <p class="text-xs text-slate-500 font-bold uppercase tracking-wider">Version <%= recipe.version %></p>
-          </div>
-          <svg class="h-5 w-5 text-slate-400 group-hover:text-teal-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-          </svg>
-        </div>
+<div class="card-netbox">
+  <% if @benchmark_recipes.any? %>
+    <div class="overflow-x-auto">
+      <table class="min-w-full divide-y divide-slate-200 text-sm">
+        <thead class="bg-slate-50">
+          <tr>
+            <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Name</th>
+            <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Command</th>
+            <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Timeout</th>
+            <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Status</th>
+            <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Runs</th>
+            <th scope="col" class="relative px-3 py-2 border-b">
+              <span class="sr-only">Actions</span>
+            </th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-200 bg-white">
+          <% @benchmark_recipes.each do |recipe| %>
+            <tr class="hover:bg-slate-50 transition-colors">
+              <td class="whitespace-nowrap px-3 py-2">
+                <%= link_to benchmark_recipe_path(recipe), class: "group" do %>
+                  <p class="text-sm font-bold text-slate-900 group-hover:text-teal-600"><%= recipe.name %></p>
+                  <p class="text-xs text-slate-500">v<%= recipe.version %></p>
+                <% end %>
+              </td>
+              <td class="whitespace-nowrap px-3 py-2 text-sm text-slate-600 font-mono">
+                <%= recipe.command %>
+              </td>
+              <td class="whitespace-nowrap px-3 py-2 text-sm text-slate-500">
+                <%= distance_of_time_in_words(recipe.timeout_seconds) %>
+              </td>
+              <td class="whitespace-nowrap px-3 py-2">
+                <% if recipe.active? %>
+                  <span class="inline-flex items-center rounded-sm px-2 py-0.5 text-xs font-medium bg-emerald-100 text-emerald-800 border border-emerald-200">
+                    Active
+                  </span>
+                <% else %>
+                  <span class="inline-flex items-center rounded-sm px-2 py-0.5 text-xs font-medium bg-slate-100 text-slate-600 border border-slate-200">
+                    Archived
+                  </span>
+                <% end %>
+              </td>
+              <td class="whitespace-nowrap px-3 py-2 text-sm text-slate-500">
+                <%= recipe.benchmark_runs.count %>
+              </td>
+              <td class="whitespace-nowrap px-3 py-2 text-right text-sm">
+                <%= link_to "View", benchmark_recipe_path(recipe), class: "text-teal-600 hover:text-teal-700 font-medium" %>
+                <% if current_user.approver? %>
+                  <span class="text-slate-300 mx-1">|</span>
+                  <%= link_to "Edit", edit_benchmark_recipe_path(recipe), class: "text-slate-600 hover:text-slate-700 font-medium" %>
+                <% end %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% else %>
+    <div class="flex flex-col items-center justify-center py-12 text-center">
+      <div class="h-12 w-12 rounded-full bg-slate-100 flex items-center justify-center mb-4">
+        <svg class="h-6 w-6 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+        </svg>
+      </div>
+      <p class="text-sm font-medium text-slate-900">No benchmark recipes yet</p>
+      <p class="mt-1 text-xs text-slate-500">Create a recipe to define benchmark configurations</p>
+      <% if current_user.approver? %>
+        <%= link_to new_benchmark_recipe_path, class: "mt-4 btn-primary" do %>
+          Add Recipe
+        <% end %>
       <% end %>
-    <% end %>
-  </div>
-<% else %>
-  <div class="text-center py-12 card-netbox bg-slate-50 border-dashed">
-    <p class="text-slate-500 font-bold uppercase text-xs">No recipes available.</p>
-  </div>
-<% end %>
-
+    </div>
+  <% end %>
+</div>

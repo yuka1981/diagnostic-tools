@@ -41,7 +41,12 @@ Rails.application.routes.draw do
     end
   end
   resources :benchmark_runs, only: %i[index show]
-  resources :benchmark_recipes, only: %i[index show]
+  resources :benchmark_recipes do
+    member do
+      patch :archive
+      patch :activate
+    end
+  end
 
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 

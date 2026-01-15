@@ -1,43 +1,153 @@
 <% content_for(:page_title) { @benchmark_recipe.display_name } %>
-<% content_for(:breadcrumbs) do %>
-  <span class="mx-2">/</span>
-  <%= link_to "Benchmark Recipes", benchmark_recipes_path, class: "hover:text-teal-600 font-bold" %>
-  <span class="mx-2">/</span>
-  <span class="font-medium text-slate-700"><%= @benchmark_recipe.name %></span>
-<% end %>
 
-<div class="card-netbox mb-6">
-  <div class="card-header">
-    <h3 class="card-title">Recipe Details</h3>
-  </div>
-  <div class="p-0">
-    <table class="w-full text-sm text-left">
-      <tbody class="divide-y divide-slate-100">
-        <tr class="hover:bg-slate-50">
-          <th class="px-4 py-2 font-bold text-slate-700 w-1/3 border-r border-slate-200">Name</th>
-          <td class="px-4 py-2 text-slate-700 font-bold"><%= @benchmark_recipe.name %></td>
-        </tr>
-        <tr class="hover:bg-slate-50">
-          <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">Version</th>
-          <td class="px-4 py-2 text-slate-700"><%= @benchmark_recipe.version %></td>
-        </tr>
-        <tr class="hover:bg-slate-50">
-          <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">Total Runs</th>
-          <td class="px-4 py-2 text-slate-700"><%= @benchmark_recipe.benchmark_runs.count %></td>
-        </tr>
-      </tbody>
-    </table>
+<div class="mb-6">
+  <nav class="text-sm text-slate-500 mb-2">
+    <%= link_to "Benchmark Recipes", benchmark_recipes_path, class: "hover:text-teal-600" %> /
+    <span class="text-slate-700"><%= @benchmark_recipe.name %></span>
+  </nav>
+  <div class="flex items-center justify-between">
+    <div class="flex items-center gap-4">
+      <h1 class="text-2xl font-bold text-slate-900"><%= @benchmark_recipe.display_name %></h1>
+      <% if @benchmark_recipe.active? %>
+        <span class="inline-flex items-center rounded-sm px-2 py-0.5 text-xs font-medium bg-emerald-100 text-emerald-800 border border-emerald-200">
+          Active
+        </span>
+      <% else %>
+        <span class="inline-flex items-center rounded-sm px-2 py-0.5 text-xs font-medium bg-slate-100 text-slate-600 border border-slate-200">
+          Archived
+        </span>
+      <% end %>
+    </div>
+    <% if current_user.approver? %>
+      <div class="flex items-center gap-2">
+        <%= link_to edit_benchmark_recipe_path(@benchmark_recipe), class: "btn-secondary" do %>
+          <svg class="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+          </svg>
+          Edit
+        <% end %>
+        <% if @benchmark_recipe.active? %>
+          <%= button_to archive_benchmark_recipe_path(@benchmark_recipe), method: :patch, class: "btn-secondary", data: { turbo_confirm: "Archive this recipe?" } do %>
+            Archive
+          <% end %>
+        <% else %>
+          <%= button_to activate_benchmark_recipe_path(@benchmark_recipe), method: :patch, class: "btn-primary" do %>
+            Activate
+          <% end %>
+        <% end %>
+      </div>
+    <% end %>
   </div>
 </div>
 
-<% if @benchmark_recipe.default_profile.present? %>
+<div class="grid gap-6 lg:grid-cols-2">
+  <%# Overview Card %>
   <div class="card-netbox">
     <div class="card-header">
-      <h3 class="card-title">Default Profile</h3>
+      <h3 class="card-title">Overview</h3>
     </div>
+    <div class="p-0">
+      <table class="w-full text-sm text-left">
+        <tbody class="divide-y divide-slate-100">
+          <tr class="hover:bg-slate-50">
+            <th class="px-4 py-2 font-bold text-slate-700 w-1/3 border-r border-slate-200">Name</th>
+            <td class="px-4 py-2 text-slate-700 font-bold"><%= @benchmark_recipe.name %></td>
+          </tr>
+          <tr class="hover:bg-slate-50">
+            <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">Version</th>
+            <td class="px-4 py-2 text-slate-700"><%= @benchmark_recipe.version %></td>
+          </tr>
+          <tr class="hover:bg-slate-50">
+            <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">Slug</th>
+            <td class="px-4 py-2 text-slate-600 font-mono text-xs"><%= @benchmark_recipe.slug %></td>
+          </tr>
+          <tr class="hover:bg-slate-50">
+            <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">Description</th>
+            <td class="px-4 py-2 text-slate-700"><%= @benchmark_recipe.description.presence || "—" %></td>
+          </tr>
+          <tr class="hover:bg-slate-50">
+            <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">Total Runs</th>
+            <td class="px-4 py-2 text-slate-700"><%= @benchmark_recipe.benchmark_runs.count %></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <%# Technical Details Card %>
+  <div class="card-netbox">
+    <div class="card-header">
+      <h3 class="card-title">Technical Details</h3>
+    </div>
+    <div class="p-0">
+      <table class="w-full text-sm text-left">
+        <tbody class="divide-y divide-slate-100">
+          <tr class="hover:bg-slate-50">
+            <th class="px-4 py-2 font-bold text-slate-700 w-1/3 border-r border-slate-200">Command</th>
+            <td class="px-4 py-2 text-slate-700 font-mono"><%= @benchmark_recipe.command %></td>
+          </tr>
+          <tr class="hover:bg-slate-50">
+            <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">Timeout</th>
+            <td class="px-4 py-2 text-slate-700">
+              <%= @benchmark_recipe.timeout_seconds %> seconds
+              <span class="text-slate-400">(<%= distance_of_time_in_words(@benchmark_recipe.timeout_seconds) %>)</span>
+            </td>
+          </tr>
+          <tr class="hover:bg-slate-50">
+            <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">Status</th>
+            <td class="px-4 py-2">
+              <% if @benchmark_recipe.active? %>
+                <span class="inline-flex items-center rounded-sm px-2 py-0.5 text-xs font-medium bg-emerald-100 text-emerald-800 border border-emerald-200">
+                  Active
+                </span>
+              <% else %>
+                <span class="inline-flex items-center rounded-sm px-2 py-0.5 text-xs font-medium bg-slate-100 text-slate-600 border border-slate-200">
+                  Archived
+                </span>
+              <% end %>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<%# Default Profile Card %>
+<div class="card-netbox mt-6">
+  <div class="card-header">
+    <h3 class="card-title">Default Profile</h3>
+  </div>
+  <% if @benchmark_recipe.default_profile.present? %>
     <div class="p-4 bg-slate-50">
-      <pre class="text-xs text-slate-700 font-mono overflow-x-auto"><%= JSON.pretty_generate(@benchmark_recipe.default_profile) %></pre>
+      <pre class="text-xs text-slate-700 font-mono overflow-x-auto whitespace-pre-wrap"><%= JSON.pretty_generate(@benchmark_recipe.default_profile) %></pre>
+    </div>
+  <% else %>
+    <div class="p-4 text-center text-slate-500 text-sm">
+      No default profile configured
+    </div>
+  <% end %>
+</div>
+
+<%# Danger Zone %>
+<% if current_user.approver? && @benchmark_recipe.benchmark_runs.empty? %>
+  <div class="card-netbox mt-6 border-red-200">
+    <div class="card-header bg-red-50 border-red-200">
+      <h3 class="card-title text-red-800">Danger Zone</h3>
+    </div>
+    <div class="p-4">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm font-medium text-slate-900">Delete this recipe</p>
+          <p class="text-xs text-slate-500">Once deleted, this recipe cannot be recovered.</p>
+        </div>
+        <%= button_to benchmark_recipe_path(@benchmark_recipe),
+            method: :delete,
+            class: "btn-danger",
+            data: { turbo_confirm: "Are you sure you want to delete this recipe? This action cannot be undone." } do %>
+          Delete Recipe
+        <% end %>
+      </div>
     </div>
   </div>
 <% end %>
-
