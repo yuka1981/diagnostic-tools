@@ -49,12 +49,23 @@ module Api
         }.compact
 
         if run.update(update_params)
-          # Process artifacts if provided
+          # Process artifact uploads (new: with file contents)
+          # Returns set of uploaded filenames to skip in legacy processing
+          uploaded_filenames = if params[:artifact_uploads].is_a?(Array)
+                                 process_artifact_uploads(run)
+                               else
+                                 Set.new
+                               end
+
+          # Process legacy artifacts (paths only, for backwards compatibility)
+          # Skip files that were already uploaded via artifact_uploads
           if params[:artifacts].is_a?(Array)
             params[:artifacts].each do |path|
+              filename = File.basename(path)
+              next if uploaded_filenames.include?(filename)
+
               run.artifact_indices.find_or_create_by(path: path) do |ai|
                 ai.file_type = File.extname(path).delete(".")
-                # Size could be updated later or passed in payload
               end
             end
           end
@@ -63,6 +74,52 @@ module Api
         else
           render json: { error: run.errors.full_messages.join(", ") }, status: :unprocessable_entity
         end
+      end
+
+      # Process artifact uploads and return Set of successfully uploaded filenames
+      def process_artifact_uploads(run)
+        storage_dir = artifact_storage_dir(run)
+        FileUtils.mkdir_p(storage_dir)
+        uploaded_filenames = Set.new
+
+        params[:artifact_uploads].each do |upload|
+          filename = upload[:filename]
+          content = upload[:content]
+          file_type = upload[:file_type]
+          size = upload[:size]
+
+          next if filename.blank? || content.blank?
+
+          # Sanitize filename to prevent directory traversal
+          safe_filename = File.basename(filename)
+          stored_path = File.join(storage_dir, safe_filename)
+
+          begin
+            # Decode base64 content and write to file
+            decoded_content = Base64.decode64(content)
+            File.binwrite(stored_path, decoded_content)
+
+            # Create or update artifact index with stored_path
+            run.artifact_indices.find_or_initialize_by(path: stored_path).tap do |ai|
+              ai.stored_path = stored_path
+              ai.file_type = file_type.presence || File.extname(safe_filename).delete(".")
+              ai.size = size.presence || decoded_content.bytesize
+              ai.save!
+            end
+
+            uploaded_filenames << safe_filename
+            Rails.logger.info "[BenchmarkRuns] Stored artifact: #{stored_path} (#{decoded_content.bytesize} bytes)"
+          rescue StandardError => e
+            Rails.logger.error "[BenchmarkRuns] Failed to store artifact #{filename}: #{e.message}"
+          end
+        end
+
+        uploaded_filenames
+      end
+
+      def artifact_storage_dir(run)
+        base_dir = Rails.configuration.x.artifacts_storage_path.presence || Rails.root.join("storage", "artifacts")
+        File.join(base_dir, run.uuid)
       end
 
       # Sanitize timestamp values to filter out invalid dates

@@ -144,4 +144,44 @@ RSpec.describe Node, type: :model do
       expect { node.touch_last_seen }.to change { node.reload.last_seen_at }
     end
   end
+
+  describe "#effective_api_token" do
+    context "when node has direct api_token set" do
+      it "returns the direct api_token" do
+        node = build(:node, api_token: "direct-token-123")
+        expect(node.effective_api_token).to eq("direct-token-123")
+      end
+    end
+
+    context "when node has associated ApiKey" do
+      it "returns the ApiKey's token" do
+        api_key = create(:api_key)
+        node = build(:node, api_key: api_key)
+        expect(node.effective_api_token).to eq(api_key.token)
+      end
+    end
+
+    context "when node has both direct api_token and associated ApiKey" do
+      it "prefers the direct api_token" do
+        api_key = create(:api_key)
+        node = build(:node, api_token: "direct-token-456", api_key: api_key)
+        expect(node.effective_api_token).to eq("direct-token-456")
+      end
+    end
+
+    context "when node has neither api_token nor ApiKey" do
+      it "returns nil" do
+        node = build(:node, api_token: nil, api_key: nil)
+        expect(node.effective_api_token).to be_nil
+      end
+    end
+
+    context "when node has empty api_token string and associated ApiKey" do
+      it "returns the ApiKey's token" do
+        api_key = create(:api_key)
+        node = build(:node, api_token: "", api_key: api_key)
+        expect(node.effective_api_token).to eq(api_key.token)
+      end
+    end
+  end
 end

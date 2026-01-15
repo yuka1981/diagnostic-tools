@@ -2,6 +2,7 @@ package hpcg
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -22,11 +23,17 @@ type ModuleLoader interface {
 	Load(ctx context.Context, modules []string) error
 }
 
+// PIDTracker provides PID-tracked command execution for cancellation support.
+type PIDTracker interface {
+	RunCommandWithPID(ctx context.Context, uuid, dir, name string, args ...string) ([]byte, error)
+}
+
 // WorkflowOrchestrator manages the HPCG benchmark workflow.
 type WorkflowOrchestrator struct {
 	Runner       ports.CommandRunner
 	ModuleLoader ModuleLoader
 	WorkDir      string
+	PIDTracker   PIDTracker // Optional: enables cancellation support when set
 }
 
 // RunParams defines parameters for the workflow.
@@ -67,9 +74,9 @@ func (w *WorkflowOrchestrator) Run(ctx context.Context, params *RunParams) (*mod
 		return nil, err
 	}
 
-	// 4. Run
+	// 4. Run (with PID tracking for cancellation support)
 	start := time.Now()
-	output, execErr := w.Runner.Run(ctx, w.WorkDir, "bash", "-c", params.RunCmd)
+	output, execErr := w.runBenchmark(ctx, params.RunID, params.RunCmd)
 	end := time.Now()
 
 	execStatus := model.BenchmarkStatusPass
@@ -96,6 +103,22 @@ func (w *WorkflowOrchestrator) Run(ctx context.Context, params *RunParams) (*mod
 
 	if targetLogPath != "" {
 		result.Artifacts = append(result.Artifacts, targetLogPath)
+
+		// Upload artifact file contents to server
+		if upload, err := w.createArtifactUpload(targetLogPath); err == nil {
+			result.ArtifactUploads = append(result.ArtifactUploads, *upload)
+		} else {
+			fmt.Fprintf(os.Stderr, "warning: failed to prepare artifact upload for %s: %v\n", targetLogPath, err)
+		}
+	}
+
+	// Upload hpcg.dat config file as artifact
+	hpcgDatPath := filepath.Join(w.WorkDir, "hpcg.dat")
+	if upload, err := w.createArtifactUpload(hpcgDatPath); err == nil {
+		result.Artifacts = append(result.Artifacts, hpcgDatPath)
+		result.ArtifactUploads = append(result.ArtifactUploads, *upload)
+	} else {
+		fmt.Fprintf(os.Stderr, "warning: failed to prepare artifact upload for hpcg.dat: %v\n", err)
 	}
 
 	if metrics != nil && metrics.GFLOPS > 0 {
@@ -175,6 +198,35 @@ func (w *WorkflowOrchestrator) moveFile(sourcePath, destPath string) error {
 	output.Close()
 
 	return os.Remove(sourcePath)
+}
+
+// createArtifactUpload reads a file and creates an ArtifactUpload with base64-encoded content.
+// This allows the server to store the file without needing shared filesystem access.
+func (w *WorkflowOrchestrator) createArtifactUpload(filePath string) (*model.ArtifactUpload, error) {
+	// Get file info for size
+	fileInfo, err := os.Stat(filePath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to stat file: %w", err)
+	}
+
+	// Read file content
+	content, err := os.ReadFile(filePath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read file: %w", err)
+	}
+
+	// Extract file extension without the dot
+	ext := filepath.Ext(filePath)
+	if len(ext) > 0 {
+		ext = ext[1:] // Remove the leading dot
+	}
+
+	return &model.ArtifactUpload{
+		Filename: filepath.Base(filePath),
+		Content:  base64.StdEncoding.EncodeToString(content),
+		FileType: ext,
+		Size:     fileInfo.Size(),
+	}, nil
 }
 
 func (w *WorkflowOrchestrator) setupEnvironment(ctx context.Context, modules []string) error {
@@ -309,6 +361,18 @@ func (w *WorkflowOrchestrator) writeConfig(params ConfigParams) error {
 		return fmt.Errorf("failed to write hpcg.dat: %w", err)
 	}
 	return nil
+}
+
+// runBenchmark executes the benchmark command with PID tracking if available.
+// If PIDTracker is not set or runID is empty, it falls back to regular execution.
+func (w *WorkflowOrchestrator) runBenchmark(ctx context.Context, runID, runCmd string) ([]byte, error) {
+	// Use PID tracking if available and we have a valid run ID
+	if w.PIDTracker != nil && runID != "" && runID != "manual-run" {
+		return w.PIDTracker.RunCommandWithPID(ctx, runID, w.WorkDir, "bash", "-c", runCmd)
+	}
+
+	// Fall back to regular execution
+	return w.Runner.Run(ctx, w.WorkDir, "bash", "-c", runCmd)
 }
 
 func (w *WorkflowOrchestrator) parseResults(

@@ -28,5 +28,9 @@ FactoryBot.define do
     trait :large do
       size { 10.megabytes }
     end
+
+    trait :with_stored_path do
+      stored_path { |artifact| artifact.path.gsub("/shared/artifacts", Rails.root.join("storage", "artifacts").to_s) }
+    end
   end
 end
