@@ -11,6 +11,12 @@
       <%= run.status.humanize %>
     </span>
   </td>
+  <td class="whitespace-nowrap px-3 py-2 text-sm text-slate-600 font-mono">
+    <%= run.metrics&.dig("gflops") ? number_with_precision(run.metrics["gflops"], precision: 2, strip_insignificant_zeros: true) : "-" %>
+  </td>
+  <td class="whitespace-nowrap px-3 py-2 text-sm text-slate-500">
+    <%= run.duration ? distance_of_time_in_words(run.duration) : "-" %>
+  </td>
   <td class="whitespace-nowrap px-3 py-2 text-sm text-slate-500">
     <%= l(run.created_at, format: :short) %>
   </td>
