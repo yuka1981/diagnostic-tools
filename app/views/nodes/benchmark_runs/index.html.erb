@@ -1,0 +1,102 @@
+<% content_for(:page_title) { "Benchmark Runs - #{@node.hostname}" } %>
+
+<div class="mb-6">
+  <nav class="text-sm text-slate-500 mb-2">
+    <%= link_to "Nodes", nodes_path, class: "hover:text-teal-600" %> /
+    <%= link_to @node.hostname, node_path(@node), class: "hover:text-teal-600" %> /
+    <span class="text-slate-700">Benchmark Runs</span>
+  </nav>
+  <div class="flex items-center justify-between">
+    <h1 class="text-2xl font-bold text-slate-900">Benchmark Runs for <%= @node.hostname %></h1>
+    <% if current_user.approver? %>
+      <%= link_to "Run Benchmark", new_node_benchmark_run_path(@node), class: "btn-primary" %>
+    <% end %>
+  </div>
+</div>
+
+<div class="card-netbox">
+  <% if @benchmark_runs.any? %>
+    <div class="overflow-x-auto">
+      <table class="min-w-full divide-y divide-slate-200 text-sm">
+        <thead class="bg-slate-50">
+          <tr>
+            <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Recipe</th>
+            <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Status</th>
+            <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Gflops</th>
+            <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Duration</th>
+            <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Created At</th>
+            <th scope="col" class="relative px-3 py-2 border-b">
+              <span class="sr-only">Actions</span>
+            </th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-200 bg-white">
+          <% @benchmark_runs.each do |run| %>
+            <tr class="hover:bg-slate-50">
+              <td class="whitespace-nowrap px-3 py-2">
+                <p class="text-sm font-medium text-slate-900"><%= run.benchmark_recipe&.name || "N/A" %></p>
+                <p class="text-xs text-slate-500"><%= run.benchmark_recipe&.version %></p>
+              </td>
+              <td class="whitespace-nowrap px-3 py-2">
+                <span class="inline-flex items-center rounded-sm px-2 py-0.5 text-xs font-medium <%= status_badge_class(run.status) %>">
+                  <%= run.status.humanize %>
+                </span>
+              </td>
+              <td class="whitespace-nowrap px-3 py-2 text-sm text-slate-600 font-mono">
+                <%= run.metrics&.dig("gflops") ? number_with_precision(run.metrics["gflops"], precision: 2, strip_insignificant_zeros: true) : "-" %>
+              </td>
+              <td class="whitespace-nowrap px-3 py-2 text-sm text-slate-500">
+                <%= run.duration ? distance_of_time_in_words(run.duration) : "-" %>
+              </td>
+              <td class="whitespace-nowrap px-3 py-2 text-sm text-slate-500">
+                <%= l(run.created_at, format: :short) %>
+              </td>
+              <td class="whitespace-nowrap px-3 py-2 text-right text-sm">
+                <%= link_to "View", benchmark_run_path(run), class: "text-teal-600 hover:text-teal-700 font-medium" %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+
+    <% if @benchmark_runs.total_pages > 1 %>
+      <div class="border-t border-slate-200 bg-slate-50 px-6 py-4">
+        <nav class="flex items-center justify-between" aria-label="Pagination">
+          <div class="hidden sm:block">
+            <p class="text-xs font-bold text-slate-500 uppercase">
+              Showing
+              <span class="text-slate-700"><%= @benchmark_runs.offset_value + 1 %></span>
+              to
+              <span class="text-slate-700"><%= [@benchmark_runs.offset_value + @benchmark_runs.limit_value, @benchmark_runs.total_count].min %></span>
+              of
+              <span class="text-slate-700"><%= @benchmark_runs.total_count %></span>
+              results
+            </p>
+          </div>
+          <div class="flex flex-1 justify-between sm:justify-end gap-2">
+            <% if @benchmark_runs.prev_page %>
+              <%= link_to "Previous", node_benchmark_runs_path(@node, page: @benchmark_runs.prev_page), class: "btn-secondary" %>
+            <% end %>
+            <% if @benchmark_runs.next_page %>
+              <%= link_to "Next", node_benchmark_runs_path(@node, page: @benchmark_runs.next_page), class: "btn-secondary" %>
+            <% end %>
+          </div>
+        </nav>
+      </div>
+    <% end %>
+  <% else %>
+    <div class="flex flex-col items-center justify-center py-12 text-center">
+      <div class="h-12 w-12 rounded-full bg-slate-100 flex items-center justify-center mb-4">
+        <svg class="h-6 w-6 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+        </svg>
+      </div>
+      <p class="text-sm font-medium text-slate-900">No benchmark runs for this node yet</p>
+      <% if current_user.approver? %>
+        <%= link_to "Run Benchmark", new_node_benchmark_run_path(@node), class: "mt-4 btn-primary" %>
+      <% end %>
+    </div>
+  <% end %>
+</div>

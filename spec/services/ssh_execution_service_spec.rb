@@ -38,7 +38,7 @@ RSpec.describe SshExecutionService, type: :service do
 
   describe "#ssh_options" do
     it "includes password from node if present" do
-      node.password = "secret"
+      node.sudo_credential = "secret"
       service_with_password = described_class.new(node)
       options = service_with_password.send(:ssh_options)
       expect(options[:password]).to eq("secret")

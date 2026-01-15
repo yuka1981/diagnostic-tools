@@ -25,12 +25,13 @@ type HPCGMetrics struct {
 
 // BenchmarkRun represents a complete benchmark execution result.
 type BenchmarkRun struct {
-	RunID     string          `json:"run_id"`
-	NodeID    string          `json:"node_id,omitempty"` // populated by server if known, or hpc-agent config
-	RecipeID  string          `json:"recipe_id"`         // e.g., "hpcg"
-	StartTime time.Time       `json:"start_time"`
-	EndTime   time.Time       `json:"end_time"`
-	Status    BenchmarkStatus `json:"status"`
-	Metrics   json.RawMessage `json:"metrics"`             // Generic container, e.g., HPCGMetrics
-	Artifacts []string        `json:"artifacts,omitempty"` // List of relative paths to artifacts
+	StartTime  time.Time       `json:"start_time,omitempty"`
+	EndTime    time.Time       `json:"end_time,omitempty"`
+	RunID      string          `json:"run_id"`
+	NodeID     string          `json:"node_id,omitempty"`
+	RecipeID   string          `json:"recipe_id"`
+	LogContent string          `json:"log_content,omitempty"`
+	Status     BenchmarkStatus `json:"status"`
+	Metrics    json.RawMessage `json:"metrics"`
+	Artifacts  []string        `json:"artifacts,omitempty"`
 }

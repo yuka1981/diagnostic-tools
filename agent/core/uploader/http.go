@@ -8,6 +8,7 @@ import (
 	"io"
 	"math"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/yuka1981/diagnostic-tools/agent/core/model"
@@ -24,20 +25,36 @@ type HTTPUploader struct {
 	BaseURL      string
 	Token        string
 	NodeID       string
+	Hostname     string
 	RetryWaitMin time.Duration
 	RetryWaitMax time.Duration
 	MaxRetries   int
+	Verbose      bool
 }
 
 // NewHTTPUploader creates a new HTTP uploader.
 func NewHTTPUploader(baseURL, token string) *HTTPUploader {
+	hostname, _ := os.Hostname()
 	return &HTTPUploader{
 		BaseURL:      baseURL,
 		Token:        token,
-		Client:       &http.Client{Timeout: 10 * time.Second},
+		Hostname:     hostname,
+		Client:       &http.Client{Timeout: 30 * time.Second},
 		MaxRetries:   3,
 		RetryWaitMin: 1 * time.Second,
 		RetryWaitMax: 30 * time.Second,
+		Verbose:      true, // Enable verbose logging by default for debugging
+	}
+}
+
+// SetVerbose enables or disables verbose logging.
+func (u *HTTPUploader) SetVerbose(verbose bool) {
+	u.Verbose = verbose
+}
+
+func (u *HTTPUploader) logf(format string, args ...interface{}) {
+	if u.Verbose {
+		fmt.Fprintf(os.Stderr, "[uploader] "+format+"\n", args...)
 	}
 }
 
@@ -59,7 +76,27 @@ func (u *HTTPUploader) Upload(ctx context.Context, payload interface{}) error {
 	}
 
 	url := u.BaseURL + endpoint
-	return u.doRequestWithRetry(ctx, url, body)
+
+	// Log upload details
+	u.logf("Uploading to: %s", url)
+	u.logf("Node ID: %s", u.NodeID)
+	if br, ok := payload.(*model.BenchmarkRun); ok {
+		u.logf("Benchmark run_id: %s, status: %s", br.RunID, br.Status)
+	}
+
+	err = u.doRequestWithRetry(ctx, url, body)
+	if err != nil {
+		u.logf("Upload failed: %v", err)
+		// Log truncated request body for debugging
+		bodyStr := string(body)
+		if len(bodyStr) > 500 {
+			bodyStr = bodyStr[:500] + "... (truncated)"
+		}
+		u.logf("Request body: %s", bodyStr)
+	} else {
+		u.logf("Upload successful")
+	}
+	return err
 }
 
 func (u *HTTPUploader) determineEndpoint(payload interface{}) (string, error) {
@@ -106,6 +143,9 @@ func (u *HTTPUploader) attemptRequest(ctx context.Context, url string, body []by
 	}
 	if u.NodeID != "" {
 		req.Header.Set("X-Node-ID", u.NodeID)
+	}
+	if u.Hostname != "" {
+		req.Header.Set("X-Hostname", u.Hostname)
 	}
 
 	resp, err := u.Client.Do(req)

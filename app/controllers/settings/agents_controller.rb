@@ -28,7 +28,7 @@ module Settings
     end
 
     def agent_params
-      params.require(:ssh_setting).permit(:server_url)
+      params.require(:ssh_setting).permit(:server_url, :benchmark_work_dir)
     end
   end
 end

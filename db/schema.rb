@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_01_12_032903) do
+ActiveRecord::Schema[7.2].define(version: 2026_01_15_033253) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -58,6 +58,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_12_032903) do
     t.uuid "uuid", default: -> { "gen_random_uuid()" }, null: false
     t.datetime "last_heartbeat_at"
     t.string "current_phase"
+    t.text "log_content"
     t.index ["benchmark_recipe_id"], name: "index_benchmark_runs_on_benchmark_recipe_id"
     t.index ["node_id", "started_at"], name: "index_benchmark_runs_on_node_id_and_started_at", order: { started_at: :desc }
     t.index ["node_id"], name: "index_benchmark_runs_on_node_id"
@@ -101,7 +102,11 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_12_032903) do
     t.string "uuid"
     t.integer "ssh_connect_method"
     t.text "ssh_key"
-    t.string "password"
+    t.string "sudo_credential"
+    t.string "benchmark_work_dir"
+    t.string "api_token"
+    t.bigint "api_key_id"
+    t.index ["api_key_id"], name: "index_nodes_on_api_key_id"
     t.index ["hostname"], name: "index_nodes_on_hostname", unique: true
     t.index ["role"], name: "index_nodes_on_role"
     t.index ["source"], name: "index_nodes_on_source"
@@ -115,6 +120,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_12_032903) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.string "server_url"
+    t.string "benchmark_work_dir"
   end
 
   create_table "users", force: :cascade do |t|
@@ -135,4 +141,5 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_12_032903) do
   add_foreign_key "benchmark_runs", "benchmark_recipes"
   add_foreign_key "benchmark_runs", "nodes"
   add_foreign_key "node_states", "nodes"
+  add_foreign_key "nodes", "api_keys"
 end

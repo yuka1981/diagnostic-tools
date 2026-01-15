@@ -4,6 +4,7 @@ Rails.application.routes.draw do
   # API routes
   namespace :api do
     namespace :v1 do
+      get "health", to: "health#show"
       post "inventory/push", to: "inventory#push"
       resources :benchmark_runs, only: [ :create, :update ]
     end
@@ -29,7 +30,7 @@ Rails.application.routes.draw do
       post :test_connection
       post :collect
     end
-    resources :benchmark_runs, only: %i[new create], controller: "nodes/benchmark_runs"
+    resources :benchmark_runs, only: %i[index new create], controller: "nodes/benchmark_runs"
     resource :network, only: [], controller: "nodes/network" do
       get :ib_details
     end

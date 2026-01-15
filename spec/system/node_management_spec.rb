@@ -25,7 +25,7 @@ RSpec.describe "Node Management", type: :system, js: true do
       expect(page).to have_content(/SSH Configuration/i)
       fill_in "SSH Port", with: "22"
       fill_in "SSH User", with: "deploy"
-      fill_in "User password", with: "secret-password"
+      fill_in "Sudo password", with: "secret-password"
       fill_in "SSH Key (optional)", with: "ssh-rsa AAAAB3Nza..."
 
       click_button "Save Node"

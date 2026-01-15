@@ -6,6 +6,7 @@ class Node < ApplicationRecord
   # Associations
   has_many :node_states, dependent: :destroy
   has_many :benchmark_runs, dependent: :destroy
+  belongs_to :api_key, optional: true
 
   # Enums
   enum :role, { compute: 0, login: 1, admin: 2 }, default: :compute

@@ -47,7 +47,7 @@ RSpec.describe Agent::RemoteInstallService do
     # Match bash -c with escaped space (Shellwords.escape)
     expect(channel).to receive(:exec).with(/sudo -S ssh.*root@compute-001.*bash\\ -c.*/).at_least(:once)
 
-    expect(service.call).to be true
+    expect(service.call).to be_success
   end
 
   it "performs a direct installation when bastion_host is missing" do
@@ -72,7 +72,7 @@ RSpec.describe Agent::RemoteInstallService do
     expect(channel).to receive(:exec).with(/sudo -S bash -c.*chown root:root/).at_least(:once)
     expect(channel).to receive(:exec).with(/sudo -S bash -c.*systemctl/).at_least(:once)
 
-    expect(direct_service.call).to be true
+    expect(direct_service.call).to be_success
   end
 
   it "generates a service file with the correct server URL" do
@@ -148,7 +148,7 @@ RSpec.describe Agent::RemoteInstallService do
     # Should connect to IP (192.168.1.100) instead of hostname (compute-001)
     expect(Net::SSH).to receive(:start).with("192.168.1.100", "root", any_args).and_yield(ssh_session)
 
-    expect(direct_service.call).to be true
+    expect(direct_service.call).to be_success
   end
 
   it "tries hostname if IP connection fails with timeout" do
@@ -171,7 +171,7 @@ RSpec.describe Agent::RemoteInstallService do
     # Second attempt with hostname succeeds
     expect(Net::SSH).to receive(:start).with(target_host, "root", any_args).and_yield(ssh_session)
 
-    expect(direct_service.call).to be true
+    expect(direct_service.call).to be_success
   end
 
   it "raises error if a command fails" do

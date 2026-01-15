@@ -27,13 +27,13 @@ export default class extends Controller {
       const isActive = i === index
       tab.setAttribute("aria-selected", isActive)
       tab.setAttribute("tabindex", isActive ? "0" : "-1")
-      
+
       if (isActive) {
-        tab.classList.add("border-cyan-500", "text-cyan-600", "dark:text-cyan-400")
-        tab.classList.remove("border-transparent", "text-gray-500", "dark:text-slate-400")
+        tab.classList.add("border-teal-600", "text-teal-600")
+        tab.classList.remove("border-transparent", "text-slate-500")
       } else {
-        tab.classList.remove("border-cyan-500", "text-cyan-600", "dark:text-cyan-400")
-        tab.classList.add("border-transparent", "text-gray-500", "dark:text-slate-400")
+        tab.classList.remove("border-teal-600", "text-teal-600")
+        tab.classList.add("border-transparent", "text-slate-500")
       }
     })
 

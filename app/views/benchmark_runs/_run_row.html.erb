@@ -6,31 +6,24 @@
   <td class="whitespace-nowrap px-3 py-2 text-sm text-slate-600">
     <%= link_to run.node.hostname, node_path(run.node), class: "hover:text-teal-600" %>
   </td>
-  <td class="whitespace-nowrap px-3 py-2 text-sm text-slate-500 font-mono">
-    <%= run.log_path.presence || "—" %>
-  </td>
   <td class="whitespace-nowrap px-3 py-2">
     <span class="inline-flex items-center rounded-sm px-2 py-0.5 text-xs font-medium <%= status_badge_class(run.status) %>">
       <%= run.status.humanize %>
     </span>
   </td>
+  <td class="whitespace-nowrap px-3 py-2 text-sm text-slate-600 font-mono">
+    <%= run.metrics&.dig("gflops") ? number_with_precision(run.metrics["gflops"], precision: 2, strip_insignificant_zeros: true) : "-" %>
+  </td>
+  <td class="whitespace-nowrap px-3 py-2 text-sm text-slate-500">
+    <%= run.duration ? distance_of_time_in_words(run.duration) : "-" %>
+  </td>
   <td class="whitespace-nowrap px-3 py-2 text-sm text-slate-500">
     <%= l(run.created_at, format: :short) %>
   </td>
-  <td class="whitespace-nowrap px-3 py-2 text-sm text-slate-500">
-    <%= run.started_at ? time_ago_in_words(run.started_at) + " ago" : "Pending" %>
-  </td>
-  <td class="whitespace-nowrap px-3 py-2 text-sm text-slate-500">
-    <% if run.duration %>
-      <%= distance_of_time_in_words(run.duration) %>
-    <% else %>
-      —
-    <% end %>
-  </td>
   <td class="whitespace-nowrap px-3 py-2 text-right text-sm">
-    <%= link_to "View", 
+    <%= link_to "View",
         benchmark_run_path(run),
-        data: { 
+        data: {
           action: "click->slide-over#open",
           turbo_frame: "slide_over_content"
         },

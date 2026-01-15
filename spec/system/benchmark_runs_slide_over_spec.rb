@@ -43,20 +43,30 @@ RSpec.describe "Benchmark Runs Slide-over Inspector", type: :system do
       # Click close button
       find("[data-action='click->slide-over#close']").click
 
-      # Slide-over should be hidden
-      expect(page).to have_css("[data-slide-over-target='panel'].translate-x-full", visible: :hidden, wait: 5)
+      # Modal should be hidden (uses scale/opacity animation, then hidden class is added)
+      expect(page).to have_css("[data-slide-over-target='panel'].hidden", visible: :hidden, wait: 5)
     end
 
-    it "closes slide-over when clicking backdrop", :js do
+    it "closes slide-over when clicking outside modal", :js do
       visit benchmark_runs_path
       click_link "View", match: :first
 
       expect(page).to have_css("[data-slide-over-target='panel']", visible: true, wait: 5)
 
-      # Click backdrop
-      find("[data-slide-over-target='backdrop']").click
+      # Click outside the modal content by dispatching a click event on the panel
+      # The panelClick handler will close if click target is not within modalContent
+      page.execute_script(<<~JS)
+        const panel = document.querySelector("[data-slide-over-target='panel']");
+        const clickEvent = new MouseEvent('click', {
+          bubbles: true,
+          cancelable: true,
+          view: window
+        });
+        panel.dispatchEvent(clickEvent);
+      JS
 
-      expect(page).to have_css("[data-slide-over-target='panel'].translate-x-full", visible: :hidden, wait: 5)
+      # Modal should be hidden
+      expect(page).to have_css("[data-slide-over-target='panel'].hidden", visible: :hidden, wait: 5)
     end
 
     it "closes slide-over when pressing Escape key", :js do
@@ -68,7 +78,8 @@ RSpec.describe "Benchmark Runs Slide-over Inspector", type: :system do
       # Press Escape key
       find("body").send_keys(:escape)
 
-      expect(page).to have_css("[data-slide-over-target='panel'].translate-x-full", visible: :hidden, wait: 5)
+      # Modal should be hidden
+      expect(page).to have_css("[data-slide-over-target='panel'].hidden", visible: :hidden, wait: 5)
     end
   end
 

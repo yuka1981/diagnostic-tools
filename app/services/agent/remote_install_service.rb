@@ -7,8 +7,17 @@ module Agent
   class RemoteInstallService
     class InstallError < StandardError; end
 
+    # Result object returned after successful installation
+    Result = Struct.new(:success, :agent_uuid, keyword_init: true) do
+      def success?
+        success
+      end
+    end
+
     BASTION_TMP_PATH = "/tmp/agent_bin"
     TARGET_BIN_PATH = "/usr/local/bin/hpc-agent"
+    AGENT_CONFIG_DIR = "/etc/hpc-agent"
+    AGENT_NODE_ID_PATH = "#{AGENT_CONFIG_DIR}/node_id"
 
     def initialize(target_host:, arch:, bastion_user: nil, bastion_host: nil, bastion_password: nil, sudo_password:, local_binary_path:, server_url: nil, agent_token: nil, node: nil, on_progress: nil)
       @target_host = target_host
@@ -51,6 +60,7 @@ module Agent
       effective_password = @bastion_password.presence || @sudo_password
       ssh_options = default_ssh_options.merge(password: effective_password).compact
 
+      agent_uuid = nil
       Rails.logger.debug "[RemoteInstallService] Connecting to bastion: #{@bastion_user}@#{@bastion_host}"
       Net::SSH.start(@bastion_host, @bastion_user, ssh_options) do |ssh|
         # Phase 1: Upload to Bastion
@@ -67,8 +77,11 @@ module Agent
 
         # Phase 3: Remote Config on Target
         configure_target(ssh, via_ssh: true)
+
+        # Phase 4: Read agent UUID for sync
+        agent_uuid = read_agent_uuid(ssh, via_ssh: true)
       end
-      true
+      Result.new(success: true, agent_uuid: agent_uuid)
     rescue => e
       Rails.logger.error "Remote install via bastion failed: #{e.message}"
       Rails.logger.error e.backtrace.first(10).join("\n")
@@ -83,11 +96,12 @@ module Agent
       user = @bastion_user.presence || "root"
 
       connect_host = ssh_target_host
+      agent_uuid = nil
 
       begin
         Rails.logger.debug "[RemoteInstallService] Connecting directly to target: #{user}@#{connect_host}"
         Net::SSH.start(connect_host, user, ssh_options) do |ssh|
-          perform_direct_install(ssh, connect_host)
+          agent_uuid = perform_direct_install(ssh, connect_host)
         end
       rescue Net::SSH::ConnectionTimeout, Errno::ETIMEDOUT, Errno::EHOSTUNREACH => e
         # If we used IP and failed, try hostname if it's different
@@ -101,7 +115,7 @@ module Agent
         raise e
       end
 
-      true
+      Result.new(success: true, agent_uuid: agent_uuid)
     rescue => e
       Rails.logger.error "Direct remote install failed: #{e.message}"
       Rails.logger.error e.backtrace.first(10).join("\n")
@@ -121,6 +135,9 @@ module Agent
 
       # Phase 2: Config
       configure_target(ssh, via_ssh: false)
+
+      # Phase 3: Read agent UUID for sync
+      read_agent_uuid(ssh, via_ssh: false)
     end
 
     private
@@ -322,7 +339,32 @@ module Agent
           execute_remote_command(ssh, dmi_cmd, password: @sudo_password)
         end
 
+    # Read the agent's UUID from the remote node after installation
+    # The agent generates and stores its UUID in /etc/hpc-agent/node_id
+    def read_agent_uuid(ssh, via_ssh: false)
+      report_progress "Reading agent UUID for identity sync"
 
+      inner_cmd = "cat #{AGENT_NODE_ID_PATH}"
+      read_cmd = if via_ssh
+                   "sudo -S ssh -o StrictHostKeyChecking=no #{target_user}@#{Shellwords.escape(@target_host)} #{Shellwords.escape(inner_cmd)}"
+      else
+                   inner_cmd
+      end
+
+      output = execute_remote_command(ssh, read_cmd, password: via_ssh ? @sudo_password : nil)
+      uuid = output.strip
+
+      if uuid.present?
+        Rails.logger.info "[RemoteInstallService] Agent UUID: #{uuid}"
+        uuid
+      else
+        Rails.logger.warn "[RemoteInstallService] Could not read agent UUID from #{AGENT_NODE_ID_PATH}"
+        nil
+      end
+    rescue => e
+      Rails.logger.warn "[RemoteInstallService] Failed to read agent UUID: #{e.message}"
+      nil
+    end
 
     def report_progress(message)
       @on_progress&.call(message)

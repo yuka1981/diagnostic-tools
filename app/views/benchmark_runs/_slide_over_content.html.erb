@@ -117,7 +117,8 @@
 
         <%# Quick Actions %>
         <div class="mt-6">
-          <%= link_to benchmark_run_path(benchmark_run), 
+          <%= link_to benchmark_run_path(benchmark_run),
+              data: { turbo_frame: "_top" },
               class: "btn-primary w-full justify-center" do %>
             <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
@@ -164,10 +165,16 @@
            aria-hidden="true"
            class="hidden"
            data-tabs-target="panel">
-        
-        <div class="text-center py-12 card-netbox bg-slate-50 border-dashed">
-          <p class="text-slate-500 font-bold uppercase text-xs">No logs available</p>
-        </div>
+
+        <% if benchmark_run.log_content.present? %>
+          <div class="card-netbox overflow-hidden">
+            <pre class="p-4 text-xs font-mono text-slate-700 bg-slate-50 overflow-x-auto max-h-96 whitespace-pre-wrap break-words"><%= benchmark_run.log_content %></pre>
+          </div>
+        <% else %>
+          <div class="text-center py-12 card-netbox bg-slate-50 border-dashed">
+            <p class="text-slate-500 font-bold uppercase text-xs">No logs available</p>
+          </div>
+        <% end %>
       </div>
 
       <%# Artifacts Tab Panel %>

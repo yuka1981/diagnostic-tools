@@ -23,8 +23,10 @@ RSpec.describe Agent::InstallJob, type: :job do
     }
   end
 
+    let(:agent_uuid) { "agent-uuid-12345" }
+    let(:install_result) { Agent::RemoteInstallService::Result.new(success: true, agent_uuid: agent_uuid) }
     let(:compiler) { instance_double(Agent::CompilerService, call: "/tmp/hpc-agent") }
-    let(:installer) { instance_double(Agent::RemoteInstallService, call: true) }
+    let(:installer) { instance_double(Agent::RemoteInstallService, call: install_result) }
 
     before do
       allow(Agent::CompilerService).to receive(:new).and_return(compiler)
@@ -51,6 +53,7 @@ RSpec.describe Agent::InstallJob, type: :job do
       expect(node.hostname).to eq("compute-001")
       expect(node.arch).to eq("x86_64")
       expect(node.source).to eq("agent_push")
+      expect(node.uuid).to eq(agent_uuid) # UUID synced from agent
 
       # Verify intermediate broadcasts
       expect(Turbo::StreamsChannel).to have_received(:broadcast_replace_to).with(
@@ -117,5 +120,84 @@ RSpec.describe Agent::InstallJob, type: :job do
       "agent_install_compute-001",
       hash_including(locals: hash_including(status: "error", message: "Installation failed: Credentials expired or not found. Please try again."))
     )
+  end
+
+  context "when api_key_id is provided" do
+    let!(:api_key) { create(:api_key, :active) }
+
+    it "uses token from ApiKey record" do
+      described_class.perform_now(**params.merge(api_key_id: api_key.id))
+
+      expect(Agent::RemoteInstallService).to have_received(:new).with(hash_including(
+        agent_token: api_key.token
+      ))
+    end
+
+    it "uses nil when api_key_id does not match any active key" do
+      described_class.perform_now(**params.merge(api_key_id: 99999))
+
+      expect(Agent::RemoteInstallService).to have_received(:new).with(hash_including(
+        agent_token: nil
+      ))
+    end
+
+    it "uses nil when api_key is revoked" do
+      revoked_key = create(:api_key, :revoked)
+
+      described_class.perform_now(**params.merge(api_key_id: revoked_key.id))
+
+      expect(Agent::RemoteInstallService).to have_received(:new).with(hash_including(
+        agent_token: nil
+      ))
+    end
+  end
+
+  context "cleanup behavior" do
+    it "cleans up local binary after successful installation" do
+      described_class.perform_now(**params)
+
+      expect(FileUtils).to have_received(:rm_f).with("/tmp/hpc-agent")
+    end
+
+    it "cleans up local binary after failed installation" do
+      allow(installer).to receive(:call).and_raise(StandardError, "Connection failed")
+
+      described_class.perform_now(**params)
+
+      expect(FileUtils).to have_received(:rm_f).with("/tmp/hpc-agent")
+    end
+
+    it "does not attempt cleanup if binary was never created" do
+      allow(compiler).to receive(:call).and_raise(StandardError, "Compilation failed")
+      allow(File).to receive(:exist?).and_return(false)
+
+      described_class.perform_now(**params)
+
+      expect(FileUtils).not_to have_received(:rm_f)
+    end
+  end
+
+  context "node source reversion on failure" do
+    it "does not revert source if node is nil" do
+      allow(installer).to receive(:call).and_raise(StandardError, "Failed")
+
+      expect {
+        described_class.perform_now(**params.merge(node: nil))
+      }.not_to raise_error
+
+      expect(Turbo::StreamsChannel).to have_received(:broadcast_replace_to).with(
+        "agent_install_compute-001",
+        hash_including(locals: hash_including(status: "error"))
+      )
+    end
+
+    it "does not revert source if node is not persisted" do
+      unsaved_node = build(:node, hostname: "new-node")
+      allow(installer).to receive(:call).and_raise(StandardError, "Failed")
+
+      expect {
+        described_class.perform_now(**params.merge(node: unsaved_node))
+      }.not_to raise_error
+    end
   end
 end

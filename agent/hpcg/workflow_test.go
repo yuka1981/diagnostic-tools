@@ -38,6 +38,13 @@ func (m *mockModuleLoader) Load(ctx context.Context, modules []string) error {
 func TestWorkflowOrchestrator_Run(t *testing.T) {
 	tmpDir := t.TempDir()
 
+	// Create setup directory to simulate HPCG source already present
+	// This skips the auto-clone step
+	setupDir := filepath.Join(tmpDir, "setup")
+	if err := os.MkdirAll(setupDir, 0755); err != nil {
+		t.Fatalf("failed to create setup dir: %v", err)
+	}
+
 	validLog := `
 HPCG-Benchmark
 Final Summary::HPCG result is VALID with a GFLOP/s rating of= 100.0
@@ -104,4 +111,91 @@ Final Summary::HPCG result is VALID with a GFLOP/s rating of= 100.0
 	if metrics.GFLOPS != 100.0 {
 		t.Errorf("expected 100.0 GFLOPS, got %f", metrics.GFLOPS)
 	}
+}
+
+func TestWorkflowOrchestrator_EnsureHPCGSource(t *testing.T) {
+	t.Run("skips clone when setup dir exists", func(t *testing.T) {
+		tmpDir := t.TempDir()
+
+		// Create setup directory
+		setupDir := filepath.Join(tmpDir, "setup")
+		if err := os.MkdirAll(setupDir, 0755); err != nil {
+			t.Fatalf("failed to create setup dir: %v", err)
+		}
+
+		runner := &mockCommandRunner{}
+		orchestrator := &WorkflowOrchestrator{
+			Runner:  runner,
+			WorkDir: tmpDir,
+		}
+
+		err := orchestrator.ensureHPCGSource(context.Background())
+		if err != nil {
+			t.Errorf("unexpected error: %v", err)
+		}
+
+		// Should not run any commands since setup dir exists
+		if len(runner.cmds) != 0 {
+			t.Errorf("expected no commands, got %v", runner.cmds)
+		}
+	})
+
+	t.Run("clones when setup dir missing", func(t *testing.T) {
+		tmpDir := t.TempDir()
+
+		// Use a mock that creates the temp directory when clone is called
+		runner := &cloningMockRunner{
+			workDir: tmpDir,
+		}
+
+		orchestrator := &WorkflowOrchestrator{
+			Runner:  runner,
+			WorkDir: tmpDir,
+		}
+
+		err := orchestrator.ensureHPCGSource(context.Background())
+		if err != nil {
+			t.Errorf("unexpected error: %v", err)
+		}
+
+		// Should have run git clone command
+		foundClone := false
+		for _, cmd := range runner.cmds {
+			if strings.Contains(cmd, "git clone") {
+				foundClone = true
+				break
+			}
+		}
+		if !foundClone {
+			t.Errorf("expected git clone command, got %v", runner.cmds)
+		}
+
+		// Verify setup directory was created (moved from temp)
+		if _, err := os.Stat(filepath.Join(tmpDir, "setup")); os.IsNotExist(err) {
+			t.Error("setup directory was not created")
+		}
+	})
+}
+
+// cloningMockRunner simulates git clone by creating temp directory with setup/
+type cloningMockRunner struct {
+	workDir string
+	cmds    []string
+}
+
+func (m *cloningMockRunner) Run(ctx context.Context, dir, name string, args ...string) ([]byte, error) {
+	cmdStr := name
+	if len(args) > 0 {
+		cmdStr += " " + strings.Join(args, " ")
+	}
+	m.cmds = append(m.cmds, cmdStr)
+
+	// If this is the git clone command, create the temp directory with setup/
+	if strings.Contains(cmdStr, "git clone") {
+		tempDir := m.workDir + ".tmp"
+		os.MkdirAll(filepath.Join(tempDir, "setup"), 0755)
+		os.WriteFile(filepath.Join(tempDir, "README.md"), []byte("test"), 0644)
+	}
+
+	return nil, nil
 }

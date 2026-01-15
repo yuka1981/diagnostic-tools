@@ -71,20 +71,41 @@ RSpec.describe "Api::V1::BenchmarkRuns", type: :request do
       expect(response).to have_http_status(:not_found)
     end
 
-    it "associates the run with the node identified by X-Node-ID" do
-      new_uuid = SecureRandom.uuid
+    it "associates the run with an existing node when X-Node-ID matches (UUID sync)" do
+      # Simulate a node with a synced agent UUID
+      synced_node = create(:node, hostname: "synced-node", uuid: "synced-agent-uuid")
+
       post "/api/v1/benchmark_runs",
            params: valid_payload.to_json,
            headers: {
              "Authorization" => "Bearer #{valid_token}",
              "Content-Type" => "application/json",
-             "X-Node-ID" => new_uuid
+             "X-Node-ID" => "synced-agent-uuid"
            }
 
       expect(response).to have_http_status(:success)
       run.reload
-      expect(run.node.uuid).to eq(new_uuid)
-      expect(run.node.hostname).to start_with("node-")
+      expect(run.node).to eq(synced_node)
+      expect(run.node.hostname).to eq("synced-node")
+    end
+
+    it "keeps the original node when X-Node-ID does not match any existing node" do
+      original_node = run.node
+      unknown_uuid = SecureRandom.uuid
+
+      post "/api/v1/benchmark_runs",
+           params: valid_payload.to_json,
+           headers: {
+             "Authorization" => "Bearer #{valid_token}",
+             "Content-Type" => "application/json",
+             "X-Node-ID" => unknown_uuid
+           }
+
+      expect(response).to have_http_status(:success)
+      run.reload
+      # Run should keep its original node, not create a new one
+      expect(run.node).to eq(original_node)
+      expect(Node.find_by(uuid: unknown_uuid)).to be_nil
     end
 
     it "creates artifact index records if artifacts are provided" do
@@ -97,6 +118,17 @@ RSpec.describe "Api::V1::BenchmarkRuns", type: :request do
       expect(run.artifact_indices.count).to eq(2)
       expect(run.artifact_indices.pluck(:path)).to contain_exactly("/path/to/hpcg.log", "/path/to/hpcg.dat")
       expect(run.artifact_indices.find_by(path: "/path/to/hpcg.log").file_type).to eq("log")
+    end
+
+    it "saves log_content when provided" do
+      log_content = "=== Command Output ===\nHPCG benchmark started\n\n=== HPCG Log File ===\nFinal GFLOPS: 123.45"
+      payload = valid_payload.merge(log_content: log_content)
+      post "/api/v1/benchmark_runs",
+           params: payload.to_json,
+           headers: { "Authorization" => "Bearer #{valid_token}", "Content-Type" => "application/json" }
+
+      expect(response).to have_http_status(:success)
+      expect(run.reload.log_content).to eq(log_content)
     end
   end
 end

@@ -117,8 +117,10 @@ RSpec.describe "Benchmark Runs Filtering", type: :system do
       fill_in "Search", with: "custom.log"
       click_button "Search"
 
+      # Log path column is hidden but search still works - verify by checking the matching run appears
       within("tbody") do
-        expect(page).to have_content("/var/log/hpcg_custom.log", wait: 5)
+        expect(page).to have_content("compute-001", wait: 5)
+        expect(page).to have_content("HPL")
       end
     end
   end

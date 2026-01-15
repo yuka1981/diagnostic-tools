@@ -77,8 +77,8 @@
         </div>
 
         <div>
-          <%= f.label :password, "User password", class: "block text-sm font-bold text-slate-700 mb-1" %>
-          <%= f.password_field :password,
+          <%= f.label :sudo_credential, "Sudo password", class: "block text-sm font-bold text-slate-700 mb-1" %>
+          <%= f.password_field :sudo_credential,
               placeholder: "••••••••",
               class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" %>
         </div>
@@ -112,6 +112,52 @@
           <%= f.number_field :jump_port, min: 1, max: 65535,
               class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" %>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <%# Section: Agent & Benchmark Configuration %>
+  <div class="card-netbox">
+    <div class="card-header">
+      <h3 class="card-title">Agent & Benchmark Configuration</h3>
+    </div>
+    <div class="p-4 grid grid-cols-1 gap-6 sm:grid-cols-2">
+      <div>
+        <%= f.label :agent_path, "Agent Path", class: "block text-sm font-bold text-slate-700 mb-1" %>
+        <%= f.text_field :agent_path,
+            placeholder: "hpc-agent",
+            class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm font-mono" %>
+        <p class="mt-1 text-xs text-slate-500">Path to the hpc-agent binary on this node. Leave blank to use default.</p>
+      </div>
+
+      <div>
+        <%= f.label :benchmark_work_dir, "Benchmark Working Directory", class: "block text-sm font-bold text-slate-700 mb-1" %>
+        <%= f.text_field :benchmark_work_dir,
+            placeholder: BenchmarkConfig.global_work_dir.presence || BenchmarkConfig::DEFAULT_WORK_DIR,
+            class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm font-mono" %>
+        <p class="mt-1 text-xs text-slate-500">
+          Directory where benchmark source code is located.
+          <% if BenchmarkConfig.global_work_dir.present? %>
+            Global default: <code class="bg-slate-100 px-1 rounded"><%= BenchmarkConfig.global_work_dir %></code>
+          <% else %>
+            Defaults to <code class="bg-slate-100 px-1 rounded"><%= BenchmarkConfig::DEFAULT_WORK_DIR %></code>
+          <% end %>
+        </p>
+      </div>
+
+      <div class="sm:col-span-2 border-t border-slate-100 pt-4">
+        <%= f.label :api_key_id, "API Token", class: "block text-sm font-bold text-slate-700 mb-1" %>
+        <%= f.select :api_key_id,
+            options_for_select(
+              [["— Select API Key —", ""]] + @api_keys.map { |k| [k.name, k.id] },
+              @node.api_key_id
+            ),
+            {},
+            class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" %>
+        <p class="mt-1 text-xs text-slate-500">
+          Select an API key for agent benchmark result uploads. Manage keys in
+          <%= link_to "API Keys", api_keys_path, class: "text-teal-600 hover:text-teal-800", data: { turbo_frame: "_top" } %>.
+        </p>
       </div>
     </div>
   </div>
