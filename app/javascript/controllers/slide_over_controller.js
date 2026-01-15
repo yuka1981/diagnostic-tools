@@ -3,7 +3,7 @@ import { Controller } from "@hotwired/stimulus"
 // Connects to data-controller="slide-over"
 // Handles slide-over panel behavior with CSS transitions and accessibility
 export default class extends Controller {
-  static targets = ["panel", "backdrop", "content", "closeButton"]
+  static targets = ["panel", "backdrop", "content", "closeButton", "modalContent"]
   static values = {
     open: { type: Boolean, default: false }
   }
@@ -53,11 +53,11 @@ export default class extends Controller {
       })
     }
 
-    // Slide panel in from right
+    // Show modal with scale and fade-in animation
     if (this.hasPanelTarget) {
-      this.panelTarget.classList.remove("hidden", "translate-x-full")
+      this.panelTarget.classList.remove("hidden", "opacity-0", "scale-95")
       requestAnimationFrame(() => {
-        this.panelTarget.classList.add("translate-x-0")
+        this.panelTarget.classList.add("opacity-100", "scale-100")
       })
     }
 
@@ -79,7 +79,7 @@ export default class extends Controller {
       this.backdropTarget.classList.add("opacity-0")
     }
 
-    // Slide panel out to right and hide after transition completes
+    // Scale down and fade out modal, then hide after transition completes
     if (this.hasPanelTarget) {
       const onTransitionEnd = () => {
         if (!this.openValue) {
@@ -92,8 +92,8 @@ export default class extends Controller {
       }
       this.panelTarget.addEventListener("transitionend", onTransitionEnd)
 
-      this.panelTarget.classList.remove("translate-x-0")
-      this.panelTarget.classList.add("translate-x-full")
+      this.panelTarget.classList.remove("opacity-100", "scale-100")
+      this.panelTarget.classList.add("opacity-0", "scale-95")
     }
 
     // Re-enable body scroll
@@ -145,6 +145,14 @@ export default class extends Controller {
   // Handle clicking on backdrop
   backdropClick(event) {
     if (event.target === this.backdropTarget) {
+      this.close(event)
+    }
+  }
+
+  // Handle clicking on the panel wrapper (for centered modal)
+  // Close if click is outside the modal content
+  panelClick(event) {
+    if (this.hasModalContentTarget && !this.modalContentTarget.contains(event.target)) {
       this.close(event)
     }
   }
