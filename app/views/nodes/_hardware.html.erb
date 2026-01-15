@@ -77,33 +77,6 @@
     </div>
 
     <div class="grid grid-cols-12 gap-6">
-      <%# Existing Host Information (OS/Kernel) - Simplified %>
-      <div class="col-span-12">
-        <div class="card-netbox h-full">
-          <div class="card-header">
-            <h3 class="card-title text-xs font-bold text-slate-500 uppercase">Operating System</h3>
-          </div>
-          <div class="p-0">
-            <table class="w-full text-sm text-left">
-              <tbody class="divide-y divide-slate-100">
-                <tr class="hover:bg-slate-50">
-                  <th class="px-4 py-2 font-bold text-slate-700 w-1/3 border-r border-slate-200">OS</th>
-                  <td class="px-4 py-2 text-slate-700"><%= state.host_info["os"] || "—" %></td>
-                </tr>
-                <tr class="hover:bg-slate-50">
-                  <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">Kernel</th>
-                  <td class="px-4 py-2 font-mono text-slate-700 text-xs"><%= state.host_info["kernel"] || "—" %></td>
-                </tr>
-                <tr class="hover:bg-slate-50">
-                  <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">Platform</th>
-                  <td class="px-4 py-2 text-slate-700"><%= state.host_info["platform"] %> <%= state.host_info["platform_version"] %></td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
       <%# CPU Information %>
       <div class="col-span-12">
         <div class="card-netbox h-full">
