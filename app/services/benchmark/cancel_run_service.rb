@@ -89,8 +89,9 @@ module Benchmark
     def agent_reports_not_found?(result)
       # The agent returns status: "not_found" when there's no PID file
       # This is acceptable - it means the process already finished
-      result.output&.include?('"status":"not_found"') ||
-        result.output&.include?('"status": "not_found"')
+      JSON.parse(result.output.to_s)["status"] == "not_found"
+    rescue JSON::ParserError
+      false
     end
 
     def update_run_as_cancelled(result)

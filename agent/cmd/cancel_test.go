@@ -7,35 +7,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/spf13/cobra"
-
 	"github.com/yuka1981/diagnostic-tools/agent/core/execution"
 )
-
-func TestCancelCommand_NoUUID(t *testing.T) {
-	cmd := &cobra.Command{}
-	cmd.Flags().String("uuid", "", "UUID of the benchmark run")
-
-	var buf bytes.Buffer
-	cmd.SetOut(&buf)
-
-	err := runCancel(cmd, []string{})
-	if err != nil {
-		t.Fatalf("runCancel returned error: %v", err)
-	}
-
-	var result CancelResult
-	if err := json.Unmarshal(buf.Bytes(), &result); err != nil {
-		t.Fatalf("Failed to parse JSON output: %v", err)
-	}
-
-	if result.Status != "error" {
-		t.Errorf("Expected status 'error', got '%s'", result.Status)
-	}
-	if result.Message != "UUID is required" {
-		t.Errorf("Expected message 'UUID is required', got '%s'", result.Message)
-	}
-}
 
 func TestCancelCommand_PIDFileNotFound(t *testing.T) {
 	// Use a temp directory for PID files
@@ -96,7 +69,7 @@ func TestCancelCommand_ProcessAlreadyGone(t *testing.T) {
 }
 
 func TestCancelResult_JSONFormat(t *testing.T) {
-	tests := []struct {
+	tests := []struct { //nolint:govet // fieldalignment: test struct order optimized for readability
 		result   CancelResult
 		name     string
 		wantJSON string

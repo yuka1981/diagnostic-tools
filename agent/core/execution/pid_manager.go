@@ -16,7 +16,7 @@ import (
 
 const (
 	// DefaultPIDDir is the default directory for PID files.
-	DefaultPIDDir = "/tmp/diagnostic-agent"
+	DefaultPIDDir = "/var/run/diagnostic-agent"
 	// PIDFileSuffix is the suffix for PID files.
 	PIDFileSuffix = ".pid"
 	// DefaultKillTimeout is the time to wait after SIGTERM before sending SIGKILL.

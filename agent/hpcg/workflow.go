@@ -29,7 +29,7 @@ type PIDTracker interface {
 }
 
 // WorkflowOrchestrator manages the HPCG benchmark workflow.
-type WorkflowOrchestrator struct {
+type WorkflowOrchestrator struct { //nolint:govet // fieldalignment: all fields are 16 bytes (string/interface)
 	WorkDir      string
 	Runner       ports.CommandRunner
 	ModuleLoader ModuleLoader

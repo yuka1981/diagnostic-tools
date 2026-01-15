@@ -30,14 +30,6 @@ This command reads the PID file for the given UUID, terminates the process
 func runCancel(cmd *cobra.Command, args []string) error {
 	uuid, _ := cmd.Flags().GetString("uuid")
 
-	if uuid == "" {
-		result := CancelResult{
-			Status:  "error",
-			Message: "UUID is required",
-		}
-		return outputCancelResult(cmd, result)
-	}
-
 	pm := execution.NewPIDManager()
 
 	pid, err := pm.CancelByUUID(uuid)
@@ -84,5 +76,6 @@ func outputCancelResult(cmd *cobra.Command, result CancelResult) error {
 
 func init() {
 	cancelCmd.Flags().String("uuid", "", "UUID of the benchmark run to cancel (required)")
+	_ = cancelCmd.MarkFlagRequired("uuid")
 	rootCmd.AddCommand(cancelCmd)
 }
