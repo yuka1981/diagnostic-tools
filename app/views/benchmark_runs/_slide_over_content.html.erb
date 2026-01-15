@@ -192,22 +192,40 @@
                 <tr>
                   <th class="px-3 py-2 text-left text-xs font-bold uppercase text-slate-500 border-b">Name</th>
                   <th class="px-3 py-2 text-left text-xs font-bold uppercase text-slate-500 border-b">Type</th>
-                  <th class="px-3 py-2 text-right text-xs font-bold uppercase text-slate-500 border-b">Path</th>
+                  <th class="px-3 py-2 text-left text-xs font-bold uppercase text-slate-500 border-b">Size</th>
+                  <th class="px-3 py-2 text-right text-xs font-bold uppercase text-slate-500 border-b">Actions</th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-slate-100 bg-white">
                 <% benchmark_run.artifact_indices.each do |artifact| %>
                   <tr class="hover:bg-slate-50 border-b border-slate-200">
-                    <td class="px-3 py-2 font-bold text-slate-700">
-                      <%= File.basename(artifact.path) %>
+                    <td class="px-3 py-2">
+                      <div class="font-bold text-slate-700"><%= File.basename(artifact.path) %></div>
+                      <div class="text-[10px] font-mono text-slate-400 truncate max-w-[200px]"><%= artifact.path %></div>
                     </td>
                     <td class="px-3 py-2 text-slate-600 uppercase text-xs font-bold">
                       <%= artifact.file_type %>
                     </td>
+                    <td class="px-3 py-2 text-slate-600 text-xs">
+                      <%= artifact.size.present? ? number_to_human_size(artifact.size) : "—" %>
+                    </td>
                     <td class="px-3 py-2 text-right">
-                      <span class="text-[10px] font-mono text-slate-500 bg-slate-50 px-2 py-1 rounded border border-slate-200">
-                        <%= artifact.path %>
-                      </span>
+                      <% if File.exist?(artifact.path) %>
+                        <%= link_to download_artifact_benchmark_run_path(benchmark_run, artifact_id: artifact.id),
+                            class: "inline-flex items-center gap-1 text-teal-600 hover:text-teal-800 text-xs font-bold" do %>
+                          <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                          </svg>
+                          Download
+                        <% end %>
+                      <% else %>
+                        <span class="inline-flex items-center gap-1 text-slate-400 text-xs font-bold cursor-not-allowed" title="File not found on server">
+                          <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                          </svg>
+                          Unavailable
+                        </span>
+                      <% end %>
                     </td>
                   </tr>
                 <% end %>
