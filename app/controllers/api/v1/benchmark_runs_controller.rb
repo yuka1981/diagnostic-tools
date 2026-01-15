@@ -43,8 +43,8 @@ module Api
         update_params = {
           status: status_map[params[:status]] || run.status,
           metrics: params[:metrics],
-          started_at: params[:start_time].presence,
-          finished_at: params[:end_time].presence,
+          started_at: sanitize_timestamp(params[:start_time]),
+          finished_at: sanitize_timestamp(params[:end_time]),
           log_content: params[:log_content]
         }.compact
 
@@ -63,6 +63,20 @@ module Api
         else
           render json: { error: run.errors.full_messages.join(", ") }, status: :unprocessable_entity
         end
+      end
+
+      # Sanitize timestamp values to filter out invalid dates
+      # Go's zero time (0001-01-01) can leak through when omitempty doesn't work as expected
+      def sanitize_timestamp(value)
+        return nil if value.blank?
+
+        time = Time.zone.parse(value.to_s)
+        # Reject timestamps before year 2000 (catches Go's zero time: 0001-01-01)
+        return nil if time.nil? || time.year < 2000
+
+        time
+      rescue ArgumentError
+        nil
       end
     end
   end
