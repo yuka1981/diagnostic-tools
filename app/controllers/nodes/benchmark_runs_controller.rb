@@ -5,7 +5,15 @@ module Nodes
     layout "dashboard"
     before_action :authenticate_user!
     before_action :set_node
-    before_action :authorize_approver!
+    before_action :authorize_approver!, only: %i[new create]
+
+    def index
+      @benchmark_runs = @node.benchmark_runs
+                             .includes(:benchmark_recipe)
+                             .order(created_at: :desc)
+                             .page(params[:page])
+                             .per(20)
+    end
 
     def new
       @form = Benchmark::RunForm.new

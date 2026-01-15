@@ -25,8 +25,8 @@ type HPCGMetrics struct {
 
 // BenchmarkRun represents a complete benchmark execution result.
 type BenchmarkRun struct {
-	StartTime  time.Time       `json:"start_time"`
-	EndTime    time.Time       `json:"end_time"`
+	StartTime  time.Time       `json:"start_time,omitempty"`
+	EndTime    time.Time       `json:"end_time,omitempty"`
 	RunID      string          `json:"run_id"`
 	NodeID     string          `json:"node_id,omitempty"`
 	RecipeID   string          `json:"recipe_id"`

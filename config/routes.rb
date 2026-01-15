@@ -30,7 +30,7 @@ Rails.application.routes.draw do
       post :test_connection
       post :collect
     end
-    resources :benchmark_runs, only: %i[new create], controller: "nodes/benchmark_runs"
+    resources :benchmark_runs, only: %i[index new create], controller: "nodes/benchmark_runs"
     resource :network, only: [], controller: "nodes/network" do
       get :ib_details
     end

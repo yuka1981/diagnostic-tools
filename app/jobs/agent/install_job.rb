@@ -57,9 +57,15 @@ module Agent
         }
       )
 
-      installer.call
+      result = installer.call
 
-      # 3. Success Broadcast
+      # 3. Sync agent UUID to node record
+      if result.agent_uuid.present? && node&.persisted?
+        Rails.logger.info "[Agent::InstallJob] Syncing agent UUID #{result.agent_uuid} to node #{node.hostname}"
+        node.update!(uuid: result.agent_uuid)
+      end
+
+      # 4. Success Broadcast
       Rails.logger.debug "[Agent::InstallJob] Installation Successful"
       broadcast_status(target_host, "success", "Agent installed successfully")
     rescue => e

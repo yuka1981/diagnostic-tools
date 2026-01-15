@@ -33,6 +33,32 @@ RSpec.describe "Nodes::BenchmarkRuns", type: :request do
     allow_any_instance_of(Benchmark::PreflightService).to receive(:call).and_return(mock_preflight)
   end
 
+  describe "GET /nodes/:node_id/benchmark_runs" do
+    it "returns http success" do
+      get node_benchmark_runs_path(node)
+      expect(response).to have_http_status(:success)
+    end
+
+    it "displays benchmark runs for the node" do
+      recipe = create(:benchmark_recipe)
+      create_list(:benchmark_run, 3, node: node, benchmark_recipe: recipe)
+
+      get node_benchmark_runs_path(node)
+
+      expect(response).to have_http_status(:success)
+      expect(response.body).to include(node.hostname)
+    end
+
+    it "is accessible to viewers (read-only)" do
+      viewer = create(:user, :viewer)
+      sign_in viewer
+
+      get node_benchmark_runs_path(node)
+
+      expect(response).to have_http_status(:success)
+    end
+  end
+
   describe "GET /nodes/:node_id/benchmark_runs/new" do
     it "returns http success" do
       get new_node_benchmark_run_path(node)

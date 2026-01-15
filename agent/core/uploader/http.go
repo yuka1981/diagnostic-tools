@@ -25,6 +25,7 @@ type HTTPUploader struct {
 	BaseURL      string
 	Token        string
 	NodeID       string
+	Hostname     string
 	RetryWaitMin time.Duration
 	RetryWaitMax time.Duration
 	MaxRetries   int
@@ -33,9 +34,11 @@ type HTTPUploader struct {
 
 // NewHTTPUploader creates a new HTTP uploader.
 func NewHTTPUploader(baseURL, token string) *HTTPUploader {
+	hostname, _ := os.Hostname()
 	return &HTTPUploader{
 		BaseURL:      baseURL,
 		Token:        token,
+		Hostname:     hostname,
 		Client:       &http.Client{Timeout: 30 * time.Second},
 		MaxRetries:   3,
 		RetryWaitMin: 1 * time.Second,
@@ -140,6 +143,9 @@ func (u *HTTPUploader) attemptRequest(ctx context.Context, url string, body []by
 	}
 	if u.NodeID != "" {
 		req.Header.Set("X-Node-ID", u.NodeID)
+	}
+	if u.Hostname != "" {
+		req.Header.Set("X-Hostname", u.Hostname)
 	}
 
 	resp, err := u.Client.Do(req)
