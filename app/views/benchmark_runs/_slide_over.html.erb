@@ -32,8 +32,8 @@
     </div>
 
     <%# Content - Turbo Frame for lazy loading %>
-    <div class="flex-1 overflow-y-auto">
-      <%= turbo_frame_tag "slide_over_content", data: { slide_over_target: "content" } do %>
+    <div class="flex-1 overflow-hidden flex flex-col min-h-0">
+      <%= turbo_frame_tag "slide_over_content", class: "flex flex-col h-full", data: { slide_over_target: "content" } do %>
         <%# Placeholder content - will be replaced when a run is selected %>
         <div class="flex flex-col items-center justify-center h-full py-12 text-center px-6">
           <svg class="h-12 w-12 text-gray-300 dark:text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
