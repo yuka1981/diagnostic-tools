@@ -16,7 +16,8 @@
           </p>
         <% end %>
       </div>
-      <%= link_to "View all", benchmark_runs_path(node_id: selected_node&.id), 
+      <%= link_to "View all", benchmark_runs_path(node_id: selected_node&.id),
+          data: { turbo_frame: "_top" },
           class: "text-[10px] font-bold uppercase tracking-widest text-blue-600 hover:text-blue-700 transition-colors bg-blue-50 px-2 py-1 rounded border border-blue-100 shadow-sm" %>
     </div>
 
@@ -55,6 +56,7 @@
         <% if runs.count >= 10 %>
           <div class="p-3 bg-slate-50 border-t border-slate-100 text-center">
             <%= link_to "View all results", benchmark_runs_path(node_id: selected_node&.id),
+                data: { turbo_frame: "_top" },
                 class: "text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-slate-700 transition-colors" %>
           </div>
         <% end %>

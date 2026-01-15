@@ -146,12 +146,16 @@
       </div>
 
       <div class="sm:col-span-2 border-t border-slate-100 pt-4">
-        <%= f.label :api_token, "API Token (Optional)", class: "block text-sm font-bold text-slate-700 mb-1" %>
-        <%= f.password_field :api_token,
-            placeholder: "••••••••",
-            class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm font-mono" %>
+        <%= f.label :api_key_id, "API Token", class: "block text-sm font-bold text-slate-700 mb-1" %>
+        <%= f.select :api_key_id,
+            options_for_select(
+              [["— Select API Key —", ""]] + @api_keys.map { |k| [k.name, k.id] },
+              @node.api_key_id
+            ),
+            {},
+            class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" %>
         <p class="mt-1 text-xs text-slate-500">
-          Agent API token for benchmark result uploads. Leave blank to use the global token from
+          Select an API key for agent benchmark result uploads. Manage keys in
           <%= link_to "API Keys", api_keys_path, class: "text-teal-600 hover:text-teal-800", data: { turbo_frame: "_top" } %>.
         </p>
       </div>

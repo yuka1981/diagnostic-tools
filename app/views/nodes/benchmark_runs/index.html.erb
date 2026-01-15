@@ -20,9 +20,11 @@
       <table class="min-w-full divide-y divide-slate-200 text-sm">
         <thead class="bg-slate-50">
           <tr>
-            <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">ID</th>
             <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Recipe</th>
             <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Status</th>
+            <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Gflops</th>
+            <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Duration</th>
+            <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Created At</th>
             <th scope="col" class="relative px-3 py-2 border-b">
               <span class="sr-only">Actions</span>
             </th>
@@ -31,17 +33,26 @@
         <tbody class="divide-y divide-slate-200 bg-white">
           <% @benchmark_runs.each do |run| %>
             <tr class="hover:bg-slate-50">
-              <td class="px-3 py-2 font-mono text-slate-700">
-                <%= link_to run.id.to_s[0..7], benchmark_run_path(run), class: "text-teal-600 font-bold hover:underline" %>
+              <td class="whitespace-nowrap px-3 py-2">
+                <p class="text-sm font-medium text-slate-900"><%= run.benchmark_recipe&.name || "N/A" %></p>
+                <p class="text-xs text-slate-500"><%= run.benchmark_recipe&.version %></p>
               </td>
-              <td class="px-3 py-2 text-slate-700"><%= run.benchmark_recipe&.name || "N/A" %></td>
-              <td class="px-3 py-2">
+              <td class="whitespace-nowrap px-3 py-2">
                 <span class="inline-flex items-center rounded-sm px-2 py-0.5 text-xs font-medium <%= status_badge_class(run.status) %>">
                   <%= run.status.humanize %>
                 </span>
               </td>
-              <td class="px-3 py-2 text-right">
-                <%= link_to "View", benchmark_run_path(run), class: "text-teal-600 hover:text-teal-700 font-medium text-sm" %>
+              <td class="whitespace-nowrap px-3 py-2 text-sm text-slate-600 font-mono">
+                <%= run.metrics&.dig("gflops") ? number_with_precision(run.metrics["gflops"], precision: 2, strip_insignificant_zeros: true) : "-" %>
+              </td>
+              <td class="whitespace-nowrap px-3 py-2 text-sm text-slate-500">
+                <%= run.duration ? distance_of_time_in_words(run.duration) : "-" %>
+              </td>
+              <td class="whitespace-nowrap px-3 py-2 text-sm text-slate-500">
+                <%= l(run.created_at, format: :short) %>
+              </td>
+              <td class="whitespace-nowrap px-3 py-2 text-right text-sm">
+                <%= link_to "View", benchmark_run_path(run), class: "text-teal-600 hover:text-teal-700 font-medium" %>
               </td>
             </tr>
           <% end %>

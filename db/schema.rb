@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_01_14_064351) do
+ActiveRecord::Schema[7.2].define(version: 2026_01_15_033253) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -102,9 +102,11 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_14_064351) do
     t.string "uuid"
     t.integer "ssh_connect_method"
     t.text "ssh_key"
-    t.string "password"
+    t.string "sudo_credential"
     t.string "benchmark_work_dir"
     t.string "api_token"
+    t.bigint "api_key_id"
+    t.index ["api_key_id"], name: "index_nodes_on_api_key_id"
     t.index ["hostname"], name: "index_nodes_on_hostname", unique: true
     t.index ["role"], name: "index_nodes_on_role"
     t.index ["source"], name: "index_nodes_on_source"
@@ -139,4 +141,5 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_14_064351) do
   add_foreign_key "benchmark_runs", "benchmark_recipes"
   add_foreign_key "benchmark_runs", "nodes"
   add_foreign_key "node_states", "nodes"
+  add_foreign_key "nodes", "api_keys"
 end

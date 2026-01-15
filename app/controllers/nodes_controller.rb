@@ -91,6 +91,7 @@ class NodesController < ApplicationController
 
   def new
     @node = Node.new
+    @api_keys = ApiKey.active.order(:name)
   end
 
   def create
@@ -108,7 +109,9 @@ class NodesController < ApplicationController
     end
   end
 
-  def edit; end
+  def edit
+    @api_keys = ApiKey.active.order(:name)
+  end
 
   def update
     set_sensitive_params
@@ -137,12 +140,11 @@ class NodesController < ApplicationController
   end
 
   def node_params
-    params.require(:node).permit(:hostname, :ip, :arch, :ssh_port, :ssh_user, :ssh_key, :sudo_credential, :ssh_connect_method, :jump_host, :jump_user, :jump_port, :agent_path, :benchmark_work_dir)
+    params.require(:node).permit(:hostname, :ip, :arch, :ssh_port, :ssh_user, :ssh_key, :sudo_credential, :ssh_connect_method, :jump_host, :jump_user, :jump_port, :agent_path, :benchmark_work_dir, :api_key_id)
   end
 
   def set_sensitive_params
     @node.role = params[:node][:role] if params[:node][:role].present?
-    @node.api_token = params[:node][:api_token] if params[:node][:api_token].present?
   end
 
   def authorize_approver!
