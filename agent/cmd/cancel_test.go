@@ -97,8 +97,8 @@ func TestCancelCommand_ProcessAlreadyGone(t *testing.T) {
 
 func TestCancelResult_JSONFormat(t *testing.T) {
 	tests := []struct {
-		name     string
 		result   CancelResult
+		name     string
 		wantJSON string
 	}{
 		{

@@ -51,11 +51,7 @@ module Api
         if run.update(update_params)
           # Process artifact uploads (new: with file contents)
           # Returns set of uploaded filenames to skip in legacy processing
-          uploaded_filenames = if params[:artifact_uploads].is_a?(Array)
-                                 process_artifact_uploads(run)
-                               else
-                                 Set.new
-                               end
+          uploaded_filenames = params[:artifact_uploads].is_a?(Array) ? process_artifact_uploads(run) : Set.new
 
           # Process legacy artifacts (paths only, for backwards compatibility)
           # Skip files that were already uploaded via artifact_uploads

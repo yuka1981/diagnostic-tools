@@ -52,7 +52,7 @@ func runCancel(cmd *cobra.Command, args []string) error {
 			// Process wasn't running but PID file existed (and was cleaned up)
 			result = CancelResult{
 				Status:  "ok",
-				Message: fmt.Sprintf("Process was not running (PID file cleaned up)"),
+				Message: "Process was not running (PID file cleaned up)",
 				PID:     pid,
 			}
 		} else {

@@ -158,26 +158,27 @@ func TestWorkflowOrchestrator_Run_UploadsHpcgDatAsArtifact(t *testing.T) {
 	// Verify hpcg.dat is uploaded as an artifact
 	var foundHpcgDat bool
 	for _, upload := range result.ArtifactUploads {
-		if upload.Filename == "hpcg.dat" {
-			foundHpcgDat = true
-
-			// Verify file type
-			if upload.FileType != "dat" {
-				t.Errorf("expected file type 'dat', got %q", upload.FileType)
-			}
-
-			// Verify content is not empty
-			if upload.Content == "" {
-				t.Error("expected non-empty content for hpcg.dat")
-			}
-
-			// Verify size is set
-			if upload.Size == 0 {
-				t.Error("expected non-zero size for hpcg.dat")
-			}
-
-			break
+		if upload.Filename != "hpcg.dat" {
+			continue
 		}
+		foundHpcgDat = true
+
+		// Verify file type
+		if upload.FileType != "dat" {
+			t.Errorf("expected file type 'dat', got %q", upload.FileType)
+		}
+
+		// Verify content is not empty
+		if upload.Content == "" {
+			t.Error("expected non-empty content for hpcg.dat")
+		}
+
+		// Verify size is set
+		if upload.Size == 0 {
+			t.Error("expected non-zero size for hpcg.dat")
+		}
+
+		break
 	}
 
 	if !foundHpcgDat {

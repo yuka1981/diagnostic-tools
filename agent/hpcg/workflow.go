@@ -30,9 +30,9 @@ type PIDTracker interface {
 
 // WorkflowOrchestrator manages the HPCG benchmark workflow.
 type WorkflowOrchestrator struct {
+	WorkDir      string
 	Runner       ports.CommandRunner
 	ModuleLoader ModuleLoader
-	WorkDir      string
 	PIDTracker   PIDTracker // Optional: enables cancellation support when set
 }
 
@@ -101,26 +101,10 @@ func (w *WorkflowOrchestrator) Run(ctx context.Context, params *RunParams) (*mod
 		LogContent: logContent,
 	}
 
-	if targetLogPath != "" {
-		result.Artifacts = append(result.Artifacts, targetLogPath)
+	// Collect artifacts
+	w.collectArtifacts(result, targetLogPath)
 
-		// Upload artifact file contents to server
-		if upload, err := w.createArtifactUpload(targetLogPath); err == nil {
-			result.ArtifactUploads = append(result.ArtifactUploads, *upload)
-		} else {
-			fmt.Fprintf(os.Stderr, "warning: failed to prepare artifact upload for %s: %v\n", targetLogPath, err)
-		}
-	}
-
-	// Upload hpcg.dat config file as artifact
-	hpcgDatPath := filepath.Join(w.WorkDir, "hpcg.dat")
-	if upload, err := w.createArtifactUpload(hpcgDatPath); err == nil {
-		result.Artifacts = append(result.Artifacts, hpcgDatPath)
-		result.ArtifactUploads = append(result.ArtifactUploads, *upload)
-	} else {
-		fmt.Fprintf(os.Stderr, "warning: failed to prepare artifact upload for hpcg.dat: %v\n", err)
-	}
-
+	// Add metrics if available
 	if metrics != nil && metrics.GFLOPS > 0 {
 		metricsBytes, err := json.Marshal(metrics)
 		if err != nil {
@@ -130,6 +114,28 @@ func (w *WorkflowOrchestrator) Run(ctx context.Context, params *RunParams) (*mod
 	}
 
 	return result, nil
+}
+
+// collectArtifacts adds log file and config artifacts to the result.
+func (w *WorkflowOrchestrator) collectArtifacts(result *model.BenchmarkRun, targetLogPath string) {
+	// Upload log file if available
+	if targetLogPath != "" {
+		result.Artifacts = append(result.Artifacts, targetLogPath)
+		if upload, err := w.createArtifactUpload(targetLogPath); err == nil {
+			result.ArtifactUploads = append(result.ArtifactUploads, *upload)
+		} else {
+			fmt.Fprintf(os.Stderr, "warning: failed to prepare artifact upload for %s: %v\n", targetLogPath, err)
+		}
+	}
+
+	// Upload hpcg.dat config file
+	hpcgDatPath := filepath.Join(w.WorkDir, "hpcg.dat")
+	if upload, err := w.createArtifactUpload(hpcgDatPath); err == nil {
+		result.Artifacts = append(result.Artifacts, hpcgDatPath)
+		result.ArtifactUploads = append(result.ArtifactUploads, *upload)
+	} else {
+		fmt.Fprintf(os.Stderr, "warning: failed to prepare artifact upload for hpcg.dat: %v\n", err)
+	}
 }
 
 func (w *WorkflowOrchestrator) handleLogStorage(params *RunParams, startTime time.Time) string {
@@ -217,7 +223,7 @@ func (w *WorkflowOrchestrator) createArtifactUpload(filePath string) (*model.Art
 
 	// Extract file extension without the dot
 	ext := filepath.Ext(filePath)
-	if len(ext) > 0 {
+	if ext != "" {
 		ext = ext[1:] // Remove the leading dot
 	}
 

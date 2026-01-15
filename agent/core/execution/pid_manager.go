@@ -67,7 +67,7 @@ func (m *PIDManager) WritePID(uuid string, pid int) error {
 	pidPath := m.pidFilePath(uuid)
 	content := strconv.Itoa(pid)
 
-	if err := os.WriteFile(pidPath, []byte(content), 0644); err != nil {
+	if err := os.WriteFile(pidPath, []byte(content), 0600); err != nil {
 		return fmt.Errorf("failed to write pid file: %w", err)
 	}
 
@@ -139,12 +139,12 @@ func (m *PIDManager) KillProcessWithTimeout(pid int, timeout time.Duration) erro
 	}
 
 	// Send SIGTERM for graceful shutdown
-	if err := process.Signal(syscall.SIGTERM); err != nil {
+	if termErr := process.Signal(syscall.SIGTERM); termErr != nil {
 		// Process might have just exited
-		if err := process.Signal(syscall.Signal(0)); err != nil {
+		if checkErr := process.Signal(syscall.Signal(0)); checkErr != nil {
 			return nil // Process is gone
 		}
-		return fmt.Errorf("failed to send SIGTERM: %w", err)
+		return fmt.Errorf("failed to send SIGTERM: %w", termErr)
 	}
 
 	// Wait for process to exit gracefully
@@ -160,12 +160,12 @@ func (m *PIDManager) KillProcessWithTimeout(pid int, timeout time.Duration) erro
 	}
 
 	// Process didn't exit, send SIGKILL
-	if err := process.Signal(syscall.SIGKILL); err != nil {
+	if killErr := process.Signal(syscall.SIGKILL); killErr != nil {
 		// Check if process is already gone
-		if err := process.Signal(syscall.Signal(0)); err != nil {
+		if checkErr := process.Signal(syscall.Signal(0)); checkErr != nil {
 			return nil // Process is gone
 		}
-		return fmt.Errorf("failed to send SIGKILL: %w", err)
+		return fmt.Errorf("failed to send SIGKILL: %w", killErr)
 	}
 
 	// Wait a bit more for SIGKILL to take effect
@@ -207,7 +207,7 @@ func (m *PIDManager) CancelByUUID(uuid string) (int, error) {
 
 // RunCommandWithPID executes a command while tracking its PID.
 // The PID is written immediately when the process starts and cleaned up when done.
-// This allows the process to be cancelled via CancelByUUID.
+// This allows the process to be canceled via CancelByUUID.
 func (m *PIDManager) RunCommandWithPID(ctx context.Context, uuid, dir, name string, args ...string) ([]byte, error) {
 	cmd := exec.CommandContext(ctx, name, args...)
 	if dir != "" {
@@ -233,7 +233,7 @@ func (m *PIDManager) RunCommandWithPID(ctx context.Context, uuid, dir, name stri
 	}
 
 	// Ensure PID cleanup on exit
-	defer m.ClearPID(uuid)
+	defer func() { _ = m.ClearPID(uuid) }()
 
 	// Wait for command to complete
 	err := cmd.Wait()
