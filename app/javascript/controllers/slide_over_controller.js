@@ -53,13 +53,13 @@ export default class extends Controller {
       })
     }
 
-    // Show panel with slide-in animation
+    // Show panel with scale/opacity animation (centered modal style)
     if (this.hasPanelTarget) {
       this.panelTarget.classList.remove("hidden")
       requestAnimationFrame(() => {
-        // Remove translate-x-full to slide panel in from right
-        this.panelTarget.classList.remove("translate-x-full")
-        this.panelTarget.classList.add("translate-x-0")
+        // Remove opacity-0 and scale-95 to animate panel in
+        this.panelTarget.classList.remove("opacity-0", "scale-95", "translate-x-full")
+        this.panelTarget.classList.add("opacity-100", "scale-100", "translate-x-0")
       })
     }
 
@@ -81,7 +81,7 @@ export default class extends Controller {
       this.backdropTarget.classList.add("opacity-0")
     }
 
-    // Slide out panel, then hide after transition completes
+    // Animate panel out with scale/opacity, then hide after transition completes
     if (this.hasPanelTarget) {
       const onTransitionEnd = () => {
         if (!this.openValue) {
@@ -94,9 +94,9 @@ export default class extends Controller {
       }
       this.panelTarget.addEventListener("transitionend", onTransitionEnd)
 
-      // Add translate-x-full to slide panel out to the right
-      this.panelTarget.classList.remove("translate-x-0")
-      this.panelTarget.classList.add("translate-x-full")
+      // Animate panel out with opacity and scale
+      this.panelTarget.classList.remove("opacity-100", "scale-100", "translate-x-0")
+      this.panelTarget.classList.add("opacity-0", "scale-95", "translate-x-full")
     }
 
     // Re-enable body scroll

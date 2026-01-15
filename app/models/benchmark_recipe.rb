@@ -13,6 +13,7 @@ class BenchmarkRecipe < ApplicationRecord
   validates :version, uniqueness: { scope: :name }
   validates :command, presence: true
   validates :slug, uniqueness: true
+  validate :validate_default_profile_is_json_object
 
   # Callbacks
   before_validation :generate_slug, if: -> { slug.blank? }
@@ -30,5 +31,15 @@ class BenchmarkRecipe < ApplicationRecord
   def generate_slug
     base = "#{name}-#{version}"
     self.slug = base.parameterize
+  end
+
+  def validate_default_profile_is_json_object
+    return if default_profile.blank?
+
+    # When an invalid JSON string is assigned from a form to a jsonb attribute,
+    # the attribute holds the original string instead of a parsed hash.
+    return if default_profile.is_a?(Hash)
+
+    errors.add(:default_profile, "must be a valid JSON object")
   end
 end

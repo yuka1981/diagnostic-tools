@@ -172,6 +172,7 @@ RSpec.describe "BenchmarkRuns", type: :request do
       file
     end
 
+    before { Rails.configuration.x.artifacts_base_path = Dir.tmpdir }
     after { temp_file.close! }
 
     context "when file exists" do

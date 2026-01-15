@@ -1,0 +1,10 @@
+{
+  "ignored_warnings": [
+    {
+      "fingerprint": "56e21057dd8378a608184446488e90a65814a06e080598e52f1e3847780c6f26",
+      "note": "Path is validated by validated_artifact_path method which ensures the path is within allowed_base_path and the file exists. Path traversal attacks are prevented by Pathname#cleanpath and prefix check."
+    }
+  ],
+  "updated": "2026-01-15",
+  "brakeman_version": "7.1.2"
+}
