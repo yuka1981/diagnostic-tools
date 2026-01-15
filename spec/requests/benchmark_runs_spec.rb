@@ -120,7 +120,15 @@ RSpec.describe "BenchmarkRuns", type: :request do
     end
 
     context "with artifacts" do
-      let!(:artifact) { create(:artifact_index, benchmark_run: benchmark_run, file_type: "txt") }
+      let(:temp_artifact_file) do
+        file = Tempfile.new([ "artifact", ".txt" ])
+        file.write("Artifact content")
+        file.rewind
+        file
+      end
+      let!(:artifact) { create(:artifact_index, benchmark_run: benchmark_run, path: temp_artifact_file.path, file_type: "txt") }
+
+      after { temp_artifact_file.close! }
 
       it "displays artifacts section" do
         get benchmark_run_path(benchmark_run)
@@ -128,10 +136,21 @@ RSpec.describe "BenchmarkRuns", type: :request do
         expect(response.body).to include(File.basename(artifact.path))
       end
 
-      it "includes download links" do
+      it "includes download links when file exists" do
         get benchmark_run_path(benchmark_run)
         expect(response.body).to include("Download")
         expect(response.body).to include(download_artifact_benchmark_run_path(benchmark_run, artifact_id: artifact.id))
+      end
+    end
+
+    context "with unavailable artifacts" do
+      let!(:artifact) { create(:artifact_index, benchmark_run: benchmark_run, path: "/nonexistent/file.txt", file_type: "txt") }
+
+      it "shows unavailable status when file does not exist" do
+        get benchmark_run_path(benchmark_run)
+        expect(response.body).to include("Unavailable")
+        expect(response.body).to include("File not found on server")
+        expect(response.body).not_to include(download_artifact_benchmark_run_path(benchmark_run, artifact_id: artifact.id))
       end
     end
 
