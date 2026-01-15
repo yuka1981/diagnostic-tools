@@ -33,7 +33,7 @@
 
     <%# Content - Turbo Frame for lazy loading with fixed height to prevent tab-switch fluctuation %>
     <%= turbo_frame_tag "slide_over_content",
-        class: "block h-[50vh] overflow-y-auto bg-slate-50 border border-slate-200 rounded-b-md",
+        class: "block h-[60vh] overflow-y-auto bg-slate-50 border border-slate-200 rounded-b-md",
         data: { slide_over_target: "content" } do %>
       <%# Placeholder content - will be replaced when a run is selected %>
       <div class="flex flex-col items-center justify-center h-full py-12 text-center px-6">
