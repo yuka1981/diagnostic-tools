@@ -21,6 +21,8 @@ class Node < ApplicationRecord
   validates :ssh_port, numericality: { only_integer: true, greater_than: 0, less_than: 65536 }
   validates :ssh_user, length: { maximum: 255 }
   validates :arch, inclusion: { in: %w[x86_64 aarch64 arm64], allow_blank: true }
+  validate :hostname_not_localhost
+  validate :ip_not_localhost
 
   # Callbacks
   before_validation :generate_uuid, on: :create
@@ -83,9 +85,34 @@ class Node < ApplicationRecord
     benchmark_runs.where(status: %i[pending running]).exists?
   end
 
+  # Class method to check if a hostname/IP is localhost
+  # Can be used by controllers for early validation
+  def self.localhost?(value)
+    return false if value.blank?
+
+    normalized = value.to_s.downcase.strip
+    normalized == "localhost" || normalized == "127.0.0.1" || normalized == "::1"
+  end
+
   private
 
   def generate_uuid
     self.uuid ||= SecureRandom.uuid
+  end
+
+  def hostname_not_localhost
+    return if hostname.blank?
+
+    if self.class.localhost?(hostname)
+      errors.add(:hostname, "cannot be localhost. Please use a remote hostname or IP address.")
+    end
+  end
+
+  def ip_not_localhost
+    return if ip.blank?
+
+    if self.class.localhost?(ip)
+      errors.add(:ip, "cannot be a localhost address. Please use a remote IP address.")
+    end
   end
 end

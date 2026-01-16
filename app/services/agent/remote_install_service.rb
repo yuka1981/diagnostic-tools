@@ -2,6 +2,7 @@
 
 require "net/ssh"
 require "net/scp"
+require "open3"
 
 module Agent
   class RemoteInstallService
@@ -18,6 +19,7 @@ module Agent
     TARGET_BIN_PATH = "/usr/local/bin/hpc-agent"
     AGENT_CONFIG_DIR = "/etc/hpc-agent"
     AGENT_NODE_ID_PATH = "#{AGENT_CONFIG_DIR}/node_id"
+    LOCAL_SUDO_TIMEOUT = 30 # seconds - timeout for local sudo commands to prevent hanging
 
     def initialize(target_host:, arch:, bastion_user: nil, bastion_host: nil, bastion_password: nil, sudo_password:, local_binary_path:, server_url: nil, agent_token: nil, node: nil, on_progress: nil)
       @target_host = target_host
@@ -29,17 +31,21 @@ module Agent
       @bastion_password = bastion_password
       @sudo_password = sudo_password
       @local_binary_path = local_binary_path
-      @server_url = server_url || ENV.fetch("APP_URL", "http://localhost:3000")
+      @server_url = normalize_server_url(server_url || ENV.fetch("APP_URL", "http://localhost:3000"))
       @agent_token = agent_token || Rails.application.credentials.dig(:api, :agent_token) || ENV["AGENT_TOKEN"]
       @node = node
       @on_progress = on_progress
     end
 
     def call
-      report_progress "Starting remote installation on #{@target_host}"
-      if use_bastion?
+      if localhost?
+        report_progress "Starting local installation on #{@target_host}"
+        install_local
+      elsif use_bastion?
+        report_progress "Starting remote installation on #{@target_host}"
         install_via_bastion
       else
+        report_progress "Starting remote installation on #{@target_host}"
         install_direct
       end
     end
@@ -116,6 +122,22 @@ module Agent
       end
 
       Result.new(success: true, agent_uuid: agent_uuid)
+    rescue Net::SSH::AuthenticationFailed => e
+      Rails.logger.error "Direct remote install failed: Authentication failed for #{e.message}"
+      Rails.logger.error e.backtrace.first(10).join("\n")
+      raise InstallError, "Installation failed: SSH authentication failed for #{connect_host}. Please check your credentials."
+    rescue Errno::ECONNREFUSED => e
+      Rails.logger.error "Direct remote install failed: Connection refused to #{connect_host}"
+      Rails.logger.error e.backtrace.first(10).join("\n")
+      raise InstallError, "Installation failed: Connection refused to #{connect_host}. Is SSH running on the target?"
+    rescue Errno::EHOSTUNREACH => e
+      Rails.logger.error "Direct remote install failed: Host unreachable #{connect_host}"
+      Rails.logger.error e.backtrace.first(10).join("\n")
+      raise InstallError, "Installation failed: Host unreachable (#{connect_host}). Check network connectivity."
+    rescue Net::SSH::ConnectionTimeout, Errno::ETIMEDOUT => e
+      Rails.logger.error "Direct remote install failed: Connection timed out to #{connect_host}"
+      Rails.logger.error e.backtrace.first(10).join("\n")
+      raise InstallError, "Installation failed: Connection timed out to #{connect_host}. Check network or firewall settings."
     rescue => e
       Rails.logger.error "Direct remote install failed: #{e.message}"
       Rails.logger.error e.backtrace.first(10).join("\n")
@@ -138,6 +160,135 @@ module Agent
 
       # Phase 3: Read agent UUID for sync
       read_agent_uuid(ssh, via_ssh: false)
+    end
+
+    # Local installation for localhost targets (no SSH required)
+    def install_local
+      agent_uuid = nil
+
+      begin
+        # Phase 1: Copy binary to temp location
+        report_progress "Copying binary to /tmp/agent_bin_install"
+        FileUtils.cp(@local_binary_path, "/tmp/agent_bin_install")
+
+        # Phase 2: Move to final location using sudo
+        report_progress "Moving binary to #{TARGET_BIN_PATH}"
+        execute_local_command("mv /tmp/agent_bin_install #{TARGET_BIN_PATH}", use_sudo: true)
+
+        # Phase 3: Configure agent service
+        configure_target_local
+
+        # Phase 4: Read agent UUID for sync
+        agent_uuid = read_agent_uuid_local
+      rescue => e
+        Rails.logger.error "[RemoteInstallService] Local install failed: #{e.message}"
+        Rails.logger.error e.backtrace.first(10).join("\n")
+        raise InstallError, "Installation failed: #{e.message}"
+      end
+
+      Result.new(success: true, agent_uuid: agent_uuid)
+    end
+
+    def configure_target_local
+      report_progress "Configuring agent service locally"
+
+      # chmod +x
+      execute_local_command("chmod +x #{TARGET_BIN_PATH}", use_sudo: true)
+
+      # Create systemd service file
+      service_content = <<~SERVICE
+        [Unit]
+        Description=HPC Diagnostic Agent
+        After=network.target
+
+        [Service]
+        ExecStart=#{TARGET_BIN_PATH} inventory push --server "#{@server_url}" --token "#{@agent_token}"
+        Restart=always
+        User=root
+
+        [Install]
+        WantedBy=multi-user.target
+      SERVICE
+
+      service_file_path = "/etc/systemd/system/hpc-agent.service"
+      tmp_service_path = "/tmp/hpc-agent.service"
+
+      # Write to temp file first
+      File.write(tmp_service_path, service_content)
+
+      # Move to final location
+      execute_local_command("mv #{tmp_service_path} #{service_file_path}", use_sudo: true)
+
+      # Set ownership
+      report_progress "Setting file ownership to root:root"
+      execute_local_command("chown root:root #{TARGET_BIN_PATH} #{service_file_path}", use_sudo: true)
+
+      # Enable and start service
+      report_progress "Starting agent service"
+      execute_local_command("systemctl daemon-reload && systemctl enable --now hpc-agent", use_sudo: true)
+
+      # Set dmidecode SUID
+      report_progress "Ensuring dmidecode has SUID permission (4755)"
+      execute_local_command("which dmidecode && chmod 4755 $(which dmidecode)", use_sudo: true)
+    end
+
+    def read_agent_uuid_local
+      report_progress "Reading agent UUID for identity sync"
+
+      uuid = File.read(AGENT_NODE_ID_PATH).strip
+      if uuid.present?
+        Rails.logger.info "[RemoteInstallService] Agent UUID: #{uuid}"
+        uuid
+      else
+        Rails.logger.warn "[RemoteInstallService] Could not read agent UUID from #{AGENT_NODE_ID_PATH}"
+        nil
+      end
+    rescue => e
+      Rails.logger.warn "[RemoteInstallService] Failed to read agent UUID: #{e.message}"
+      nil
+    end
+
+    def execute_local_command(cmd, use_sudo: false)
+      full_cmd = build_local_command(cmd, use_sudo: use_sudo)
+
+      # Mask password in logs
+      log_cmd = @sudo_password.present? ? full_cmd.gsub(@sudo_password.to_s, "********") : full_cmd
+      Rails.logger.debug "[RemoteInstallService] Executing locally: #{log_cmd}"
+
+      stdout, stderr, status = Open3.capture3(full_cmd)
+
+      report_log(stdout, "stdout") if stdout.present?
+      # Filter out sudo password prompts from stderr
+      filtered_stderr = stderr.lines.reject { |line| line.match?(/\[sudo\] password for/) }.join
+      report_log(filtered_stderr, "stderr") if filtered_stderr.present?
+
+      unless status.success?
+        Rails.logger.error "[RemoteInstallService] Local command failed: #{log_cmd}"
+        Rails.logger.error "[RemoteInstallService] Stderr: #{stderr}"
+        # Use stdout if stderr is empty for better error messages
+        error_output = filtered_stderr.strip.presence || stdout.strip
+        raise InstallError, "Command failed (exit #{status.exitstatus}): #{error_output}"
+      end
+
+      stdout
+    end
+
+    def build_local_command(cmd, use_sudo:)
+      return cmd unless use_sudo
+
+      # Always use:
+      # - timeout: prevents hanging if sudo blocks
+      # - sudo -S: reads password from stdin (not TTY) to prevent TTY hang in background jobs
+      escaped_cmd = Shellwords.escape(cmd)
+
+      if @sudo_password.present?
+        # Pipe password to sudo -S
+        "echo #{Shellwords.escape(@sudo_password)} | timeout #{LOCAL_SUDO_TIMEOUT} sudo -S bash -c #{escaped_cmd}"
+      else
+        # No password - sudo -S will read empty stdin and fail quickly if password required
+        # This is better than hanging forever waiting for TTY input
+        "timeout #{LOCAL_SUDO_TIMEOUT} sudo -S bash -c #{escaped_cmd}"
+      end
     end
 
     private
@@ -380,6 +531,33 @@ module Agent
       end
     end
 
+    # Normalize server URL to base URL only (protocol + host + port)
+    # Strips any path components to prevent routing errors
+    # Example: "http://localhost:3000/nodes" -> "http://localhost:3000"
+    def normalize_server_url(url)
+      return url if url.blank?
+
+      uri = URI.parse(url)
+
+      # Check if URL has required components (scheme and host)
+      if uri.scheme.blank? || uri.host.blank?
+        Rails.logger.warn "[RemoteInstallService] Invalid server URL format (missing scheme or host): #{url}"
+        return url
+      end
+
+      normalized = "#{uri.scheme}://#{uri.host}"
+      normalized += ":#{uri.port}" if uri.port && !default_port?(uri)
+      normalized
+    rescue URI::InvalidURIError
+      # If URL is malformed, return as-is and let it fail later with a clearer error
+      Rails.logger.warn "[RemoteInstallService] Invalid server URL format: #{url}"
+      url
+    end
+
+    def default_port?(uri)
+      (uri.scheme == "http" && uri.port == 80) || (uri.scheme == "https" && uri.port == 443)
+    end
+
     def execute_remote_command(ssh, cmd, password: nil)
       stdout = ""
       stderr = ""
@@ -421,11 +599,13 @@ module Agent
       if exit_code != 0
         # Filter out the sudo password prompt if it exists in stderr
         clean_stderr = stderr.gsub(/\[sudo\] password for .*: /, "").strip
+        # Use stdout if stderr is empty for better error messages
+        error_output = clean_stderr.presence || stdout.strip
         # Log the full error context
         Rails.logger.error "[RemoteInstallService] Command failed: #{cmd}"
-        Rails.logger.error "[RemoteInstallService] Error output: #{clean_stderr}"
+        Rails.logger.error "[RemoteInstallService] Error output: #{error_output}"
 
-        raise InstallError, "Command failed with exit code #{exit_code}. Error: #{clean_stderr}"
+        raise InstallError, "Command failed with exit code #{exit_code}. Error: #{error_output}"
       end
 
       stdout

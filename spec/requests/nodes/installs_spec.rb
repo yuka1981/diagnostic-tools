@@ -102,4 +102,40 @@ RSpec.describe "Nodes::Installs", type: :request do
       expect(node.reload.sudo_credential).to eq("ssh-password")
     end
   end
+
+  describe "localhost installation rejection" do
+    %w[localhost 127.0.0.1 ::1].each do |localhost_host|
+      context "when hostname is #{localhost_host}" do
+        it "rejects GET request with localhost not supported message" do
+          get new_node_install_path(hostname: localhost_host), headers: { "Turbo-Frame" => "install_modal" }
+
+          expect(response).to have_http_status(:unprocessable_entity)
+          expect(response.body).to include("Localhost Installation Not Supported")
+          expect(response.body).to include(localhost_host)
+        end
+
+        it "rejects POST request with localhost not supported message" do
+          params = {
+            hostname: localhost_host,
+            arch: "x86_64",
+            sudo_password: "password"
+          }
+
+          expect {
+            post node_install_index_path, params: { install: params }, as: :turbo_stream
+          }.not_to enqueue_job(Agent::InstallJob)
+
+          expect(response.media_type).to eq("text/vnd.turbo-stream.html")
+          expect(response.body).to include("Localhost Installation Not Supported")
+        end
+      end
+    end
+
+    it "allows installation for non-localhost hosts" do
+      get new_node_install_path(hostname: "compute-001"), headers: { "Turbo-Frame" => "install_modal" }
+
+      expect(response).to have_http_status(:success)
+      expect(response.body).not_to include("Localhost Installation Not Supported")
+    end
+  end
 end

@@ -20,6 +20,50 @@ RSpec.describe Node, type: :model do
 
     it { is_expected.to validate_presence_of(:role) }
     it { is_expected.to validate_presence_of(:source) }
+
+    describe "localhost validation" do
+      it { is_expected.not_to allow_value("localhost").for(:hostname).with_message(/cannot be localhost/) }
+      it { is_expected.not_to allow_value("127.0.0.1").for(:hostname).with_message(/cannot be localhost/) }
+      it { is_expected.not_to allow_value("::1").for(:hostname).with_message(/cannot be localhost/) }
+      it { is_expected.not_to allow_value("LOCALHOST").for(:hostname).with_message(/cannot be localhost/) }
+
+      it { is_expected.not_to allow_value("127.0.0.1").for(:ip).with_message(/cannot be a localhost/) }
+      it { is_expected.not_to allow_value("::1").for(:ip).with_message(/cannot be a localhost/) }
+
+      it { is_expected.to allow_value("compute-001").for(:hostname) }
+      it { is_expected.to allow_value("192.168.1.100").for(:ip) }
+    end
+  end
+
+  describe ".localhost?" do
+    it "returns true for localhost" do
+      expect(Node.localhost?("localhost")).to be true
+    end
+
+    it "returns true for 127.0.0.1" do
+      expect(Node.localhost?("127.0.0.1")).to be true
+    end
+
+    it "returns true for ::1" do
+      expect(Node.localhost?("::1")).to be true
+    end
+
+    it "returns true for LOCALHOST (case insensitive)" do
+      expect(Node.localhost?("LOCALHOST")).to be true
+    end
+
+    it "returns false for regular hostname" do
+      expect(Node.localhost?("compute-001")).to be false
+    end
+
+    it "returns false for regular IP" do
+      expect(Node.localhost?("192.168.1.1")).to be false
+    end
+
+    it "returns false for blank value" do
+      expect(Node.localhost?("")).to be false
+      expect(Node.localhost?(nil)).to be false
+    end
   end
 
   describe "enums" do

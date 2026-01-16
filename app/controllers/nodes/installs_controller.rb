@@ -6,6 +6,7 @@ module Nodes
   class InstallsController < ApplicationController
     before_action :authenticate_user!
     before_action :authorize_approver!
+    before_action :reject_localhost_installation, only: [ :new, :create ]
 
     def new
       @target_host = params[:hostname]
@@ -84,6 +85,19 @@ module Nodes
 
     def install_params
       params.require(:install).permit(:hostname, :arch, :server_url, :api_key_id, :bastion_host, :bastion_user, :bastion_password, :sudo_password)
+    end
+
+    def reject_localhost_installation
+      hostname = params[:hostname] || params.dig(:install, :hostname)
+      return unless Node.localhost?(hostname)
+
+      @target_host = hostname
+      @localhost_error = true
+
+      respond_to do |format|
+        format.turbo_stream { render "localhost_not_supported" }
+        format.html { render "localhost_not_supported", status: :unprocessable_entity }
+      end
     end
   end
 end
