@@ -204,11 +204,32 @@ RSpec.describe "Settings::AgentReleases", type: :request do
         it "calls CompilerService with correct parameters" do
           expect(Agent::CompilerService).to receive(:build_release).with(
             version_tag: "v3.0.0",
-            release_notes: "Built from source"
+            release_notes: "Built from source",
+            arch: "x86_64",
+            custom_ldflags: nil
           ).and_return(mock_release)
 
           post settings_agent_releases_path, params: {
             creation_mode: "build",
+            agent_release: {
+              version: "v3.0.0",
+              release_notes: "Built from source"
+            }
+          }
+        end
+
+        it "passes custom architecture and ldflags when provided" do
+          expect(Agent::CompilerService).to receive(:build_release).with(
+            version_tag: "v3.0.0",
+            release_notes: "Built from source",
+            arch: "arm64",
+            custom_ldflags: "-s -w"
+          ).and_return(mock_release)
+
+          post settings_agent_releases_path, params: {
+            creation_mode: "build",
+            target_arch: "arm64",
+            custom_ldflags: "-s -w",
             agent_release: {
               version: "v3.0.0",
               release_notes: "Built from source"

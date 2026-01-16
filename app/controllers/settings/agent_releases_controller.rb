@@ -89,10 +89,14 @@ module Settings
     def create_from_build
       version = params.dig(:agent_release, :version)
       release_notes = params.dig(:agent_release, :release_notes)
+      target_arch = params[:target_arch].presence || Agent::CompilerService.detect_arch
+      custom_ldflags = params[:custom_ldflags].presence
 
       @agent_release = Agent::CompilerService.build_release(
         version_tag: version,
-        release_notes: release_notes
+        release_notes: release_notes,
+        arch: target_arch,
+        custom_ldflags: custom_ldflags
       )
 
       redirect_to settings_agent_release_path(@agent_release),

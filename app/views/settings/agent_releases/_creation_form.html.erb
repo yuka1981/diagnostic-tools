@@ -145,27 +145,84 @@
       <div data-release-mode-target="buildSection" class="hidden">
         <h3 class="text-sm font-bold text-slate-700">Build from Source</h3>
         <p class="text-[10px] text-slate-500 italic mb-4">
-          The agent will be compiled from the <code class="bg-slate-100 px-1 rounded">agent/</code> directory.
-          The version will be embedded in the binary using ldflags.
+          The agent will be compiled from source. The version will be embedded in the binary using ldflags.
         </p>
 
-        <div class="bg-amber-50 border border-amber-200 rounded-md p-4">
-          <div class="flex">
-            <div class="flex-shrink-0">
-              <svg class="h-5 w-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
+        <div class="space-y-4">
+          <%# Target Architecture %>
+          <div class="grid grid-cols-1 gap-4 sm:grid-cols-6">
+            <div class="sm:col-span-3">
+              <%= label_tag :target_arch, "Target Architecture", class: "block text-xs font-bold text-slate-700 mb-1" %>
+              <%= select_tag :target_arch,
+                  options_for_select([
+                    ["linux/amd64 (x86_64)", "x86_64"],
+                    ["linux/arm64 (aarch64)", "arm64"]
+                  ], Agent::CompilerService.detect_arch),
+                  class: "block w-full rounded border border-slate-300 py-1.5 px-3 text-slate-900 shadow-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500 sm:text-sm" %>
+              <p class="mt-1 text-[10px] text-slate-500">Select the target platform for the compiled binary</p>
             </div>
-            <div class="ml-3">
-              <p class="text-sm text-amber-800">
-                <strong>Build Configuration:</strong>
+          </div>
+
+          <%# Source Directory %>
+          <div class="grid grid-cols-1 gap-4 sm:grid-cols-6">
+            <div class="sm:col-span-4">
+              <%= label_tag :source_path, "Source Directory", class: "block text-xs font-bold text-slate-700 mb-1" %>
+              <div class="flex items-center gap-2">
+                <code class="flex-1 block rounded border border-slate-200 bg-slate-50 py-1.5 px-3 text-slate-700 text-sm font-mono">
+                  <%= Rails.root.join('agent').to_s %>
+                </code>
+                <span class="inline-flex items-center rounded px-2 py-1 text-xs font-medium bg-emerald-100 text-emerald-800 border border-emerald-200">
+                  <svg class="h-3 w-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                  </svg>
+                  Detected
+                </span>
+              </div>
+              <p class="mt-1 text-[10px] text-slate-500">Go module directory containing the agent source code</p>
+            </div>
+          </div>
+
+          <%# Custom Compile Flags %>
+          <div class="grid grid-cols-1 gap-4 sm:grid-cols-6">
+            <div class="sm:col-span-4">
+              <%= label_tag :custom_ldflags, "Custom Linker Flags", class: "block text-xs font-bold text-slate-700 mb-1" %>
+              <%= text_field_tag :custom_ldflags, nil,
+                  class: "block w-full rounded border border-slate-300 py-1.5 px-3 text-slate-900 shadow-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500 sm:text-sm font-mono",
+                  placeholder: "-s -w (optional)" %>
+              <p class="mt-1 text-[10px] text-slate-500">
+                Additional ldflags to pass to the Go compiler. Common flags:
+                <code class="bg-slate-100 px-1 rounded">-s</code> (strip symbol table),
+                <code class="bg-slate-100 px-1 rounded">-w</code> (strip debug info)
               </p>
-              <ul class="mt-2 text-xs text-amber-700 space-y-1">
-                <li>Target: <code class="bg-amber-100 px-1 rounded">linux/<%= Agent::CompilerService.detect_arch == "arm64" ? "arm64" : "amd64" %></code></li>
-                <li>Source: <code class="bg-amber-100 px-1 rounded"><%= Rails.root.join('agent').to_s.gsub(Rails.root.to_s, '.') %></code></li>
-                <li>Static binary with CGO disabled</li>
-              </ul>
+            </div>
+          </div>
+
+          <%# Build Info Box %>
+          <div class="bg-slate-50 border border-slate-200 rounded-md p-4 mt-4">
+            <div class="flex">
+              <div class="flex-shrink-0">
+                <svg class="h-5 w-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <div class="ml-3">
+                <p class="text-sm text-slate-700 font-medium">Build Configuration</p>
+                <ul class="mt-2 text-xs text-slate-600 space-y-1">
+                  <li>
+                    <span class="text-slate-500">Environment:</span>
+                    <code class="bg-slate-100 px-1 rounded">CGO_ENABLED=0</code>
+                  </li>
+                  <li>
+                    <span class="text-slate-500">Version Flag:</span>
+                    <code class="bg-slate-100 px-1 rounded">-X main.Version={version}</code>
+                  </li>
+                  <li>
+                    <span class="text-slate-500">Output:</span>
+                    Static binary (no external dependencies)
+                  </li>
+                </ul>
+              </div>
             </div>
           </div>
         </div>

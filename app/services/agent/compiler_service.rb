@@ -17,9 +17,13 @@ module Agent
     # Build and create an AgentRelease record from source
     # @param version_tag [String] Version string (e.g., "v1.0.0")
     # @param release_notes [String, nil] Optional release notes
+    # @param arch [String] Target architecture (default: auto-detect)
+    # @param custom_ldflags [String, nil] Additional ldflags for compilation
     # @return [AgentRelease] The created release record
-    def self.build_release(version_tag:, release_notes: nil)
-      new(arch: detect_arch, version_tag: version_tag).build_release(release_notes: release_notes)
+    def self.build_release(version_tag:, release_notes: nil, arch: nil, custom_ldflags: nil)
+      target_arch = arch.presence || detect_arch
+      new(arch: target_arch, version_tag: version_tag, custom_ldflags: custom_ldflags)
+        .build_release(release_notes: release_notes)
     end
 
     # Check if Go toolchain is available
@@ -50,9 +54,10 @@ module Agent
       end
     end
 
-    def initialize(arch:, version_tag: nil)
+    def initialize(arch:, version_tag: nil, custom_ldflags: nil)
       @arch = ARCH_MAP[arch] || ARCH_MAP["x86_64"]
       @version_tag = version_tag
+      @custom_ldflags = custom_ldflags
       raise ArgumentError, "Unsupported architecture: #{arch.inspect}" unless @arch
     end
 
@@ -125,7 +130,7 @@ module Agent
       output_path = File.join(tmp_dir, "diagnostic-agent-#{random_id}")
 
       env = build_environment
-      ldflags = "-X #{VERSION_LDFLAGS_PACKAGE}=#{@version_tag}"
+      ldflags = build_ldflags
 
       Rails.logger.info "[CompilerService] Building release #{@version_tag} for #{@arch}"
       Rails.logger.debug "[CompilerService] Output path: #{output_path}"
@@ -152,6 +157,12 @@ module Agent
 
       Rails.logger.info "[CompilerService] Build successful: #{output_path}"
       output_path
+    end
+
+    def build_ldflags
+      flags = [ "-X #{VERSION_LDFLAGS_PACKAGE}=#{@version_tag}" ]
+      flags << @custom_ldflags if @custom_ldflags.present?
+      flags.join(" ")
     end
 
     def create_release_record(binary_path, release_notes)
