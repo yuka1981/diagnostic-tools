@@ -14,19 +14,29 @@ module Nodes
     end
 
     def create
-      service = Agent::PatchService.new(
+      # Store sudo credentials in cache for the job to retrieve
+      credentials_cache_key = SecureRandom.hex(16)
+      if params[:sudo_password].present?
+        Rails.cache.write(
+          "update_creds_#{credentials_cache_key}",
+          { sudo_password: params[:sudo_password] },
+          expires_in: 5.minutes
+        )
+      end
+
+      # Enqueue the update job
+      Agent::UpdateJob.perform_later(
         node: @node,
         agent_release: @agent_release,
-        force: params[:force] == "true"
+        force: params[:force] == "true",
+        credentials_cache_key: params[:sudo_password].present? ? credentials_cache_key : nil
       )
 
-      result = service.call
-      redirect_to node_path(@node), notice: result.message
-    rescue Agent::NodeBusyError
-      redirect_to node_path(@node),
-                  alert: "Cannot update Agent: The node is currently busy. Please wait for tasks to finish or cancel them."
-    rescue Agent::PatchService::PatchError => e
-      redirect_to node_path(@node), alert: "Agent update failed: #{e.message}"
+      # Respond with turbo_stream to show progress UI
+      respond_to do |format|
+        format.turbo_stream
+        format.html { redirect_to node_path(@node), notice: "Agent update started" }
+      end
     end
 
     private

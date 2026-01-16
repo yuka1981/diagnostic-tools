@@ -177,8 +177,8 @@ module Agent
 
     def systemctl_cmd(action, ssh, via_ssh:)
       inner_cmd = "systemctl #{action} #{SERVICE_NAME}"
-      cmd = build_remote_command(inner_cmd, via_ssh: via_ssh)
-      execute_command(ssh, cmd)
+      cmd = build_remote_command(inner_cmd, via_ssh: via_ssh, use_sudo: true)
+      execute_command(ssh, cmd, password: sudo_password)
     end
 
     def verify_checksum(ssh, via_ssh:)
@@ -205,20 +205,20 @@ module Agent
         mv /tmp/agent_update #{TARGET_BIN_PATH}
       CMD
       cmd = build_remote_command(inner_cmd, via_ssh: via_ssh, use_sudo: true)
-      execute_command(ssh, cmd)
+      execute_command(ssh, cmd, password: sudo_password)
     end
 
     def set_permissions(ssh, via_ssh:)
       inner_cmd = "chmod 755 #{TARGET_BIN_PATH} && chown root:root #{TARGET_BIN_PATH}"
       cmd = build_remote_command(inner_cmd, via_ssh: via_ssh, use_sudo: true)
-      execute_command(ssh, cmd)
+      execute_command(ssh, cmd, password: sudo_password)
     end
 
     def verify_service_running(ssh, via_ssh:)
       inner_cmd = "systemctl is-active #{SERVICE_NAME}"
-      cmd = build_remote_command(inner_cmd, via_ssh: via_ssh)
+      cmd = build_remote_command(inner_cmd, via_ssh: via_ssh, use_sudo: true)
 
-      output = execute_command(ssh, cmd)
+      output = execute_command(ssh, cmd, password: sudo_password)
       status = output.strip
 
       unless status == "active"
@@ -232,33 +232,46 @@ module Agent
       if via_ssh
         target_spec = @node.ip.presence || @node.hostname
         ssh_target = target_spec.include?(":") ? "[#{target_spec}]" : target_spec
-        remote_cmd = use_sudo ? "sudo bash -c '#{inner_cmd.gsub("'", "'\\''")}'" : inner_cmd
+        remote_cmd = use_sudo ? "sudo -S bash -c '#{inner_cmd.gsub("'", "'\\''")}'" : inner_cmd
         "ssh -o StrictHostKeyChecking=no root@#{Shellwords.escape(ssh_target)} #{Shellwords.escape(remote_cmd)}"
       else
-        use_sudo ? "sudo bash -c '#{inner_cmd.gsub("'", "'\\''")}'" : inner_cmd
+        use_sudo ? "sudo -S bash -c '#{inner_cmd.gsub("'", "'\\''")}'" : inner_cmd
       end
     end
 
-    def execute_command(ssh, cmd)
+    def execute_command(ssh, cmd, password: nil)
       stdout = ""
       stderr = ""
       exit_code = nil
 
-      Rails.logger.debug "[PatchService] Executing: #{cmd}"
+      # Mask password in logs
+      log_cmd = password.present? ? cmd.gsub(password.to_s, "********") : cmd
+      Rails.logger.debug "[PatchService] Executing: #{log_cmd}"
 
       ssh.open_channel do |ch|
         ch.exec(cmd) do |channel, success|
           raise PatchError, "Could not execute command" unless success
 
-          channel.on_data { |_, data| stdout += data }
-          channel.on_extended_data { |_, _, data| stderr += data }
+          # Send password to sudo -S if provided
+          if password.present?
+            channel.send_data("#{password}\n")
+          end
+
+          channel.on_data do |_, data|
+            stdout += data
+            broadcast_log(data, "stdout")
+          end
+          channel.on_extended_data do |_, _, data|
+            stderr += data
+            broadcast_log(data, "stderr")
+          end
           channel.on_request("exit-status") { |_, data| exit_code = data.read_long }
         end
       end
       ssh.loop
 
       if exit_code != 0
-        Rails.logger.error "[PatchService] Command failed: #{cmd}"
+        Rails.logger.error "[PatchService] Command failed: #{log_cmd}"
         Rails.logger.error "[PatchService] Stderr: #{stderr}"
         raise PatchError, "Command failed (exit #{exit_code}): #{stderr.strip}"
       end
@@ -293,6 +306,20 @@ module Agent
       return unless @node.persisted?
 
       ActionCable.server.broadcast("node_logs_#{@node.id}", { log: "==> #{message}\n", stream: "meta" })
+    end
+
+    def broadcast_log(data, stream)
+      return unless @node.persisted?
+      return if data.blank?
+
+      # Don't broadcast sudo password prompts
+      return if data.match?(/\[sudo\] password for/)
+
+      ActionCable.server.broadcast("node_logs_#{@node.id}", { log: data, stream: stream })
+    end
+
+    def sudo_password
+      @node.sudo_credential.presence
     end
   end
 end

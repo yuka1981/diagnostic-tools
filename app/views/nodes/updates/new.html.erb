@@ -37,6 +37,21 @@
       <% end %>
 
       <%= form_with(url: node_update_path(@node), method: :post, class: "space-y-6") do |f| %>
+        <%# Sudo Password (optional - uses node's stored credential if not provided) %>
+        <div>
+          <%= f.label :sudo_password, "Sudo Password", class: "block text-sm font-bold text-slate-700 mb-1" %>
+          <%= f.password_field :sudo_password,
+              placeholder: @node.sudo_credential.present? ? "•••••••• (using saved credential)" : "Enter sudo password",
+              class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" %>
+          <p class="mt-1 text-[10px] text-slate-500 italic">
+            <% if @node.sudo_credential.present? %>
+              Leave blank to use the node's saved sudo credential.
+            <% else %>
+              Required if the SSH user needs sudo for systemctl commands.
+            <% end %>
+          </p>
+        </div>
+
         <div>
           <%= f.label :agent_release_id, "Agent Release", class: "block text-sm font-bold text-slate-700 mb-1" %>
           <% if @agent_releases.any? %>

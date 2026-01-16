@@ -65,38 +65,63 @@ RSpec.describe "Nodes::Updates", type: :request do
     context "when authenticated as approver" do
       before { sign_in approver }
 
+      it "enqueues an UpdateJob" do
+        expect {
+          post node_update_path(node), params: { agent_release_id: agent_release.id }
+        }.to have_enqueued_job(Agent::UpdateJob).with(
+          node: node,
+          agent_release: agent_release,
+          force: false,
+          credentials_cache_key: nil
+        )
+      end
+
+      it "responds with turbo_stream" do
+        post node_update_path(node), params: { agent_release_id: agent_release.id },
+             headers: { "Accept" => "text/vnd.turbo-stream.html" }
+        expect(response).to have_http_status(:success)
+        expect(response.media_type).to eq("text/vnd.turbo-stream.html")
+        expect(response.body).to include("turbo-stream")
+        expect(response.body).to include("agent_update_status_#{node.id}")
+      end
+
+      it "stores sudo password in cache when provided" do
+        post node_update_path(node), params: {
+          agent_release_id: agent_release.id,
+          sudo_password: "secret123"
+        }
+
+        # Verify job was enqueued with a credentials cache key
+        expect(Agent::UpdateJob).to have_been_enqueued.with(hash_including(
+          node: node,
+          agent_release: agent_release,
+          credentials_cache_key: kind_of(String)
+        ))
+      end
+
       context "when node is busy" do
         before do
           create(:benchmark_run, node: node, benchmark_recipe: recipe, status: :pending)
         end
 
-        it "redirects with busy error message" do
-          post node_update_path(node), params: { agent_release_id: agent_release.id }
-          expect(response).to redirect_to(node_path(node))
-          follow_redirect!
-          expect(response.body).to include("currently busy")
+        it "enqueues job without force flag by default" do
+          expect {
+            post node_update_path(node), params: { agent_release_id: agent_release.id }
+          }.to have_enqueued_job(Agent::UpdateJob).with(hash_including(force: false))
         end
 
-        it "allows update when force is true (but fails at SSH)" do
-          post node_update_path(node), params: { agent_release_id: agent_release.id, force: "true" }
-          expect(response).to redirect_to(node_path(node))
-          follow_redirect!
-          # Should fail at SSH level, not busy check
-          expect(response.body).to include("failed")
+        it "enqueues job with force flag when specified" do
+          expect {
+            post node_update_path(node), params: { agent_release_id: agent_release.id, force: "true" }
+          }.to have_enqueued_job(Agent::UpdateJob).with(hash_including(force: true))
         end
       end
 
-      context "when node is idle" do
-        before do
-          create(:benchmark_run, node: node, benchmark_recipe: recipe, status: :success)
-        end
-
-        it "attempts update (fails at SSH in test environment)" do
-          post node_update_path(node), params: { agent_release_id: agent_release.id }
+      context "with HTML format fallback" do
+        it "redirects when not accepting turbo_stream" do
+          post node_update_path(node), params: { agent_release_id: agent_release.id },
+               headers: { "Accept" => "text/html" }
           expect(response).to redirect_to(node_path(node))
-          follow_redirect!
-          # Will fail at SSH connection in test environment
-          expect(response.body).to include("failed")
         end
       end
     end
