@@ -184,4 +184,58 @@ RSpec.describe Node, type: :model do
       end
     end
   end
+
+  describe "#busy?" do
+    let(:node) { create(:node) }
+    let(:recipe) { create(:benchmark_recipe) }
+
+    context "when node has no benchmark runs" do
+      it "returns false" do
+        expect(node.busy?).to be false
+      end
+    end
+
+    context "when node has only completed benchmark runs" do
+      before do
+        create(:benchmark_run, node: node, benchmark_recipe: recipe, status: :success)
+        create(:benchmark_run, node: node, benchmark_recipe: recipe, status: :failed)
+        create(:benchmark_run, node: node, benchmark_recipe: recipe, status: :cancelled)
+      end
+
+      it "returns false" do
+        expect(node.busy?).to be false
+      end
+    end
+
+    context "when node has a pending benchmark run" do
+      before do
+        create(:benchmark_run, node: node, benchmark_recipe: recipe, status: :pending)
+      end
+
+      it "returns true" do
+        expect(node.busy?).to be true
+      end
+    end
+
+    context "when node has a running benchmark run" do
+      before do
+        create(:benchmark_run, node: node, benchmark_recipe: recipe, status: :running)
+      end
+
+      it "returns true" do
+        expect(node.busy?).to be true
+      end
+    end
+
+    context "when node has both completed and pending runs" do
+      before do
+        create(:benchmark_run, node: node, benchmark_recipe: recipe, status: :success)
+        create(:benchmark_run, node: node, benchmark_recipe: recipe, status: :pending)
+      end
+
+      it "returns true" do
+        expect(node.busy?).to be true
+      end
+    end
+  end
 end

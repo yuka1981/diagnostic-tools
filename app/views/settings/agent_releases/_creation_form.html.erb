@@ -1,0 +1,200 @@
+<%= form_with(model: [:settings, agent_release], data: { controller: "release-mode", release_mode_target: "form" }) do |form| %>
+  <% if agent_release.errors.any? %>
+    <div class="rounded-md bg-red-50 border border-red-200 p-4 mb-6">
+      <div class="flex">
+        <div class="flex-shrink-0">
+          <svg class="h-5 w-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+        <div class="ml-3">
+          <h3 class="text-sm font-medium text-red-800">
+            <%= pluralize(agent_release.errors.count, "error") %> prevented this release from being saved:
+          </h3>
+          <div class="mt-2 text-sm text-red-700">
+            <ul class="list-disc list-inside space-y-1">
+              <% agent_release.errors.each do |error| %>
+                <li><%= error.full_message %></li>
+              <% end %>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  <% end %>
+
+  <%# Mode Selection Tabs %>
+  <div class="card-netbox mb-6">
+    <div class="card-header">
+      <h3 class="card-title">Creation Method</h3>
+    </div>
+    <div class="p-4">
+      <div class="flex gap-4">
+        <%# Upload Tab %>
+        <label class="flex-1 cursor-pointer" data-release-mode-target="uploadLabel">
+          <input type="radio" name="creation_mode" value="upload"
+                 class="sr-only peer"
+                 data-action="change->release-mode#toggleMode"
+                 data-release-mode-target="uploadRadio"
+                 checked>
+          <div class="border-2 rounded-lg p-4 transition-all
+                      peer-checked:border-teal-500 peer-checked:bg-teal-50
+                      border-slate-200 hover:border-slate-300">
+            <div class="flex items-center gap-3">
+              <div class="flex-shrink-0">
+                <svg class="h-8 w-8 text-slate-400 peer-checked:text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                </svg>
+              </div>
+              <div>
+                <p class="font-bold text-slate-900">Upload Binary</p>
+                <p class="text-xs text-slate-500">Upload a pre-compiled agent binary file</p>
+              </div>
+            </div>
+          </div>
+        </label>
+
+        <%# Build Tab %>
+        <label class="flex-1 <%= go_available ? 'cursor-pointer' : 'cursor-not-allowed opacity-60' %>" data-release-mode-target="buildLabel">
+          <input type="radio" name="creation_mode" value="build"
+                 class="sr-only peer"
+                 data-action="change->release-mode#toggleMode"
+                 data-release-mode-target="buildRadio"
+                 <%= 'disabled' unless go_available %>>
+          <div class="border-2 rounded-lg p-4 transition-all
+                      peer-checked:border-teal-500 peer-checked:bg-teal-50
+                      peer-disabled:bg-slate-50
+                      border-slate-200 hover:border-slate-300">
+            <div class="flex items-center gap-3">
+              <div class="flex-shrink-0">
+                <svg class="h-8 w-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+              </div>
+              <div>
+                <p class="font-bold text-slate-900">Build from Source</p>
+                <% if go_available %>
+                  <p class="text-xs text-slate-500">Compile agent from <code class="bg-slate-100 px-1 rounded">agent/</code> directory</p>
+                <% else %>
+                  <p class="text-xs text-red-500">Go toolchain not available</p>
+                <% end %>
+              </div>
+            </div>
+          </div>
+        </label>
+      </div>
+
+      <% if go_available && go_version %>
+        <p class="mt-3 text-xs text-slate-500">
+          <svg class="inline h-4 w-4 text-emerald-500 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+          </svg>
+          <%= go_version %>
+        </p>
+      <% end %>
+    </div>
+  </div>
+
+  <div class="card-netbox">
+    <div class="card-header">
+      <h3 class="card-title">Release Information</h3>
+    </div>
+
+    <div class="p-4 space-y-6">
+      <%# Version %>
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-6">
+        <div class="sm:col-span-3">
+          <%= form.label :version, "Version", class: "block text-xs font-bold text-slate-700 mb-1" %>
+          <%= form.text_field :version,
+              class: "block w-full rounded border border-slate-300 py-1.5 px-3 text-slate-900 shadow-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500 sm:text-sm",
+              placeholder: "v1.0.0",
+              required: true %>
+          <p class="mt-1 text-[10px] text-slate-500">Semantic version format (e.g., v1.0.0, 1.2.3-beta)</p>
+        </div>
+      </div>
+
+      <hr class="border-slate-200">
+
+      <%# Upload Section (shown when upload mode selected) %>
+      <div data-release-mode-target="uploadSection">
+        <h3 class="text-sm font-bold text-slate-700">Binary Upload</h3>
+        <p class="text-[10px] text-slate-500 italic mb-4">Upload the compiled agent binary. The SHA256 checksum will be calculated automatically.</p>
+
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-6">
+          <div class="sm:col-span-4">
+            <%= form.label :binary, "Agent Binary", class: "block text-xs font-bold text-slate-700 mb-1" %>
+            <%= form.file_field :binary,
+                class: "block w-full text-sm text-slate-500
+                       file:mr-4 file:py-2 file:px-4
+                       file:rounded-md file:border-0
+                       file:text-sm file:font-semibold
+                       file:bg-teal-50 file:text-teal-700
+                       hover:file:bg-teal-100
+                       cursor-pointer",
+                accept: "application/octet-stream,application/x-executable,application/x-elf",
+                data: { release_mode_target: "binaryField" } %>
+          </div>
+        </div>
+      </div>
+
+      <%# Build Section (shown when build mode selected) %>
+      <div data-release-mode-target="buildSection" class="hidden">
+        <h3 class="text-sm font-bold text-slate-700">Build from Source</h3>
+        <p class="text-[10px] text-slate-500 italic mb-4">
+          The agent will be compiled from the <code class="bg-slate-100 px-1 rounded">agent/</code> directory.
+          The version will be embedded in the binary using ldflags.
+        </p>
+
+        <div class="bg-amber-50 border border-amber-200 rounded-md p-4">
+          <div class="flex">
+            <div class="flex-shrink-0">
+              <svg class="h-5 w-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <div class="ml-3">
+              <p class="text-sm text-amber-800">
+                <strong>Build Configuration:</strong>
+              </p>
+              <ul class="mt-2 text-xs text-amber-700 space-y-1">
+                <li>Target: <code class="bg-amber-100 px-1 rounded">linux/<%= Agent::CompilerService.detect_arch == "arm64" ? "arm64" : "amd64" %></code></li>
+                <li>Source: <code class="bg-amber-100 px-1 rounded"><%= Rails.root.join('agent').to_s.gsub(Rails.root.to_s, '.') %></code></li>
+                <li>Static binary with CGO disabled</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <hr class="border-slate-200">
+
+      <%# Release Notes %>
+      <div>
+        <h3 class="text-sm font-bold text-slate-700">Release Notes</h3>
+        <p class="text-[10px] text-slate-500 italic mb-4">Describe the changes in this release. Markdown is supported.</p>
+
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-6">
+          <div class="sm:col-span-6">
+            <%= form.label :release_notes, "Notes", class: "block text-xs font-bold text-slate-700 mb-1" %>
+            <%= form.text_area :release_notes,
+                class: "block w-full rounded border border-slate-300 py-1.5 px-3 text-slate-900 shadow-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500 sm:text-sm font-mono",
+                rows: 6,
+                placeholder: "## What's New\n\n- Feature 1\n- Bug fix 2\n- Improvement 3" %>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="flex items-center justify-end gap-3 bg-slate-50 border-t border-slate-200 px-4 py-3">
+      <%= link_to "Cancel", settings_agent_path, class: "btn-secondary" %>
+      <button type="submit" class="btn-primary" data-release-mode-target="submitButton">
+        <span data-release-mode-target="submitText">Upload Release</span>
+      </button>
+    </div>
+  </div>
+<% end %>

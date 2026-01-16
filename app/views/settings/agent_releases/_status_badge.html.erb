@@ -1,0 +1,13 @@
+<% if release.active? %>
+  <span class="inline-flex items-center rounded-sm px-2 py-0.5 text-xs font-medium bg-emerald-100 text-emerald-800 border border-emerald-200">
+    Active
+  </span>
+<% elsif release.deprecated? %>
+  <span class="inline-flex items-center rounded-sm px-2 py-0.5 text-xs font-medium bg-amber-100 text-amber-800 border border-amber-200">
+    Deprecated
+  </span>
+<% elsif release.recalled? %>
+  <span class="inline-flex items-center rounded-sm px-2 py-0.5 text-xs font-medium bg-red-100 text-red-800 border border-red-200">
+    Recalled
+  </span>
+<% end %>

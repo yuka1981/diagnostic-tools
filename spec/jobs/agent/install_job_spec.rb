@@ -29,7 +29,7 @@ RSpec.describe Agent::InstallJob, type: :job do
     let(:installer) { instance_double(Agent::RemoteInstallService, call: install_result) }
 
     before do
-      allow(Agent::CompilerService).to receive(:new).and_return(compiler)
+      allow(Agent::CompilerService).to receive(:new).with(arch: "x86_64").and_return(compiler)
       allow(Agent::RemoteInstallService).to receive(:new).and_return(installer)
       allow(FileUtils).to receive(:rm_f)
       allow(Turbo::StreamsChannel).to receive(:broadcast_replace_to)

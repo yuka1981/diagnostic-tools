@@ -33,7 +33,7 @@ module Agent
       # 1. Compile Agent
       Rails.logger.debug "[Agent::InstallJob] Phase 1: Compiling"
       broadcast_status(target_host, "processing", "Compiling Go agent for #{arch}")
-      compiler = Agent::CompilerService.new(arch)
+      compiler = Agent::CompilerService.new(arch: arch)
       local_binary_path = compiler.call
 
       # 2. Remote Install

@@ -77,6 +77,12 @@ class Node < ApplicationRecord
     online? ? :online : :offline
   end
 
+  # Returns true if the node has any pending or running benchmark runs
+  # Used to prevent agent updates while benchmarks are in progress
+  def busy?
+    benchmark_runs.where(status: %i[pending running]).exists?
+  end
+
   private
 
   def generate_uuid

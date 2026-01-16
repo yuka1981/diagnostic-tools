@@ -1,0 +1,117 @@
+<%= form_with(model: [:settings, agent_release]) do |form| %>
+  <% if agent_release.errors.any? %>
+    <div class="rounded-md bg-red-50 border border-red-200 p-4 mb-6">
+      <div class="flex">
+        <div class="flex-shrink-0">
+          <svg class="h-5 w-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+        <div class="ml-3">
+          <h3 class="text-sm font-medium text-red-800">
+            <%= pluralize(agent_release.errors.count, "error") %> prevented this release from being saved:
+          </h3>
+          <div class="mt-2 text-sm text-red-700">
+            <ul class="list-disc list-inside space-y-1">
+              <% agent_release.errors.each do |error| %>
+                <li><%= error.full_message %></li>
+              <% end %>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  <% end %>
+
+  <div class="card-netbox">
+    <div class="card-header">
+      <h3 class="card-title">Release Information</h3>
+    </div>
+
+    <div class="p-4 space-y-6">
+      <%# Version %>
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-6">
+        <div class="sm:col-span-3">
+          <%= form.label :version, "Version", class: "block text-xs font-bold text-slate-700 mb-1" %>
+          <%= form.text_field :version,
+              class: "block w-full rounded border border-slate-300 py-1.5 px-3 text-slate-900 shadow-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500 sm:text-sm",
+              placeholder: "v1.0.0",
+              required: true %>
+          <p class="mt-1 text-[10px] text-slate-500">Semantic version format (e.g., v1.0.0, 1.2.3-beta)</p>
+        </div>
+
+        <%# Status (only on edit) %>
+        <% if agent_release.persisted? %>
+          <div class="sm:col-span-2">
+            <%= form.label :status, "Status", class: "block text-xs font-bold text-slate-700 mb-1" %>
+            <%= form.select :status,
+                AgentRelease.statuses.keys.map { |s| [s.humanize, s] },
+                {},
+                class: "block w-full rounded border border-slate-300 py-1.5 px-3 text-slate-900 shadow-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500 sm:text-sm" %>
+          </div>
+        <% end %>
+      </div>
+
+      <hr class="border-slate-200">
+
+      <%# Binary Upload %>
+      <div>
+        <h3 class="text-sm font-bold text-slate-700">Binary Upload</h3>
+        <p class="text-[10px] text-slate-500 italic mb-4">Upload the compiled agent binary. The SHA256 checksum will be calculated automatically.</p>
+
+        <% if agent_release.binary.attached? %>
+          <div class="mb-3 flex items-center gap-2 text-sm text-slate-600 bg-emerald-50 border border-emerald-200 rounded-md p-3">
+            <svg class="h-5 w-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+            <span>Current file: <span class="font-mono font-bold"><%= agent_release.binary_filename %></span></span>
+            <span class="text-slate-400">•</span>
+            <span><%= agent_release.formatted_size %></span>
+          </div>
+        <% end %>
+
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-6">
+          <div class="sm:col-span-4">
+            <%= form.label :binary, agent_release.persisted? ? "Replace Binary (optional)" : "Agent Binary", class: "block text-xs font-bold text-slate-700 mb-1" %>
+            <%= form.file_field :binary,
+                class: "block w-full text-sm text-slate-500
+                       file:mr-4 file:py-2 file:px-4
+                       file:rounded-md file:border-0
+                       file:text-sm file:font-semibold
+                       file:bg-teal-50 file:text-teal-700
+                       hover:file:bg-teal-100
+                       cursor-pointer",
+                accept: "application/octet-stream,application/x-executable,application/x-elf" %>
+          </div>
+        </div>
+      </div>
+
+      <hr class="border-slate-200">
+
+      <%# Release Notes %>
+      <div>
+        <h3 class="text-sm font-bold text-slate-700">Release Notes</h3>
+        <p class="text-[10px] text-slate-500 italic mb-4">Describe the changes in this release. Markdown is supported.</p>
+
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-6">
+          <div class="sm:col-span-6">
+            <%= form.label :release_notes, "Notes", class: "block text-xs font-bold text-slate-700 mb-1" %>
+            <%= form.text_area :release_notes,
+                class: "block w-full rounded border border-slate-300 py-1.5 px-3 text-slate-900 shadow-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500 sm:text-sm font-mono",
+                rows: 6,
+                placeholder: "## What's New\n\n- Feature 1\n- Bug fix 2\n- Improvement 3" %>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="flex items-center justify-end gap-3 bg-slate-50 border-t border-slate-200 px-4 py-3">
+      <%= link_to "Cancel",
+          agent_release.persisted? ? settings_agent_release_path(agent_release) : settings_agent_path,
+          class: "btn-secondary" %>
+      <%= form.submit agent_release.persisted? ? "Update Release" : "Upload Release",
+          class: "btn-primary" %>
+    </div>
+  </div>
+<% end %>

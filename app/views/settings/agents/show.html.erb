@@ -1,11 +1,12 @@
 <% content_for(:page_title) { "Agent Configuration" } %>
 
 <div class="space-y-6">
+  <%# Agent Configuration Card %>
   <div class="card-netbox">
     <div class="card-header">
       <h2 class="card-title">Agent Configuration</h2>
     </div>
-    
+
     <%= form_with(model: @ssh_setting, url: settings_agent_path, method: :patch) do |f| %>
       <div class="p-4 space-y-6">
         <div>
@@ -41,5 +42,22 @@
         <%= f.submit "Save Configuration", class: "btn-primary" %>
       </div>
     <% end %>
+  </div>
+
+  <%# Agent Releases Card %>
+  <div class="card-netbox">
+    <div class="card-header flex items-center justify-between">
+      <h2 class="card-title">Agent Releases</h2>
+      <% if current_user.approver? %>
+        <%= link_to new_settings_agent_release_path, class: "btn-primary text-xs" do %>
+          <svg class="h-3 w-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+          </svg>
+          Upload Release
+        <% end %>
+      <% end %>
+    </div>
+    <%= render partial: "settings/agent_releases/releases_table",
+               locals: { agent_releases: @agent_releases, latest_release: @latest_release } %>
   </div>
 </div>

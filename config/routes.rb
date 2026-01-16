@@ -23,6 +23,13 @@ Rails.application.routes.draw do
   namespace :settings do
     resource :ssh, only: [ :show, :update ], controller: :ssh
     resource :agent, only: [ :show, :update ], controller: :agents
+    resources :agent_releases do
+      member do
+        patch :deprecate
+        patch :activate
+        patch :recall
+      end
+    end
   end
 
   resources :nodes do
@@ -34,6 +41,7 @@ Rails.application.routes.draw do
     resource :network, only: [], controller: "nodes/network" do
       get :ib_details
     end
+    resource :update, only: %i[new create], controller: "nodes/updates"
     collection do
       resources :imports, only: %i[new create], controller: "nodes/imports", as: :node_import
       resources :installs, only: %i[new create], controller: "nodes/installs", as: :node_install
