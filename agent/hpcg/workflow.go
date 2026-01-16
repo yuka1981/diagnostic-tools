@@ -79,26 +79,25 @@ func (w *WorkflowOrchestrator) Run(ctx context.Context, params *RunParams) (*mod
 	output, execErr := w.runBenchmark(ctx, params.RunID, params.RunCmd)
 	end := time.Now()
 
-	execStatus := model.BenchmarkStatusPass
-	if execErr != nil {
-		execStatus = model.BenchmarkStatusFail
-	}
+	execStatus, execErrMsg := evaluateExecResult(execErr)
 
 	// 5. Parse
 	targetLogPath := w.handleLogStorage(params, start)
 
 	metrics, finalStatus := w.parseResults(output, start, execStatus, targetLogPath)
+	errorMessage := buildErrorMessage(finalStatus, execErrMsg)
 
 	// 6. Capture log content for API reporting
 	logContent := w.captureLogContent(output, targetLogPath, start)
 
 	result := &model.BenchmarkRun{
-		RunID:      params.RunID,
-		RecipeID:   "hpcg",
-		StartTime:  start,
-		EndTime:    end,
-		Status:     finalStatus,
-		LogContent: logContent,
+		RunID:        params.RunID,
+		RecipeID:     "hpcg",
+		StartTime:    start,
+		EndTime:      end,
+		Status:       finalStatus,
+		ErrorMessage: errorMessage,
+		LogContent:   logContent,
 	}
 
 	// Collect artifacts
@@ -114,6 +113,29 @@ func (w *WorkflowOrchestrator) Run(ctx context.Context, params *RunParams) (*mod
 	}
 
 	return result, nil
+}
+
+// evaluateExecResult determines status and error message from execution error.
+func evaluateExecResult(execErr error) (status model.BenchmarkStatus, errMsg string) {
+	if execErr != nil {
+		return model.BenchmarkStatusFail, fmt.Sprintf("Benchmark execution failed: %v", execErr)
+	}
+	return model.BenchmarkStatusPass, ""
+}
+
+// buildErrorMessage creates a human-readable error message based on final status.
+func buildErrorMessage(finalStatus model.BenchmarkStatus, execErrMsg string) string {
+	if execErrMsg != "" {
+		return execErrMsg
+	}
+	switch finalStatus {
+	case model.BenchmarkStatusFail:
+		return "Benchmark completed but validation failed (check metrics)"
+	case model.BenchmarkStatusError:
+		return "Benchmark completed but results could not be parsed"
+	default:
+		return ""
+	}
 }
 
 // collectArtifacts adds log file and config artifacts to the result.

@@ -39,6 +39,7 @@ type BenchmarkRun struct {
 	NodeID          string           `json:"node_id,omitempty"`
 	RecipeID        string           `json:"recipe_id"`
 	LogContent      string           `json:"log_content,omitempty"`
+	ErrorMessage    string           `json:"error_message,omitempty"` // Human-readable error for failed runs
 	Status          BenchmarkStatus  `json:"status"`
 	Metrics         json.RawMessage  `json:"metrics"`
 	Artifacts       []string         `json:"artifacts,omitempty"`        // Legacy: file paths (kept for backwards compatibility)

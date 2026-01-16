@@ -16,11 +16,15 @@ import (
 
 const (
 	// DefaultPIDDir is the default directory for PID files.
-	DefaultPIDDir = "/var/run/diagnostic-agent"
+	// Uses /tmp which is writable by all users. PID files are transient
+	// and should be cleared on reboot anyway.
+	DefaultPIDDir = "/tmp/diagnostic-agent"
 	// PIDFileSuffix is the suffix for PID files.
 	PIDFileSuffix = ".pid"
 	// DefaultKillTimeout is the time to wait after SIGTERM before sending SIGKILL.
 	DefaultKillTimeout = 5 * time.Second
+	// PIDDirEnvVar is the environment variable to override the PID directory.
+	PIDDirEnvVar = "DIAGNOSTIC_AGENT_PID_DIR"
 )
 
 // ErrPIDFileNotFound indicates the PID file does not exist.
@@ -34,10 +38,15 @@ type PIDManager struct {
 	pidDir string
 }
 
-// NewPIDManager creates a new PID manager with the default directory.
+// NewPIDManager creates a new PID manager.
+// Uses DIAGNOSTIC_AGENT_PID_DIR env var if set, otherwise defaults to /tmp/diagnostic-agent.
 func NewPIDManager() *PIDManager {
+	pidDir := os.Getenv(PIDDirEnvVar)
+	if pidDir == "" {
+		pidDir = DefaultPIDDir
+	}
 	return &PIDManager{
-		pidDir: DefaultPIDDir,
+		pidDir: pidDir,
 	}
 }
 

@@ -40,12 +40,19 @@ module Api
           "RUNNING" => :running # I'll add this to the agent
         }
 
+        # Build error message: prefer explicit error_message, fall back to status description
+        error_msg = params[:error_message].presence
+        if error_msg.blank? && %w[FAIL ERROR].include?(params[:status])
+          error_msg = "Benchmark reported #{params[:status]} status"
+        end
+
         update_params = {
           status: status_map[params[:status]] || run.status,
           metrics: params[:metrics],
           started_at: sanitize_timestamp(params[:start_time]),
           finished_at: sanitize_timestamp(params[:end_time]),
-          log_content: params[:log_content]
+          log_content: params[:log_content],
+          error_message: error_msg
         }.compact
 
         if run.update(update_params)
