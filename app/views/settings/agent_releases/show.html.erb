@@ -121,7 +121,25 @@
                 </td>
                 <td class="px-4 py-2 text-slate-700"><%= agent_binary.formatted_size %></td>
                 <td class="px-4 py-2 text-slate-600 font-mono text-[10px]">
-                  <%= agent_binary.checksum.present? ? agent_binary.checksum[0..15] + "..." : "—" %>
+                  <% if agent_binary.checksum.present? %>
+                    <div data-controller="clipboard" class="inline-flex items-center gap-1">
+                      <span data-clipboard-target="source" class="hidden"><%= agent_binary.checksum %></span>
+                      <button type="button"
+                              data-action="click->clipboard#copy"
+                              class="inline-flex items-center gap-1 hover:text-teal-600 cursor-pointer group"
+                              title="Click to copy full checksum">
+                        <span><%= agent_binary.checksum[0..15] %>...</span>
+                        <svg data-clipboard-target="icon" class="h-3 w-3 text-slate-400 group-hover:text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                        </svg>
+                        <svg data-clipboard-target="success" class="h-3 w-3 text-emerald-500 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                      </button>
+                    </div>
+                  <% else %>
+                    —
+                  <% end %>
                 </td>
                 <td class="px-4 py-2">
                   <% if agent_binary.binary.attached? %>
@@ -153,7 +171,25 @@
             <tr class="hover:bg-slate-50">
               <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">SHA256 Checksum</th>
               <td class="px-4 py-2 text-slate-600 font-mono text-xs break-all">
-                <%= @agent_release.checksum.presence || "—" %>
+                <% if @agent_release.checksum.present? %>
+                  <div data-controller="clipboard" class="inline-flex items-center gap-2">
+                    <span data-clipboard-target="source" class="hidden"><%= @agent_release.checksum %></span>
+                    <button type="button"
+                            data-action="click->clipboard#copy"
+                            class="inline-flex items-center gap-2 hover:text-teal-600 cursor-pointer group"
+                            title="Click to copy checksum">
+                      <span><%= @agent_release.checksum %></span>
+                      <svg data-clipboard-target="icon" class="h-4 w-4 text-slate-400 group-hover:text-teal-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                      </svg>
+                      <svg data-clipboard-target="success" class="h-4 w-4 text-emerald-500 hidden flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                      </svg>
+                    </button>
+                  </div>
+                <% else %>
+                  —
+                <% end %>
               </td>
             </tr>
             <tr class="hover:bg-slate-50">
