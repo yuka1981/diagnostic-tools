@@ -177,3 +177,9 @@
     </div>
   <% end %>
 </div>
+
+<%# Turbo Frame for slide-over modal - provides content when accessed via turbo frame request %>
+<%# The partial includes its own turbo_frame_tag wrapper %>
+<div class="hidden">
+  <%= render "benchmark_runs/slide_over_content", benchmark_run: @benchmark_run %>
+</div>
