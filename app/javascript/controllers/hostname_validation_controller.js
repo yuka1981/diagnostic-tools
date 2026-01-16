@@ -1,13 +1,20 @@
 import { Controller } from "@hotwired/stimulus"
 
 // Connects to data-controller="hostname-validation"
-// Validates hostname and IP inputs in real-time, preventing localhost entries
+// Validates hostname and IP inputs in real-time, preventing localhost entries and invalid IPs
 export default class extends Controller {
   static targets = ["input", "error", "ipInput", "ipError", "submit"]
   static values = {
     localhostMessage: { type: String, default: "Localhost is not allowed. Please use a remote hostname or IP address." },
-    ipLocalhostMessage: { type: String, default: "Localhost IP addresses (127.0.0.1, ::1) are not allowed." }
+    ipLocalhostMessage: { type: String, default: "Localhost IP addresses (127.0.0.1, ::1) are not allowed." },
+    ipInvalidMessage: { type: String, default: "Please enter a valid IPv4 or IPv6 address." }
   }
+
+  // IPv4 pattern: 0-255 for each octet
+  static IPV4_PATTERN = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/
+
+  // IPv6 pattern: supports full, compressed, and mixed formats
+  static IPV6_PATTERN = /^(?:(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}|(?:[0-9a-fA-F]{1,4}:){1,7}:|(?:[0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|(?:[0-9a-fA-F]{1,4}:){1,5}(?::[0-9a-fA-F]{1,4}){1,2}|(?:[0-9a-fA-F]{1,4}:){1,4}(?::[0-9a-fA-F]{1,4}){1,3}|(?:[0-9a-fA-F]{1,4}:){1,3}(?::[0-9a-fA-F]{1,4}){1,4}|(?:[0-9a-fA-F]{1,4}:){1,2}(?::[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:(?::[0-9a-fA-F]{1,4}){1,6}|:(?::[0-9a-fA-F]{1,4}){1,7}|::)$/
 
   connect() {
     this.validate()
@@ -19,8 +26,9 @@ export default class extends Controller {
     const hostnameIsLocalhost = this.isLocalhost(hostnameValue)
 
     // Check IP input
-    const ipValue = this.hasIpInputTarget ? this.ipInputTarget.value.trim().toLowerCase() : ""
-    const ipIsLocalhost = this.isLocalhost(ipValue)
+    const ipValue = this.hasIpInputTarget ? this.ipInputTarget.value.trim() : ""
+    const ipIsLocalhost = this.isLocalhost(ipValue.toLowerCase())
+    const ipIsInvalid = ipValue !== "" && !this.isValidIp(ipValue)
 
     // Handle hostname validation
     if (hostnameIsLocalhost) {
@@ -29,19 +37,26 @@ export default class extends Controller {
       this.hideHostnameError()
     }
 
-    // Handle IP validation
+    // Handle IP validation - localhost takes priority over invalid format
     if (ipIsLocalhost) {
-      this.showIpError()
+      this.showIpError(this.ipLocalhostMessageValue)
+    } else if (ipIsInvalid) {
+      this.showIpError(this.ipInvalidMessageValue)
     } else {
       this.hideIpError()
     }
 
-    // Enable/disable submit based on both validations
-    if (hostnameIsLocalhost || ipIsLocalhost) {
+    // Enable/disable submit based on all validations
+    if (hostnameIsLocalhost || ipIsLocalhost || ipIsInvalid) {
       this.disableSubmit()
     } else {
       this.enableSubmit()
     }
+  }
+
+  isValidIp(value) {
+    if (!value) return true // Empty is valid (field is optional)
+    return this.constructor.IPV4_PATTERN.test(value) || this.constructor.IPV6_PATTERN.test(value)
   }
 
   isLocalhost(value) {
@@ -69,9 +84,9 @@ export default class extends Controller {
     }
   }
 
-  showIpError() {
+  showIpError(message) {
     if (this.hasIpErrorTarget) {
-      this.ipErrorTarget.textContent = this.ipLocalhostMessageValue
+      this.ipErrorTarget.textContent = message
       this.ipErrorTarget.classList.remove("hidden")
     }
     if (this.hasIpInputTarget) {
