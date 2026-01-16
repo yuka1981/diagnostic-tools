@@ -113,6 +113,87 @@ Final Summary::HPCG result is VALID with a GFLOP/s rating of= 100.0
 	}
 }
 
+func TestWorkflowOrchestrator_Run_UploadsHpcgDatAsArtifact(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	// Create setup directory to simulate HPCG source already present
+	setupDir := filepath.Join(tmpDir, "setup")
+	if err := os.MkdirAll(setupDir, 0755); err != nil {
+		t.Fatalf("failed to create setup dir: %v", err)
+	}
+
+	// Create a mock log file that will be found
+	logFileName := "HPCG-Benchmark_test.txt"
+	logContent := "HPCG-Benchmark\nFinal Summary::HPCG result is VALID with a GFLOP/s rating of= 50.0\n"
+	if err := os.WriteFile(filepath.Join(tmpDir, logFileName), []byte(logContent), 0644); err != nil {
+		t.Fatalf("failed to create log file: %v", err)
+	}
+
+	runner := &mockCommandRunner{
+		output: []byte(logContent),
+	}
+	loader := &mockModuleLoader{}
+
+	orchestrator := &WorkflowOrchestrator{
+		Runner:       runner,
+		ModuleLoader: loader,
+		WorkDir:      tmpDir,
+	}
+
+	params := RunParams{
+		RunID:    "test-run",
+		Modules:  []string{"mpi/openmpi"},
+		BuildCmd: "make",
+		RunCmd:   "./xhpcg",
+		Config: ConfigParams{
+			NX: 104, NY: 104, NZ: 104, RunTimeSeconds: 60,
+		},
+	}
+
+	result, err := orchestrator.Run(context.Background(), &params)
+	if err != nil {
+		t.Fatalf("Run failed: %v", err)
+	}
+
+	// Verify hpcg.dat is uploaded as an artifact
+	var foundHpcgDat bool
+	for _, upload := range result.ArtifactUploads {
+		if upload.Filename != "hpcg.dat" {
+			continue
+		}
+		foundHpcgDat = true
+
+		// Verify file type
+		if upload.FileType != "dat" {
+			t.Errorf("expected file type 'dat', got %q", upload.FileType)
+		}
+
+		// Verify content is not empty
+		if upload.Content == "" {
+			t.Error("expected non-empty content for hpcg.dat")
+		}
+
+		// Verify size is set
+		if upload.Size == 0 {
+			t.Error("expected non-zero size for hpcg.dat")
+		}
+
+		break
+	}
+
+	if !foundHpcgDat {
+		t.Errorf("expected hpcg.dat in ArtifactUploads, got filenames: %v", getUploadFilenames(result.ArtifactUploads))
+	}
+}
+
+func getUploadFilenames(uploads []model.ArtifactUpload) []string {
+	names := make([]string, len(uploads))
+	for i, u := range uploads {
+		names[i] = u.Filename
+	}
+	return names
+}
+
 func TestWorkflowOrchestrator_EnsureHPCGSource(t *testing.T) {
 	t.Run("skips clone when setup dir exists", func(t *testing.T) {
 		tmpDir := t.TempDir()

@@ -13,6 +13,17 @@
               <%= benchmark_run.benchmark_recipe.display_name %>
             </h3>
             <%= node_status_badge(benchmark_run.status) %>
+            <% if benchmark_run.pending? || benchmark_run.running? %>
+              <%= button_to cancel_benchmark_run_path(benchmark_run),
+                  method: :post,
+                  data: { turbo_confirm: "Are you sure you want to cancel this benchmark run?" },
+                  class: "inline-flex items-center gap-1 px-2 py-1 text-xs font-bold text-red-600 bg-white border border-red-300 rounded hover:bg-red-50 hover:border-red-400 transition-colors" do %>
+                <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+                Cancel
+              <% end %>
+            <% end %>
           </div>
           <p class="mt-1 text-sm text-slate-500">
             Run #<%= benchmark_run.id %> on <span class="font-bold"><%= benchmark_run.node.hostname %></span>
@@ -210,7 +221,7 @@
                       <%= artifact.size.present? ? number_to_human_size(artifact.size) : "—" %>
                     </td>
                     <td class="px-3 py-2 text-right">
-                      <% if File.exist?(artifact.path) %>
+                      <% if artifact.downloadable? %>
                         <%= link_to download_artifact_benchmark_run_path(benchmark_run, artifact_id: artifact.id),
                             class: "inline-flex items-center gap-1 text-teal-600 hover:text-teal-800 text-xs font-bold" do %>
                           <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

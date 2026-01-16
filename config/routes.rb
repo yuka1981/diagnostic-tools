@@ -43,6 +43,7 @@ Rails.application.routes.draw do
   resources :benchmark_runs, only: %i[index show] do
     member do
       get "artifacts/:artifact_id/download", action: :download_artifact, as: :download_artifact
+      post :cancel
     end
   end
   resources :benchmark_recipes do

@@ -80,7 +80,7 @@ module Benchmark
     end
 
     def token_source
-      if @target_node&.api_token.present?
+      if @target_node&.effective_api_token.present?
         :node
       elsif @agent_token.present?
         :global

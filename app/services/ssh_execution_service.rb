@@ -5,9 +5,18 @@ require "net/ssh/gateway"
 require "shellwords"
 
 class SshExecutionService
-  Result = Struct.new(:success, :output, :error, keyword_init: true) do
+  Result = Struct.new(:success, :output, :error, :exit_code, :exit_signal, keyword_init: true) do
     def success?
       success
+    end
+
+    # Human-readable error summary for debugging
+    def error_summary
+      parts = []
+      parts << "exit_code=#{exit_code}" if exit_code && exit_code != 0
+      parts << "exit_signal=#{exit_signal}" if exit_signal
+      parts << error.to_s.lines.first&.strip if error.present?
+      parts.join(", ")
     end
   end
 
@@ -115,9 +124,9 @@ class SshExecutionService
     session.loop
 
     success = exit_code == 0 && exit_signal.nil?
-    Result.new(success: success, output: stdout_data, error: stderr_data)
+    Result.new(success: success, output: stdout_data, error: stderr_data, exit_code: exit_code, exit_signal: exit_signal)
   rescue StandardError => e
-    Result.new(success: false, output: stdout_data, error: e.message)
+    Result.new(success: false, output: stdout_data, error: e.message, exit_code: nil, exit_signal: nil)
   end
 
   def target_user

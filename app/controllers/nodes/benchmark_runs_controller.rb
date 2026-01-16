@@ -84,8 +84,10 @@ module Nodes
     end
 
     def agent_token
-      # Prefer per-node token, fall back to global token
-      @node.api_token.presence || Rails.application.credentials.dig(:api, :agent_token) || ENV["API_AGENT_TOKEN"]
+      # Prefer per-node token (from direct column or associated ApiKey), fall back to global token
+      @node.effective_api_token.presence ||
+        Rails.application.credentials.dig(:api, :agent_token) ||
+        ENV["API_AGENT_TOKEN"]
     end
   end
 end

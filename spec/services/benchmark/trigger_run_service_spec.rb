@@ -57,6 +57,90 @@ RSpec.describe Benchmark::TriggerRunService do
       end
     end
 
+    context "when SSH connection times out" do
+      it "returns error for connection timeout" do
+        allow(Net::SSH).to receive(:start).and_raise(Net::SSH::ConnectionTimeout, "Connection timed out")
+        result = service.call
+        expect(result.success?).to be false
+        expect(result.error).to include("SSH connection timeout")
+      end
+
+      it "returns error for Errno::ETIMEDOUT" do
+        allow(Net::SSH).to receive(:start).and_raise(Errno::ETIMEDOUT)
+        result = service.call
+        expect(result.success?).to be false
+        expect(result.error).to include("SSH connection timeout")
+      end
+    end
+
+    context "when SSH connection is refused" do
+      it "returns error with connection refused details" do
+        allow(Net::SSH).to receive(:start).and_raise(Errno::ECONNREFUSED)
+        result = service.call
+        expect(result.success?).to be false
+        expect(result.error).to include("SSH connection refused")
+        expect(result.output).to include("SSH Connection Refused")
+      end
+    end
+
+    context "when host is unreachable" do
+      it "returns error for EHOSTUNREACH" do
+        allow(Net::SSH).to receive(:start).and_raise(Errno::EHOSTUNREACH)
+        result = service.call
+        expect(result.success?).to be false
+        expect(result.error).to include("SSH host unreachable")
+        expect(result.output).to include("Host Unreachable")
+      end
+
+      it "returns error for ENETUNREACH" do
+        allow(Net::SSH).to receive(:start).and_raise(Errno::ENETUNREACH)
+        result = service.call
+        expect(result.success?).to be false
+        expect(result.error).to include("SSH host unreachable")
+      end
+    end
+
+    context "when DNS/socket error occurs" do
+      it "returns error for SocketError" do
+        allow(Net::SSH).to receive(:start).and_raise(SocketError, "getaddrinfo: Name or service not known")
+        result = service.call
+        expect(result.success?).to be false
+        expect(result.error).to include("SSH DNS/socket error")
+        expect(result.output).to include("DNS/Socket Error")
+      end
+    end
+
+    context "when generic SSH error occurs" do
+      it "returns error for Net::SSH::Exception" do
+        allow(Net::SSH).to receive(:start).and_raise(Net::SSH::Exception, "Key exchange failed")
+        result = service.call
+        expect(result.success?).to be false
+        expect(result.error).to include("SSH error")
+        expect(result.output).to include("SSH Error")
+      end
+    end
+
+    context "when unexpected error occurs" do
+      it "returns error for StandardError" do
+        allow(Net::SSH).to receive(:start).and_raise(StandardError, "Something unexpected")
+        result = service.call
+        expect(result.success?).to be false
+        expect(result.error).to include("Unexpected error")
+        expect(result.output).to include("Unexpected Error")
+      end
+    end
+
+    context "when SSH command fails with non-zero exit code" do
+      let(:ssh_client) { mock_ssh_session(stdout: "some output", stderr: "error occurred", exit_code: 1) }
+
+      it "returns error with exit code details" do
+        result = service.call
+        expect(result.success?).to be false
+        expect(result.error).to include("SSH command failed")
+        expect(result.error).to include("exit_code=1")
+      end
+    end
+
     context "when command returns empty output" do
       let(:ssh_client) { mock_ssh_session(stdout: "") }
 
@@ -246,6 +330,102 @@ RSpec.describe Benchmark::TriggerRunService do
         cmd = service.send(:build_agent_command, "../hpc-agent")
         expect(cmd).not_to include("--modules")
       end
+    end
+  end
+
+  describe "#exit_code_hint" do
+    it "returns hint for general error (1)" do
+      expect(service.send(:exit_code_hint, 1)).to include("general error")
+    end
+
+    it "returns hint for permission denied (126)" do
+      expect(service.send(:exit_code_hint, 126)).to include("permission denied")
+    end
+
+    it "returns hint for command not found (127)" do
+      expect(service.send(:exit_code_hint, 127)).to include("command not found")
+    end
+
+    it "returns hint for SIGKILL (137)" do
+      expect(service.send(:exit_code_hint, 137)).to include("SIGKILL")
+    end
+
+    it "returns hint for segmentation fault (139)" do
+      expect(service.send(:exit_code_hint, 139)).to include("segmentation fault")
+    end
+
+    it "returns hint for SSH error (255)" do
+      expect(service.send(:exit_code_hint, 255)).to include("SSH error")
+    end
+
+    it "returns nil for unknown exit codes" do
+      expect(service.send(:exit_code_hint, 42)).to be_nil
+    end
+  end
+
+  describe "#build_error_detail" do
+    it "returns message for nil result" do
+      expect(service.send(:build_error_detail, nil)).to eq("No result returned")
+    end
+
+    it "includes exit code in detail" do
+      result = double(exit_code: 127, exit_signal: nil, error: "", output: "")
+      detail = service.send(:build_error_detail, result)
+      expect(detail).to include("exit_code=127")
+      expect(detail).to include("command not found")
+    end
+
+    it "includes exit signal when present" do
+      result = double(exit_code: nil, exit_signal: "KILL", error: "", output: "")
+      detail = service.send(:build_error_detail, result)
+      expect(detail).to include("signal=KILL")
+    end
+
+    it "prefers stderr over stdout" do
+      result = double(exit_code: 1, exit_signal: nil, error: "Stderr message", output: "Stdout message")
+      detail = service.send(:build_error_detail, result)
+      expect(detail).to include("Stderr message")
+    end
+
+    it "falls back to stdout when stderr is empty" do
+      result = double(exit_code: 1, exit_signal: nil, error: "", output: "First line\nSecond line")
+      detail = service.send(:build_error_detail, result)
+      expect(detail).to include("stdout: First line")
+    end
+  end
+
+  describe "#build_log_content" do
+    it "returns empty string for nil result" do
+      expect(service.send(:build_log_content, nil)).to eq("")
+    end
+
+    it "includes SSH connection info" do
+      result = double(exit_code: 0, exit_signal: nil, error: "", output: "test")
+      content = service.send(:build_log_content, result)
+      expect(content).to include("=== SSH Connection Info ===")
+      expect(content).to include("Target:")
+      expect(content).to include("Working Dir:")
+    end
+
+    it "includes exit status when present" do
+      result = double(exit_code: 0, exit_signal: nil, error: "", output: "test")
+      content = service.send(:build_log_content, result)
+      expect(content).to include("=== Exit Status ===")
+      expect(content).to include("Exit Code: 0")
+    end
+
+    it "includes stdout section" do
+      result = double(exit_code: 0, exit_signal: nil, error: "", output: "command output")
+      content = service.send(:build_log_content, result)
+      expect(content).to include("=== SSH Stdout ===")
+      expect(content).to include("command output")
+    end
+
+    it "includes stderr section when present" do
+      result = double(exit_code: 0, exit_signal: nil, error: "warning message", output: "output")
+      content = service.send(:build_log_content, result)
+      expect(content).to include("=== SSH Stderr ===")
+      expect(content).to include("warning message")
     end
   end
 

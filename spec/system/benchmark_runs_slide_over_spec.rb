@@ -187,4 +187,70 @@ RSpec.describe "Benchmark Runs Slide-over Inspector", type: :system do
       expect(close_button).to be_visible
     end
   end
+
+  describe "slide-over from nodes overview page" do
+    let!(:benchmark_run) do
+      create(:benchmark_run, :success,
+        node: node,
+        benchmark_recipe: recipe,
+        started_at: 2.hours.ago,
+        finished_at: 1.hour.ago,
+        metrics: { "gflops" => 99.99 })
+    end
+
+    it "opens slide-over when clicking View Details icon from node overview", :js do
+      visit node_path(node)
+
+      # The node overview shows recent benchmark runs (uppercase in UI)
+      expect(page).to have_content(/recent benchmark runs/i)
+
+      # Click View Details icon (eye icon)
+      within("#node_recent_runs_tbody") do
+        find("[title='View Details']", match: :first).click
+      end
+
+      # Slide-over should appear with run details
+      expect(page).to have_css("[data-slide-over-target='panel']", visible: true, wait: 5)
+      within("[data-slide-over-target='panel']") do
+        expect(page).to have_content(recipe.name, wait: 5)
+        expect(page).to have_content(node.hostname)
+      end
+    end
+
+    it "loads correct benchmark run content in slide-over from nodes page", :js do
+      visit node_path(node)
+
+      within("#node_recent_runs_tbody") do
+        find("[title='View Details']", match: :first).click
+      end
+
+      expect(page).to have_css("[data-slide-over-target='panel']", visible: true, wait: 5)
+
+      # Verify the content tabs work
+      within("[data-slide-over-target='panel']") do
+        expect(page).to have_content(/summary/i, wait: 5)
+
+        # Click Metrics tab (find by aria-controls attribute)
+        find("[aria-controls='tab-panel-metrics']").click
+        expect(page).to have_content(/gflops/i)
+        expect(page).to have_content("99.99")
+      end
+    end
+
+    it "closes slide-over when pressing Escape from nodes page", :js do
+      visit node_path(node)
+
+      within("#node_recent_runs_tbody") do
+        find("[title='View Details']", match: :first).click
+      end
+
+      expect(page).to have_css("[data-slide-over-target='panel']", visible: true, wait: 5)
+
+      # Press Escape key
+      find("body").send_keys(:escape)
+
+      # Modal should be hidden
+      expect(page).to have_css("[data-slide-over-target='panel'].hidden", visible: :hidden, wait: 5)
+    end
+  end
 end

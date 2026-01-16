@@ -160,6 +160,165 @@ RSpec.describe "BenchmarkRuns", type: :request do
         expect(response).to have_http_status(:success)
         expect(response.body).to include("tab-summary")
       end
+
+      it "includes turbo frame wrapper in response" do
+        get benchmark_run_path(benchmark_run), headers: { "Turbo-Frame" => "slide_over_content" }
+        expect(response.body).to include('id="slide_over_content"')
+      end
+
+      it "includes run details in turbo frame response" do
+        get benchmark_run_path(benchmark_run), headers: { "Turbo-Frame" => "slide_over_content" }
+        expect(response.body).to include(node.hostname)
+        expect(response.body).to include(recipe.name)
+      end
+    end
+
+    context "with regular request (fallback turbo frame)" do
+      it "includes hidden slide_over_content frame in full page response" do
+        get benchmark_run_path(benchmark_run)
+        expect(response).to have_http_status(:success)
+        # The page should include the hidden slide_over_content partial as a fallback
+        expect(response.body).to include('id="slide_over_content"')
+      end
+
+      it "includes both full page content and slide-over frame content" do
+        get benchmark_run_path(benchmark_run)
+        # Full page content
+        expect(response.body).to include("Run Details")
+        expect(response.body).to include("Configuration")
+        # Hidden slide-over frame content (wrapped in hidden div)
+        expect(response.body).to include('class="hidden"')
+        expect(response.body).to include("tab-summary")
+      end
+    end
+  end
+
+  describe "POST /benchmark_runs/:id/cancel" do
+    context "when benchmark run is pending" do
+      let(:pending_run) { create(:benchmark_run, node: node, benchmark_recipe: recipe, status: :pending) }
+
+      it "cancels the run without SSH" do
+        expect(Net::SSH).not_to receive(:start)
+        post cancel_benchmark_run_path(pending_run)
+        expect(pending_run.reload.status).to eq("cancelled")
+      end
+
+      it "redirects to benchmark runs index" do
+        post cancel_benchmark_run_path(pending_run)
+        expect(response).to redirect_to(benchmark_runs_path)
+      end
+
+      it "sets success flash message" do
+        post cancel_benchmark_run_path(pending_run)
+        expect(flash[:notice]).to eq("Benchmark run cancelled successfully.")
+      end
+
+      it "sets error_message on the run" do
+        post cancel_benchmark_run_path(pending_run)
+        expect(pending_run.reload.error_message).to include("Cancelled from queue")
+      end
+    end
+
+    context "when benchmark run is running" do
+      let(:running_run) { create(:benchmark_run, :running, node: node, benchmark_recipe: recipe) }
+
+      before do
+        mock_channel = instance_double(Net::SSH::Connection::Channel)
+        mock_session = instance_double(Net::SSH::Connection::Session, loop: true)
+
+        allow(mock_session).to receive(:open_channel).and_yield(mock_channel)
+        allow(mock_channel).to receive(:exec).and_yield(mock_channel, true)
+        allow(mock_channel).to receive(:on_data) do |&block|
+          block.call(mock_channel, '{"status":"ok","message":"Process killed","pid":123}')
+        end
+        allow(mock_channel).to receive(:on_extended_data)
+        allow(mock_channel).to receive(:on_request).with("exit-status").and_yield(mock_channel, double(read_long: 0))
+        allow(mock_channel).to receive(:on_request).with("exit-signal").and_yield(mock_channel, double(read_long: nil))
+
+        allow(Net::SSH).to receive(:start).and_yield(mock_session)
+      end
+
+      it "cancels the run via SSH" do
+        expect(Net::SSH).to receive(:start)
+        post cancel_benchmark_run_path(running_run)
+        expect(running_run.reload.status).to eq("cancelled")
+      end
+
+      it "redirects to benchmark runs index" do
+        post cancel_benchmark_run_path(running_run)
+        expect(response).to redirect_to(benchmark_runs_path)
+      end
+
+      it "sets success flash message" do
+        post cancel_benchmark_run_path(running_run)
+        expect(flash[:notice]).to eq("Benchmark run cancelled successfully.")
+      end
+    end
+
+    context "when benchmark run is already completed" do
+      let(:completed_run) { create(:benchmark_run, :success, node: node, benchmark_recipe: recipe) }
+
+      it "does not cancel the run" do
+        post cancel_benchmark_run_path(completed_run)
+        expect(completed_run.reload.status).to eq("success")
+      end
+
+      it "redirects to the run page" do
+        post cancel_benchmark_run_path(completed_run)
+        expect(response).to redirect_to(benchmark_run_path(completed_run))
+      end
+
+      it "sets alert flash message" do
+        post cancel_benchmark_run_path(completed_run)
+        expect(flash[:alert]).to eq("Cannot cancel a completed benchmark run.")
+      end
+    end
+
+    context "when benchmark run is already cancelled" do
+      let(:cancelled_run) { create(:benchmark_run, :cancelled, node: node, benchmark_recipe: recipe) }
+
+      it "does not change the run" do
+        post cancel_benchmark_run_path(cancelled_run)
+        expect(cancelled_run.reload.status).to eq("cancelled")
+      end
+
+      it "sets alert flash message" do
+        post cancel_benchmark_run_path(cancelled_run)
+        expect(flash[:alert]).to eq("Cannot cancel a completed benchmark run.")
+      end
+    end
+
+    context "when cancel service fails" do
+      let(:running_run) { create(:benchmark_run, :running, node: node, benchmark_recipe: recipe) }
+
+      before do
+        allow(Net::SSH).to receive(:start).and_raise(Net::SSH::AuthenticationFailed, "Auth failed")
+      end
+
+      it "still marks run as cancelled" do
+        post cancel_benchmark_run_path(running_run)
+        expect(running_run.reload.status).to eq("cancelled")
+      end
+
+      it "sets alert flash with error details" do
+        post cancel_benchmark_run_path(running_run)
+        expect(flash[:alert]).to include("Failed to cancel benchmark run")
+      end
+    end
+
+    context "with turbo stream request" do
+      let(:pending_run) { create(:benchmark_run, node: node, benchmark_recipe: recipe, status: :pending) }
+
+      it "returns turbo stream response" do
+        post cancel_benchmark_run_path(pending_run), headers: { "Accept" => "text/vnd.turbo-stream.html" }
+        expect(response.media_type).to eq("text/vnd.turbo-stream.html")
+      end
+
+      it "replaces the run row" do
+        post cancel_benchmark_run_path(pending_run), headers: { "Accept" => "text/vnd.turbo-stream.html" }
+        expect(response.body).to include("turbo-stream")
+        expect(response.body).to include("benchmark_run_#{pending_run.id}")
+      end
     end
   end
 
@@ -220,6 +379,61 @@ RSpec.describe "BenchmarkRuns", type: :request do
       end
     end
 
+    context "with stored_path (server-managed storage)" do
+      let(:storage_dir) { Rails.root.join("tmp", "test_storage_artifacts", benchmark_run.uuid) }
+      let(:stored_file) do
+        FileUtils.mkdir_p(storage_dir)
+        file_path = File.join(storage_dir, "uploaded_result.txt")
+        File.write(file_path, "Uploaded artifact content")
+        file_path
+      end
+
+      before do
+        allow(Rails.configuration.x).to receive(:artifacts_storage_path).and_return(Rails.root.join("tmp", "test_storage_artifacts").to_s)
+      end
+
+      after do
+        FileUtils.rm_rf(Rails.root.join("tmp", "test_storage_artifacts"))
+      end
+
+      it "downloads from stored_path when available" do
+        artifact = create(:artifact_index, benchmark_run: benchmark_run, path: "/nonexistent/original.txt", stored_path: stored_file, file_type: "txt")
+        get download_artifact_benchmark_run_path(benchmark_run, artifact_id: artifact.id)
+        expect(response).to have_http_status(:success)
+        expect(response.body).to eq("Uploaded artifact content")
+      end
+
+      it "prefers stored_path over original path" do
+        # Create a temp file for the original path
+        original_file = Tempfile.new([ "original", ".txt" ])
+        original_file.write("Original content - should not be served")
+        original_file.rewind
+
+        artifact = create(:artifact_index, benchmark_run: benchmark_run, path: original_file.path, stored_path: stored_file, file_type: "txt")
+
+        get download_artifact_benchmark_run_path(benchmark_run, artifact_id: artifact.id)
+        expect(response).to have_http_status(:success)
+        expect(response.body).to eq("Uploaded artifact content")
+
+        original_file.close!
+      end
+
+      it "falls back to original path if stored_path does not exist" do
+        original_file = Tempfile.new([ "fallback", ".txt" ])
+        original_file.write("Fallback content")
+        original_file.rewind
+        Rails.configuration.x.artifacts_base_path = Dir.tmpdir
+
+        artifact = create(:artifact_index, benchmark_run: benchmark_run, path: original_file.path, stored_path: "/nonexistent/stored.txt", file_type: "txt")
+
+        get download_artifact_benchmark_run_path(benchmark_run, artifact_id: artifact.id)
+        expect(response).to have_http_status(:success)
+        expect(response.body).to eq("Fallback content")
+
+        original_file.close!
+      end
+    end
+
     context "with different file types" do
       let(:json_file) do
         file = Tempfile.new([ "results", ".json" ])
@@ -258,6 +472,18 @@ RSpec.describe "BenchmarkRuns", type: :request do
         expect(response.content_type).to include("application/octet-stream")
 
         unknown_file.close!
+      end
+
+      it "sets correct content type for dat files (hpcg.dat config)" do
+        dat_file = Tempfile.new([ "hpcg", ".dat" ])
+        dat_file.write("HPCG benchmark input file\n104 104 104\n60\n")
+        dat_file.rewind
+        dat_artifact = create(:artifact_index, benchmark_run: benchmark_run, path: dat_file.path, file_type: "dat")
+
+        get download_artifact_benchmark_run_path(benchmark_run, artifact_id: dat_artifact.id)
+        expect(response.content_type).to include("text/plain")
+
+        dat_file.close!
       end
     end
   end

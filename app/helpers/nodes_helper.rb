@@ -24,7 +24,7 @@ module NodesHelper
   end
 
   def format_socket_name(socket)
-    socket.gsub(/^(P|NODE)(\d+)$/i, "CPU \2")
+    socket.gsub(/^(P|NODE)(\d+)$/i, 'CPU \2')
   end
 
   def memory_slot_status_classes(slot)

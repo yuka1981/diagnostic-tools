@@ -291,6 +291,65 @@ RSpec.describe Benchmark::PreflightService do
     end
   end
 
+  describe "#token_source" do
+    context "when node has direct api_token" do
+      let(:node) { create(:node, hostname: "token-node", api_token: "direct-token") }
+      let(:service) { described_class.new(node) }
+
+      before do
+        allow(Net::SSH).to receive(:start).and_raise(Net::SSH::AuthenticationFailed, "test")
+      end
+
+      it "returns :node as token_source" do
+        result = service.call
+        expect(result.config[:token_source]).to eq(:node)
+      end
+    end
+
+    context "when node has ApiKey association" do
+      let(:api_key) { create(:api_key) }
+      let(:node) { create(:node, hostname: "apikey-node", api_key: api_key) }
+      let(:service) { described_class.new(node) }
+
+      before do
+        allow(Net::SSH).to receive(:start).and_raise(Net::SSH::AuthenticationFailed, "test")
+      end
+
+      it "returns :node as token_source" do
+        result = service.call
+        expect(result.config[:token_source]).to eq(:node)
+      end
+    end
+
+    context "when node has no token but global token is provided" do
+      let(:node) { create(:node, hostname: "no-token-node", api_token: nil, api_key: nil) }
+      let(:service) { described_class.new(node, agent_token: "global-token") }
+
+      before do
+        allow(Net::SSH).to receive(:start).and_raise(Net::SSH::AuthenticationFailed, "test")
+      end
+
+      it "returns :global as token_source" do
+        result = service.call
+        expect(result.config[:token_source]).to eq(:global)
+      end
+    end
+
+    context "when no token is configured anywhere" do
+      let(:node) { create(:node, hostname: "empty-token-node", api_token: nil, api_key: nil) }
+      let(:service) { described_class.new(node) }
+
+      before do
+        allow(Net::SSH).to receive(:start).and_raise(Net::SSH::AuthenticationFailed, "test")
+      end
+
+      it "returns :none as token_source" do
+        result = service.call
+        expect(result.config[:token_source]).to eq(:none)
+      end
+    end
+  end
+
   describe "#failed_checks" do
     before do
       call_count = 0

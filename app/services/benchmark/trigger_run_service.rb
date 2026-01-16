@@ -44,7 +44,11 @@ module Benchmark
       # Build log content from SSH output (stdout + stderr)
       log_content = build_log_content(result)
 
-      return error_with_output("SSH command failed", result, log_content) unless result.success?
+      unless result.success?
+        ssh_target = "#{target_user}@#{ssh_host}:#{@target_node.ssh_port || 22}"
+        error_detail = build_error_detail(result)
+        return error_with_output("SSH command failed on #{ssh_target}: #{error_detail}", result, log_content)
+      end
 
       if result.output.blank?
         return error_with_output("Command returned empty output", result, log_content)
@@ -63,11 +67,54 @@ module Benchmark
 
       Result.new(success: true, output: log_content)
     rescue Net::SSH::AuthenticationFailed => e
-      error_with_output("SSH authentication failed: #{e.message}", nil, "SSH Authentication Error\n#{e.message}")
+      ssh_target = "#{target_user}@#{ssh_host}:#{@target_node.ssh_port || 22}"
+      error_with_output(
+        "SSH authentication failed for #{ssh_target}: #{e.message}",
+        nil,
+        "SSH Authentication Error\nTarget: #{ssh_target}\n#{e.message}\n\nHint: Check SSH keys and user permissions"
+      )
+    rescue Net::SSH::ConnectionTimeout, Errno::ETIMEDOUT => e
+      ssh_target = "#{target_user}@#{ssh_host}:#{@target_node.ssh_port || 22}"
+      error_with_output(
+        "SSH connection timeout to #{ssh_target}",
+        nil,
+        "SSH Connection Timeout\nTarget: #{ssh_target}\n#{e.message}\n\nHint: Check network connectivity and firewall rules"
+      )
+    rescue Errno::ECONNREFUSED => e
+      ssh_target = "#{target_user}@#{ssh_host}:#{@target_node.ssh_port || 22}"
+      error_with_output(
+        "SSH connection refused by #{ssh_target}",
+        nil,
+        "SSH Connection Refused\nTarget: #{ssh_target}\n#{e.message}\n\nHint: Verify SSH service is running on the target node"
+      )
+    rescue Errno::EHOSTUNREACH, Errno::ENETUNREACH => e
+      ssh_target = "#{target_user}@#{ssh_host}:#{@target_node.ssh_port || 22}"
+      error_with_output(
+        "SSH host unreachable: #{ssh_target}",
+        nil,
+        "Host Unreachable\nTarget: #{ssh_target}\n#{e.message}\n\nHint: Check network connectivity and routing"
+      )
+    rescue SocketError => e
+      ssh_target = "#{target_user}@#{ssh_host}:#{@target_node.ssh_port || 22}"
+      error_with_output(
+        "SSH DNS/socket error for #{ssh_target}: #{e.message}",
+        nil,
+        "DNS/Socket Error\nTarget: #{ssh_target}\n#{e.message}\n\nHint: Check hostname resolution"
+      )
     rescue Net::SSH::Exception => e
-      error_with_output("SSH error: #{e.message}", nil, "SSH Error\n#{e.message}\n\n#{e.backtrace&.first(5)&.join("\n")}")
+      ssh_target = "#{target_user}@#{ssh_host}:#{@target_node.ssh_port || 22}"
+      error_with_output(
+        "SSH error on #{ssh_target}: #{e.message}",
+        nil,
+        "SSH Error\nTarget: #{ssh_target}\n#{e.message}\n\n#{e.backtrace&.first(5)&.join("\n")}"
+      )
     rescue StandardError => e
-      error_with_output("Unexpected error: #{e.message}", nil, "Unexpected Error\n#{e.class}: #{e.message}\n\n#{e.backtrace&.first(5)&.join("\n")}")
+      ssh_target = "#{target_user}@#{ssh_host}:#{@target_node.ssh_port || 22}" rescue "unknown"
+      error_with_output(
+        "Unexpected error: #{e.class} - #{e.message}",
+        nil,
+        "Unexpected Error\nTarget: #{ssh_target}\n#{e.class}: #{e.message}\n\n#{e.backtrace&.first(10)&.join("\n")}"
+      )
     end
 
     private
@@ -168,13 +215,76 @@ module Benchmark
       @run_id || "hpcg-source-#{Time.current.strftime("%Y%m%d-%H%M")}"
     end
 
+    # Build a meaningful error message from SSH result
+    # Prioritizes: stderr > stdout first line > exit code interpretation
+    def build_error_detail(result)
+      return "No result returned" if result.nil?
+
+      parts = []
+
+      # Add exit code with interpretation
+      if result.exit_code
+        parts << "exit_code=#{result.exit_code}"
+        parts << exit_code_hint(result.exit_code)
+      end
+
+      # Add exit signal if present
+      parts << "signal=#{result.exit_signal}" if result.exit_signal
+
+      # Prefer stderr if available
+      if result.error.present?
+        parts << result.error.lines.first&.strip
+      elsif result.output.present?
+        # Fall back to first meaningful line from stdout
+        first_line = result.output.lines.find { |l| l.strip.present? }&.strip
+        parts << "stdout: #{first_line}" if first_line
+      end
+
+      detail = parts.compact.reject(&:blank?).join(" - ")
+      detail.presence&.truncate(300) || "Command failed with no output"
+    end
+
+    # Provide hints for common exit codes
+    def exit_code_hint(code)
+      case code
+      when 1 then "(general error)"
+      when 2 then "(misuse of shell command)"
+      when 126 then "(permission denied or not executable)"
+      when 127 then "(command not found)"
+      when 128 then "(invalid exit argument)"
+      when 130 then "(terminated by Ctrl+C)"
+      when 137 then "(killed by SIGKILL - out of memory?)"
+      when 139 then "(segmentation fault)"
+      when 143 then "(terminated by SIGTERM)"
+      when 255 then "(SSH error or exit status out of range)"
+      end
+    end
+
     # Build comprehensive log content from SSH result
     def build_log_content(result)
       return "" if result.nil?
 
       parts = []
-      parts << "=== SSH Command Output ===" if result.output.present? || result.error.present?
-      parts << result.output if result.output.present?
+
+      # Add connection context for debugging
+      parts << "=== SSH Connection Info ==="
+      parts << "Target: #{target_user}@#{ssh_host}:#{@target_node.ssh_port || 22}"
+      parts << "Working Dir: #{@work_dir}"
+      parts << "Agent Path: #{@agent_path}"
+      parts << ""
+
+      # Add exit status info if available
+      if result.exit_code || result.exit_signal
+        parts << "=== Exit Status ==="
+        parts << "Exit Code: #{result.exit_code}" if result.exit_code
+        parts << "Exit Signal: #{result.exit_signal}" if result.exit_signal
+        parts << ""
+      end
+
+      if result.output.present?
+        parts << "=== SSH Stdout ==="
+        parts << result.output
+      end
 
       if result.error.present?
         parts << ""

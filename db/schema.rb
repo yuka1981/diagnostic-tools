@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_01_15_061733) do
+ActiveRecord::Schema[7.2].define(version: 2026_01_15_144205) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -31,6 +31,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_15_061733) do
     t.bigint "size"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "stored_path"
     t.index ["benchmark_run_id"], name: "index_artifact_indices_on_benchmark_run_id"
   end
 

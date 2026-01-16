@@ -2,6 +2,7 @@ package hpcg
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -22,11 +23,17 @@ type ModuleLoader interface {
 	Load(ctx context.Context, modules []string) error
 }
 
+// PIDTracker provides PID-tracked command execution for cancellation support.
+type PIDTracker interface {
+	RunCommandWithPID(ctx context.Context, uuid, dir, name string, args ...string) ([]byte, error)
+}
+
 // WorkflowOrchestrator manages the HPCG benchmark workflow.
-type WorkflowOrchestrator struct {
+type WorkflowOrchestrator struct { //nolint:govet // fieldalignment: all fields are 16 bytes (string/interface)
+	WorkDir      string
 	Runner       ports.CommandRunner
 	ModuleLoader ModuleLoader
-	WorkDir      string
+	PIDTracker   PIDTracker // Optional: enables cancellation support when set
 }
 
 // RunParams defines parameters for the workflow.
@@ -67,37 +74,36 @@ func (w *WorkflowOrchestrator) Run(ctx context.Context, params *RunParams) (*mod
 		return nil, err
 	}
 
-	// 4. Run
+	// 4. Run (with PID tracking for cancellation support)
 	start := time.Now()
-	output, execErr := w.Runner.Run(ctx, w.WorkDir, "bash", "-c", params.RunCmd)
+	output, execErr := w.runBenchmark(ctx, params.RunID, params.RunCmd)
 	end := time.Now()
 
-	execStatus := model.BenchmarkStatusPass
-	if execErr != nil {
-		execStatus = model.BenchmarkStatusFail
-	}
+	execStatus, execErrMsg := evaluateExecResult(execErr)
 
 	// 5. Parse
 	targetLogPath := w.handleLogStorage(params, start)
 
 	metrics, finalStatus := w.parseResults(output, start, execStatus, targetLogPath)
+	errorMessage := buildErrorMessage(finalStatus, execErrMsg)
 
 	// 6. Capture log content for API reporting
 	logContent := w.captureLogContent(output, targetLogPath, start)
 
 	result := &model.BenchmarkRun{
-		RunID:      params.RunID,
-		RecipeID:   "hpcg",
-		StartTime:  start,
-		EndTime:    end,
-		Status:     finalStatus,
-		LogContent: logContent,
+		RunID:        params.RunID,
+		RecipeID:     "hpcg",
+		StartTime:    start,
+		EndTime:      end,
+		Status:       finalStatus,
+		ErrorMessage: errorMessage,
+		LogContent:   logContent,
 	}
 
-	if targetLogPath != "" {
-		result.Artifacts = append(result.Artifacts, targetLogPath)
-	}
+	// Collect artifacts
+	w.collectArtifacts(result, targetLogPath)
 
+	// Add metrics if available
 	if metrics != nil && metrics.GFLOPS > 0 {
 		metricsBytes, err := json.Marshal(metrics)
 		if err != nil {
@@ -107,6 +113,51 @@ func (w *WorkflowOrchestrator) Run(ctx context.Context, params *RunParams) (*mod
 	}
 
 	return result, nil
+}
+
+// evaluateExecResult determines status and error message from execution error.
+func evaluateExecResult(execErr error) (status model.BenchmarkStatus, errMsg string) {
+	if execErr != nil {
+		return model.BenchmarkStatusFail, fmt.Sprintf("Benchmark execution failed: %v", execErr)
+	}
+	return model.BenchmarkStatusPass, ""
+}
+
+// buildErrorMessage creates a human-readable error message based on final status.
+func buildErrorMessage(finalStatus model.BenchmarkStatus, execErrMsg string) string {
+	if execErrMsg != "" {
+		return execErrMsg
+	}
+	switch finalStatus {
+	case model.BenchmarkStatusFail:
+		return "Benchmark completed but validation failed (check metrics)"
+	case model.BenchmarkStatusError:
+		return "Benchmark completed but results could not be parsed"
+	default:
+		return ""
+	}
+}
+
+// collectArtifacts adds log file and config artifacts to the result.
+func (w *WorkflowOrchestrator) collectArtifacts(result *model.BenchmarkRun, targetLogPath string) {
+	// Upload log file if available
+	if targetLogPath != "" {
+		result.Artifacts = append(result.Artifacts, targetLogPath)
+		if upload, err := w.createArtifactUpload(targetLogPath); err == nil {
+			result.ArtifactUploads = append(result.ArtifactUploads, *upload)
+		} else {
+			fmt.Fprintf(os.Stderr, "warning: failed to prepare artifact upload for %s: %v\n", targetLogPath, err)
+		}
+	}
+
+	// Upload hpcg.dat config file
+	hpcgDatPath := filepath.Join(w.WorkDir, "hpcg.dat")
+	if upload, err := w.createArtifactUpload(hpcgDatPath); err == nil {
+		result.Artifacts = append(result.Artifacts, hpcgDatPath)
+		result.ArtifactUploads = append(result.ArtifactUploads, *upload)
+	} else {
+		fmt.Fprintf(os.Stderr, "warning: failed to prepare artifact upload for hpcg.dat: %v\n", err)
+	}
 }
 
 func (w *WorkflowOrchestrator) handleLogStorage(params *RunParams, startTime time.Time) string {
@@ -175,6 +226,35 @@ func (w *WorkflowOrchestrator) moveFile(sourcePath, destPath string) error {
 	output.Close()
 
 	return os.Remove(sourcePath)
+}
+
+// createArtifactUpload reads a file and creates an ArtifactUpload with base64-encoded content.
+// This allows the server to store the file without needing shared filesystem access.
+func (w *WorkflowOrchestrator) createArtifactUpload(filePath string) (*model.ArtifactUpload, error) {
+	// Get file info for size
+	fileInfo, err := os.Stat(filePath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to stat file: %w", err)
+	}
+
+	// Read file content
+	content, err := os.ReadFile(filePath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read file: %w", err)
+	}
+
+	// Extract file extension without the dot
+	ext := filepath.Ext(filePath)
+	if ext != "" {
+		ext = ext[1:] // Remove the leading dot
+	}
+
+	return &model.ArtifactUpload{
+		Filename: filepath.Base(filePath),
+		Content:  base64.StdEncoding.EncodeToString(content),
+		FileType: ext,
+		Size:     fileInfo.Size(),
+	}, nil
 }
 
 func (w *WorkflowOrchestrator) setupEnvironment(ctx context.Context, modules []string) error {
@@ -309,6 +389,18 @@ func (w *WorkflowOrchestrator) writeConfig(params ConfigParams) error {
 		return fmt.Errorf("failed to write hpcg.dat: %w", err)
 	}
 	return nil
+}
+
+// runBenchmark executes the benchmark command with PID tracking if available.
+// If PIDTracker is not set or runID is empty, it falls back to regular execution.
+func (w *WorkflowOrchestrator) runBenchmark(ctx context.Context, runID, runCmd string) ([]byte, error) {
+	// Use PID tracking if available and we have a valid run ID
+	if w.PIDTracker != nil && runID != "" && runID != "manual-run" {
+		return w.PIDTracker.RunCommandWithPID(ctx, runID, w.WorkDir, "bash", "-c", runCmd)
+	}
+
+	// Fall back to regular execution
+	return w.Runner.Run(ctx, w.WorkDir, "bash", "-c", runCmd)
 }
 
 func (w *WorkflowOrchestrator) parseResults(

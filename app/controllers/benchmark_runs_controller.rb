@@ -28,7 +28,8 @@ class BenchmarkRunsController < ApplicationController
     @benchmark_run = BenchmarkRun.find(params[:id])
     @artifact = @benchmark_run.artifact_indices.find(params[:artifact_id])
 
-    safe_path = validated_artifact_path(@artifact.path)
+    # Prefer stored_path (server-managed storage) over original path
+    safe_path = validated_artifact_path(@artifact)
     unless safe_path
       flash[:alert] = "Artifact file not found on server."
       redirect_to benchmark_run_path(@benchmark_run) and return
@@ -40,21 +41,88 @@ class BenchmarkRunsController < ApplicationController
               disposition: "attachment"
   end
 
+  def cancel
+    @benchmark_run = BenchmarkRun.find(params[:id])
+
+    unless @benchmark_run.pending? || @benchmark_run.running?
+      flash[:alert] = "Cannot cancel a completed benchmark run."
+      redirect_to benchmark_run_path(@benchmark_run) and return
+    end
+
+    service = Benchmark::CancelRunService.new(@benchmark_run)
+    result = service.call
+
+    if result.success?
+      flash[:notice] = "Benchmark run cancelled successfully."
+    else
+      flash[:alert] = "Failed to cancel benchmark run: #{result.error}"
+    end
+
+    respond_to do |format|
+      format.html { redirect_back(fallback_location: benchmark_runs_path) }
+      format.turbo_stream do
+        @benchmark_run.reload
+        render turbo_stream: [
+          # Update the row in the list
+          turbo_stream.replace(
+            "benchmark_run_#{@benchmark_run.id}",
+            partial: "benchmark_runs/run_row",
+            locals: { run: @benchmark_run }
+          ),
+          # Update the slide-over modal content (if open)
+          turbo_stream.replace(
+            "slide_over_content",
+            partial: "benchmark_runs/slide_over_content",
+            locals: { benchmark_run: @benchmark_run }
+          )
+        ]
+      end
+    end
+  end
+
   private
 
   def filter_params
     params.permit(:status, :node_id, :recipe_id, :q)
   end
 
-  # Validates that an artifact path is within the allowed artifacts directory.
-  # Returns the sanitized absolute path if valid, nil otherwise.
-  def validated_artifact_path(path)
+  # Validates that an artifact can be served.
+  # Prefers stored_path (server-managed storage) over original path.
+  # Returns the file path if valid and exists, nil otherwise.
+  def validated_artifact_path(artifact)
+    # First, try stored_path (uploaded artifacts stored by server)
+    if artifact.stored_path.present?
+      stored = validate_stored_path(artifact.stored_path)
+      return stored if stored
+    end
+
+    # Fall back to original path with base_path validation (legacy behavior)
+    validate_legacy_path(artifact.path)
+  end
+
+  # Validates a stored path (server-managed storage location)
+  def validate_stored_path(path)
+    return nil if path.blank?
+
+    storage_base = Rails.configuration.x.artifacts_storage_path.presence ||
+                   Rails.root.join("storage", "artifacts").to_s
+
+    artifact_path = Pathname.new(path).cleanpath.to_s
+
+    # Verify path is within storage directory and file exists
+    return nil unless artifact_path.start_with?(storage_base)
+    return nil unless File.file?(artifact_path)
+
+    artifact_path
+  end
+
+  # Validates a legacy path (shared filesystem)
+  def validate_legacy_path(path)
     return nil if path.blank?
 
     base_path = Rails.configuration.x.artifacts_base_path
     base_path = "/shared/artifacts" unless base_path.is_a?(String) && base_path.present?
 
-    # Resolve to absolute paths and remove any path traversal attempts
     allowed_base = Pathname.new(base_path).cleanpath.to_s
     artifact_path = Pathname.new(path).cleanpath.to_s
 
@@ -67,7 +135,7 @@ class BenchmarkRunsController < ApplicationController
 
   def mime_type_for(artifact)
     case artifact.file_type.to_s.downcase
-    when "txt", "log"
+    when "txt", "log", "dat"
       "text/plain"
     when "yaml", "yml"
       "text/yaml"

@@ -63,6 +63,12 @@ class Node < ApplicationRecord
     agent_path.presence || DEFAULT_AGENT_PATH
   end
 
+  # Returns the API token for this node, checking both direct storage and ApiKey association
+  # Priority: direct api_token column > associated ApiKey's token
+  def effective_api_token
+    api_token.presence || api_key&.token
+  end
+
   def use_jump_host?
     jump_host.present?
   end

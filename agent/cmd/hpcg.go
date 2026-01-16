@@ -9,6 +9,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/yuka1981/diagnostic-tools/agent/core/execution"
 	"github.com/yuka1981/diagnostic-tools/agent/core/identity"
 	"github.com/yuka1981/diagnostic-tools/agent/core/model"
 	"github.com/yuka1981/diagnostic-tools/agent/core/uploader"
@@ -95,10 +96,12 @@ func getNodeID(configDir string) string {
 func createOrchestrator(workDir string) *hpcg.WorkflowOrchestrator {
 	runner := infrastructure.NewRealCommandRunner()
 	loader := infrastructure.NewRealModuleLoader(runner)
+	pidTracker := execution.NewPIDManager()
 	return &hpcg.WorkflowOrchestrator{
 		Runner:       runner,
 		ModuleLoader: loader,
 		WorkDir:      workDir,
+		PIDTracker:   pidTracker,
 	}
 }
 
