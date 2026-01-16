@@ -160,6 +160,36 @@ RSpec.describe "BenchmarkRuns", type: :request do
         expect(response).to have_http_status(:success)
         expect(response.body).to include("tab-summary")
       end
+
+      it "includes turbo frame wrapper in response" do
+        get benchmark_run_path(benchmark_run), headers: { "Turbo-Frame" => "slide_over_content" }
+        expect(response.body).to include('id="slide_over_content"')
+      end
+
+      it "includes run details in turbo frame response" do
+        get benchmark_run_path(benchmark_run), headers: { "Turbo-Frame" => "slide_over_content" }
+        expect(response.body).to include(node.hostname)
+        expect(response.body).to include(recipe.name)
+      end
+    end
+
+    context "with regular request (fallback turbo frame)" do
+      it "includes hidden slide_over_content frame in full page response" do
+        get benchmark_run_path(benchmark_run)
+        expect(response).to have_http_status(:success)
+        # The page should include the hidden slide_over_content partial as a fallback
+        expect(response.body).to include('id="slide_over_content"')
+      end
+
+      it "includes both full page content and slide-over frame content" do
+        get benchmark_run_path(benchmark_run)
+        # Full page content
+        expect(response.body).to include("Run Details")
+        expect(response.body).to include("Configuration")
+        # Hidden slide-over frame content (wrapped in hidden div)
+        expect(response.body).to include('class="hidden"')
+        expect(response.body).to include("tab-summary")
+      end
     end
   end
 
