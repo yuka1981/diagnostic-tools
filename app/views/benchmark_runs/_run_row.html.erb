@@ -1,4 +1,7 @@
 <tr id="<%= dom_id(run) %>" class="hover:bg-slate-50 transition-colors">
+  <td class="whitespace-nowrap px-3 py-2 text-sm font-mono text-slate-600">
+    <%= run.id %>
+  </td>
   <td class="whitespace-nowrap px-3 py-2">
     <p class="text-sm font-medium text-slate-900"><%= run.benchmark_recipe.name %></p>
     <p class="text-xs text-slate-500"><%= run.benchmark_recipe.version %></p>
@@ -21,12 +24,30 @@
     <%= l(run.created_at, format: :short) %>
   </td>
   <td class="whitespace-nowrap px-3 py-2 text-right text-sm">
-    <%= link_to "View",
-        benchmark_run_path(run),
-        data: {
-          action: "click->slide-over#open",
-          turbo_frame: "slide_over_content"
-        },
-        class: "text-teal-600 hover:text-teal-700 font-medium" %>
+    <div class="flex items-center justify-end gap-1">
+      <% if run.pending? || run.running? %>
+        <%= button_to cancel_benchmark_run_path(run),
+            method: :post,
+            data: { turbo_confirm: "Are you sure you want to cancel this benchmark run?" },
+            title: "Cancel",
+            class: "p-1.5 text-red-500 hover:text-red-700 hover:bg-red-50 rounded transition-colors" do %>
+          <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        <% end %>
+      <% end %>
+      <%= link_to benchmark_run_path(run),
+          data: {
+            action: "click->slide-over#open",
+            turbo_frame: "slide_over_content"
+          },
+          title: "View Details",
+          class: "p-1.5 text-slate-500 hover:text-teal-600 hover:bg-teal-50 rounded transition-colors" do %>
+        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+        </svg>
+      <% end %>
+    </div>
   </td>
 </tr>

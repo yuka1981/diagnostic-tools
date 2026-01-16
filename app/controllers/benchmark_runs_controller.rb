@@ -59,13 +59,23 @@ class BenchmarkRunsController < ApplicationController
     end
 
     respond_to do |format|
-      format.html { redirect_to benchmark_runs_path }
+      format.html { redirect_back(fallback_location: benchmark_runs_path) }
       format.turbo_stream do
-        render turbo_stream: turbo_stream.replace(
-          "benchmark_run_#{@benchmark_run.id}",
-          partial: "benchmark_runs/run_row",
-          locals: { run: @benchmark_run.reload }
-        )
+        @benchmark_run.reload
+        render turbo_stream: [
+          # Update the row in the list
+          turbo_stream.replace(
+            "benchmark_run_#{@benchmark_run.id}",
+            partial: "benchmark_runs/run_row",
+            locals: { run: @benchmark_run }
+          ),
+          # Update the slide-over modal content (if open)
+          turbo_stream.replace(
+            "slide_over_content",
+            partial: "benchmark_runs/slide_over_content",
+            locals: { benchmark_run: @benchmark_run }
+          )
+        ]
       end
     end
   end
