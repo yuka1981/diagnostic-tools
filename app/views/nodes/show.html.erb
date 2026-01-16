@@ -8,6 +8,7 @@
 
 <%= turbo_stream_from @node %>
 
+<div data-controller="slide-over">
 <%# Header %>
 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
   <div>
@@ -137,3 +138,7 @@
 
 <%= turbo_frame_tag "modal" %>
 <%= turbo_frame_tag "node_modal" %>
+
+<%# Slide-over Panel for Benchmark Run Details %>
+<%= render "benchmark_runs/slide_over" %>
+</div>

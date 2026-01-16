@@ -34,6 +34,10 @@
         <% end %>
       <% end %>
       <%= link_to benchmark_run_path(run),
+          data: {
+            action: "click->slide-over#open",
+            turbo_frame: "slide_over_content"
+          },
           title: "View Details",
           class: "p-1.5 text-slate-500 hover:text-teal-600 hover:bg-teal-50 rounded transition-colors" do %>
         <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
