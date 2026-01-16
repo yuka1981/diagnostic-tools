@@ -31,38 +31,14 @@
     </div>
     <div class="p-4">
       <div class="flex gap-4">
-        <%# Upload Tab %>
-        <label class="flex-1 cursor-pointer" data-release-mode-target="uploadLabel">
-          <input type="radio" name="creation_mode" value="upload"
-                 class="sr-only peer"
-                 data-action="change->release-mode#toggleMode"
-                 data-release-mode-target="uploadRadio"
-                 checked>
-          <div class="border-2 rounded-lg p-4 transition-all
-                      peer-checked:border-teal-500 peer-checked:bg-teal-50
-                      border-slate-200 hover:border-slate-300">
-            <div class="flex items-center gap-3">
-              <div class="flex-shrink-0">
-                <svg class="h-8 w-8 text-slate-400 peer-checked:text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-                </svg>
-              </div>
-              <div>
-                <p class="font-bold text-slate-900">Upload Binary</p>
-                <p class="text-xs text-slate-500">Upload a pre-compiled agent binary file</p>
-              </div>
-            </div>
-          </div>
-        </label>
-
-        <%# Build Tab %>
+        <%# Build Tab (default when Go available) %>
         <label class="flex-1 <%= go_available ? 'cursor-pointer' : 'cursor-not-allowed opacity-60' %>" data-release-mode-target="buildLabel">
           <input type="radio" name="creation_mode" value="build"
                  class="sr-only peer"
                  data-action="change->release-mode#toggleMode"
                  data-release-mode-target="buildRadio"
-                 <%= 'disabled' unless go_available %>>
+                 <%= 'disabled' unless go_available %>
+                 <%= 'checked' if go_available %>>
           <div class="border-2 rounded-lg p-4 transition-all
                       peer-checked:border-teal-500 peer-checked:bg-teal-50
                       peer-disabled:bg-slate-50
@@ -82,6 +58,31 @@
                 <% else %>
                   <p class="text-xs text-red-500">Go toolchain not available</p>
                 <% end %>
+              </div>
+            </div>
+          </div>
+        </label>
+
+        <%# Upload Tab %>
+        <label class="flex-1 cursor-pointer" data-release-mode-target="uploadLabel">
+          <input type="radio" name="creation_mode" value="upload"
+                 class="sr-only peer"
+                 data-action="change->release-mode#toggleMode"
+                 data-release-mode-target="uploadRadio"
+                 <%= 'checked' unless go_available %>>
+          <div class="border-2 rounded-lg p-4 transition-all
+                      peer-checked:border-teal-500 peer-checked:bg-teal-50
+                      border-slate-200 hover:border-slate-300">
+            <div class="flex items-center gap-3">
+              <div class="flex-shrink-0">
+                <svg class="h-8 w-8 text-slate-400 peer-checked:text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                </svg>
+              </div>
+              <div>
+                <p class="font-bold text-slate-900">Upload Binary</p>
+                <p class="text-xs text-slate-500">Upload a pre-compiled agent binary file</p>
               </div>
             </div>
           </div>
@@ -120,7 +121,7 @@
       <hr class="border-slate-200">
 
       <%# Upload Section (shown when upload mode selected) %>
-      <div data-release-mode-target="uploadSection">
+      <div data-release-mode-target="uploadSection" class="<%= 'hidden' if go_available %>">
         <h3 class="text-sm font-bold text-slate-700">Binary Upload</h3>
         <p class="text-[10px] text-slate-500 italic mb-4">Upload the compiled agent binary. The SHA256 checksum will be calculated automatically.</p>
 
@@ -142,7 +143,7 @@
       </div>
 
       <%# Build Section (shown when build mode selected) %>
-      <div data-release-mode-target="buildSection" class="hidden">
+      <div data-release-mode-target="buildSection" class="<%= 'hidden' unless go_available %>">
         <h3 class="text-sm font-bold text-slate-700">Build from Source</h3>
         <p class="text-[10px] text-slate-500 italic mb-4">
           The agent will be compiled from source. The version will be embedded in the binary using ldflags.
@@ -250,7 +251,7 @@
     <div class="flex items-center justify-end gap-3 bg-slate-50 border-t border-slate-200 px-4 py-3">
       <%= link_to "Cancel", settings_agent_path, class: "btn-secondary" %>
       <button type="submit" class="btn-primary" data-release-mode-target="submitButton">
-        <span data-release-mode-target="submitText">Upload Release</span>
+        <span data-release-mode-target="submitText"><%= go_available ? "Build Release" : "Upload Release" %></span>
       </button>
     </div>
   </div>
