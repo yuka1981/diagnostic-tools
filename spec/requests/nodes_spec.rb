@@ -89,6 +89,37 @@ RSpec.describe "Nodes", type: :request do
       expect(response.media_type).to eq("text/vnd.turbo-stream.html")
       expect(response.body).to include("turbo-stream action=\"replace\"")
     end
+
+    it "includes flash message update in turbo stream response" do
+      patch node_path(node), params: update_params, headers: { "Accept" => "text/vnd.turbo-stream.html" }
+      expect(response.body).to include("turbo-stream")
+      expect(response.body).to include("flash_messages")
+    end
+
+    it "replaces node_modal with empty frame in turbo stream response" do
+      patch node_path(node), params: update_params, headers: { "Accept" => "text/vnd.turbo-stream.html" }
+      expect(response.body).to include("node_modal")
+    end
+
+    it "can update ssh_password field" do
+      patch node_path(node), params: { node: { ssh_password: "new_ssh_pass" } }
+      expect(node.reload.ssh_password).to eq("new_ssh_pass")
+    end
+
+    it "keeps ssh_password separate from sudo_credential" do
+      patch node_path(node), params: { node: { ssh_password: "ssh_pass", sudo_credential: "sudo_pass" } }
+      node.reload
+      expect(node.ssh_password).to eq("ssh_pass")
+      expect(node.sudo_credential).to eq("sudo_pass")
+    end
+
+    context "with invalid params" do
+      it "renders edit form with unprocessable_entity status" do
+        # Assuming hostname is required - adjust if needed
+        patch node_path(node), params: { node: { hostname: "" } }
+        expect(response).to have_http_status(:unprocessable_entity)
+      end
+    end
   end
 
   describe "DELETE /nodes/:id" do

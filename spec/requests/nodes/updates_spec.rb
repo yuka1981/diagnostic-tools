@@ -99,6 +99,32 @@ RSpec.describe "Nodes::Updates", type: :request do
         ))
       end
 
+      it "stores ssh password in cache when provided" do
+        post node_update_path(node), params: {
+          agent_release_id: agent_release.id,
+          ssh_password: "ssh_secret456"
+        }
+
+        # Verify job was enqueued with a credentials cache key
+        expect(Agent::UpdateJob).to have_been_enqueued.with(hash_including(
+          node: node,
+          agent_release: agent_release,
+          credentials_cache_key: kind_of(String)
+        ))
+      end
+
+      it "stores both sudo and ssh passwords when provided" do
+        post node_update_path(node), params: {
+          agent_release_id: agent_release.id,
+          sudo_password: "sudo123",
+          ssh_password: "ssh456"
+        }
+
+        expect(Agent::UpdateJob).to have_been_enqueued.with(hash_including(
+          credentials_cache_key: kind_of(String)
+        ))
+      end
+
       context "when node is busy" do
         before do
           create(:benchmark_run, node: node, benchmark_recipe: recipe, status: :pending)

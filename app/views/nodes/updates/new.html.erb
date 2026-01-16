@@ -36,7 +36,27 @@
         </div>
       <% end %>
 
+      <% is_localhost = @node.ip == "127.0.0.1" || @node.ip == "localhost" || @node.ip == "::1" ||
+                        @node.hostname == "127.0.0.1" || @node.hostname == "localhost" || @node.hostname == "::1" %>
+
       <%= form_with(url: node_update_path(@node), method: :post, class: "space-y-6") do |f| %>
+        <% unless is_localhost %>
+          <%# SSH Password (for remote hosts - used for SSH authentication) %>
+          <div>
+            <%= f.label :ssh_password, "SSH Password", class: "block text-sm font-bold text-slate-700 mb-1" %>
+            <%= f.password_field :ssh_password,
+                placeholder: @node.ssh_password.present? ? "•••••••• (using saved credential)" : "Enter SSH password (or leave blank for key auth)",
+                class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" %>
+            <p class="mt-1 text-[10px] text-slate-500 italic">
+              <% if @node.ssh_password.present? %>
+                Leave blank to use the node's saved SSH password.
+              <% else %>
+                Required for password-based SSH authentication. Leave blank if using SSH keys.
+              <% end %>
+            </p>
+          </div>
+        <% end %>
+
         <%# Sudo Password (optional - uses node's stored credential if not provided) %>
         <div>
           <%= f.label :sudo_password, "Sudo Password", class: "block text-sm font-bold text-slate-700 mb-1" %>

@@ -14,12 +14,16 @@ module Nodes
     end
 
     def create
-      # Store sudo credentials in cache for the job to retrieve
+      # Store credentials in cache for the job to retrieve
       credentials_cache_key = SecureRandom.hex(16)
-      if params[:sudo_password].present?
+      credentials = {}
+      credentials[:sudo_password] = params[:sudo_password] if params[:sudo_password].present?
+      credentials[:ssh_password] = params[:ssh_password] if params[:ssh_password].present?
+
+      if credentials.any?
         Rails.cache.write(
           "update_creds_#{credentials_cache_key}",
-          { sudo_password: params[:sudo_password] },
+          credentials,
           expires_in: 5.minutes
         )
       end
@@ -29,7 +33,7 @@ module Nodes
         node: @node,
         agent_release: @agent_release,
         force: params[:force] == "true",
-        credentials_cache_key: params[:sudo_password].present? ? credentials_cache_key : nil
+        credentials_cache_key: credentials.any? ? credentials_cache_key : nil
       )
 
       # Respond with turbo_stream to show progress UI

@@ -494,6 +494,38 @@ RSpec.describe Agent::PatchService do
         expect(messages).to include(/Verifying service status/)
         expect(messages).to include(/Service is running/)
       end
+
+      it "updates node agent_version after successful patch" do
+        expect(node.agent_version).to be_nil
+
+        service = described_class.new(node: node, agent_release: agent_release)
+        service.call
+
+        node.reload
+        expect(node.agent_version).to eq("v1.0.0")
+      end
+
+      it "sets agent_version to the release version" do
+        release_v2 = create(:agent_release, version: "v2.5.0")
+
+        # Update mock to use release_v2's checksum
+        allow(mock_ssh).to receive(:loop) do
+          if @current_cmd&.include?("sha256sum")
+            @data_callback&.call(mock_channel, release_v2.checksum)
+          elsif @current_cmd&.include?("is-active")
+            @data_callback&.call(mock_channel, "active")
+          end
+          mock_data = double("exit_data")
+          allow(mock_data).to receive(:read_long).and_return(0)
+          @exit_callback&.call(mock_channel, mock_data)
+        end
+
+        service = described_class.new(node: node, agent_release: release_v2)
+        service.call
+
+        node.reload
+        expect(node.agent_version).to eq("v2.5.0")
+      end
     end
 
     context "SSH command failure" do
@@ -624,6 +656,106 @@ RSpec.describe Agent::PatchService do
       it "raises PatchError" do
         service = described_class.new(node: node, agent_release: agent_release)
         expect { service.call }.to raise_error(Agent::PatchService::PatchError, /Could not execute command/)
+      end
+    end
+  end
+
+  describe "localhost local execution" do
+    let(:localhost_node) { create(:node, ip: "127.0.0.1", hostname: "localhost-node") }
+
+    it "detects localhost for 127.0.0.1" do
+      service = described_class.new(node: localhost_node, agent_release: agent_release)
+      expect(service.send(:localhost_target?)).to be true
+    end
+
+    it "detects localhost for localhost hostname" do
+      localhost_hostname_node = create(:node, ip: nil, hostname: "localhost")
+      service = described_class.new(node: localhost_hostname_node, agent_release: agent_release)
+      expect(service.send(:localhost_target?)).to be true
+    end
+
+    it "detects localhost for ::1 IPv6" do
+      ipv6_node = create(:node, ip: "::1", hostname: "ipv6-local")
+      service = described_class.new(node: ipv6_node, agent_release: agent_release)
+      expect(service.send(:localhost_target?)).to be true
+    end
+
+    context "local update execution" do
+      before do
+        allow(FileUtils).to receive(:cp)
+        allow(Open3).to receive(:capture3) do |cmd|
+          status = instance_double(Process::Status, success?: true, exitstatus: 0)
+
+          if cmd.include?("sha256sum")
+            [ agent_release.checksum, "", status ]
+          elsif cmd.include?("is-active")
+            [ "active", "", status ]
+          else
+            [ "", "", status ]
+          end
+        end
+      end
+
+      it "uses local execution instead of SSH for localhost" do
+        expect(Net::SSH).not_to receive(:start)
+        expect(FileUtils).to receive(:cp)
+
+        service = described_class.new(node: localhost_node, agent_release: agent_release)
+        result = service.call
+
+        expect(result.success?).to be true
+      end
+
+      it "updates agent_version after successful local patch" do
+        expect(localhost_node.agent_version).to be_nil
+
+        service = described_class.new(node: localhost_node, agent_release: agent_release)
+        service.call
+
+        localhost_node.reload
+        expect(localhost_node.agent_version).to eq("v1.0.0")
+      end
+
+      it "reports progress for local execution" do
+        messages = []
+        service = described_class.new(
+          node: localhost_node,
+          agent_release: agent_release,
+          on_progress: ->(msg) { messages << msg }
+        )
+        service.call
+
+        expect(messages).to include(/Executing local update/)
+        expect(messages).to include(/Copying binary/)
+      end
+    end
+
+    context "local command building" do
+      let(:service) { described_class.new(node: localhost_node, agent_release: agent_release) }
+
+      it "builds command with sudo when use_sudo is true and password present" do
+        localhost_node.update(sudo_credential: "sudo_pass")
+        cmd = service.send(:build_local_command, "systemctl stop hpc-agent", use_sudo: true)
+
+        expect(cmd).to include("echo")
+        expect(cmd).to include("sudo -S")
+        # Command is shell-escaped, so check for the escaped pattern
+        expect(cmd).to match(/systemctl.*stop.*hpc-agent/)
+      end
+
+      it "builds command with sudo without password when no sudo_credential" do
+        localhost_node.update(sudo_credential: nil)
+        cmd = service.send(:build_local_command, "systemctl stop hpc-agent", use_sudo: true)
+
+        expect(cmd).to include("sudo bash -c")
+        expect(cmd).not_to include("echo")
+      end
+
+      it "builds plain command when use_sudo is false" do
+        cmd = service.send(:build_local_command, "sha256sum /tmp/file", use_sudo: false)
+
+        expect(cmd).to eq("sha256sum /tmp/file")
+        expect(cmd).not_to include("sudo")
       end
     end
   end
@@ -780,6 +912,59 @@ RSpec.describe Agent::PatchService do
       # The brackets are escaped by Shellwords
       expect(cmd).to include("2001:db8::1")
       expect(cmd).to include("ssh")
+    end
+  end
+
+  describe "ssh_password" do
+    context "when node has ssh_password" do
+      let(:node_with_ssh_password) { create(:node, :direct, ssh_password: "ssh_secret") }
+
+      it "returns node's ssh_password" do
+        service = described_class.new(node: node_with_ssh_password, agent_release: agent_release)
+        expect(service.send(:ssh_password)).to eq("ssh_secret")
+      end
+    end
+
+    context "when node has no ssh_password" do
+      let(:node_without_ssh_password) { create(:node, :direct, ssh_password: nil) }
+
+      it "returns nil" do
+        service = described_class.new(node: node_without_ssh_password, agent_release: agent_release)
+        expect(service.send(:ssh_password)).to be_nil
+      end
+    end
+
+    context "ssh_password is separate from sudo_credential" do
+      let(:node_with_both) { create(:node, :direct, ssh_password: "ssh_pass", sudo_credential: "sudo_pass") }
+
+      it "ssh_password returns only ssh_password value" do
+        service = described_class.new(node: node_with_both, agent_release: agent_release)
+        expect(service.send(:ssh_password)).to eq("ssh_pass")
+      end
+
+      it "sudo_password returns only sudo_credential value" do
+        service = described_class.new(node: node_with_both, agent_release: agent_release)
+        expect(service.send(:sudo_password)).to eq("sudo_pass")
+      end
+    end
+  end
+
+  describe "ssh_options password field" do
+    it "uses ssh_password for SSH authentication" do
+      node_with_ssh = create(:node, :direct, ssh_password: "ssh_auth_password")
+      service = described_class.new(node: node_with_ssh, agent_release: agent_release)
+      options = service.send(:ssh_options)
+
+      expect(options[:password]).to eq("ssh_auth_password")
+    end
+
+    it "does not use sudo_credential for SSH authentication" do
+      node_with_sudo_only = create(:node, :direct, ssh_password: nil, sudo_credential: "sudo_only")
+      service = described_class.new(node: node_with_sudo_only, agent_release: agent_release)
+      options = service.send(:ssh_options)
+
+      # Password should be nil, not the sudo_credential
+      expect(options[:password]).to be_nil
     end
   end
 

@@ -58,6 +58,7 @@ func NewPushCmd(col ports.InventoryCollector, upFactory func(url, token string) 
 				if nodeID != "" {
 					httpUp.SetNodeID(nodeID)
 				}
+				httpUp.SetVersion(GetVersion())
 				up = httpUp
 			}
 

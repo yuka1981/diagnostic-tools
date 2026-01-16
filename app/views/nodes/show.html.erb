@@ -18,6 +18,9 @@
     </div>
     <div class="mt-1 flex items-center gap-4 text-sm text-slate-500">
       <span class="font-mono">UUID: <%= @node.id %></span>
+      <% if @node.agent_version.present? %>
+        <span class="font-mono text-teal-600">Agent <%= @node.agent_version %></span>
+      <% end %>
       <span>•</span>
       <span>Added <%= time_ago_in_words(@node.created_at) %> ago</span>
     </div>

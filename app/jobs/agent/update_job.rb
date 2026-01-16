@@ -7,26 +7,31 @@ module Agent
     def perform(node:, agent_release:, force: false, credentials_cache_key: nil)
       Rails.logger.debug "[Agent::UpdateJob] Starting update for #{node.hostname} to #{agent_release.version}"
 
-      # Retrieve sudo credentials from cache if provided
+      # Retrieve credentials from cache if provided
       sudo_password = nil
+      ssh_password = nil
       if credentials_cache_key.present?
         credentials = Rails.cache.read("update_creds_#{credentials_cache_key}")
         sudo_password = credentials&.dig(:sudo_password)
+        ssh_password = credentials&.dig(:ssh_password)
         # Clean up credentials from cache
         Rails.cache.delete("update_creds_#{credentials_cache_key}")
       end
 
-      # Fall back to node's stored sudo credential
+      # Fall back to node's stored credentials
       sudo_password ||= node.sudo_credential
+      ssh_password ||= node.ssh_password
 
       # Small delay to allow the browser to establish ActionCable connection
       sleep 0.5 if Rails.env.development?
 
       broadcast_status(node, "processing", "Starting agent update to #{agent_release.version}")
 
-      # Store original sudo_credential and temporarily set the one from credentials
+      # Store original credentials and temporarily set ones from form/cache
       original_sudo_credential = node.sudo_credential
+      original_ssh_password = node.ssh_password
       node.sudo_credential = sudo_password if sudo_password.present?
+      node.ssh_password = ssh_password if ssh_password.present?
 
       begin
         service = Agent::PatchService.new(
@@ -44,8 +49,9 @@ module Agent
         Rails.logger.info "[Agent::UpdateJob] Update successful for #{node.hostname}"
         broadcast_status(node, "success", result.message)
       ensure
-        # Restore original sudo_credential
+        # Restore original credentials
         node.sudo_credential = original_sudo_credential
+        node.ssh_password = original_ssh_password
       end
     rescue Agent::NodeBusyError => e
       Rails.logger.warn "[Agent::UpdateJob] Node busy: #{node.hostname}"

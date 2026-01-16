@@ -12,6 +12,19 @@ import (
 // Global flags
 var nodeUUID string
 
+// version holds the agent version, set via SetVersion from main.go
+var version = "dev"
+
+// SetVersion sets the agent version (called from main.go with ldflags value)
+func SetVersion(v string) {
+	version = v
+}
+
+// GetVersion returns the current agent version
+func GetVersion() string {
+	return version
+}
+
 var rootCmd = &cobra.Command{
 	Use:   "hpc-agent",
 	Short: "HPC Agent",

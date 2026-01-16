@@ -59,10 +59,12 @@ module Agent
 
       result = installer.call
 
-      # 3. Sync agent UUID to node record
+      # 3. Sync agent UUID and version to node record
       if result.agent_uuid.present? && node&.persisted?
         Rails.logger.info "[Agent::InstallJob] Syncing agent UUID #{result.agent_uuid} to node #{node.hostname}"
-        node.update!(uuid: result.agent_uuid)
+        # Set agent_version to "dev" since we compiled from source without a version tag
+        # The actual version will be updated when the agent does its first inventory push
+        node.update!(uuid: result.agent_uuid, agent_version: "dev")
       end
 
       # 4. Success Broadcast

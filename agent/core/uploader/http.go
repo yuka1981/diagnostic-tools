@@ -26,6 +26,7 @@ type HTTPUploader struct {
 	Token        string
 	NodeID       string
 	Hostname     string
+	Version      string
 	RetryWaitMin time.Duration
 	RetryWaitMax time.Duration
 	MaxRetries   int
@@ -61,6 +62,11 @@ func (u *HTTPUploader) logf(format string, args ...interface{}) {
 // SetNodeID sets the unique identifier for the host.
 func (u *HTTPUploader) SetNodeID(id string) {
 	u.NodeID = id
+}
+
+// SetVersion sets the agent version for reporting to the server.
+func (u *HTTPUploader) SetVersion(v string) {
+	u.Version = v
 }
 
 // Upload sends the given payload to the configured endpoint.
@@ -146,6 +152,9 @@ func (u *HTTPUploader) attemptRequest(ctx context.Context, url string, body []by
 	}
 	if u.Hostname != "" {
 		req.Header.Set("X-Hostname", u.Hostname)
+	}
+	if u.Version != "" {
+		req.Header.Set("X-Agent-Version", u.Version)
 	}
 
 	resp, err := u.Client.Do(req)

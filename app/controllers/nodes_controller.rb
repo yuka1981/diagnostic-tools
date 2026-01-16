@@ -118,9 +118,12 @@ class NodesController < ApplicationController
     if @node.update(node_params)
       respond_to do |format|
         format.html { redirect_to nodes_path, notice: "Node was successfully updated." }
-        format.turbo_stream
+        format.turbo_stream {
+          flash.now[:notice] = "Node was successfully updated."
+        }
       end
     else
+      @api_keys = ApiKey.active.order(:name)
       render :edit, status: :unprocessable_entity
     end
   end
@@ -140,7 +143,7 @@ class NodesController < ApplicationController
   end
 
   def node_params
-    params.require(:node).permit(:hostname, :ip, :arch, :ssh_port, :ssh_user, :ssh_key, :sudo_credential, :ssh_connect_method, :jump_host, :jump_user, :jump_port, :agent_path, :benchmark_work_dir, :api_key_id)
+    params.require(:node).permit(:hostname, :ip, :arch, :ssh_port, :ssh_user, :ssh_key, :ssh_password, :sudo_credential, :ssh_connect_method, :jump_host, :jump_user, :jump_port, :agent_path, :benchmark_work_dir, :api_key_id)
   end
 
   def set_sensitive_params

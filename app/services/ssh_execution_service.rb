@@ -3,6 +3,7 @@
 require "net/ssh"
 require "net/ssh/gateway"
 require "shellwords"
+require "open3"
 
 class SshExecutionService
   Result = Struct.new(:success, :output, :error, :exit_code, :exit_signal, keyword_init: true) do
@@ -33,7 +34,9 @@ class SshExecutionService
   private
 
   def execute_ssh_command(cmd, &block)
-    if direct_connection_required?
+    if localhost_target?
+      execute_local(cmd, &block)
+    elsif direct_connection_required?
       execute_direct(cmd, &block)
     elsif use_jump_host?
       execute_via_gateway(cmd, &block)
@@ -42,9 +45,12 @@ class SshExecutionService
     end
   end
 
+  def localhost_target?
+    localhost?(@target_node.ip) || localhost?(@target_node.hostname)
+  end
+
   def direct_connection_required?
     return true if @target_node.direct?
-    return true if localhost?(@target_node.ip) || localhost?(@target_node.hostname)
 
     false
   end
@@ -53,6 +59,31 @@ class SshExecutionService
     return false if host.blank?
 
     host == "127.0.0.1" || host == "localhost" || host == "::1"
+  end
+
+  def execute_local(cmd, &block)
+    stdout_data = ""
+    stderr_data = ""
+
+    Rails.logger.debug "[SshExecutionService] Executing locally: #{cmd}"
+
+    stdout, stderr, status = Open3.capture3(cmd)
+
+    stdout_data = stdout
+    stderr_data = stderr
+
+    yield(stdout, :stdout) if block_given? && stdout.present?
+    yield(stderr, :stderr) if block_given? && stderr.present?
+
+    Result.new(
+      success: status.success?,
+      output: stdout_data,
+      error: stderr_data,
+      exit_code: status.exitstatus,
+      exit_signal: nil
+    )
+  rescue StandardError => e
+    Result.new(success: false, output: "", error: e.message, exit_code: nil, exit_signal: nil)
   end
 
   def use_jump_host?

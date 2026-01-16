@@ -2,6 +2,7 @@
 
 require "net/ssh"
 require "net/scp"
+require "open3"
 
 module Agent
   # Custom error raised when attempting to update an agent on a busy node
@@ -66,7 +67,9 @@ module Agent
       binary_tempfile, @local_checksum = download_binary_to_temp
 
       begin
-        if use_bastion?
+        if localhost_target?
+          update_local(binary_tempfile)
+        elsif use_bastion?
           update_via_bastion(binary_tempfile)
         else
           update_direct(binary_tempfile)
@@ -75,6 +78,9 @@ module Agent
         binary_tempfile.close
         binary_tempfile.unlink
       end
+
+      # Update node's agent_version to reflect the deployed release
+      @node.update_column(:agent_version, @agent_release.version)
 
       Result.new(success: true, message: "Agent updated to #{@agent_release.version}")
     rescue => e
@@ -110,6 +116,103 @@ module Agent
       return false if host.blank?
 
       host == "127.0.0.1" || host == "localhost" || host == "::1"
+    end
+
+    def localhost_target?
+      localhost?(@node.ip) || localhost?(@node.hostname)
+    end
+
+    def update_local(binary_tempfile)
+      report_progress "Executing local update (localhost detected)"
+
+      # Copy binary to temp location
+      report_progress "Copying binary to /tmp/agent_update"
+      FileUtils.cp(binary_tempfile.path, "/tmp/agent_update")
+
+      # Perform the update steps locally
+      perform_local_update
+    end
+
+    def perform_local_update
+      # Step 1: Stop the service
+      report_progress "Stopping agent service"
+      execute_local_command("systemctl stop #{SERVICE_NAME}", use_sudo: true)
+
+      # Step 2: Verify checksum before swap
+      report_progress "Verifying binary checksum"
+      verify_local_checksum
+
+      # Step 3: Swap binaries
+      report_progress "Installing new binary"
+      swap_local_binary
+
+      # Step 4: Set permissions
+      report_progress "Setting file permissions"
+      execute_local_command("chmod 755 #{TARGET_BIN_PATH} && chown root:root #{TARGET_BIN_PATH}", use_sudo: true)
+
+      # Step 5: Start the service
+      report_progress "Starting agent service"
+      execute_local_command("systemctl start #{SERVICE_NAME}", use_sudo: true)
+
+      # Step 6: Verify service is running
+      report_progress "Verifying service status"
+      verify_local_service_running
+    end
+
+    def verify_local_checksum
+      expected = @local_checksum
+      output = execute_local_command("sha256sum /tmp/agent_update | awk '{print $1}'")
+      actual = output.strip
+
+      unless actual == expected
+        raise PatchError, "Checksum mismatch! Expected: #{expected}, Got: #{actual}"
+      end
+
+      report_progress "Checksum verified: #{actual[0..15]}..."
+    end
+
+    def swap_local_binary
+      cmd = <<~CMD.squish
+        if [ -f #{TARGET_BIN_PATH} ]; then
+          mv #{TARGET_BIN_PATH} #{TARGET_BIN_PATH}.bak;
+        fi &&
+        mv /tmp/agent_update #{TARGET_BIN_PATH}
+      CMD
+      execute_local_command(cmd, use_sudo: true)
+    end
+
+    def verify_local_service_running
+      output = execute_local_command("systemctl is-active #{SERVICE_NAME}", use_sudo: true)
+      status = output.strip
+
+      unless status == "active"
+        raise PatchError, "Service failed to start. Status: #{status}"
+      end
+
+      report_progress "Service is running"
+    end
+
+    def execute_local_command(cmd, use_sudo: false)
+      full_cmd = build_local_command(cmd, use_sudo: use_sudo)
+
+      # Mask password in logs
+      log_cmd = sudo_password.present? ? full_cmd.gsub(sudo_password.to_s, "********") : full_cmd
+      Rails.logger.debug "[PatchService] Executing locally: #{log_cmd}"
+
+      stdout, stderr, status = Open3.capture3(full_cmd)
+
+      broadcast_log(stdout, "stdout") if stdout.present?
+      # Filter out sudo password prompts from stderr
+      filtered_stderr = stderr.lines.reject { |line| line.match?(/\[sudo\] password for/) }.join
+      broadcast_log(filtered_stderr, "stderr") if filtered_stderr.present?
+
+      unless status.success?
+        Rails.logger.error "[PatchService] Local command failed: #{log_cmd}"
+        Rails.logger.error "[PatchService] Stderr: #{stderr}"
+        raise PatchError, "Command failed (exit #{status.exitstatus}): #{filtered_stderr.strip}"
+      end
+
+      stdout
     end
 
     def update_via_bastion(binary_tempfile)
@@ -291,14 +394,28 @@ module Agent
       @node.ssh_user.presence || ::SshConfig.user || "root"
     end
 
+    def build_local_command(cmd, use_sudo:)
+      if use_sudo && sudo_password.present?
+        "echo #{Shellwords.escape(sudo_password)} | sudo -S bash -c #{Shellwords.escape(cmd)}"
+      elsif use_sudo
+        "sudo bash -c #{Shellwords.escape(cmd)}"
+      else
+        cmd
+      end
+    end
+
     def ssh_options
       {
         timeout: 30,
         non_interactive: true,
         verify_host_key: :never,
         keys: ssh_keys,
-        password: @node.sudo_credential.presence
+        password: ssh_password
       }.compact
+    end
+
+    def ssh_password
+      @node.ssh_password.presence
     end
 
     def ssh_keys

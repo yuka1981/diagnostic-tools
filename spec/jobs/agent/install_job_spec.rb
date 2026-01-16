@@ -74,6 +74,43 @@ RSpec.describe Agent::InstallJob, type: :job do
 
       expect(Rails.cache.read("install_creds_#{cache_key}")).to be_nil
     end
+
+    it "sets agent_version to 'dev' after successful install" do
+      node.update(agent_version: nil)
+
+      described_class.perform_now(**params)
+
+      node.reload
+      expect(node.agent_version).to eq("dev")
+    end
+
+    it "syncs both UUID and agent_version after successful install" do
+      node.update(uuid: nil, agent_version: nil)
+
+      described_class.perform_now(**params)
+
+      node.reload
+      expect(node.uuid).to eq(agent_uuid)
+      expect(node.agent_version).to eq("dev")
+    end
+
+    context "when agent_uuid is not returned" do
+      let(:install_result_no_uuid) { Agent::RemoteInstallService::Result.new(success: true, agent_uuid: nil) }
+
+      before do
+        allow(installer).to receive(:call).and_return(install_result_no_uuid)
+      end
+
+      it "does not update agent_version when UUID is missing" do
+        node.update(agent_version: nil)
+
+        described_class.perform_now(**params)
+
+        node.reload
+        # UUID not synced, so agent_version should also not be updated
+        expect(node.agent_version).to be_nil
+      end
+    end
   it "uses custom agent_token from credentials if provided" do
     credentials_with_token = credentials.merge(agent_token: "custom-token-123")
     Rails.cache.write("install_creds_#{cache_key}", credentials_with_token)

@@ -13,6 +13,7 @@ module Api
         hostname = parsed_body.dig(:host, :hostname) || parsed_body[:hostname]
         node_id = parsed_body[:node_id]
         uuid = request.headers["X-Node-ID"]
+        agent_version = request.headers["X-Agent-Version"]
 
         unless hostname.present? || node_id.present? || uuid.present?
           return render_bad_request("Either hostname, node_id or X-Node-ID header is required")
@@ -26,7 +27,8 @@ module Api
           hostname: hostname,
           node_id: node_id,
           uuid: uuid,
-          raw_json: raw_json
+          raw_json: raw_json,
+          agent_version: agent_version
         ).call
 
         if result.success?
