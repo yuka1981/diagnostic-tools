@@ -95,11 +95,11 @@ RSpec.describe AgentRelease, type: :model do
   end
 
   describe "checksum calculation" do
-    it "calculates checksum on save" do
+    it "calculates SHA256 hex checksum on save" do
       release = create(:agent_release, version: "v1.0.0")
       expect(release.checksum).to be_present
-      # Can be SHA256 hex (64 chars) or blob's base64 checksum
-      expect(release.checksum).to match(/\A([a-f0-9]{64}|[\w+\/=]+)\z/)
+      # Must be SHA256 hex (64 lowercase hex characters)
+      expect(release.checksum).to match(/\A[a-f0-9]{64}\z/)
     end
 
     it "updates checksum when binary changes" do
@@ -122,6 +122,64 @@ RSpec.describe AgentRelease, type: :model do
 
       expect(release.checksum).to be_present
       expect(release.checksum).not_to eq(original_checksum)
+      # Must still be SHA256 hex
+      expect(release.checksum).to match(/\A[a-f0-9]{64}\z/)
+    end
+
+    describe "#valid_sha256_checksum?" do
+      it "returns true for valid SHA256 hex checksums" do
+        release = build(:agent_release)
+        release.checksum = "a" * 64
+        expect(release.valid_sha256_checksum?).to be true
+
+        release.checksum = "0123456789abcdef" * 4
+        expect(release.valid_sha256_checksum?).to be true
+      end
+
+      it "returns false for Base64 checksums (MD5)" do
+        release = build(:agent_release)
+        release.checksum = "Et4ZSvH556lTOVWBafoWzA=="
+        expect(release.valid_sha256_checksum?).to be false
+      end
+
+      it "returns false for blank checksums" do
+        release = build(:agent_release)
+        release.checksum = nil
+        expect(release.valid_sha256_checksum?).to be false
+
+        release.checksum = ""
+        expect(release.valid_sha256_checksum?).to be false
+      end
+    end
+
+    describe "#recalculate_checksum!" do
+      it "recalculates and saves checksum from binary" do
+        release = create(:agent_release, version: "v1.0.0")
+        # Manually set an invalid checksum
+        release.update_column(:checksum, "invalid_base64_checksum==")
+
+        expect(release.recalculate_checksum!).to be true
+        release.reload
+        expect(release.valid_sha256_checksum?).to be true
+      end
+    end
+
+    describe ".recalculate_invalid_checksums!" do
+      it "recalculates only invalid checksums" do
+        # Create releases with valid and invalid checksums
+        valid_release = create(:agent_release, version: "v1.0.0")
+        invalid_release = create(:agent_release, version: "v2.0.0")
+        invalid_release.update_column(:checksum, "InvalidBase64==")
+
+        results = described_class.recalculate_invalid_checksums!
+
+        expect(results[:success]).to eq(1)
+        expect(results[:skipped]).to eq(1)
+        expect(results[:failed]).to eq(0)
+
+        invalid_release.reload
+        expect(invalid_release.valid_sha256_checksum?).to be true
+      end
     end
   end
 

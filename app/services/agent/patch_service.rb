@@ -62,8 +62,8 @@ module Agent
     def execute_update
       report_progress "Starting agent update to #{@agent_release.version} on #{@node.hostname}"
 
-      # Download binary to temp file
-      binary_tempfile = download_binary_to_temp
+      # Download binary to temp file and calculate checksum
+      binary_tempfile, @local_checksum = download_binary_to_temp
 
       begin
         if use_bastion?
@@ -86,9 +86,15 @@ module Agent
     def download_binary_to_temp
       report_progress "Downloading binary from storage"
       tempfile = Tempfile.new([ "agent-binary", "" ], binmode: true)
-      tempfile.write(@agent_release.binary.download)
+      binary_content = @agent_release.binary.download
+      tempfile.write(binary_content)
       tempfile.rewind
-      tempfile
+
+      # Calculate SHA256 checksum locally for reliable verification
+      local_checksum = Digest::SHA256.hexdigest(binary_content)
+      report_progress "Local checksum: #{local_checksum[0..15]}..."
+
+      [ tempfile, local_checksum ]
     end
 
     def use_bastion?
@@ -182,7 +188,9 @@ module Agent
     end
 
     def verify_checksum(ssh, via_ssh:)
-      expected = @agent_release.checksum
+      # Use locally calculated checksum for reliable verification
+      # This ensures we compare SHA256 hex to SHA256 hex regardless of what's stored in DB
+      expected = @local_checksum
       inner_cmd = "sha256sum /tmp/agent_update | awk '{print $1}'"
       cmd = build_remote_command(inner_cmd, via_ssh: via_ssh)
 

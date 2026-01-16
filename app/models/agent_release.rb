@@ -19,6 +19,7 @@ class AgentRelease < ApplicationRecord
 
   # Callbacks
   before_save :calculate_checksum, if: :should_calculate_checksum?
+  after_commit :ensure_checksum_calculated, on: %i[create update], if: :needs_checksum_recalculation?
 
   # Scopes
   scope :latest_first, -> { order(created_at: :desc) }
@@ -63,6 +64,48 @@ class AgentRelease < ApplicationRecord
     super
   end
 
+  # Check if checksum is valid SHA256 hex format (64 hex characters)
+  def valid_sha256_checksum?
+    checksum.present? && checksum.match?(/\A[a-f0-9]{64}\z/i)
+  end
+
+  # Recalculate and save checksum from binary
+  # Returns true if successful, false otherwise
+  def recalculate_checksum!
+    return false unless binary.attached?
+
+    begin
+      new_checksum = Digest::SHA256.hexdigest(binary.download)
+      update_column(:checksum, new_checksum)
+      true
+    rescue ActiveStorage::FileNotFoundError => e
+      Rails.logger.warn "[AgentRelease] Cannot recalculate checksum for #{version}: #{e.message}"
+      false
+    end
+  end
+
+  # Class method to recalculate all invalid checksums
+  def self.recalculate_invalid_checksums!
+    results = { success: 0, failed: 0, skipped: 0 }
+
+    find_each do |release|
+      if release.valid_sha256_checksum?
+        results[:skipped] += 1
+        next
+      end
+
+      if release.recalculate_checksum!
+        results[:success] += 1
+        Rails.logger.info "[AgentRelease] Recalculated checksum for #{release.version}"
+      else
+        results[:failed] += 1
+        Rails.logger.error "[AgentRelease] Failed to recalculate checksum for #{release.version}"
+      end
+    end
+
+    results
+  end
+
   private
 
   def should_calculate_checksum?
@@ -70,20 +113,31 @@ class AgentRelease < ApplicationRecord
     return true if new_record?
     return true if @binary_updated
 
-    # Also recalculate if checksum is missing
-    checksum.blank?
+    # Also recalculate if checksum is missing or invalid format
+    checksum.blank? || !valid_sha256_checksum?
+  end
+
+  def needs_checksum_recalculation?
+    binary.attached? && !valid_sha256_checksum?
+  end
+
+  def ensure_checksum_calculated
+    # After commit, if checksum is still invalid, try to recalculate
+    # This handles cases where the file wasn't available during before_save
+    recalculate_checksum! if needs_checksum_recalculation?
   end
 
   def calculate_checksum
     return unless binary.attached?
 
-    # Download the blob content and calculate SHA256
-    # Handle case where blob file might not exist yet (e.g., during tests)
+    # Download the blob content and calculate SHA256 hex
     begin
       self.checksum = Digest::SHA256.hexdigest(binary.download)
     rescue ActiveStorage::FileNotFoundError
-      # In test environment or when file is pending, use blob checksum if available
-      self.checksum = binary.blob&.checksum
+      # File not available yet - leave checksum blank
+      # after_commit callback will try to recalculate
+      Rails.logger.debug "[AgentRelease] Binary not available during save, checksum will be calculated after commit"
+      self.checksum = nil
     end
   end
 
