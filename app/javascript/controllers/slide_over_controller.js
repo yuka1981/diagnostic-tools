@@ -24,7 +24,15 @@ export default class extends Controller {
   }
 
   open(event) {
-    // Note: Don't call preventDefault() here to allow Turbo Frame navigation to proceed
+    // Get the URL from the clicked element to load content into the frame
+    const url = event.currentTarget?.href || event.currentTarget?.dataset?.url
+    if (url && this.hasContentTarget) {
+      this.contentTarget.src = url
+    }
+
+    // Prevent default navigation since we're loading into the frame
+    event.preventDefault()
+
     this.openValue = true
     this.show()
   }
