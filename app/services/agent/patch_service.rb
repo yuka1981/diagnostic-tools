@@ -56,8 +56,43 @@ module Agent
     def validate_prerequisites!
       raise PatchError, "Node must be persisted" unless @node.persisted?
       raise PatchError, "Agent release must be persisted" unless @agent_release.persisted?
-      raise PatchError, "Agent release must have a binary attached" unless @agent_release.binary.attached?
       raise PatchError, "Agent release is recalled and cannot be deployed" if @agent_release.recalled?
+
+      # Check for binary matching node's architecture
+      @agent_binary = find_agent_binary
+      raise PatchError, "No binary available for architecture: #{node_arch}" unless @agent_binary
+    end
+
+    # Find the AgentBinary matching the node's architecture
+    # Falls back to legacy single-binary if no multi-arch binaries exist
+    def find_agent_binary
+      # First try the new multi-arch model
+      agent_binary = @agent_release.binary_for_arch(node_arch)
+      return agent_binary if agent_binary
+
+      # Fall back to legacy single-binary attachment
+      return nil unless @agent_release.binary.attached?
+
+      # Create a compatibility wrapper for legacy binary
+      LegacyBinaryWrapper.new(@agent_release)
+    end
+
+    def node_arch
+      @node.arch.presence || "x86_64"
+    end
+
+    # Wrapper class for backward compatibility with legacy single-binary releases
+    class LegacyBinaryWrapper
+      attr_reader :checksum
+
+      def initialize(agent_release)
+        @agent_release = agent_release
+        @checksum = agent_release.checksum
+      end
+
+      def binary
+        @agent_release.binary
+      end
     end
 
     def execute_update
@@ -90,9 +125,9 @@ module Agent
     end
 
     def download_binary_to_temp
-      report_progress "Downloading binary from storage"
+      report_progress "Downloading binary for #{node_arch} from storage"
       tempfile = Tempfile.new([ "agent-binary", "" ], binmode: true)
-      binary_content = @agent_release.binary.download
+      binary_content = @agent_binary.binary.download
       tempfile.write(binary_content)
       tempfile.rewind
 

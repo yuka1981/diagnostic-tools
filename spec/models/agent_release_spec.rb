@@ -37,10 +37,10 @@ RSpec.describe AgentRelease, type: :model do
     end
 
     describe "binary attachment" do
-      it "requires binary on create" do
+      it "does not require direct binary attachment (binaries are via AgentBinary model)" do
+        # Binaries are now attached via AgentBinary model, not directly to AgentRelease
         release = build(:agent_release, :without_binary)
-        expect(release).not_to be_valid
-        expect(release.errors[:binary]).to include("must be attached")
+        expect(release).to be_valid
       end
     end
   end

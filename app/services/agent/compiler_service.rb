@@ -8,7 +8,14 @@ module Agent
 
     ARCH_MAP = {
       "x86_64" => "amd64",
+      "aarch64" => "arm64",
       "arm64" => "arm64"
+    }.freeze
+
+    # Map Go arch back to our standard arch names for AgentBinary
+    ARCH_STANDARD = {
+      "amd64" => "x86_64",
+      "arm64" => "aarch64"
     }.freeze
 
     SOURCE_PATH = Rails.root.join("agent")
@@ -166,32 +173,54 @@ module Agent
     end
 
     def create_release_record(binary_path, release_notes)
-      compiled_time = Time.current.strftime("%Y-%m-%d %H:%M:%S %Z")
-      default_notes = "Compiled from source on #{compiled_time}"
+      # Find existing release or create new one
+      agent_release = AgentRelease.find_by(version: @version_tag)
+      standard_arch = ARCH_STANDARD[@arch] || "x86_64"
 
-      full_notes = if release_notes.present?
-                     "#{release_notes}\n\n---\n_#{default_notes}_"
+      if agent_release
+        # Adding binary to existing release
+        Rails.logger.info "[CompilerService] Adding #{standard_arch} binary to existing release #{@version_tag}"
+
+        if agent_release.has_binary_for_arch?(standard_arch)
+          raise CompilationError, "Release #{@version_tag} already has a binary for #{standard_arch}"
+        end
       else
-                     default_notes
+        # Create new release
+        compiled_time = Time.current.strftime("%Y-%m-%d %H:%M:%S %Z")
+        default_notes = "Compiled from source on #{compiled_time}"
+
+        full_notes = if release_notes.present?
+                       "#{release_notes}\n\n---\n_#{default_notes}_"
+        else
+                       default_notes
+        end
+
+        agent_release = AgentRelease.new(
+          version: @version_tag,
+          release_notes: full_notes,
+          status: :active
+        )
+
+        unless agent_release.save
+          raise CompilationError, "Failed to save release: #{agent_release.errors.full_messages.join(', ')}"
+        end
+
+        Rails.logger.info "[CompilerService] Created new release #{@version_tag}"
       end
 
-      agent_release = AgentRelease.new(
-        version: @version_tag,
-        release_notes: full_notes,
-        status: :active
-      )
-
-      # Attach the compiled binary
-      agent_release.binary.attach(
+      # Create AgentBinary for this architecture
+      agent_binary = agent_release.agent_binaries.build(arch: standard_arch)
+      agent_binary.binary.attach(
         io: File.open(binary_path, "rb"),
-        filename: "hpc-agent-#{@version_tag}-linux-#{@arch}",
+        filename: "hpc-agent-#{@version_tag}-linux-#{standard_arch}",
         content_type: "application/octet-stream"
       )
 
-      unless agent_release.save
-        raise CompilationError, "Failed to save release: #{agent_release.errors.full_messages.join(', ')}"
+      unless agent_binary.save
+        raise CompilationError, "Failed to save binary: #{agent_binary.errors.full_messages.join(', ')}"
       end
 
+      Rails.logger.info "[CompilerService] Created AgentBinary for #{standard_arch}"
       agent_release
     end
 

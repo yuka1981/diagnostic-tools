@@ -1,7 +1,10 @@
 # frozen_string_literal: true
 
 class AgentRelease < ApplicationRecord
-  # ActiveStorage attachment for the agent binary
+  # Architecture-specific binaries (new multi-arch support)
+  has_many :agent_binaries, dependent: :destroy
+
+  # Legacy: ActiveStorage attachment for single binary (for backward compatibility during migration)
   has_one_attached :binary
 
   # Enums - status values from the feature request
@@ -14,8 +17,8 @@ class AgentRelease < ApplicationRecord
     message: "must be a valid semantic version (e.g., v1.0.0, 1.2.3-beta)"
   }
   validates :release_notes, length: { maximum: 10_000 }
-  validate :binary_attached, on: :create
-  validate :binary_content_type
+  # Note: binary validation removed - binaries are now attached via AgentBinary model
+  validate :binary_content_type, if: -> { binary.attached? }
 
   # Callbacks
   before_save :calculate_checksum, if: :should_calculate_checksum?
@@ -35,12 +38,44 @@ class AgentRelease < ApplicationRecord
     "Agent #{version}"
   end
 
-  def binary_filename
-    binary.attached? ? binary.filename.to_s : nil
+  # Get the AgentBinary record for a specific architecture
+  def binary_for_arch(arch)
+    agent_binaries.find_by(arch: arch)
   end
 
+  # Check if this release has a binary for the given architecture
+  def has_binary_for_arch?(arch)
+    agent_binaries.exists?(arch: arch)
+  end
+
+  # Get all supported architectures for this release
+  def supported_architectures
+    agent_binaries.pluck(:arch)
+  end
+
+  # Check if this release has any binaries (new multi-arch or legacy)
+  def has_any_binary?
+    agent_binaries.any? || binary.attached?
+  end
+
+  # Legacy compatibility: Get binary filename (prefers new model, falls back to legacy)
+  def binary_filename
+    if agent_binaries.any?
+      agent_binaries.map(&:binary_filename).compact.join(", ")
+    elsif binary.attached?
+      binary.filename.to_s
+    end
+  end
+
+  # Legacy compatibility: Get binary size (returns first binary size or legacy)
   def binary_size
-    binary.attached? ? binary.byte_size : 0
+    if agent_binaries.any?
+      agent_binaries.sum(&:binary_size)
+    elsif binary.attached?
+      binary.byte_size
+    else
+      0
+    end
   end
 
   def formatted_size
@@ -141,12 +176,7 @@ class AgentRelease < ApplicationRecord
     end
   end
 
-  def binary_attached
-    return if binary.attached?
-
-    errors.add(:binary, "must be attached")
-  end
-
+  # Legacy validation - only used when directly attaching binary to release
   def binary_content_type
     return unless binary.attached?
 

@@ -92,27 +92,70 @@
 
   <%# Binary Details Card %>
   <div class="card-netbox">
-    <div class="card-header">
-      <h3 class="card-title">Binary Details</h3>
+    <div class="card-header flex items-center justify-between">
+      <h3 class="card-title">Binaries</h3>
+      <% if current_user.approver? && @agent_release.agent_binaries.count < AgentBinary::SUPPORTED_ARCHITECTURES.size %>
+        <%= link_to new_settings_agent_release_binary_path(@agent_release), class: "text-xs text-teal-600 hover:text-teal-700 font-medium" do %>
+          + Add Architecture
+        <% end %>
+      <% end %>
     </div>
     <div class="p-0">
-      <table class="w-full text-sm text-left">
-        <tbody class="divide-y divide-slate-100">
-          <tr class="hover:bg-slate-50">
-            <th class="px-4 py-2 font-bold text-slate-700 w-1/3 border-r border-slate-200">Filename</th>
-            <td class="px-4 py-2 text-slate-700 font-mono"><%= @agent_release.binary_filename || "—" %></td>
-          </tr>
-          <tr class="hover:bg-slate-50">
-            <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">Size</th>
-            <td class="px-4 py-2 text-slate-700"><%= @agent_release.formatted_size %></td>
-          </tr>
-          <tr class="hover:bg-slate-50">
-            <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">SHA256 Checksum</th>
-            <td class="px-4 py-2 text-slate-600 font-mono text-xs break-all">
-              <%= @agent_release.checksum.presence || "—" %>
-            </td>
-          </tr>
-          <% if @agent_release.binary.attached? %>
+      <% if @agent_release.agent_binaries.any? %>
+        <table class="w-full text-sm text-left">
+          <thead class="bg-slate-50 border-b border-slate-200">
+            <tr>
+              <th class="px-4 py-2 font-bold text-slate-500 uppercase text-[10px]">Architecture</th>
+              <th class="px-4 py-2 font-bold text-slate-500 uppercase text-[10px]">Size</th>
+              <th class="px-4 py-2 font-bold text-slate-500 uppercase text-[10px]">Checksum</th>
+              <th class="px-4 py-2 font-bold text-slate-500 uppercase text-[10px]">Download</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100">
+            <% @agent_release.agent_binaries.order(:arch).each do |agent_binary| %>
+              <tr class="hover:bg-slate-50">
+                <td class="px-4 py-2 text-slate-700 font-bold">
+                  <span class="inline-flex items-center rounded-sm px-2 py-0.5 text-xs font-mono bg-slate-100 text-slate-700 border border-slate-200">
+                    <%= agent_binary.arch %>
+                  </span>
+                </td>
+                <td class="px-4 py-2 text-slate-700"><%= agent_binary.formatted_size %></td>
+                <td class="px-4 py-2 text-slate-600 font-mono text-[10px]">
+                  <%= agent_binary.checksum.present? ? agent_binary.checksum[0..15] + "..." : "—" %>
+                </td>
+                <td class="px-4 py-2">
+                  <% if agent_binary.binary.attached? %>
+                    <%= link_to rails_blob_path(agent_binary.binary, disposition: "attachment"),
+                        class: "inline-flex items-center text-teal-600 hover:text-teal-700 font-medium text-xs" do %>
+                      <svg class="h-3 w-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                      </svg>
+                      Download
+                    <% end %>
+                  <% end %>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      <% elsif @agent_release.binary.attached? %>
+        <%# Legacy single binary display %>
+        <table class="w-full text-sm text-left">
+          <tbody class="divide-y divide-slate-100">
+            <tr class="hover:bg-slate-50">
+              <th class="px-4 py-2 font-bold text-slate-700 w-1/3 border-r border-slate-200">Filename</th>
+              <td class="px-4 py-2 text-slate-700 font-mono"><%= @agent_release.binary_filename || "—" %></td>
+            </tr>
+            <tr class="hover:bg-slate-50">
+              <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">Size</th>
+              <td class="px-4 py-2 text-slate-700"><%= @agent_release.formatted_size %></td>
+            </tr>
+            <tr class="hover:bg-slate-50">
+              <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">SHA256 Checksum</th>
+              <td class="px-4 py-2 text-slate-600 font-mono text-xs break-all">
+                <%= @agent_release.checksum.presence || "—" %>
+              </td>
+            </tr>
             <tr class="hover:bg-slate-50">
               <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">Download</th>
               <td class="px-4 py-2">
@@ -125,9 +168,16 @@
                 <% end %>
               </td>
             </tr>
+          </tbody>
+        </table>
+      <% else %>
+        <div class="p-4 text-center text-slate-500 text-sm">
+          No binaries uploaded yet.
+          <% if current_user.approver? %>
+            <%= link_to "Add a binary", new_settings_agent_release_binary_path(@agent_release), class: "text-teal-600 hover:underline" %>
           <% end %>
-        </tbody>
-      </table>
+        </div>
+      <% end %>
     </div>
   </div>
 </div>

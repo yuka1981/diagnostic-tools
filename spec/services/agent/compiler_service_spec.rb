@@ -84,7 +84,8 @@ RSpec.describe Agent::CompilerService do
       expect(release).to be_a(AgentRelease)
       expect(release).to be_persisted
       expect(release.version).to eq("v1.0.0")
-      expect(release.binary).to be_attached
+      expect(release.agent_binaries.count).to eq(1)
+      expect(release.agent_binaries.first.binary).to be_attached
       expect(release.status).to eq("active")
 
       temp_file.unlink
@@ -273,6 +274,7 @@ RSpec.describe Agent::CompilerService do
     it "defines ARCH_MAP" do
       expect(described_class::ARCH_MAP).to eq({
         "x86_64" => "amd64",
+        "aarch64" => "arm64",
         "arm64" => "arm64"
       })
     end

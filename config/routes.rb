@@ -29,6 +29,7 @@ Rails.application.routes.draw do
         patch :activate
         patch :recall
       end
+      resources :binaries, only: %i[new create destroy], controller: "agent_binaries"
     end
   end
 

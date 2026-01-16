@@ -135,11 +135,12 @@ RSpec.describe Agent::PatchService do
         expect { service.call }.to raise_error(Agent::PatchService::PatchError, /must be persisted/)
       end
 
-      it "raises error if agent_release has no binary attached" do
+      it "raises error if agent_release has no binary for node architecture" do
         release_without_binary = create(:agent_release, version: "v2.0.0")
         release_without_binary.binary.purge
+        release_without_binary.agent_binaries.destroy_all
         service = described_class.new(node: node, agent_release: release_without_binary)
-        expect { service.call }.to raise_error(Agent::PatchService::PatchError, /must have a binary/)
+        expect { service.call }.to raise_error(Agent::PatchService::PatchError, /No binary available for architecture/)
       end
 
       it "raises error if agent_release is recalled" do
