@@ -3,6 +3,10 @@
     {
       "fingerprint": "eba7d6cf0d3b34f49314cd8aad4fce6b207dfa09550918a33e90b441712878b4",
       "note": "Path is validated by validated_artifact_path method which ensures the path is within allowed storage/artifacts or artifacts_base_path directories. Path traversal attacks are prevented by Pathname#cleanpath and prefix check."
+    },
+    {
+      "fingerprint": "7b6c3c7e90f6842f339c03f9c6969f3cc5933f578002d1dc5469e1a8d76dd372",
+      "note": "Inputs are validated before use: version_tag is validated by VERSION_TAG_PATTERN (alphanumeric, dots, dashes, underscores only) and custom_ldflags by LDFLAGS_SAFE_PATTERN. Open3.capture3 with array arguments prevents shell injection. Validation occurs in validate_version_tag! and validate_custom_ldflags! before compile_binary_with_version is called."
     }
   ],
   "updated": "2026-01-16",

@@ -21,6 +21,10 @@ module Agent
     SOURCE_PATH = Rails.root.join("agent")
     VERSION_LDFLAGS_PACKAGE = "main.Version"
 
+    # Safe patterns for user-provided inputs to prevent command injection
+    VERSION_TAG_PATTERN = /\A[a-zA-Z0-9._-]+\z/
+    LDFLAGS_SAFE_PATTERN = /\A[a-zA-Z0-9._=\s\/-]+\z/
+
     # Build and create an AgentRelease record from source
     # @param version_tag [String] Version string (e.g., "v1.0.0")
     # @param release_notes [String, nil] Optional release notes
@@ -80,6 +84,7 @@ module Agent
     def build_release(release_notes: nil)
       ensure_go_installed!
       validate_version_tag!
+      validate_custom_ldflags!
 
       output_path = compile_binary_with_version
 
@@ -96,6 +101,16 @@ module Agent
 
     def validate_version_tag!
       raise CompilationError, "Version tag is required for building a release" if @version_tag.blank?
+      unless VERSION_TAG_PATTERN.match?(@version_tag)
+        raise CompilationError, "Invalid version tag format. Only alphanumeric characters, dots, dashes, and underscores are allowed."
+      end
+    end
+
+    def validate_custom_ldflags!
+      return if @custom_ldflags.blank?
+      unless LDFLAGS_SAFE_PATTERN.match?(@custom_ldflags)
+        raise CompilationError, "Invalid custom ldflags format. Only alphanumeric characters, dots, dashes, underscores, equals signs, slashes, and spaces are allowed."
+      end
     end
 
     def compile_binary
