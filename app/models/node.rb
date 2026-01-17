@@ -39,17 +39,17 @@ class Node < ApplicationRecord
   end
 
   # Constants
-  ONLINE_THRESHOLD = 5.minutes
+  HEARTBEAT_ONLINE_THRESHOLD = 2.minutes
   DEFAULT_AGENT_PATH = "hpc-agent"
 
   # Scopes
-  scope :online, -> { where(last_seen_at: ONLINE_THRESHOLD.ago..) }
+  scope :online, -> { where(last_heartbeat_at: HEARTBEAT_ONLINE_THRESHOLD.ago..) }
 
   # Instance methods
   def online?
-    return false if last_seen_at.nil?
+    return false if last_heartbeat_at.nil?
 
-    last_seen_at > ONLINE_THRESHOLD.ago
+    last_heartbeat_at > HEARTBEAT_ONLINE_THRESHOLD.ago
   end
 
   def touch_last_seen

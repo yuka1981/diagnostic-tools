@@ -166,18 +166,18 @@ RSpec.describe Node, type: :model do
   end
 
   describe "#online?" do
-    it "returns true if last_seen_at is within 5 minutes" do
-      node = build(:node, last_seen_at: 2.minutes.ago)
+    it "returns true if last_heartbeat_at is within 2 minutes" do
+      node = build(:node, last_heartbeat_at: 1.minute.ago)
       expect(node).to be_online
     end
 
-    it "returns false if last_seen_at is older than 5 minutes" do
-      node = build(:node, last_seen_at: 10.minutes.ago)
+    it "returns false if last_heartbeat_at is older than 2 minutes" do
+      node = build(:node, last_heartbeat_at: 3.minutes.ago)
       expect(node).not_to be_online
     end
 
-    it "returns false if last_seen_at is nil" do
-      node = build(:node, last_seen_at: nil)
+    it "returns false if last_heartbeat_at is nil" do
+      node = build(:node, last_heartbeat_at: nil)
       expect(node).not_to be_online
     end
   end

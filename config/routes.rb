@@ -7,6 +7,7 @@ Rails.application.routes.draw do
       get "health", to: "health#show"
       post "inventory/push", to: "inventory#push"
       resources :benchmark_runs, only: [ :create, :update ]
+      post "nodes/:id/heartbeat", to: "heartbeats#create"
     end
   end
 
