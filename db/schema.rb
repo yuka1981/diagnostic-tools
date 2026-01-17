@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_01_17_031735) do
+ActiveRecord::Schema[7.2].define(version: 2026_01_17_071841) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -166,6 +166,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_17_031735) do
     t.string "agent_version"
     t.string "ssh_password"
     t.datetime "last_heartbeat_at"
+    t.string "agent_status", default: "idle"
     t.index ["api_key_id"], name: "index_nodes_on_api_key_id"
     t.index ["hostname"], name: "index_nodes_on_hostname", unique: true
     t.index ["role"], name: "index_nodes_on_role"

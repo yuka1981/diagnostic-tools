@@ -9,7 +9,8 @@ module Api
 
         node.update!(
           last_heartbeat_at: Time.current,
-          agent_version: params[:version]
+          agent_version: params[:version],
+          agent_status: params[:status]
         )
 
         render json: { status: "ok" }, status: :ok

@@ -17,7 +17,8 @@ RSpec.describe "Api::V1::Heartbeats", type: :request do
       {
         uuid: node.uuid,
         timestamp: Time.current.iso8601,
-        version: "1.2.3"
+        version: "1.2.3",
+        status: "idle"
       }
     end
 
@@ -37,6 +38,12 @@ RSpec.describe "Api::V1::Heartbeats", type: :request do
       it "updates agent_version from payload" do
         post "/api/v1/nodes/#{node.uuid}/heartbeat", params: payload.to_json, headers: headers
         expect(node.reload.agent_version).to eq("1.2.3")
+      end
+
+      it "updates agent_status from payload" do
+        busy_payload = payload.merge(status: "busy")
+        post "/api/v1/nodes/#{node.uuid}/heartbeat", params: busy_payload.to_json, headers: headers
+        expect(node.reload.agent_status).to eq("busy")
       end
 
       it "returns JSON with status ok" do

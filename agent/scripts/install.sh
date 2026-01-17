@@ -19,6 +19,7 @@ INSTALL_DIR="/usr/local/bin"
 CONFIG_DIR="/etc/hpc-agent"
 SERVICE_NAME="hpc-agent"
 HEARTBEAT_INTERVAL="60s"
+INVENTORY_INTERVAL="1h"
 BINARY_PATH=""
 
 # Colors for output
@@ -53,6 +54,7 @@ Required:
 Optional:
   --binary <path>             Path to agent binary (default: download from server)
   --heartbeat-interval <dur>  Heartbeat interval (default: 60s)
+  --inventory-interval <dur>  Inventory push interval (default: 1h, 0 to disable)
   --help                      Show this help message
 
 Example:
@@ -83,6 +85,10 @@ parse_args() {
                 ;;
             --heartbeat-interval)
                 HEARTBEAT_INTERVAL="$2"
+                shift 2
+                ;;
+            --inventory-interval)
+                INVENTORY_INTERVAL="$2"
                 shift 2
                 ;;
             --help)
@@ -219,6 +225,7 @@ NODE_UUID=${NODE_UUID}
 SERVER_URL=${SERVER_URL}
 AGENT_TOKEN=${AGENT_TOKEN}
 HEARTBEAT_INTERVAL=${HEARTBEAT_INTERVAL}
+INVENTORY_INTERVAL=${INVENTORY_INTERVAL}
 EOF
 
     # Secure the file (contains sensitive token)
@@ -243,7 +250,7 @@ After=network-online.target
 
 [Service]
 Type=simple
-ExecStart=${INSTALL_DIR}/hpc-agent start --node-uuid "${NODE_UUID}" --server "${SERVER_URL}" --token "${AGENT_TOKEN}" --heartbeat-interval ${HEARTBEAT_INTERVAL}
+ExecStart=${INSTALL_DIR}/hpc-agent start --node-uuid "${NODE_UUID}" --server "${SERVER_URL}" --token "${AGENT_TOKEN}" --heartbeat-interval ${HEARTBEAT_INTERVAL} --inventory-interval ${INVENTORY_INTERVAL}
 Restart=always
 RestartSec=10s
 User=root

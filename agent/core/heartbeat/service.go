@@ -11,11 +11,18 @@ import (
 	"time"
 )
 
+// Status constants for agent state
+const (
+	StatusIdle = "idle"
+	StatusBusy = "busy"
+)
+
 // Payload represents the heartbeat data sent to the server.
 type Payload struct {
 	UUID      string `json:"uuid"`
 	Timestamp string `json:"timestamp"`
 	Version   string `json:"version"`
+	Status    string `json:"status"`
 }
 
 // Service handles sending heartbeat requests to the server.
@@ -26,6 +33,7 @@ type Service struct {
 	version  string
 	hostname string
 	client   *http.Client
+	status   string
 }
 
 // New creates a new heartbeat service.
@@ -38,7 +46,13 @@ func New(baseURL, token, nodeID, version string) *Service {
 		version:  version,
 		hostname: hostname,
 		client:   &http.Client{Timeout: 30 * time.Second},
+		status:   StatusIdle,
 	}
+}
+
+// SetStatus updates the agent's current status.
+func (s *Service) SetStatus(status string) {
+	s.status = status
 }
 
 // Send sends a heartbeat to the server.
@@ -49,6 +63,7 @@ func (s *Service) Send(ctx context.Context) error {
 		UUID:      s.nodeID,
 		Timestamp: time.Now().UTC().Format(time.RFC3339),
 		Version:   s.version,
+		Status:    s.status,
 	}
 
 	body, err := json.Marshal(payload)
