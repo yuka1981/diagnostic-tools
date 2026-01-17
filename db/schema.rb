@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_01_17_071841) do
+ActiveRecord::Schema[7.2].define(version: 2026_01_17_172816) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -50,6 +50,29 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_17_071841) do
     t.datetime "updated_at", null: false
     t.index ["agent_release_id", "arch"], name: "index_agent_binaries_on_agent_release_id_and_arch", unique: true
     t.index ["agent_release_id"], name: "index_agent_binaries_on_agent_release_id"
+  end
+
+  create_table "agent_events", force: :cascade do |t|
+    t.bigint "node_id", null: false
+    t.bigint "user_id"
+    t.bigint "agent_release_id"
+    t.string "operation", null: false
+    t.string "status", default: "pending", null: false
+    t.string "from_version"
+    t.string "to_version"
+    t.text "error_message"
+    t.jsonb "error_details", default: {}
+    t.boolean "forced", default: false
+    t.datetime "started_at"
+    t.datetime "completed_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["agent_release_id"], name: "index_agent_events_on_agent_release_id"
+    t.index ["created_at"], name: "index_agent_events_on_created_at"
+    t.index ["node_id"], name: "index_agent_events_on_node_id"
+    t.index ["operation"], name: "index_agent_events_on_operation"
+    t.index ["status"], name: "index_agent_events_on_status"
+    t.index ["user_id"], name: "index_agent_events_on_user_id"
   end
 
   create_table "agent_releases", force: :cascade do |t|
@@ -201,6 +224,9 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_17_071841) do
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "agent_binaries", "agent_releases"
+  add_foreign_key "agent_events", "agent_releases"
+  add_foreign_key "agent_events", "nodes"
+  add_foreign_key "agent_events", "users"
   add_foreign_key "artifact_indices", "benchmark_runs"
   add_foreign_key "benchmark_runs", "benchmark_recipes"
   add_foreign_key "benchmark_runs", "nodes"
