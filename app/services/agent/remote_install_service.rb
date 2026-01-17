@@ -199,7 +199,8 @@ module Agent
       service_content = <<~SERVICE
         [Unit]
         Description=HPC Diagnostic Agent
-        After=network.target
+        Wants=network-online.target
+        After=network-online.target
 
         [Service]
         ExecStart=#{TARGET_BIN_PATH} inventory push --server "#{@server_url}" --token "#{@agent_token}"
@@ -222,6 +223,20 @@ module Agent
       # Set ownership
       report_progress "Setting file ownership to root:root"
       execute_local_command("chown root:root #{TARGET_BIN_PATH} #{service_file_path}", use_sudo: true)
+
+      # Set SELinux context if SELinux is available (for RHEL/CentOS/Fedora systems)
+      # This is critical: both the binary AND the service file need correct contexts
+      # - Binary needs bin_t to be executable
+      # - Service file needs systemd_unit_file_t to be recognized by systemd
+      report_progress "Setting SELinux context (if available)"
+      selinux_cmd = <<~SELINUX
+        if command -v getenforce >/dev/null 2>&1 && [ "$(getenforce)" != "Disabled" ]; then
+          restorecon -v #{TARGET_BIN_PATH} #{service_file_path} 2>/dev/null ||
+          (chcon -t bin_t #{TARGET_BIN_PATH} 2>/dev/null || true;
+           chcon -t systemd_unit_file_t #{service_file_path} 2>/dev/null || true);
+        fi
+      SELINUX
+      execute_local_command(selinux_cmd, use_sudo: true)
 
       # Enable and start service
       report_progress "Starting agent service"
@@ -358,48 +373,28 @@ module Agent
 
 
           # 3.2: Create systemd service
-
           service_content = <<~SERVICE
-
             [Unit]
-
             Description=HPC Diagnostic Agent
-
-            After=network.target
-
-
+            Wants=network-online.target
+            After=network-online.target
 
             [Service]
-
             ExecStart=#{TARGET_BIN_PATH} inventory push --server "#{@server_url}" --token "#{@agent_token}"
-
             Restart=always
-
             User=root
 
-
-
             [Install]
-
             WantedBy=multi-user.target
-
           SERVICE
 
-
-
           service_file_path = "/etc/systemd/system/hpc-agent.service"
-
           tmp_service_path = "/tmp/hpc-agent.service"
 
-
-
-          # Write content to temp file on the current session (bastion or target)
-
-          # We use a simple heredoc. Shellwords.escape isn't ideal for whole files,
-
-          # but we trust our own service_content.
-
-          ssh.exec!("cat << 'EOF' > #{tmp_service_path}\n#{service_content}EOF")
+          # Write content to temp file using base64 encoding to avoid shell escaping issues
+          encoded_content = Base64.strict_encode64(service_content)
+          write_service_cmd = "echo '#{encoded_content}' | base64 -d > #{tmp_service_path}"
+          execute_remote_command(ssh, write_service_cmd, password: nil)
 
 
 
@@ -450,7 +445,25 @@ module Agent
       end
       execute_remote_command(ssh, chown_cmd, password: @sudo_password)
 
-
+      # 3.2.6 Set SELinux context if available (for RHEL/CentOS/Fedora systems)
+      # This is critical: both the binary AND the service file need correct contexts
+      # - Binary needs bin_t to be executable
+      # - Service file needs systemd_unit_file_t to be recognized by systemd
+      report_progress "Setting SELinux context (if available)"
+      inner_selinux = <<~SELINUX.squish
+        if command -v getenforce >/dev/null 2>&1 && [ "$(getenforce)" != "Disabled" ]; then
+          restorecon -v #{TARGET_BIN_PATH} #{service_file_path} 2>/dev/null ||
+          (chcon -t bin_t #{TARGET_BIN_PATH} 2>/dev/null || true;
+           chcon -t systemd_unit_file_t #{service_file_path} 2>/dev/null || true);
+        fi
+      SELINUX
+      selinux_cmd = if via_ssh
+                      remote_cmd = bash_c_command(inner_selinux)
+                      "sudo -S ssh -o StrictHostKeyChecking=no #{target_user}@#{Shellwords.escape(@target_host)} #{Shellwords.escape(remote_cmd)}"
+      else
+                      "sudo -S #{bash_c_command(inner_selinux)}"
+      end
+      execute_remote_command(ssh, selinux_cmd, password: @sudo_password)
 
       # 3.3: systemctl enable --now
       report_progress "Starting agent service"

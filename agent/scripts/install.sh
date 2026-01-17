@@ -166,49 +166,71 @@ install_binary() {
     log_info "Agent binary installed to: $target_path"
 }
 
-# Handle SELinux context
+# Handle SELinux context for both binary and service file
+# IMPORTANT: This must be called AFTER install_service so the service file exists
 configure_selinux() {
     local agent_path="$INSTALL_DIR/hpc-agent"
+    local service_path="/etc/systemd/system/${SERVICE_NAME}.service"
 
-    # Check if SELinux is available and enforcing
-    if command -v getenforce >/dev/null 2>&1; then
-        local selinux_status
-        selinux_status=$(getenforce 2>/dev/null || echo "Disabled")
-
-        if [[ "$selinux_status" == "Enforcing" ]]; then
-            log_info "SELinux is Enforcing, applying security context..."
-
-            # Try semanage first (persistent), fall back to chcon (temporary)
-            if command -v semanage >/dev/null 2>&1; then
-                log_info "Using semanage for persistent SELinux context"
-                # Add file context rule (ignore error if already exists)
-                semanage fcontext -a -t bin_t "$agent_path" 2>/dev/null || \
-                    semanage fcontext -m -t bin_t "$agent_path" 2>/dev/null || true
-
-                # Apply the context
-                if command -v restorecon >/dev/null 2>&1; then
-                    restorecon -v "$agent_path"
-                fi
-            elif command -v chcon >/dev/null 2>&1; then
-                log_warn "semanage not found, using chcon (context will not persist after relabel)"
-                chcon -t bin_t "$agent_path"
-            else
-                log_warn "Neither semanage nor chcon found, skipping SELinux configuration"
-                log_warn "You may need to manually configure SELinux for the agent"
-            fi
-
-            log_info "SELinux context applied"
-        elif [[ "$selinux_status" == "Permissive" ]]; then
-            log_info "SELinux is Permissive, applying context for future enforcement..."
-            if command -v chcon >/dev/null 2>&1; then
-                chcon -t bin_t "$agent_path" 2>/dev/null || true
-            fi
-        else
-            log_info "SELinux is Disabled, skipping context configuration"
-        fi
-    else
+    # Check if SELinux is available
+    if ! command -v getenforce >/dev/null 2>&1; then
         log_info "SELinux not detected, skipping context configuration"
+        return 0
     fi
+
+    local selinux_status
+    selinux_status=$(getenforce 2>/dev/null || echo "Disabled")
+
+    if [[ "$selinux_status" == "Disabled" ]]; then
+        log_info "SELinux is Disabled, skipping context configuration"
+        return 0
+    fi
+
+    log_info "SELinux is $selinux_status, applying security contexts..."
+
+    # Method 1: Try restorecon (uses system's file context database - preferred)
+    if command -v restorecon >/dev/null 2>&1; then
+        log_info "Using restorecon to apply default SELinux contexts"
+        restorecon -v "$agent_path" 2>/dev/null || true
+        restorecon -v "$service_path" 2>/dev/null || true
+    fi
+
+    # Method 2: For Enforcing mode, also try semanage for persistent rules
+    if [[ "$selinux_status" == "Enforcing" ]]; then
+        if command -v semanage >/dev/null 2>&1; then
+            log_info "Using semanage for persistent SELinux context rules"
+            # Add persistent file context rules (ignore errors if already exist)
+            semanage fcontext -a -t bin_t "$agent_path" 2>/dev/null || \
+                semanage fcontext -m -t bin_t "$agent_path" 2>/dev/null || true
+
+            # Re-apply after adding rules
+            if command -v restorecon >/dev/null 2>&1; then
+                restorecon -v "$agent_path" 2>/dev/null || true
+            fi
+        fi
+    fi
+
+    # Method 3: Fallback to chcon if restorecon didn't work
+    # Verify contexts are correct, fix with chcon if needed
+    if command -v chcon >/dev/null 2>&1; then
+        # Check if binary has correct context (bin_t or similar executable type)
+        local binary_context
+        binary_context=$(ls -Z "$agent_path" 2>/dev/null | awk '{print $1}' | cut -d: -f3)
+        if [[ "$binary_context" != "bin_t" && "$binary_context" != "usr_t" ]]; then
+            log_warn "Binary context is '$binary_context', setting to bin_t"
+            chcon -t bin_t "$agent_path" 2>/dev/null || true
+        fi
+
+        # Check if service file has correct context (systemd_unit_file_t)
+        local service_context
+        service_context=$(ls -Z "$service_path" 2>/dev/null | awk '{print $1}' | cut -d: -f3)
+        if [[ "$service_context" != "systemd_unit_file_t" ]]; then
+            log_warn "Service file context is '$service_context', setting to systemd_unit_file_t"
+            chcon -t systemd_unit_file_t "$service_path" 2>/dev/null || true
+        fi
+    fi
+
+    log_info "SELinux context configuration completed"
 }
 
 # Create environment file
@@ -327,9 +349,9 @@ main() {
     check_dependencies
     create_config_dir
     install_binary
-    configure_selinux
     create_env_file
     install_service
+    configure_selinux  # Must be AFTER install_service so service file exists
     configure_dmidecode
     start_service
     print_summary
