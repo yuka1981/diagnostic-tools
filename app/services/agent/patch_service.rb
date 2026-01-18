@@ -3,15 +3,9 @@
 require "net/ssh"
 require "net/scp"
 require "open3"
+require_relative "errors"
 
 module Agent
-  # Custom error raised when attempting to update an agent on a busy node
-  class NodeBusyError < StandardError
-    def initialize(msg = "Update blocked: Node is currently busy (Pending/Running tasks).")
-      super
-    end
-  end
-
   # Service to update the agent binary on a remote node
   # Includes safety checks to prevent updates while benchmarks are running
   class PatchService
