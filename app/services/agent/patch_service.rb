@@ -183,13 +183,37 @@ module Agent
       report_progress "Setting SELinux context"
       set_local_selinux_context
 
-      # Step 6: Start the service
+      # Step 6: Update service file with node UUID
+      report_progress "Updating service file"
+      update_local_service_file
+
+      # Step 7: Reload systemd daemon
+      report_progress "Reloading systemd daemon"
+      execute_local_command("systemctl daemon-reload", use_sudo: true)
+
+      # Step 8: Start the service
       report_progress "Starting agent service"
       execute_local_command("systemctl start #{SERVICE_NAME}", use_sudo: true)
 
-      # Step 7: Verify service is running
+      # Step 9: Verify service is running
       report_progress "Verifying service status"
       verify_local_service_running
+    end
+
+    def update_local_service_file
+      return if @node.uuid.blank?
+
+      service_file = "/etc/systemd/system/#{SERVICE_NAME}.service"
+      node_uuid = @node.uuid
+
+      update_cmd = <<~CMD.squish
+        if grep -q 'node-uuid' #{service_file}; then
+          sed -i 's/--node-uuid "[^"]*"/--node-uuid "#{node_uuid}"/' #{service_file};
+        else
+          sed -i 's|ExecStart=\\(.*\\)|ExecStart=\\1 --node-uuid "#{node_uuid}"|' #{service_file};
+        fi
+      CMD
+      execute_local_command(update_cmd, use_sudo: true)
     end
 
     def set_local_selinux_context
@@ -347,11 +371,19 @@ module Agent
       report_progress "Setting SELinux context"
       set_selinux_context(ssh, via_ssh: via_ssh)
 
-      # Step 6: Start the service
+      # Step 6: Update service file with node UUID
+      report_progress "Updating service file"
+      update_service_file(ssh, via_ssh: via_ssh)
+
+      # Step 7: Reload systemd daemon
+      report_progress "Reloading systemd daemon"
+      systemctl_cmd("daemon-reload", ssh, via_ssh: via_ssh)
+
+      # Step 8: Start the service
       report_progress "Starting agent service"
       systemctl_cmd("start", ssh, via_ssh: via_ssh)
 
-      # Step 7: Verify service is running
+      # Step 9: Verify service is running
       report_progress "Verifying service status"
       verify_service_running(ssh, via_ssh: via_ssh)
     end
@@ -407,6 +439,25 @@ module Agent
         fi
       CMD
       cmd = build_remote_command(selinux_cmd, via_ssh: via_ssh, use_sudo: true)
+      execute_command(ssh, cmd, password: sudo_password)
+    end
+
+    def update_service_file(ssh, via_ssh:)
+      return if @node.uuid.blank?
+
+      service_file = "/etc/systemd/system/#{SERVICE_NAME}.service"
+      node_uuid = @node.uuid
+
+      # Read, modify, and write service file using sed
+      # This adds --node-uuid if not present, or updates it if present
+      update_cmd = <<~CMD.squish
+        if grep -q 'node-uuid' #{service_file}; then
+          sed -i 's/--node-uuid "[^"]*"/--node-uuid "#{node_uuid}"/' #{service_file};
+        else
+          sed -i 's|ExecStart=\\(.*\\)|ExecStart=\\1 --node-uuid "#{node_uuid}"|' #{service_file};
+        fi
+      CMD
+      cmd = build_remote_command(update_cmd, via_ssh: via_ssh, use_sudo: true)
       execute_command(ssh, cmd, password: sudo_password)
     end
 

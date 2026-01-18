@@ -195,6 +195,9 @@ module Agent
       # chmod +x
       execute_local_command("chmod +x #{TARGET_BIN_PATH}", use_sudo: true)
 
+      # Ensure node has a UUID for identity consistency
+      node_uuid = ensure_node_uuid
+
       # Create systemd service file
       service_content = <<~SERVICE
         [Unit]
@@ -205,7 +208,7 @@ module Agent
 
         [Service]
         Type=simple
-        ExecStart=#{TARGET_BIN_PATH} start --server "#{@server_url}" --token "#{@agent_token}" --heartbeat-interval 60s --inventory-interval 60s
+        ExecStart=#{TARGET_BIN_PATH} start --server "#{@server_url}" --token "#{@agent_token}" --node-uuid "#{node_uuid}" --heartbeat-interval 60s --inventory-interval 60s
         Restart=always
         RestartSec=10
         User=root
@@ -379,6 +382,9 @@ module Agent
 
 
           # 3.2: Create systemd service
+          # Ensure node has a UUID for identity consistency
+          node_uuid = ensure_node_uuid
+
           service_content = <<~SERVICE
             [Unit]
             Description=HPC Diagnostic Agent
@@ -388,7 +394,7 @@ module Agent
 
             [Service]
             Type=simple
-            ExecStart=#{TARGET_BIN_PATH} start --server "#{@server_url}" --token "#{@agent_token}" --heartbeat-interval 60s --inventory-interval 60s
+            ExecStart=#{TARGET_BIN_PATH} start --server "#{@server_url}" --token "#{@agent_token}" --node-uuid "#{node_uuid}" --heartbeat-interval 60s --inventory-interval 60s
             Restart=always
             RestartSec=10
             User=root
@@ -541,6 +547,18 @@ module Agent
     rescue => e
       Rails.logger.warn "[RemoteInstallService] Failed to read agent UUID: #{e.message}"
       nil
+    end
+
+    # Ensure the node has a UUID - generate one if missing
+    # This is used to inject the UUID into the service file for identity consistency
+    def ensure_node_uuid
+      return @node.uuid if @node&.uuid.present?
+
+      # Generate a new UUID if node doesn't have one
+      new_uuid = SecureRandom.uuid
+      @node&.update_column(:uuid, new_uuid) if @node&.persisted?
+      Rails.logger.info "[RemoteInstallService] Generated new node UUID: #{new_uuid}"
+      new_uuid
     end
 
     def report_progress(message)

@@ -221,7 +221,7 @@ module Agent
         diagnostics
       end
 
-      def generate_service_file(server_url:, api_token:, inventory_interval: 60, heartbeat_interval: 60)
+      def generate_service_file(server_url:, api_token:, node_uuid:, inventory_interval: 60, heartbeat_interval: 60)
         <<~SYSTEMD
           [Unit]
           Description=HPC Diagnostic Agent
@@ -231,7 +231,7 @@ module Agent
 
           [Service]
           Type=simple
-          ExecStart=#{TARGET_BIN_PATH} start --server "#{server_url}" --token "#{api_token}" --heartbeat-interval #{heartbeat_interval}s --inventory-interval #{inventory_interval}s
+          ExecStart=#{TARGET_BIN_PATH} start --server "#{server_url}" --token "#{api_token}" --node-uuid "#{node_uuid}" --heartbeat-interval #{heartbeat_interval}s --inventory-interval #{inventory_interval}s
           Restart=always
           RestartSec=10
           User=root
