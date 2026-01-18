@@ -133,15 +133,18 @@ RSpec.describe Agent::Concerns::RemoteExecution do
       content = service.generate_service_file(
         server_url: "https://example.com",
         api_token: "test_token",
-        inventory_interval: 120
+        inventory_interval: 120,
+        heartbeat_interval: 30
       )
 
       expect(content).to include("[Unit]")
       expect(content).to include("[Service]")
       expect(content).to include("[Install]")
+      expect(content).to include("start --server")
       expect(content).to include("--server \"https://example.com\"")
       expect(content).to include("--token \"test_token\"")
-      expect(content).to include("--inventory-interval 120")
+      expect(content).to include("--heartbeat-interval 30s")
+      expect(content).to include("--inventory-interval 120s")
     end
   end
 
