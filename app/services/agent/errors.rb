@@ -31,4 +31,11 @@ module Agent
 
   # Raised when auto-rollback fails
   class RollbackError < LifecycleError; end
+
+  # Raised when attempting to update an agent on a busy node
+  class NodeBusyError < LifecycleError
+    def initialize(msg = "Update blocked: Node is currently busy (Pending/Running tasks).")
+      super(msg, phase: :preflight, recoverable: true)
+    end
+  end
 end
