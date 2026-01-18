@@ -199,13 +199,19 @@ module Agent
       service_content = <<~SERVICE
         [Unit]
         Description=HPC Diagnostic Agent
+        Documentation=https://github.com/yuka1981/diagnostic-tools
         Wants=network-online.target
         After=network-online.target
 
         [Service]
-        ExecStart=#{TARGET_BIN_PATH} inventory push --server "#{@server_url}" --token "#{@agent_token}"
+        Type=simple
+        ExecStart=#{TARGET_BIN_PATH} start --server "#{@server_url}" --token "#{@agent_token}" --heartbeat-interval 60s --inventory-interval 60s
         Restart=always
+        RestartSec=10
         User=root
+        StandardOutput=journal
+        StandardError=journal
+        SyslogIdentifier=hpc-agent
 
         [Install]
         WantedBy=multi-user.target
@@ -376,13 +382,19 @@ module Agent
           service_content = <<~SERVICE
             [Unit]
             Description=HPC Diagnostic Agent
+            Documentation=https://github.com/yuka1981/diagnostic-tools
             Wants=network-online.target
             After=network-online.target
 
             [Service]
-            ExecStart=#{TARGET_BIN_PATH} inventory push --server "#{@server_url}" --token "#{@agent_token}"
+            Type=simple
+            ExecStart=#{TARGET_BIN_PATH} start --server "#{@server_url}" --token "#{@agent_token}" --heartbeat-interval 60s --inventory-interval 60s
             Restart=always
+            RestartSec=10
             User=root
+            StandardOutput=journal
+            StandardError=journal
+            SyslogIdentifier=hpc-agent
 
             [Install]
             WantedBy=multi-user.target
