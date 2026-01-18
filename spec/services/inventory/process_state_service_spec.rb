@@ -203,5 +203,72 @@ RSpec.describe Inventory::ProcessStateService do
         expect { described_class.new(raw_json: raw_json) }.to raise_error(ArgumentError)
       end
     end
+
+    context "when finding or creating node by uuid" do
+      let(:new_uuid) { SecureRandom.hex(32) }
+
+      context "when uuid exists" do
+        let!(:existing_node) { create(:node, uuid: new_uuid, hostname: "existing-host") }
+
+        subject(:service) { described_class.new(uuid: new_uuid, hostname: "new-hostname", raw_json: raw_json) }
+
+        it "returns success result" do
+          result = service.call
+          expect(result.success?).to be true
+        end
+
+        it "uses the existing node" do
+          result = service.call
+          expect(result.node_state.node).to eq(existing_node)
+        end
+      end
+
+      context "when uuid is new but hostname already exists" do
+        let!(:existing_node) { create(:node, hostname: "ldap", uuid: "old-uuid-12345") }
+        let(:raw_json_with_host) do
+          raw_json.merge(host: { "hostname" => "ldap", "ip" => "192.168.1.50" })
+        end
+
+        subject(:service) { described_class.new(uuid: new_uuid, hostname: "ldap", raw_json: raw_json_with_host) }
+
+        it "returns success result" do
+          result = service.call
+          expect(result.success?).to be true
+        end
+
+        it "updates existing node with new uuid" do
+          service.call
+          existing_node.reload
+          expect(existing_node.uuid).to eq(new_uuid)
+        end
+
+        it "uses the existing node for state" do
+          result = service.call
+          expect(result.node_state.node).to eq(existing_node)
+        end
+
+        it "creates a new NodeState" do
+          expect { service.call }.to change(NodeState, :count).by(1)
+        end
+      end
+
+      context "when both uuid and hostname are new" do
+        subject(:service) { described_class.new(uuid: new_uuid, hostname: "brand-new-host", raw_json: raw_json) }
+
+        it "returns success result" do
+          result = service.call
+          expect(result.success?).to be true
+        end
+
+        it "creates a new node" do
+          expect { service.call }.to change(Node, :count).by(1)
+        end
+
+        it "sets source to agent_push" do
+          result = service.call
+          expect(result.node_state.node.source).to eq("agent_push")
+        end
+      end
+    end
   end
 end
