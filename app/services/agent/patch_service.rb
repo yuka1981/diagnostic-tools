@@ -211,14 +211,29 @@ module Agent
     end
 
     def verify_local_service_running
-      output = execute_local_command("systemctl is-active #{SERVICE_NAME}", use_sudo: true)
-      status = output.strip
+      max_retries = 10
+      retry_count = 0
 
-      unless status == "active"
-        raise PatchError, "Service failed to start. Status: #{status}"
+      loop do
+        # Use "|| true" to always return exit code 0, since systemctl is-active
+        # returns exit code 3 for "activating" or "failed" status
+        output = execute_local_command("systemctl is-active #{SERVICE_NAME} || true", use_sudo: true)
+        status = output.strip
+
+        if status == "active"
+          report_progress "Service is running"
+          return
+        elsif status == "activating"
+          retry_count += 1
+          if retry_count >= max_retries
+            raise PatchError, "Service stuck in activating state after #{max_retries} retries"
+          end
+          report_progress "Service is starting... (#{retry_count}/#{max_retries})"
+          sleep 1
+        else
+          raise PatchError, "Service failed to start. Status: #{status}"
+        end
       end
-
-      report_progress "Service is running"
     end
 
     def execute_local_command(cmd, use_sudo: false)
@@ -359,16 +374,14 @@ module Agent
       retry_count = 0
 
       loop do
-        inner_cmd = "systemctl is-active #{SERVICE_NAME}"
+        # Use "|| true" to always return exit code 0, since systemctl is-active
+        # returns exit code 3 for "activating" or "failed" status
+        inner_cmd = "systemctl is-active #{SERVICE_NAME} || true"
         cmd = build_remote_command(inner_cmd, via_ssh: via_ssh, use_sudo: true)
 
-        begin
-          output = execute_command(ssh, cmd, password: sudo_password)
-          status = output.strip
-        rescue PatchError => e
-          # systemctl is-active returns exit code 3 for activating/failed
-          status = e.message.match(/activating|failed|inactive/) ? e.message.split.last : "unknown"
-        end
+        output = execute_command(ssh, cmd, password: sudo_password)
+        # Clean up output: remove password echo artifacts and PTY control chars
+        status = output.gsub(/\r/, "").lines.last&.strip || "unknown"
 
         if status == "active"
           report_progress "Service is running"
