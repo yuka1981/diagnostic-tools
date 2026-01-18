@@ -233,12 +233,13 @@ module Agent
     def read_agent_uuid(ssh)
       report_progress "Reading agent UUID"
 
+      # Note: The file is owned by root, so sudo is required to read it
       uuid_path = "/etc/hpc-agent/node_id"
       uuid = if ssh.nil?
-               execute_local_command("cat #{uuid_path} 2>/dev/null || echo ''").strip
+               execute_local_command("cat #{uuid_path} 2>/dev/null || echo ''", use_sudo: true).strip
       else
-               cmd = build_remote_command("cat #{uuid_path} 2>/dev/null || echo ''", via_ssh: false)
-               execute_command(ssh, cmd).strip
+               cmd = build_remote_command("cat #{uuid_path} 2>/dev/null || echo ''", via_ssh: false, use_sudo: true)
+               execute_command(ssh, cmd, password: @sudo_password).strip
       end
 
       if uuid.present?

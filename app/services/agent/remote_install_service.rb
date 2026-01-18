@@ -505,17 +505,18 @@ module Agent
 
     # Read the agent's UUID from the remote node after installation
     # The agent generates and stores its UUID in /etc/hpc-agent/node_id
+    # Note: The file is owned by root, so sudo is required to read it
     def read_agent_uuid(ssh, via_ssh: false)
       report_progress "Reading agent UUID for identity sync"
 
       inner_cmd = "cat #{AGENT_NODE_ID_PATH}"
       read_cmd = if via_ssh
-                   "sudo -S ssh -o StrictHostKeyChecking=no #{target_user}@#{Shellwords.escape(@target_host)} #{Shellwords.escape(inner_cmd)}"
+                   "sudo -S ssh -o StrictHostKeyChecking=no #{target_user}@#{Shellwords.escape(@target_host)} #{Shellwords.escape("sudo #{inner_cmd}")}"
       else
-                   inner_cmd
+                   "sudo -S #{inner_cmd}"
       end
 
-      output = execute_remote_command(ssh, read_cmd, password: via_ssh ? @sudo_password : nil)
+      output = execute_remote_command(ssh, read_cmd, password: @sudo_password)
       uuid = output.strip
 
       if uuid.present?
