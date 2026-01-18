@@ -65,16 +65,18 @@ module Agent
       end
     end
 
-    def initialize(arch:, version_tag: nil, custom_ldflags: nil)
+    def initialize(arch:, version_tag: nil, custom_ldflags: nil, update_source: false)
       @arch = ARCH_MAP[arch] || ARCH_MAP["x86_64"]
       @version_tag = version_tag
       @custom_ldflags = custom_ldflags
+      @update_source = update_source
       raise ArgumentError, "Unsupported architecture: #{arch.inspect}" unless @arch
     end
 
     # Compile and return path to binary (original behavior for remote install)
     def call
       ensure_go_installed!
+      update_source_code! if @update_source
       compile_binary
     end
 
@@ -251,6 +253,43 @@ module Agent
       return if self.class.go_available?
 
       raise CompilationError, "Go toolchain is not installed on the server. Please install Go to enable agent compilation."
+    end
+
+    def update_source_code!
+      return unless File.directory?(SOURCE_PATH.join(".git"))
+
+      Rails.logger.info "[CompilerService] Updating agent source code from git"
+
+      # Fetch and reset to latest from origin
+      stdout, stderr, status = Open3.capture3(
+        "git", "fetch", "origin",
+        chdir: SOURCE_PATH.to_s
+      )
+
+      unless status.success?
+        Rails.logger.warn "[CompilerService] Git fetch failed: #{stderr}"
+        return # Continue with existing code if fetch fails
+      end
+
+      # Get current branch
+      branch_stdout, _, branch_status = Open3.capture3(
+        "git", "rev-parse", "--abbrev-ref", "HEAD",
+        chdir: SOURCE_PATH.to_s
+      )
+
+      branch = branch_status.success? ? branch_stdout.strip : "main"
+
+      # Reset to origin/branch
+      stdout, stderr, status = Open3.capture3(
+        "git", "reset", "--hard", "origin/#{branch}",
+        chdir: SOURCE_PATH.to_s
+      )
+
+      if status.success?
+        Rails.logger.info "[CompilerService] Updated to latest #{branch}: #{stdout.strip}"
+      else
+        Rails.logger.warn "[CompilerService] Git reset failed: #{stderr}"
+      end
     end
   end
 end

@@ -30,10 +30,10 @@ module Agent
       # Small delay to allow the browser to establish ActionCable connection
       sleep 1 if Rails.env.development?
 
-      # 1. Compile Agent
+      # 1. Compile Agent (always pull latest source code)
       Rails.logger.debug "[Agent::InstallJob] Phase 1: Compiling"
       broadcast_status(target_host, "processing", "Compiling Go agent for #{arch}")
-      compiler = Agent::CompilerService.new(arch: arch)
+      compiler = Agent::CompilerService.new(arch: arch, update_source: true)
       local_binary_path = compiler.call
 
       # 2. Remote Install
