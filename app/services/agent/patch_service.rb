@@ -355,17 +355,35 @@ module Agent
     end
 
     def verify_service_running(ssh, via_ssh:)
-      inner_cmd = "systemctl is-active #{SERVICE_NAME}"
-      cmd = build_remote_command(inner_cmd, via_ssh: via_ssh, use_sudo: true)
+      max_retries = 10
+      retry_count = 0
 
-      output = execute_command(ssh, cmd, password: sudo_password)
-      status = output.strip
+      loop do
+        inner_cmd = "systemctl is-active #{SERVICE_NAME}"
+        cmd = build_remote_command(inner_cmd, via_ssh: via_ssh, use_sudo: true)
 
-      unless status == "active"
-        raise PatchError, "Service failed to start. Status: #{status}"
+        begin
+          output = execute_command(ssh, cmd, password: sudo_password)
+          status = output.strip
+        rescue PatchError => e
+          # systemctl is-active returns exit code 3 for activating/failed
+          status = e.message.match(/activating|failed|inactive/) ? e.message.split.last : "unknown"
+        end
+
+        if status == "active"
+          report_progress "Service is running"
+          return
+        elsif status == "activating"
+          retry_count += 1
+          if retry_count >= max_retries
+            raise PatchError, "Service stuck in activating state after #{max_retries} retries"
+          end
+          report_progress "Service is starting... (#{retry_count}/#{max_retries})"
+          sleep 1
+        else
+          raise PatchError, "Service failed to start. Status: #{status}"
+        end
       end
-
-      report_progress "Service is running"
     end
 
     def build_remote_command(inner_cmd, via_ssh:, use_sudo: false)
@@ -389,6 +407,11 @@ module Agent
       Rails.logger.debug "[PatchService] Executing: #{log_cmd}"
 
       ssh.open_channel do |ch|
+        # Request PTY for sudo commands to ensure password can be sent
+        if password.present? && cmd.include?("sudo")
+          ch.request_pty { |_, _| }
+        end
+
         ch.exec(cmd) do |channel, success|
           raise PatchError, "Could not execute command" unless success
 
@@ -399,11 +422,15 @@ module Agent
 
           channel.on_data do |_, data|
             stdout += data
-            broadcast_log(data, "stdout")
+            unless data.match?(/\[sudo\] password for |Password:|Sorry, try again/i)
+              broadcast_log(data, "stdout")
+            end
           end
           channel.on_extended_data do |_, _, data|
             stderr += data
-            broadcast_log(data, "stderr")
+            unless data.match?(/\[sudo\] password for |Password:|Sorry, try again/i)
+              broadcast_log(data, "stderr")
+            end
           end
           channel.on_request("exit-status") { |_, data| exit_code = data.read_long }
         end
@@ -411,9 +438,10 @@ module Agent
       ssh.loop
 
       if exit_code != 0
+        clean_stderr = stderr.gsub(/\[sudo\] password for .*:\s*/i, "").strip
         Rails.logger.error "[PatchService] Command failed: #{log_cmd}"
-        Rails.logger.error "[PatchService] Stderr: #{stderr}"
-        raise PatchError, "Command failed (exit #{exit_code}): #{stderr.strip}"
+        Rails.logger.error "[PatchService] Stderr: #{clean_stderr}"
+        raise PatchError, "Command failed (exit #{exit_code}): #{clean_stderr}"
       end
 
       stdout
