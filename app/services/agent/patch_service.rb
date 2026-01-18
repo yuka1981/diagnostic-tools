@@ -211,7 +211,7 @@ module Agent
     end
 
     def verify_local_service_running
-      max_retries = 10
+      max_retries = 30
       retry_count = 0
 
       loop do
@@ -226,14 +226,24 @@ module Agent
         elsif status == "activating"
           retry_count += 1
           if retry_count >= max_retries
-            raise PatchError, "Service stuck in activating state after #{max_retries} retries"
+            diagnostics = capture_local_service_diagnostics
+            raise PatchError, "Service stuck in activating state after #{max_retries}s. #{diagnostics}"
           end
           report_progress "Service is starting... (#{retry_count}/#{max_retries})"
           sleep 1
         else
-          raise PatchError, "Service failed to start. Status: #{status}"
+          diagnostics = capture_local_service_diagnostics
+          raise PatchError, "Service failed to start. Status: #{status}. #{diagnostics}"
         end
       end
+    end
+
+    def capture_local_service_diagnostics
+      output = execute_local_command("journalctl -u #{SERVICE_NAME} -n 10 --no-pager 2>&1 || true", use_sudo: true)
+      logs = output.lines.reject { |l| l.match?(/^\s*$/) }.last(5).join
+      "Recent logs: #{logs.strip}"
+    rescue StandardError => e
+      "Could not capture logs: #{e.message}"
     end
 
     def execute_local_command(cmd, use_sudo: false)
@@ -370,7 +380,7 @@ module Agent
     end
 
     def verify_service_running(ssh, via_ssh:)
-      max_retries = 10
+      max_retries = 30
       retry_count = 0
 
       loop do
@@ -389,13 +399,32 @@ module Agent
         elsif status == "activating"
           retry_count += 1
           if retry_count >= max_retries
-            raise PatchError, "Service stuck in activating state after #{max_retries} retries"
+            # Capture diagnostics before failing
+            diagnostics = capture_service_diagnostics(ssh, via_ssh: via_ssh)
+            raise PatchError, "Service stuck in activating state after #{max_retries}s. #{diagnostics}"
           end
           report_progress "Service is starting... (#{retry_count}/#{max_retries})"
           sleep 1
         else
-          raise PatchError, "Service failed to start. Status: #{status}"
+          # Capture diagnostics for failed status
+          diagnostics = capture_service_diagnostics(ssh, via_ssh: via_ssh)
+          raise PatchError, "Service failed to start. Status: #{status}. #{diagnostics}"
         end
+      end
+    end
+
+    def capture_service_diagnostics(ssh, via_ssh:)
+      # Get recent journal logs for the service
+      journal_cmd = "journalctl -u #{SERVICE_NAME} -n 10 --no-pager 2>&1 || true"
+      cmd = build_remote_command(journal_cmd, via_ssh: via_ssh, use_sudo: true)
+
+      begin
+        output = execute_command(ssh, cmd, password: sudo_password)
+        # Clean up output
+        logs = output.gsub(/\r/, "").lines.reject { |l| l.match?(/^\s*$/) }.last(5).join
+        "Recent logs: #{logs.strip}"
+      rescue StandardError => e
+        "Could not capture logs: #{e.message}"
       end
     end
 
