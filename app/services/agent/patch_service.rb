@@ -206,13 +206,18 @@ module Agent
       service_file = "/etc/systemd/system/#{SERVICE_NAME}.service"
       node_uuid = @node.uuid
 
-      update_cmd = <<~CMD.squish
-        if grep -q 'node-uuid' #{service_file}; then
-          sed -i 's/--node-uuid "[^"]*"/--node-uuid "#{node_uuid}"/' #{service_file};
-        else
-          sed -i 's|ExecStart=\\(.*\\)|ExecStart=\\1 --node-uuid "#{node_uuid}"|' #{service_file};
-        fi
-      CMD
+      # Check if node-uuid already exists in service file
+      check_output = execute_local_command("grep -q 'node-uuid' #{service_file} && echo 'exists' || echo 'missing'", use_sudo: true)
+      has_uuid = check_output.strip.include?("exists")
+
+      if has_uuid
+        # Update existing --node-uuid value
+        update_cmd = "sed -i 's/--node-uuid \"[^\"]*\"/--node-uuid \"#{node_uuid}\"/' #{service_file}"
+      else
+        # Append --node-uuid to ExecStart line
+        update_cmd = "sed -i '/^ExecStart=/s/$/ --node-uuid \"#{node_uuid}\"/' #{service_file}"
+      end
+
       execute_local_command(update_cmd, use_sudo: true)
     end
 
@@ -448,15 +453,20 @@ module Agent
       service_file = "/etc/systemd/system/#{SERVICE_NAME}.service"
       node_uuid = @node.uuid
 
-      # Read, modify, and write service file using sed
-      # This adds --node-uuid if not present, or updates it if present
-      update_cmd = <<~CMD.squish
-        if grep -q 'node-uuid' #{service_file}; then
-          sed -i 's/--node-uuid "[^"]*"/--node-uuid "#{node_uuid}"/' #{service_file};
-        else
-          sed -i 's|ExecStart=\\(.*\\)|ExecStart=\\1 --node-uuid "#{node_uuid}"|' #{service_file};
-        fi
-      CMD
+      # Check if node-uuid already exists in service file
+      check_cmd = "grep -q 'node-uuid' #{service_file} && echo 'exists' || echo 'missing'"
+      cmd = build_remote_command(check_cmd, via_ssh: via_ssh, use_sudo: true)
+      output = execute_command(ssh, cmd, password: sudo_password)
+      has_uuid = output.strip.include?("exists")
+
+      if has_uuid
+        # Update existing --node-uuid value
+        update_cmd = "sed -i 's/--node-uuid \"[^\"]*\"/--node-uuid \"#{node_uuid}\"/' #{service_file}"
+      else
+        # Append --node-uuid to ExecStart line (before any trailing flags)
+        update_cmd = "sed -i '/^ExecStart=/s/$/ --node-uuid \"#{node_uuid}\"/' #{service_file}"
+      end
+
       cmd = build_remote_command(update_cmd, via_ssh: via_ssh, use_sudo: true)
       execute_command(ssh, cmd, password: sudo_password)
     end
