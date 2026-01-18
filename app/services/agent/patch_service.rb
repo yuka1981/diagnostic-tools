@@ -179,13 +179,27 @@ module Agent
       report_progress "Setting file permissions"
       execute_local_command("chmod 755 #{TARGET_BIN_PATH} && chown root:root #{TARGET_BIN_PATH}", use_sudo: true)
 
-      # Step 5: Start the service
+      # Step 5: Set SELinux context (if SELinux is enabled)
+      report_progress "Setting SELinux context"
+      set_local_selinux_context
+
+      # Step 6: Start the service
       report_progress "Starting agent service"
       execute_local_command("systemctl start #{SERVICE_NAME}", use_sudo: true)
 
-      # Step 6: Verify service is running
+      # Step 7: Verify service is running
       report_progress "Verifying service status"
       verify_local_service_running
+    end
+
+    def set_local_selinux_context
+      selinux_cmd = <<~CMD.squish
+        if command -v getenforce >/dev/null 2>&1 && [ "$(getenforce)" != "Disabled" ]; then
+          restorecon -v #{TARGET_BIN_PATH} 2>/dev/null ||
+          chcon -t bin_t #{TARGET_BIN_PATH} 2>/dev/null || true;
+        fi
+      CMD
+      execute_local_command(selinux_cmd, use_sudo: true)
     end
 
     def verify_local_checksum
@@ -329,11 +343,15 @@ module Agent
       report_progress "Setting file permissions"
       set_permissions(ssh, via_ssh: via_ssh)
 
-      # Step 5: Start the service
+      # Step 5: Set SELinux context (if SELinux is enabled)
+      report_progress "Setting SELinux context"
+      set_selinux_context(ssh, via_ssh: via_ssh)
+
+      # Step 6: Start the service
       report_progress "Starting agent service"
       systemctl_cmd("start", ssh, via_ssh: via_ssh)
 
-      # Step 6: Verify service is running
+      # Step 7: Verify service is running
       report_progress "Verifying service status"
       verify_service_running(ssh, via_ssh: via_ssh)
     end
@@ -376,6 +394,19 @@ module Agent
     def set_permissions(ssh, via_ssh:)
       inner_cmd = "chmod 755 #{TARGET_BIN_PATH} && chown root:root #{TARGET_BIN_PATH}"
       cmd = build_remote_command(inner_cmd, via_ssh: via_ssh, use_sudo: true)
+      execute_command(ssh, cmd, password: sudo_password)
+    end
+
+    def set_selinux_context(ssh, via_ssh:)
+      # Set SELinux context for the binary (if SELinux is enabled)
+      # This is required on RHEL/CentOS/Fedora systems for the binary to be executable
+      selinux_cmd = <<~CMD.squish
+        if command -v getenforce >/dev/null 2>&1 && [ "$(getenforce)" != "Disabled" ]; then
+          restorecon -v #{TARGET_BIN_PATH} 2>/dev/null ||
+          chcon -t bin_t #{TARGET_BIN_PATH} 2>/dev/null || true;
+        fi
+      CMD
+      cmd = build_remote_command(selinux_cmd, via_ssh: via_ssh, use_sudo: true)
       execute_command(ssh, cmd, password: sudo_password)
     end
 
