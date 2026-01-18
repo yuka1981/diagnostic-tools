@@ -42,5 +42,20 @@ FactoryBot.define do
     trait :arm do
       arch { "aarch64" }
     end
+
+    trait :direct do
+      ssh_connect_method { :direct }
+    end
+
+    trait :global_bastion do
+      ssh_connect_method { :global_bastion }
+    end
+
+    trait :custom_bastion do
+      ssh_connect_method { :custom_bastion }
+      jump_host { "bastion.example.com" }
+      jump_user { "bastion_user" }
+      jump_port { 22 }
+    end
   end
 end
