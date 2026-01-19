@@ -239,10 +239,10 @@ module Agent
 
       if ssh.nil?
         execute_local_command("mkdir -p /etc/hpc-agent", use_sudo: true)
-        execute_local_command("echo '#{@node.uuid}' > #{uuid_path}", use_sudo: true)
+        execute_local_command("echo #{@node.uuid} > #{uuid_path}", use_sudo: true)
       else
         cmd = build_remote_command(
-          "mkdir -p /etc/hpc-agent && echo '#{@node.uuid}' > #{uuid_path}",
+          "mkdir -p /etc/hpc-agent && echo #{@node.uuid} > #{uuid_path}",
           via_ssh: false, use_sudo: true
         )
         execute_command(ssh, cmd, password: @sudo_password)
