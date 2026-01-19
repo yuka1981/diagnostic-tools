@@ -20,6 +20,13 @@ module Agent
       # Ensure credentials are cleaned up
       Rails.cache.delete("install_creds_#{credentials_cache_key}")
 
+      # Store credentials in format expected by LifecycleService
+      lifecycle_cache_key = "lifecycle_creds_#{credentials_cache_key}"
+      Rails.cache.write(lifecycle_cache_key, {
+        ssh_password: credentials[:bastion_password],
+        sudo_password: credentials[:sudo_password]
+      }, expires_in: 10.minutes)
+
       # Fetch API token if api_key_id is provided
       agent_token = if api_key_id.present?
         ApiKey.active.find_by(id: api_key_id)&.token
@@ -40,36 +47,35 @@ module Agent
       Rails.logger.debug "[Agent::InstallJob] Phase 2: Remote Installation"
       broadcast_status(target_host, "processing", "Connecting to remote host...")
 
-      installer = Agent::RemoteInstallService.new(
-        target_host: target_host,
-        arch: arch,
-        bastion_host: bastion_host,
-        bastion_user: bastion_user,
-        bastion_password: credentials[:bastion_password],
-        sudo_password: credentials[:sudo_password],
-        local_binary_path: local_binary_path,
-        server_url: server_url,
-        agent_token: agent_token, # Use the selected token if available
+      installer = Agent::InstallService.new(
         node: node,
+        server_url: server_url,
+        api_token: agent_token,
+        binary_path: local_binary_path,
+        cache_key: lifecycle_cache_key,
         on_progress: ->(msg) {
           Rails.logger.debug "[Agent::InstallJob] Progress: #{msg}"
           broadcast_status(target_host, "processing", msg)
         }
       )
 
-      result = installer.call
+      installer.call
+      # Note: InstallService updates node.uuid and node.agent_version internally
 
-      # 3. Sync agent UUID and version to node record
-      if result.agent_uuid.present? && node&.persisted?
-        Rails.logger.info "[Agent::InstallJob] Syncing agent UUID #{result.agent_uuid} to node #{node.hostname}"
-        # Set agent_version to "dev" since we compiled from source without a version tag
-        # The actual version will be updated when the agent does its first inventory push
-        node.update!(uuid: result.agent_uuid, agent_version: "dev")
-      end
-
-      # 4. Success Broadcast
+      # 3. Success Broadcast
       Rails.logger.debug "[Agent::InstallJob] Installation Successful"
       broadcast_status(target_host, "success", "Agent installed successfully")
+    rescue Agent::Errors::LifecycleError => e
+      Rails.logger.error "[Agent::InstallJob] Error: #{e.message}"
+      Rails.logger.error e.backtrace.first(10).join("\n")
+
+      # Revert node source to manual so the user can retry
+      if node&.persisted?
+        Rails.logger.info "[Agent::InstallJob] Reverting node #{target_host} source to manual due to failure"
+        node.update(source: :manual)
+      end
+
+      broadcast_status(target_host, "error", e.message)
     rescue => e
       Rails.logger.error "[Agent::InstallJob] Error: #{e.message}"
       Rails.logger.error e.backtrace.first(10).join("\n")

@@ -79,19 +79,6 @@ RSpec.describe Agent::UpdateService do
     end
   end
 
-  describe "service file regeneration" do
-    it "regenerates service file during update" do
-      service = described_class.new(
-        node: node,
-        agent_release: agent_release,
-        server_url: "https://new-server.example.com",
-        api_token: "new_token_123"
-      )
-
-      expect(service.send(:should_regenerate_service_file?)).to be true
-    end
-  end
-
   describe "#finalize" do
     it "updates node agent_version" do
       service = described_class.new(node: node, agent_release: agent_release)

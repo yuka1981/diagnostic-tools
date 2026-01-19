@@ -23,120 +23,87 @@ RSpec.describe Agent::InstallJob, type: :job do
     }
   end
 
-    let(:agent_uuid) { "agent-uuid-12345" }
-    let(:install_result) { Agent::RemoteInstallService::Result.new(success: true, agent_uuid: agent_uuid) }
-    let(:compiler) { instance_double(Agent::CompilerService, call: "/tmp/hpc-agent") }
-    let(:installer) { instance_double(Agent::RemoteInstallService, call: install_result) }
+  let(:install_result) { Agent::LifecycleService::Result.new(success: true, message: "Agent installed") }
+  let(:compiler) { instance_double(Agent::CompilerService, call: "/tmp/hpc-agent") }
+  let(:installer) { instance_double(Agent::InstallService, call: install_result) }
 
-    before do
-      allow(Agent::CompilerService).to receive(:new).with(arch: "x86_64", update_source: true).and_return(compiler)
-      allow(Agent::RemoteInstallService).to receive(:new).and_return(installer)
-      allow(FileUtils).to receive(:rm_f)
-      allow(Turbo::StreamsChannel).to receive(:broadcast_replace_to)
-      allow(File).to receive(:exist?).and_return(true)
-      Rails.cache.write("install_creds_#{cache_key}", credentials)
-    end
+  before do
+    allow(Agent::CompilerService).to receive(:new).with(arch: "x86_64", update_source: true).and_return(compiler)
+    allow(Agent::InstallService).to receive(:new).and_return(installer)
+    allow(FileUtils).to receive(:rm_f)
+    allow(Turbo::StreamsChannel).to receive(:broadcast_replace_to)
+    allow(File).to receive(:exist?).and_return(true)
+    Rails.cache.write("install_creds_#{cache_key}", credentials)
+  end
 
-    it "compiles and installs the agent" do
-      described_class.perform_now(**params)
+  it "compiles and installs the agent" do
+    described_class.perform_now(**params)
 
-      expect(compiler).to have_received(:call)
-      expect(Agent::RemoteInstallService).to have_received(:new).with(hash_including(
-                                                                       bastion_host: "10.0.0.1",
-                                                                       bastion_password: "password",
-                                                                       sudo_password: "sudo_password",
-                                                                       node: node
-                                                                     ))
-      expect(installer).to have_received(:call)
+    expect(compiler).to have_received(:call)
+    expect(Agent::InstallService).to have_received(:new).with(hash_including(
+                                                                node: node,
+                                                                server_url: "http://test.com",
+                                                                api_token: nil,
+                                                                binary_path: "/tmp/hpc-agent",
+                                                                cache_key: anything,
+                                                                on_progress: anything
+                                                              ))
+    expect(installer).to have_received(:call)
 
-      node.reload
-      expect(node.hostname).to eq("compute-001")
-      expect(node.arch).to eq("x86_64")
-      expect(node.source).to eq("agent_push")
-      expect(node.uuid).to eq(agent_uuid) # UUID synced from agent
+    # Note: InstallService updates node.uuid internally, so we just verify basic node state
+    node.reload
+    expect(node.hostname).to eq("compute-001")
+    expect(node.arch).to eq("x86_64")
 
-      # Verify intermediate broadcasts
-      expect(Turbo::StreamsChannel).to have_received(:broadcast_replace_to).with(
-        "agent_install_compute-001",
-        hash_including(
-          target: "agent_install_status_compute-001",
-          locals: hash_including(status: "processing", message: "Compiling Go agent for x86_64")
-        )
+    # Verify intermediate broadcasts
+    expect(Turbo::StreamsChannel).to have_received(:broadcast_replace_to).with(
+      "agent_install_compute-001",
+      hash_including(
+        target: "agent_install_status_compute-001",
+        locals: hash_including(status: "processing", message: "Compiling Go agent for x86_64")
       )
+    )
 
-      expect(Turbo::StreamsChannel).to have_received(:broadcast_replace_to).with(
-        "agent_install_compute-001",
-        hash_including(
-          target: "agent_install_status_compute-001",
-          locals: hash_including(status: "success")
-        )
+    expect(Turbo::StreamsChannel).to have_received(:broadcast_replace_to).with(
+      "agent_install_compute-001",
+      hash_including(
+        target: "agent_install_status_compute-001",
+        locals: hash_including(status: "success")
       )
+    )
 
-      expect(Rails.cache.read("install_creds_#{cache_key}")).to be_nil
-    end
+    expect(Rails.cache.read("install_creds_#{cache_key}")).to be_nil
+  end
 
-    it "sets agent_version to 'dev' after successful install" do
-      node.update(agent_version: nil)
-
-      described_class.perform_now(**params)
-
-      node.reload
-      expect(node.agent_version).to eq("dev")
-    end
-
-    it "syncs both UUID and agent_version after successful install" do
-      node.update(uuid: nil, agent_version: nil)
-
-      described_class.perform_now(**params)
-
-      node.reload
-      expect(node.uuid).to eq(agent_uuid)
-      expect(node.agent_version).to eq("dev")
-    end
-
-    context "when agent_uuid is not returned" do
-      let(:install_result_no_uuid) { Agent::RemoteInstallService::Result.new(success: true, agent_uuid: nil) }
-
-      before do
-        allow(installer).to receive(:call).and_return(install_result_no_uuid)
-      end
-
-      it "does not update agent_version when UUID is missing" do
-        node.update(agent_version: nil)
-
-        described_class.perform_now(**params)
-
-        node.reload
-        # UUID not synced, so agent_version should also not be updated
-        expect(node.agent_version).to be_nil
-      end
-    end
+  # Note: The InstallService updates node.uuid and node.agent_version internally,
+  # so we don't need to test UUID/version syncing in the job spec.
+  # Those behaviors are tested in the InstallService spec.
   it "uses custom agent_token from credentials if provided" do
     credentials_with_token = credentials.merge(agent_token: "custom-token-123")
     Rails.cache.write("install_creds_#{cache_key}", credentials_with_token)
 
     described_class.perform_now(**params)
 
-    expect(Agent::RemoteInstallService).to have_received(:new).with(hash_including(
-                                                                     agent_token: "custom-token-123"
-                                                                   ))
+    expect(Agent::InstallService).to have_received(:new).with(hash_including(
+                                                                api_token: "custom-token-123"
+                                                              ))
   end
 
   it "handles empty string api_key_id gracefully" do
     # When api_key_id is empty string (e.g. from prompt select), it should NOT try to look it up
-    # and should result in nil agent_token (falling back to credentials/env)
+    # and should result in nil api_token (falling back to credentials/env)
 
     # We deliberately don't put token in credentials here to verify it becomes nil
 
     described_class.perform_now(**params.merge(api_key_id: ""))
 
-    expect(Agent::RemoteInstallService).to have_received(:new).with(hash_including(
-      agent_token: nil
+    expect(Agent::InstallService).to have_received(:new).with(hash_including(
+      api_token: nil
     ))
   end
 
   it "broadcasts error if installation fails" do
-    allow(installer).to receive(:call).and_raise(Agent::RemoteInstallService::InstallError, "Failed")
+    allow(installer).to receive(:call).and_raise(Agent::Errors::DeploymentError.new("Failed", phase: :execute))
 
     described_class.perform_now(**params)
 
@@ -165,16 +132,16 @@ RSpec.describe Agent::InstallJob, type: :job do
     it "uses token from ApiKey record" do
       described_class.perform_now(**params.merge(api_key_id: api_key.id))
 
-      expect(Agent::RemoteInstallService).to have_received(:new).with(hash_including(
-        agent_token: api_key.token
+      expect(Agent::InstallService).to have_received(:new).with(hash_including(
+        api_token: api_key.token
       ))
     end
 
     it "uses nil when api_key_id does not match any active key" do
       described_class.perform_now(**params.merge(api_key_id: 99999))
 
-      expect(Agent::RemoteInstallService).to have_received(:new).with(hash_including(
-        agent_token: nil
+      expect(Agent::InstallService).to have_received(:new).with(hash_including(
+        api_token: nil
       ))
     end
 
@@ -183,8 +150,8 @@ RSpec.describe Agent::InstallJob, type: :job do
 
       described_class.perform_now(**params.merge(api_key_id: revoked_key.id))
 
-      expect(Agent::RemoteInstallService).to have_received(:new).with(hash_including(
-        agent_token: nil
+      expect(Agent::InstallService).to have_received(:new).with(hash_including(
+        api_token: nil
       ))
     end
   end

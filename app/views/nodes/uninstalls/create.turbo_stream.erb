@@ -4,6 +4,6 @@
       status: "processing", 
       message: "Starting uninstallation process...", 
       target_host: params[:uninstall][:hostname],
-      steps: Agent::RemoteUninstallService::STEPS,
+      steps: Agent::UninstallJob::STEPS,
       current_step: nil %>
 <% end %>

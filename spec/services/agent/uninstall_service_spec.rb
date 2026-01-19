@@ -61,101 +61,153 @@ RSpec.describe Agent::UninstallService do
     end
   end
 
-  describe "WebSocket uninstall" do
-    let(:node) { create(:node, :direct, hostname: "test-node", uuid: "abc-123", agent_version: "v1.0.0") }
+  describe "always uses SSH for uninstall" do
+    let(:ssh_session) { instance_double(Net::SSH::Connection::Session) }
     let(:service) { described_class.new(node: node) }
 
     context "when node is online with UUID" do
+      let(:node) { create(:node, :direct, hostname: "test-node", ip: "192.168.1.100", uuid: "abc-123", agent_version: "v1.0.0") }
+
       before do
         node.update!(last_heartbeat_at: 1.minute.ago)
-        # Allow all broadcasts (for node_logs progress reporting)
         allow(ActionCable.server).to receive(:broadcast)
       end
 
-      it "uses WebSocket instead of SSH" do
-        expect(Net::SSH).not_to receive(:start)
-        # Verify it broadcasts to the agent channel with correct payload
-        expect(ActionCable.server).to receive(:broadcast).with(
-          "agent_abc-123",
-          hash_including(type: "command", action: "uninstall")
-        ).at_least(:once)
+      it "uses SSH instead of WebSocket" do
+        expect(Net::SSH).to receive(:start).and_yield(ssh_session)
+        allow(service).to receive(:perform_remote_uninstall)
 
         service.call
       end
 
-      it "includes correlation_id in broadcast" do
-        agent_broadcast_received = false
+      it "does not broadcast uninstall command to agent channel" do
+        allow(Net::SSH).to receive(:start).and_yield(ssh_session)
+        allow(service).to receive(:perform_remote_uninstall)
 
-        allow(ActionCable.server).to receive(:broadcast) do |channel, payload|
-          if channel == "agent_abc-123"
-            agent_broadcast_received = true
-            expect(payload[:correlation_id]).to be_present
-            expect(payload[:correlation_id]).to match(/\A[0-9a-f-]{36}\z/)
-          end
-        end
+        expect(ActionCable.server).not_to receive(:broadcast).with(
+          "agent_abc-123",
+          hash_including(action: "uninstall")
+        )
 
         service.call
-        expect(agent_broadcast_received).to be true
       end
 
       it "creates AgentEvent with success status" do
+        allow(Net::SSH).to receive(:start).and_yield(ssh_session)
+        allow(service).to receive(:perform_remote_uninstall)
+
         expect { service.call }.to change(AgentEvent, :count).by(1)
 
         event = AgentEvent.last
         expect(event.operation).to eq("uninstall")
         expect(event.status).to eq("success")
       end
-
-      it "reports progress about WebSocket path" do
-        progress_messages = []
-        allow(service).to receive(:report_progress).and_wrap_original do |method, message|
-          progress_messages << message
-          method.call(message)
-        end
-
-        service.call
-
-        expect(progress_messages).to include(match(/online.*WebSocket/i))
-      end
-    end
-
-    context "when node is online but has no UUID" do
-      let(:node) { create(:node, :direct, hostname: "test-node", agent_version: "v1.0.0") }
-
-      before do
-        # Clear UUID after creation (since factory generates one)
-        node.update_columns(uuid: nil, last_heartbeat_at: 1.minute.ago)
-        # Allow progress broadcasts but expect no agent channel broadcasts
-        allow(ActionCable.server).to receive(:broadcast)
-        allow(Net::SSH).to receive(:start).and_yield(instance_double(Net::SSH::Connection::Session))
-        allow(service).to receive(:perform_remote_uninstall)
-      end
-
-      it "falls back to SSH" do
-        # Should NOT broadcast to any agent channel
-        expect(ActionCable.server).not_to receive(:broadcast).with(/^agent_/, anything)
-        expect(Net::SSH).to receive(:start)
-
-        service.call rescue nil  # May fail due to mock, that's ok
-      end
     end
 
     context "when node is offline" do
       before do
         node.update!(last_heartbeat_at: 10.minutes.ago)
-        # Allow progress broadcasts but expect no agent channel broadcasts
         allow(ActionCable.server).to receive(:broadcast)
-        allow(Net::SSH).to receive(:start).and_yield(instance_double(Net::SSH::Connection::Session))
+      end
+
+      it "uses SSH for uninstall" do
+        expect(Net::SSH).to receive(:start).and_yield(ssh_session)
         allow(service).to receive(:perform_remote_uninstall)
+
+        service.call
+      end
+    end
+
+    context "when node has no UUID" do
+      let(:node) { create(:node, :direct, hostname: "test-node", ip: "192.168.1.100", agent_version: "v1.0.0") }
+
+      before do
+        node.update_columns(uuid: nil, last_heartbeat_at: 1.minute.ago)
+        allow(ActionCable.server).to receive(:broadcast)
       end
 
-      it "uses SSH instead of WebSocket" do
-        # Should NOT broadcast to any agent channel
-        expect(ActionCable.server).not_to receive(:broadcast).with(/^agent_/, anything)
-        expect(Net::SSH).to receive(:start)
+      it "uses SSH for uninstall" do
+        expect(Net::SSH).to receive(:start).and_yield(ssh_session)
+        allow(service).to receive(:perform_remote_uninstall)
 
-        service.call rescue nil
+        service.call
       end
+    end
+  end
+
+  describe "SSH uninstall operations" do
+    let(:ssh_session) { instance_double(Net::SSH::Connection::Session) }
+    let(:service) { described_class.new(node: node) }
+
+    before do
+      allow(Net::SSH).to receive(:start).and_yield(ssh_session)
+      allow(ActionCable.server).to receive(:broadcast)
+    end
+
+    it "stops the agent service" do
+      expect(service).to receive(:execute_command).with(
+        ssh_session,
+        match(/systemctl stop hpc-agent/),
+        anything
+      ).and_return("")
+      allow(service).to receive(:execute_command).and_return("")
+
+      service.call
+    end
+
+    it "disables the agent service" do
+      expect(service).to receive(:execute_command).with(
+        ssh_session,
+        match(/systemctl disable hpc-agent/),
+        anything
+      ).and_return("")
+      allow(service).to receive(:execute_command).and_return("")
+
+      service.call
+    end
+
+    it "removes the agent binary" do
+      expect(service).to receive(:execute_command).with(
+        ssh_session,
+        match(/rm -f.*\/usr\/local\/bin\/hpc-agent/),
+        anything
+      ).and_return("")
+      allow(service).to receive(:execute_command).and_return("")
+
+      service.call
+    end
+
+    it "removes the service file" do
+      expect(service).to receive(:execute_command).with(
+        ssh_session,
+        match(/rm -f.*hpc-agent\.service/),
+        anything
+      ).and_return("")
+      allow(service).to receive(:execute_command).and_return("")
+
+      service.call
+    end
+
+    it "reloads systemd" do
+      expect(service).to receive(:execute_command).with(
+        ssh_session,
+        match(/systemctl daemon-reload/),
+        anything
+      ).and_return("")
+      allow(service).to receive(:execute_command).and_return("")
+
+      service.call
+    end
+
+    it "removes the configuration directory" do
+      expect(service).to receive(:execute_command).with(
+        ssh_session,
+        match(/rm -rf.*\/etc\/hpc-agent/),
+        anything
+      ).and_return("")
+      allow(service).to receive(:execute_command).and_return("")
+
+      service.call
     end
   end
 end

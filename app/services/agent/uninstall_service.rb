@@ -5,15 +5,6 @@ require_relative "lifecycle_service"
 module Agent
   # Service to uninstall the agent from a remote node
   class UninstallService < LifecycleService
-    # Override to skip SSH when using WebSocket
-    def with_connection(&block)
-      if should_use_websocket?
-        yield nil
-      else
-        super
-      end
-    end
-
     protected
 
     def operation_type
@@ -23,9 +14,7 @@ module Agent
     def execute_operation(ssh)
       report_progress "Starting agent uninstallation"
 
-      if should_use_websocket?
-        perform_websocket_uninstall
-      elsif ssh.nil?
+      if ssh.nil?
         perform_local_uninstall
       else
         perform_remote_uninstall(ssh)
@@ -51,22 +40,6 @@ module Agent
 
     private
 
-    def should_use_websocket?
-      @node.online? && @node.uuid.present?
-    end
-
-    def perform_websocket_uninstall
-      report_progress "Agent is online - sending uninstall command via WebSocket"
-
-      ActionCable.server.broadcast("agent_#{@node.uuid}", {
-        type: "command",
-        action: "uninstall",
-        correlation_id: SecureRandom.uuid
-      })
-
-      report_progress "Uninstall command sent - agent will self-remove"
-    end
-
     def perform_local_uninstall
       report_progress "Stopping agent service"
       execute_local_command("systemctl stop #{SERVICE_NAME} 2>/dev/null || true", use_sudo: true)
@@ -82,6 +55,9 @@ module Agent
 
       report_progress "Cleaning up staging files"
       execute_local_command("rm -rf #{STAGING_DIR} /tmp/agent_install /tmp/agent_update /tmp/hpc-agent.service", use_sudo: true)
+
+      report_progress "Removing configuration directory"
+      execute_local_command("rm -rf /etc/hpc-agent", use_sudo: true)
 
       report_progress "Reloading systemd"
       execute_local_command("systemctl daemon-reload", use_sudo: true)
@@ -106,6 +82,10 @@ module Agent
 
       report_progress "Cleaning up staging files"
       cmd = build_remote_command("rm -rf #{STAGING_DIR} /tmp/agent_install /tmp/agent_update /tmp/hpc-agent.service", via_ssh: false, use_sudo: true)
+      execute_command(ssh, cmd, password: @sudo_password)
+
+      report_progress "Removing configuration directory"
+      cmd = build_remote_command("rm -rf /etc/hpc-agent", via_ssh: false, use_sudo: true)
       execute_command(ssh, cmd, password: @sudo_password)
 
       report_progress "Reloading systemd"

@@ -30,8 +30,8 @@ export default class extends Controller {
       this.contentTarget.src = url
     }
 
-    // Prevent default navigation since we're loading into the frame
-    event.preventDefault()
+    // Don't prevent default - let Turbo handle the frame navigation
+    // The link should have data-turbo-frame="slide_over_content" to load into the frame
 
     this.openValue = true
     this.show()
