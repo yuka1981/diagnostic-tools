@@ -223,14 +223,20 @@ module Agent
     def get_service_status(ssh)
       if ssh.nil?
         output = execute_local_command("systemctl is-active #{SERVICE_NAME}", use_sudo: true)
-        output.strip
+        clean_sudo_output(output)
       else
         cmd = build_remote_command("systemctl is-active #{SERVICE_NAME}", via_ssh: false, use_sudo: true)
         output = execute_command(ssh, cmd, password: @sudo_password)
-        output.strip
+        clean_sudo_output(output)
       end
     rescue Errors::DeploymentError => e
-      e.details[:stdout]&.strip || "unknown"
+      clean_sudo_output(e.details[:stdout]) || "unknown"
+    end
+
+    def clean_sudo_output(output)
+      return nil if output.blank?
+
+      output.gsub(/\[sudo\] password for \S+:\s*/, "").strip
     end
 
     def write_agent_uuid(ssh)
