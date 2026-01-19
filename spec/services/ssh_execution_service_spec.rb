@@ -3,7 +3,7 @@
 require "rails_helper"
 
 RSpec.describe SshExecutionService, type: :service do
-  let(:node) { create(:node, hostname: "localhost", ip: "127.0.0.1") }
+  let(:node) { build_stubbed(:node, hostname: "localhost", ip: "127.0.0.1") }
   let(:service) { described_class.new(node) }
 
   describe "#execute_on_session" do
@@ -54,19 +54,19 @@ RSpec.describe SshExecutionService, type: :service do
 
   describe "#localhost_target?" do
     it "returns true for 127.0.0.1 IP" do
-      localhost_node = create(:node, ip: "127.0.0.1", hostname: "test-host")
+      localhost_node = build_stubbed(:node, ip: "127.0.0.1", hostname: "test-host")
       service = described_class.new(localhost_node)
       expect(service.send(:localhost_target?)).to be true
     end
 
     it "returns true for localhost hostname" do
-      localhost_node = create(:node, ip: nil, hostname: "localhost")
+      localhost_node = build_stubbed(:node, ip: nil, hostname: "localhost")
       service = described_class.new(localhost_node)
       expect(service.send(:localhost_target?)).to be true
     end
 
     it "returns true for ::1 IPv6 localhost" do
-      ipv6_node = create(:node, ip: "::1", hostname: "test-host")
+      ipv6_node = build_stubbed(:node, ip: "::1", hostname: "test-host")
       service = described_class.new(ipv6_node)
       expect(service.send(:localhost_target?)).to be true
     end
@@ -85,7 +85,7 @@ RSpec.describe SshExecutionService, type: :service do
   end
 
   describe "#execute_local" do
-    let(:localhost_node) { create(:node, ip: "127.0.0.1", hostname: "localhost") }
+    let(:localhost_node) { build_stubbed(:node, ip: "127.0.0.1", hostname: "localhost") }
     let(:local_service) { described_class.new(localhost_node) }
 
     it "executes command locally using Open3" do
@@ -154,7 +154,7 @@ RSpec.describe SshExecutionService, type: :service do
 
   describe "#execute_ssh_command routing" do
     context "when target is localhost" do
-      let(:localhost_node) { create(:node, ip: "127.0.0.1", hostname: "localhost") }
+      let(:localhost_node) { build_stubbed(:node, ip: "127.0.0.1", hostname: "localhost") }
       let(:local_service) { described_class.new(localhost_node) }
 
       it "routes to execute_local instead of SSH" do
