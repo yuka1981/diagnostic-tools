@@ -97,4 +97,88 @@ RSpec.describe Agent::LifecycleService do
       expect(execution_order).to eq(%i[preflight connect execute verify finalize])
     end
   end
+
+  describe "#connect_direct" do
+    let(:node) { create(:node, :direct, hostname: "test.example.com", ip: "192.168.1.100") }
+    let(:service) { TestLifecycleService.new(node: node) }
+
+    context "when IP connection fails with network error" do
+      before do
+        # First call fails with timeout, second succeeds
+        call_count = 0
+        allow(Net::SSH).to receive(:start) do |host, *_args, &block|
+          call_count += 1
+          if call_count == 1 && host == "192.168.1.100"
+            raise Errno::ETIMEDOUT, "Connection timed out"
+          else
+            # Simulate successful connection
+            mock_ssh = instance_double(Net::SSH::Connection::Session)
+            block.call(mock_ssh) if block
+          end
+        end
+      end
+
+      it "retries with hostname after IP fails" do
+        expect(Net::SSH).to receive(:start).with("192.168.1.100", anything, anything).ordered
+        expect(Net::SSH).to receive(:start).with("test.example.com", anything, anything).ordered
+
+        # Use send to access private method
+        service.send(:with_connection) { |_ssh| }
+      end
+
+      it "logs the fallback attempt" do
+        expect(service).to receive(:report_progress).with(/Connecting directly to 192.168.1.100/)
+        expect(service).to receive(:report_progress).with(/Connection to 192.168.1.100 failed/)
+        expect(service).to receive(:report_progress).with(/Connecting directly to test.example.com/)
+
+        service.send(:with_connection) { |_ssh| }
+      end
+    end
+
+    context "when IP connection fails with auth error" do
+      before do
+        allow(Net::SSH).to receive(:start).and_raise(Net::SSH::AuthenticationFailed, "auth failed")
+      end
+
+      it "does not retry with hostname" do
+        expect(Net::SSH).to receive(:start).once
+
+        expect {
+          service.send(:with_connection) { |_ssh| }
+        }.to raise_error(Agent::ConnectionError, /authentication failed/i)
+      end
+    end
+
+    context "when hostname equals IP" do
+      let(:node) { create(:node, :direct, hostname: "192.168.1.100", ip: "192.168.1.100") }
+
+      before do
+        allow(Net::SSH).to receive(:start).and_raise(Errno::ETIMEDOUT, "Connection timed out")
+      end
+
+      it "does not retry since no fallback available" do
+        expect(Net::SSH).to receive(:start).once
+
+        expect {
+          service.send(:with_connection) { |_ssh| }
+        }.to raise_error(Agent::ConnectionError)
+      end
+    end
+
+    context "when node has no IP (hostname only)" do
+      let(:node) { create(:node, :direct, hostname: "test.example.com", ip: nil) }
+
+      before do
+        allow(Net::SSH).to receive(:start).and_raise(Errno::ECONNREFUSED, "Connection refused")
+      end
+
+      it "does not retry since no fallback available" do
+        expect(Net::SSH).to receive(:start).once
+
+        expect {
+          service.send(:with_connection) { |_ssh| }
+        }.to raise_error(Agent::ConnectionError)
+      end
+    end
+  end
 end

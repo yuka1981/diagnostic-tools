@@ -112,17 +112,46 @@ module Agent
     end
 
     def connect_direct(&block)
-      host = @node.ip.presence || @node.hostname
-      report_progress "Connecting directly to #{host}"
+      primary_host = @node.ip.presence || @node.hostname
+      fallback_host = determine_fallback_host(primary_host)
 
+      begin
+        attempt_connection(primary_host, &block)
+      rescue ConnectionError => e
+        raise unless fallback_host && e.recoverable
+
+        report_progress "Connection to #{primary_host} failed, retrying with #{fallback_host}..."
+        attempt_connection(fallback_host, &block)
+      end
+    end
+
+    def attempt_connection(host, &block)
+      report_progress "Connecting directly to #{host}"
       Net::SSH.start(host, ssh_user, ssh_options.merge(port: @node.ssh_port || 22), &block)
-    rescue Errno::ECONNREFUSED, Errno::EHOSTUNREACH, Errno::ETIMEDOUT, Net::SSH::AuthenticationFailed => e
+    rescue Errno::ECONNREFUSED, Errno::EHOSTUNREACH, Errno::ETIMEDOUT,
+           Net::SSH::ConnectionTimeout => e
       raise ConnectionError.new(
         "SSH connection failed: #{e.message}",
         phase: :connect,
         details: { host: host, error_class: e.class.name },
         recoverable: true
       )
+    rescue Net::SSH::AuthenticationFailed => e
+      raise ConnectionError.new(
+        "SSH authentication failed: #{e.message}",
+        phase: :connect,
+        details: { host: host, error_class: e.class.name },
+        recoverable: false
+      )
+    end
+
+    def determine_fallback_host(primary_host)
+      return nil if @node.ip.blank?
+      return nil if @node.hostname.blank?
+      return nil if @node.hostname == @node.ip
+      return nil if primary_host == @node.hostname
+
+      @node.hostname
     end
 
     def connect_via_bastion(&block)
