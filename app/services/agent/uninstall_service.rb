@@ -5,6 +5,15 @@ require_relative "lifecycle_service"
 module Agent
   # Service to uninstall the agent from a remote node
   class UninstallService < LifecycleService
+    # Override to skip SSH when using WebSocket
+    def with_connection(&block)
+      if should_use_websocket?
+        yield nil
+      else
+        super
+      end
+    end
+
     protected
 
     def operation_type
@@ -14,7 +23,9 @@ module Agent
     def execute_operation(ssh)
       report_progress "Starting agent uninstallation"
 
-      if ssh.nil?
+      if should_use_websocket?
+        perform_websocket_uninstall
+      elsif ssh.nil?
         perform_local_uninstall
       else
         perform_remote_uninstall(ssh)
@@ -39,6 +50,22 @@ module Agent
     end
 
     private
+
+    def should_use_websocket?
+      @node.online? && @node.uuid.present?
+    end
+
+    def perform_websocket_uninstall
+      report_progress "Agent is online - sending uninstall command via WebSocket"
+
+      ActionCable.server.broadcast("agent_#{@node.uuid}", {
+        type: "command",
+        action: "uninstall",
+        correlation_id: SecureRandom.uuid
+      })
+
+      report_progress "Uninstall command sent - agent will self-remove"
+    end
 
     def perform_local_uninstall
       report_progress "Stopping agent service"
