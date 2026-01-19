@@ -53,8 +53,9 @@ RSpec.describe "Node Management", type: :system, js: true do
     end
 
     # Mock the background job service to succeed immediately
-    uninstaller = instance_double(Agent::RemoteUninstallService, call: true)
-    allow(Agent::RemoteUninstallService).to receive(:new).and_return(uninstaller)
+    uninstall_result = Agent::LifecycleService::Result.new(success: true, message: "Agent uninstalled")
+    uninstaller = instance_double(Agent::UninstallService, call: uninstall_result)
+    allow(Agent::UninstallService).to receive(:new).and_return(uninstaller)
 
     within "turbo-frame#uninstall_modal" do
       expect(page).to have_content(/Uninstall Agent: uninstall-target/i)
@@ -84,7 +85,7 @@ RSpec.describe "Node Management", type: :system, js: true do
         status: "success",
         message: "Agent uninstalled successfully",
         target_host: "uninstall-target",
-        steps: Agent::RemoteUninstallService::STEPS
+        steps: Agent::UninstallJob::STEPS
       }
     )
 

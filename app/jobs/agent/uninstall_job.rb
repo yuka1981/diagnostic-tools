@@ -4,6 +4,22 @@ module Agent
   class UninstallJob < ApplicationJob
     queue_as :default
 
+    # Steps for UI progress display (matches old RemoteUninstallService::STEPS)
+    STEPS = {
+      connect: "Connecting to host",
+      stop_service: "Stopping agent service",
+      remove_files: "Removing files",
+      reload_daemon: "Reloading systemd"
+    }.freeze
+
+    # Map progress messages to step keys for UI display
+    STEP_PATTERNS = {
+      /connecting|connection/i => :connect,
+      /stopping/i => :stop_service,
+      /removing|disabling|cleanup/i => :remove_files,
+      /reload|daemon/i => :reload_daemon
+    }.freeze
+
     def perform(target_host:, bastion_host: nil, bastion_user:, credentials_cache_key:)
       Rails.logger.debug "[Agent::UninstallJob] Starting uninstall for #{target_host}"
 
@@ -17,43 +33,47 @@ module Agent
       # Ensure credentials are cleaned up
       Rails.cache.delete("install_creds_#{credentials_cache_key}")
 
+      # Store credentials in format expected by LifecycleService
+      lifecycle_cache_key = "lifecycle_creds_#{credentials_cache_key}"
+      Rails.cache.write(lifecycle_cache_key, {
+        ssh_password: credentials[:bastion_password],
+        sudo_password: credentials[:sudo_password]
+      }, expires_in: 10.minutes)
+
       # Find node record early
       node = Node.find_by(hostname: target_host)
+
+      unless node
+        Rails.logger.error "[Agent::UninstallJob] Node not found for hostname: #{target_host}"
+        raise "Uninstallation failed: Node not found."
+      end
 
       # Small delay to allow the browser to establish ActionCable connection
       sleep 1 if Rails.env.development?
 
-      # 1. Remote Uninstall
       # Initial broadcast to show the list
       broadcast_status(target_host, "processing", "Starting uninstallation...", nil)
 
-      uninstaller = Agent::RemoteUninstallService.new(
-        target_host: target_host,
-        bastion_host: bastion_host,
-        bastion_user: bastion_user,
-        bastion_password: credentials[:bastion_password],
-        sudo_password: credentials[:sudo_password],
+      uninstaller = Agent::UninstallService.new(
         node: node,
-        on_progress: ->(step, msg) {
+        cache_key: lifecycle_cache_key,
+        on_progress: ->(msg) {
+          step = infer_step_from_message(msg)
           Rails.logger.debug "[Agent::UninstallJob] Step: #{step} - #{msg}"
           broadcast_status(target_host, "processing", msg, step)
         }
       )
 
       uninstaller.call
+      # Note: UninstallService updates node.source and node.agent_version internally
 
-      # 2. Update Node Record
-      Rails.logger.debug "[Agent::UninstallJob] Updating Node record for #{target_host}"
-      # We don't delete the node, just mark it as possibly offline or handled manually now.
-      # For now, we'll just log it. Maybe in future we update source to manual.
-
-      if node
-        node.update(source: :manual, agent_version: nil)
-      end
-
-      # 3. Success Broadcast
+      # Success Broadcast
       Rails.logger.debug "[Agent::UninstallJob] Uninstallation Successful"
       broadcast_status(target_host, "success", "Agent uninstalled successfully", :done)
+    rescue Agent::Errors::LifecycleError => e
+      Rails.logger.error "[Agent::UninstallJob] Error: #{e.message}"
+      Rails.logger.error e.backtrace.first(10).join("\n")
+      broadcast_status(target_host, "error", e.message, nil)
     rescue => e
       Rails.logger.error "[Agent::UninstallJob] Error: #{e.message}"
       Rails.logger.error e.backtrace.first(10).join("\n")
@@ -61,6 +81,13 @@ module Agent
     end
 
     private
+
+    def infer_step_from_message(message)
+      STEP_PATTERNS.each do |pattern, step|
+        return step if message.match?(pattern)
+      end
+      nil
+    end
 
     def broadcast_status(target_host, status, message, step)
       Turbo::StreamsChannel.broadcast_replace_to(
@@ -72,7 +99,7 @@ module Agent
           message: message,
           target_host: target_host,
           current_step: step,
-          steps: Agent::RemoteUninstallService::STEPS
+          steps: STEPS
         }
       )
     end

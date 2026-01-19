@@ -6,25 +6,26 @@ RSpec.describe Agent::UpdateJob, type: :job do
   let(:node) { create(:node, :direct, hostname: "compute-001", sudo_credential: "saved_password") }
   let(:agent_release) { create(:agent_release, version: "v2.0.0") }
 
-  let(:patch_result) { Agent::PatchService::Result.new(success: true, message: "Agent updated to v2.0.0") }
-  let(:patch_service) { instance_double(Agent::PatchService, call: patch_result) }
+  let(:update_result) { Agent::LifecycleService::Result.new(success: true, message: "Agent updated to v2.0.0") }
+  let(:update_service) { instance_double(Agent::UpdateService, call: update_result) }
 
   before do
-    allow(Agent::PatchService).to receive(:new).and_return(patch_service)
+    allow(Agent::UpdateService).to receive(:new).and_return(update_service)
     allow(Turbo::StreamsChannel).to receive(:broadcast_replace_to)
   end
 
   describe "#perform" do
-    it "calls PatchService with correct parameters" do
+    it "calls UpdateService with correct parameters" do
       described_class.perform_now(node: node, agent_release: agent_release)
 
-      expect(Agent::PatchService).to have_received(:new).with(
+      expect(Agent::UpdateService).to have_received(:new).with(
         node: node,
         agent_release: agent_release,
         force: false,
+        cache_key: nil,
         on_progress: anything
       )
-      expect(patch_service).to have_received(:call)
+      expect(update_service).to have_received(:call)
     end
 
     it "broadcasts success status on completion" do
@@ -51,10 +52,10 @@ RSpec.describe Agent::UpdateJob, type: :job do
     end
 
     context "with force flag" do
-      it "passes force to PatchService" do
+      it "passes force to UpdateService" do
         described_class.perform_now(node: node, agent_release: agent_release, force: true)
 
-        expect(Agent::PatchService).to have_received(:new).with(hash_including(force: true))
+        expect(Agent::UpdateService).to have_received(:new).with(hash_including(force: true))
       end
     end
 
@@ -65,24 +66,30 @@ RSpec.describe Agent::UpdateJob, type: :job do
         Rails.cache.write("update_creds_#{cache_key}", { sudo_password: "cached_password" })
       end
 
-      it "uses sudo password from cache during PatchService call" do
-        # Capture the sudo_credential at the time PatchService.new is called
-        captured_credential = nil
-        allow(Agent::PatchService).to receive(:new) do |args|
-          captured_credential = args[:node].sudo_credential
-          patch_service
-        end
-
+      it "transforms credentials_cache_key to lifecycle_cache_key for UpdateService" do
         described_class.perform_now(
           node: node,
           agent_release: agent_release,
           credentials_cache_key: cache_key
         )
 
-        expect(captured_credential).to eq("cached_password")
+        expect(Agent::UpdateService).to have_received(:new).with(
+          hash_including(cache_key: "lifecycle_creds_#{cache_key}")
+        )
       end
 
-      it "cleans up cache after use" do
+      it "stores credentials in lifecycle format in cache" do
+        described_class.perform_now(
+          node: node,
+          agent_release: agent_release,
+          credentials_cache_key: cache_key
+        )
+
+        lifecycle_creds = Rails.cache.read("lifecycle_creds_#{cache_key}")
+        expect(lifecycle_creds).to include(sudo_password: "cached_password")
+      end
+
+      it "cleans up original credentials cache" do
         described_class.perform_now(
           node: node,
           agent_release: agent_release,
@@ -92,7 +99,7 @@ RSpec.describe Agent::UpdateJob, type: :job do
         expect(Rails.cache.read("update_creds_#{cache_key}")).to be_nil
       end
 
-      it "restores original sudo_credential after job" do
+      it "does not modify node sudo_credential" do
         described_class.perform_now(
           node: node,
           agent_release: agent_release,
@@ -105,7 +112,7 @@ RSpec.describe Agent::UpdateJob, type: :job do
 
     context "when node is busy" do
       before do
-        allow(patch_service).to receive(:call).and_raise(Agent::Errors::NodeBusyError)
+        allow(update_service).to receive(:call).and_raise(Agent::Errors::NodeBusyError)
       end
 
       it "broadcasts error status" do
@@ -120,10 +127,10 @@ RSpec.describe Agent::UpdateJob, type: :job do
       end
     end
 
-    context "when patch fails" do
+    context "when update fails" do
       before do
-        allow(patch_service).to receive(:call).and_raise(
-          Agent::PatchService::PatchError, "SSH connection failed"
+        allow(update_service).to receive(:call).and_raise(
+          Agent::Errors::DeploymentError.new("SSH connection failed", phase: :connect)
         )
       end
 
@@ -141,7 +148,7 @@ RSpec.describe Agent::UpdateJob, type: :job do
 
     context "when unexpected error occurs" do
       before do
-        allow(patch_service).to receive(:call).and_raise(StandardError, "Something went wrong")
+        allow(update_service).to receive(:call).and_raise(StandardError, "Something went wrong")
       end
 
       it "broadcasts error status" do

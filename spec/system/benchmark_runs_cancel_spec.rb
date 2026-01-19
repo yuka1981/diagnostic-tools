@@ -167,7 +167,9 @@ RSpec.describe "Benchmark Runs Cancel Functionality", type: :system do
 
         expect(page).to have_css("[data-slide-over-target='panel']", visible: true, wait: 5)
 
+        # Wait for the turbo frame content to load by checking for specific content
         within("[data-slide-over-target='panel']") do
+          expect(page).to have_content("Run ##{pending_run.id}", wait: 5)
           expect(page).to have_button("Cancel", wait: 5)
         end
       end
@@ -182,7 +184,9 @@ RSpec.describe "Benchmark Runs Cancel Functionality", type: :system do
 
         expect(page).to have_css("[data-slide-over-target='panel']", visible: true, wait: 5)
 
+        # Wait for the turbo frame content to load by checking for specific content
         within("[data-slide-over-target='panel']") do
+          expect(page).to have_content("Run ##{pending_run.id}", wait: 5)
           accept_confirm do
             click_button "Cancel"
           end
