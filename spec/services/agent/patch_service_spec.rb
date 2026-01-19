@@ -382,7 +382,7 @@ RSpec.describe Agent::PatchService do
     end
 
     context "with localhost node" do
-      let(:localhost_node) { create(:node, ip: "127.0.0.1", hostname: "localhost-node") }
+      let(:localhost_node) { build_stubbed(:node, ip: "127.0.0.1", hostname: "localhost-node") }
 
       it "treats localhost as direct connection" do
         service = described_class.new(node: localhost_node, agent_release: agent_release)
@@ -391,7 +391,7 @@ RSpec.describe Agent::PatchService do
     end
 
     context "with IPv6 localhost" do
-      let(:ipv6_localhost) { create(:node, ip: "::1", hostname: "ipv6-localhost") }
+      let(:ipv6_localhost) { build_stubbed(:node, ip: "::1", hostname: "ipv6-localhost") }
 
       it "treats IPv6 localhost as direct connection" do
         service = described_class.new(node: ipv6_localhost, agent_release: agent_release)
@@ -662,7 +662,7 @@ RSpec.describe Agent::PatchService do
   end
 
   describe "localhost local execution" do
-    let(:localhost_node) { create(:node, ip: "127.0.0.1", hostname: "localhost-node") }
+    let(:localhost_node) { build_stubbed(:node, ip: "127.0.0.1", hostname: "localhost-node") }
 
     it "detects localhost for 127.0.0.1" do
       service = described_class.new(node: localhost_node, agent_release: agent_release)
@@ -670,18 +670,20 @@ RSpec.describe Agent::PatchService do
     end
 
     it "detects localhost for localhost hostname" do
-      localhost_hostname_node = create(:node, ip: nil, hostname: "localhost")
+      localhost_hostname_node = build_stubbed(:node, ip: nil, hostname: "localhost")
       service = described_class.new(node: localhost_hostname_node, agent_release: agent_release)
       expect(service.send(:localhost_target?)).to be true
     end
 
     it "detects localhost for ::1 IPv6" do
-      ipv6_node = create(:node, ip: "::1", hostname: "ipv6-local")
+      ipv6_node = build_stubbed(:node, ip: "::1", hostname: "ipv6-local")
       service = described_class.new(node: ipv6_node, agent_release: agent_release)
       expect(service.send(:localhost_target?)).to be true
     end
 
     context "local update execution" do
+      let(:localhost_node) { build_stubbed(:node, ip: "127.0.0.1", hostname: "localhost-node") }
+
       before do
         allow(FileUtils).to receive(:cp)
         allow(Open3).to receive(:capture3) do |cmd|
@@ -695,6 +697,9 @@ RSpec.describe Agent::PatchService do
             [ "", "", status ]
           end
         end
+        # Stub database operations since we use build_stubbed
+        allow(localhost_node).to receive(:update_column)
+        allow(localhost_node).to receive(:reload).and_return(localhost_node)
       end
 
       it "uses local execution instead of SSH for localhost" do
@@ -708,13 +713,10 @@ RSpec.describe Agent::PatchService do
       end
 
       it "updates agent_version after successful local patch" do
-        expect(localhost_node.agent_version).to be_nil
+        expect(localhost_node).to receive(:update_column).with(:agent_version, "v1.0.0")
 
         service = described_class.new(node: localhost_node, agent_release: agent_release)
         service.call
-
-        localhost_node.reload
-        expect(localhost_node.agent_version).to eq("v1.0.0")
       end
 
       it "reports progress for local execution" do
@@ -732,10 +734,9 @@ RSpec.describe Agent::PatchService do
     end
 
     context "local command building" do
-      let(:service) { described_class.new(node: localhost_node, agent_release: agent_release) }
-
       it "builds command with sudo when use_sudo is true and password present" do
-        localhost_node.update(sudo_credential: "sudo_pass")
+        localhost_with_sudo = build_stubbed(:node, ip: "127.0.0.1", hostname: "localhost-node", sudo_credential: "sudo_pass")
+        service = described_class.new(node: localhost_with_sudo, agent_release: agent_release)
         cmd = service.send(:build_local_command, "systemctl stop hpc-agent", use_sudo: true)
 
         expect(cmd).to include("echo")
@@ -745,7 +746,8 @@ RSpec.describe Agent::PatchService do
       end
 
       it "builds command with sudo without password when no sudo_credential" do
-        localhost_node.update(sudo_credential: nil)
+        localhost_without_sudo = build_stubbed(:node, ip: "127.0.0.1", hostname: "localhost-node", sudo_credential: nil)
+        service = described_class.new(node: localhost_without_sudo, agent_release: agent_release)
         cmd = service.send(:build_local_command, "systemctl stop hpc-agent", use_sudo: true)
 
         expect(cmd).to include("sudo bash -c")
@@ -753,6 +755,7 @@ RSpec.describe Agent::PatchService do
       end
 
       it "builds plain command when use_sudo is false" do
+        service = described_class.new(node: localhost_node, agent_release: agent_release)
         cmd = service.send(:build_local_command, "sha256sum /tmp/file", use_sudo: false)
 
         expect(cmd).to eq("sha256sum /tmp/file")
@@ -980,7 +983,7 @@ RSpec.describe Agent::PatchService do
     end
 
     context "with localhost" do
-      let(:localhost_node) { create(:node, :global_bastion, ip: "127.0.0.1") }
+      let(:localhost_node) { build_stubbed(:node, :global_bastion, ip: "127.0.0.1") }
 
       it "returns false even for global_bastion" do
         service = described_class.new(node: localhost_node, agent_release: agent_release)
