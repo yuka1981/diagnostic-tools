@@ -7,8 +7,12 @@
     {
       "fingerprint": "7b6c3c7e90f6842f339c03f9c6969f3cc5933f578002d1dc5469e1a8d76dd372",
       "note": "Inputs are validated before use: version_tag is validated by VERSION_TAG_PATTERN (alphanumeric, dots, dashes, underscores only) and custom_ldflags by LDFLAGS_SAFE_PATTERN. Open3.capture3 with array arguments prevents shell injection. Validation occurs in validate_version_tag! and validate_custom_ldflags! before compile_binary_with_version is called."
+    },
+    {
+      "fingerprint": "c37076f816671994d86d6a59b7b373a68d8b305f314874c1e238e9b17891f6e8",
+      "note": "branch_stdout comes from running 'git symbolic-ref --short HEAD' which returns the current branch name from git's internal state, not user input. Additionally, Open3.capture3 with array arguments (not a single string) passes each argument separately to the command, preventing shell injection."
     }
   ],
-  "updated": "2026-01-16",
+  "updated": "2026-01-19",
   "brakeman_version": "7.1.2"
 }
