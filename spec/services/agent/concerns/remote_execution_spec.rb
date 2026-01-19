@@ -133,6 +133,7 @@ RSpec.describe Agent::Concerns::RemoteExecution do
       content = service.generate_service_file(
         server_url: "https://example.com",
         api_token: "test_token",
+        node_uuid: "test-uuid-1234",
         inventory_interval: 120,
         heartbeat_interval: 30
       )
@@ -143,6 +144,7 @@ RSpec.describe Agent::Concerns::RemoteExecution do
       expect(content).to include("start --server")
       expect(content).to include("--server \"https://example.com\"")
       expect(content).to include("--token \"test_token\"")
+      expect(content).to include("--node-uuid \"test-uuid-1234\"")
       expect(content).to include("--heartbeat-interval 30s")
       expect(content).to include("--inventory-interval 120s")
     end
