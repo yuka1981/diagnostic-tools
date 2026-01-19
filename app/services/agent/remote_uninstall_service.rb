@@ -30,6 +30,12 @@ module Agent
     end
 
     def call
+      ActiveSupport::Deprecation.new.warn(
+        "Agent::RemoteUninstallService is deprecated. Use Agent::UninstallService instead. " \
+        "Called from: #{caller_locations(1, 1)&.first}",
+        caller_locations
+      )
+
       if @node&.online?
         uninstall_via_websocket
       elsif use_bastion?

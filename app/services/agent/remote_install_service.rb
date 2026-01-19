@@ -38,6 +38,12 @@ module Agent
     end
 
     def call
+      ActiveSupport::Deprecation.new.warn(
+        "Agent::RemoteInstallService is deprecated. Use Agent::InstallService instead. " \
+        "Called from: #{caller_locations(1, 1)&.first}",
+        caller_locations
+      )
+
       if localhost?
         report_progress "Starting local installation on #{@target_host}"
         install_local

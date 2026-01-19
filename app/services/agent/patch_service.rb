@@ -28,6 +28,12 @@ module Agent
     end
 
     def call
+      ActiveSupport::Deprecation.new.warn(
+        "Agent::PatchService is deprecated. Use Agent::UpdateService instead. " \
+        "Called from: #{caller_locations(1, 1)&.first}",
+        caller_locations
+      )
+
       # Step 0: Safety Check (Critical)
       check_node_busy!
 
