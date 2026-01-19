@@ -4,12 +4,10 @@ require_relative "lifecycle_service"
 
 module Agent
   # Service to update the agent binary on a remote node
-  # Includes auto-rollback on failure and service file regeneration
+  # Includes auto-rollback on failure
   class UpdateService < LifecycleService
-    def initialize(node:, agent_release:, server_url: nil, api_token: nil, **options)
+    def initialize(node:, agent_release:, **options)
       super(node: node, agent_release: agent_release, **options)
-      @server_url = server_url || default_server_url
-      @api_token = api_token || @node.effective_api_token
       @local_checksum = nil
       @rollback_attempted = false
     end
@@ -59,10 +57,6 @@ module Agent
 
     def success_message
       "Agent updated to #{@agent_release.version}"
-    end
-
-    def should_regenerate_service_file?
-      true # Always regenerate during update
     end
 
     private
@@ -125,11 +119,6 @@ module Agent
       report_progress "Setting file permissions"
       execute_local_command("chmod 755 #{TARGET_BIN_PATH} && chown root:root #{TARGET_BIN_PATH}", use_sudo: true)
 
-      if should_regenerate_service_file?
-        report_progress "Regenerating service file"
-        deploy_local_service_file
-      end
-
       report_progress "Setting SELinux context"
       set_selinux_context(nil, TARGET_BIN_PATH, type: "bin_t")
 
@@ -152,11 +141,6 @@ module Agent
 
       report_progress "Setting file permissions"
       set_remote_permissions(ssh)
-
-      if should_regenerate_service_file?
-        report_progress "Regenerating service file"
-        deploy_remote_service_file(ssh)
-      end
 
       report_progress "Setting SELinux context"
       set_selinux_context(ssh, TARGET_BIN_PATH, type: "bin_t")
@@ -212,41 +196,6 @@ module Agent
     def set_remote_permissions(ssh)
       cmd = build_remote_command("chmod 755 #{TARGET_BIN_PATH} && chown root:root #{TARGET_BIN_PATH}", via_ssh: false, use_sudo: true)
       execute_command(ssh, cmd, password: @sudo_password)
-    end
-
-    def deploy_local_service_file
-      service_content = generate_service_file(server_url: @server_url, api_token: @api_token)
-      service_path = "/etc/systemd/system/#{SERVICE_NAME}.service"
-
-      # Backup existing service file
-      execute_local_command("cp #{service_path} #{service_path}.bak 2>/dev/null || true", use_sudo: true)
-
-      # Write new service file via temp file
-      tempfile = Tempfile.new("hpc-agent-service")
-      tempfile.write(service_content)
-      tempfile.close
-
-      FileUtils.cp(tempfile.path, "/tmp/hpc-agent.service")
-      execute_local_command("mv /tmp/hpc-agent.service #{service_path}", use_sudo: true)
-      set_selinux_context(nil, service_path, type: "systemd_unit_file_t")
-
-      tempfile.unlink
-    end
-
-    def deploy_remote_service_file(ssh)
-      service_content = generate_service_file(server_url: @server_url, api_token: @api_token)
-      service_path = "/etc/systemd/system/#{SERVICE_NAME}.service"
-
-      # Backup existing service file
-      backup_cmd = build_remote_command("cp #{service_path} #{service_path}.bak 2>/dev/null || true", via_ssh: false, use_sudo: true)
-      execute_command(ssh, backup_cmd, password: @sudo_password)
-
-      # Write new service file via base64 encoding
-      encoded_content = Base64.strict_encode64(service_content)
-      write_cmd = build_remote_command("echo '#{encoded_content}' | base64 -d > /tmp/hpc-agent.service && mv /tmp/hpc-agent.service #{service_path}", via_ssh: false, use_sudo: true)
-      execute_command(ssh, write_cmd, password: @sudo_password)
-
-      set_selinux_context(ssh, service_path, type: "systemd_unit_file_t")
     end
 
     def verify_service_running(ssh)
@@ -330,10 +279,6 @@ module Agent
       execute_command(ssh, build_remote_command("mv #{TARGET_BIN_PATH}.bak #{TARGET_BIN_PATH}", via_ssh: false, use_sudo: true), password: @sudo_password)
       execute_command(ssh, build_remote_command("mv /etc/systemd/system/#{SERVICE_NAME}.service.bak /etc/systemd/system/#{SERVICE_NAME}.service 2>/dev/null || true", via_ssh: false, use_sudo: true), password: @sudo_password)
       execute_command(ssh, build_remote_command("systemctl daemon-reload && systemctl start #{SERVICE_NAME}", via_ssh: false, use_sudo: true), password: @sudo_password)
-    end
-
-    def default_server_url
-      Rails.application.routes.url_helpers.root_url(host: ENV.fetch("APP_HOST", "localhost:3000"))
     end
 
     # Wrapper class for backward compatibility with legacy single-binary releases
