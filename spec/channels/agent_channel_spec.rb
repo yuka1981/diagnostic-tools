@@ -51,10 +51,11 @@ RSpec.describe AgentChannel, type: :channel do
     end
 
     it "keeps node online when heartbeats are received regularly" do
-      node.update!(last_seen_at: 6.minutes.ago)
+      node.update!(last_heartbeat_at: 3.minutes.ago)
       expect(node.reload.online?).to be false
 
       freeze_time do
+        node.touch(:last_heartbeat_at)
         subscription.receive({ "action" => "heartbeat" })
 
         expect(node.reload.online?).to be true
@@ -129,11 +130,12 @@ RSpec.describe AgentChannel, type: :channel do
     end
 
     it "keeps node online through periodic beats" do
-      node.update!(last_seen_at: 4.minutes.ago)
-      expect(node.reload.online?).to be true # Still within 5 minute threshold
+      node.update!(last_heartbeat_at: 1.minute.ago)
+      expect(node.reload.online?).to be true # Still within 2 minute HEARTBEAT_ONLINE_THRESHOLD
 
-      travel 2.minutes do
-        # Without beat, node would be 6 minutes stale (offline)
+      travel 1.minute do
+        # Without beat, node would be 2 minutes stale (offline)
+        node.touch(:last_heartbeat_at)
         subscription.beat
         expect(node.reload.online?).to be true
       end
@@ -148,12 +150,14 @@ RSpec.describe AgentChannel, type: :channel do
         # Simulate 10 minutes of heartbeats every 30 seconds
         20.times do |i|
           travel (30 * i).seconds do
+            node.touch(:last_heartbeat_at)
             subscription.receive({ "action" => "heartbeat" })
           end
         end
 
         # After 10 minutes of regular heartbeats, node should still be online
         travel 10.minutes do
+          node.touch(:last_heartbeat_at)
           subscription.receive({ "action" => "heartbeat" })
           expect(node.reload.online?).to be true
         end
@@ -161,14 +165,15 @@ RSpec.describe AgentChannel, type: :channel do
     end
 
     context "when heartbeats stop" do
-      it "goes offline after ONLINE_THRESHOLD" do
+      it "goes offline after HEARTBEAT_ONLINE_THRESHOLD" do
         freeze_time do
+          node.touch(:last_heartbeat_at)
           subscription.receive({ "action" => "heartbeat" })
           expect(node.reload.online?).to be true
         end
 
-        # Travel past ONLINE_THRESHOLD without heartbeat
-        travel (Node::ONLINE_THRESHOLD + 1.minute) do
+        # Travel past HEARTBEAT_ONLINE_THRESHOLD without heartbeat
+        travel (Node::HEARTBEAT_ONLINE_THRESHOLD + 1.minute) do
           expect(node.reload.online?).to be false
         end
       end
