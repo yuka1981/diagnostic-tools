@@ -192,7 +192,7 @@ module Agent
       service_path = "/etc/systemd/system/#{SERVICE_NAME}.service"
 
       encoded_content = Base64.strict_encode64(service_content)
-      write_cmd = build_remote_command("echo '#{encoded_content}' | base64 -d > /tmp/hpc-agent.service && mv /tmp/hpc-agent.service #{service_path}", via_ssh: false, use_sudo: true)
+      write_cmd = build_remote_command("echo #{encoded_content} | base64 -d > /tmp/hpc-agent.service && mv /tmp/hpc-agent.service #{service_path}", via_ssh: false, use_sudo: true)
       execute_command(ssh, write_cmd, password: @sudo_password)
     end
 
