@@ -1,10 +1,13 @@
 # frozen_string_literal: true
 
 require_relative "lifecycle_service"
+require_relative "concerns/service_health_check"
 
 module Agent
   # Service to install the agent binary on a remote node
   class InstallService < LifecycleService
+    include Concerns::ServiceHealthCheck
+
     def initialize(node:, server_url:, api_token:, agent_release: nil, binary_path: nil, **options)
       super(node: node, agent_release: agent_release, **options)
       @server_url = server_url
@@ -194,49 +197,6 @@ module Agent
       encoded_content = Base64.strict_encode64(service_content)
       write_cmd = build_remote_command("echo #{encoded_content} | base64 -d > /tmp/hpc-agent.service && mv /tmp/hpc-agent.service #{service_path}", via_ssh: false, use_sudo: true)
       execute_command(ssh, write_cmd, password: @sudo_password)
-    end
-
-    def verify_service_running(ssh)
-      max_retries = 10
-      retry_count = 0
-
-      loop do
-        status = get_service_status(ssh)
-
-        if status == "active"
-          report_progress "Service is running"
-          return
-        elsif status == "activating"
-          retry_count += 1
-          if retry_count >= max_retries
-            raise Errors::ServiceError.new("Service stuck in activating state", phase: :verify)
-          end
-          report_progress "Service is starting... (#{retry_count}/#{max_retries})"
-          sleep 1
-        else
-          diagnostics = ssh.nil? ? {} : capture_diagnostics(ssh)
-          raise Errors::ServiceError.new("Service failed to start. Status: #{status}", phase: :verify, details: diagnostics)
-        end
-      end
-    end
-
-    def get_service_status(ssh)
-      if ssh.nil?
-        output = execute_local_command("systemctl is-active #{SERVICE_NAME}", use_sudo: true)
-        clean_sudo_output(output)
-      else
-        cmd = build_remote_command("systemctl is-active #{SERVICE_NAME}", via_ssh: false, use_sudo: true)
-        output = execute_command(ssh, cmd, password: @sudo_password)
-        clean_sudo_output(output)
-      end
-    rescue Errors::DeploymentError => e
-      clean_sudo_output(e.details[:stdout]) || "unknown"
-    end
-
-    def clean_sudo_output(output)
-      return nil if output.blank?
-
-      output.gsub(/\[sudo\] password for \S+:\s*/, "").strip
     end
 
     def write_agent_uuid(ssh)

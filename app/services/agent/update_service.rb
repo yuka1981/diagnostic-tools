@@ -1,11 +1,13 @@
 # frozen_string_literal: true
 
 require_relative "lifecycle_service"
+require_relative "concerns/service_health_check"
 
 module Agent
   # Service to update the agent binary on a remote node
   # Includes auto-rollback on failure
   class UpdateService < LifecycleService
+    include Concerns::ServiceHealthCheck
     def initialize(node:, agent_release:, **options)
       super(node: node, agent_release: agent_release, **options)
       @local_checksum = nil
@@ -196,47 +198,6 @@ module Agent
     def set_remote_permissions(ssh)
       cmd = build_remote_command("chmod 755 #{TARGET_BIN_PATH} && chown root:root #{TARGET_BIN_PATH}", via_ssh: false, use_sudo: true)
       execute_command(ssh, cmd, password: @sudo_password)
-    end
-
-    def verify_service_running(ssh)
-      max_retries = 10
-      retry_count = 0
-
-      loop do
-        status = get_service_status(ssh)
-
-        if status == "active"
-          report_progress "Service is running"
-          return
-        elsif status == "activating"
-          retry_count += 1
-          if retry_count >= max_retries
-            raise Errors::ServiceError.new("Service stuck in activating state", phase: :verify)
-          end
-          report_progress "Service is starting... (#{retry_count}/#{max_retries})"
-          sleep 1
-        else
-          diagnostics = ssh.nil? ? {} : capture_diagnostics(ssh)
-          raise Errors::ServiceError.new(
-            "Service failed to start. Status: #{status}",
-            phase: :verify,
-            details: diagnostics
-          )
-        end
-      end
-    end
-
-    def get_service_status(ssh)
-      if ssh.nil?
-        output = execute_local_command("systemctl is-active #{SERVICE_NAME}", use_sudo: true)
-        output.strip
-      else
-        cmd = build_remote_command("systemctl is-active #{SERVICE_NAME}", via_ssh: false, use_sudo: true)
-        output = execute_command(ssh, cmd, password: @sudo_password)
-        output.strip
-      end
-    rescue Errors::DeploymentError => e
-      e.details[:stdout]&.strip || "unknown"
     end
 
     def attempt_rollback(ssh)
