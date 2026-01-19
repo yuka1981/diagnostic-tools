@@ -1,9 +1,9 @@
 # **HPC System Detection & Benchmark Tool**
 
-Version: 0.7.0  
-Status: Active Development  
-Last Updated: 2026-01-12  
-Changes: Standardized UI with NetBox theme, implemented v2 Host Hardware Info (Memory Topology), and added remote agent management.
+Version: 0.9.0
+Status: Active Development
+Last Updated: 2026-01-20
+Changes: Full agent lifecycle management (install/update/uninstall with rollback), multi-architecture binary support, ActionCable real-time communication, Devise authentication, and expanded CLI commands.
 
 ## **1. 背景與目標 (Background & Objectives)**
 
@@ -36,14 +36,17 @@ Changes: Standardized UI with NetBox theme, implemented v2 Host Hardware Info (M
 
 ### **3.1 技術選型 (Tech Stack Decisions)**
 
-* **Agent**: **Go (Golang) 1.22+**  
-  * 使用 **Cobra** 構建 CLI。  
-  * 優勢：編譯為 Static Binary，無須在各節點安裝 Runtime，部署極簡。  
-* **Web Framework**: **Ruby on Rails 7.1+**  
-  * 架構：Server-Side Rendering (Monolith)。  
+* **Agent**: **Go (Golang) 1.22+**
+  * 使用 **Cobra** 構建 CLI。
+  * 優勢：編譯為 Static Binary，無須在各節點安裝 Runtime，部署極簡。
+* **Web Framework**: **Ruby on Rails 7.2.3**
+  * 架構：Server-Side Rendering (Monolith)。
   * Testing: **RSpec** (Unit, Request, System specs).
-* **Frontend Interaction**: **Hotwire** (Turbo Drive, Turbo Frames, Turbo Streams) + Stimulus.js.  
-  * 透過 HTML Over The Wire 達成類 SPA 體驗，同時保持開發單純性。  
+  * Background Jobs: **Rails ActiveJob** with default async adapter.
+  * Real-time: **ActionCable** for WebSocket communication (benchmark status updates, heartbeat notifications).
+  * Authentication: **Devise** for user authentication with role-based access control.
+* **Frontend Interaction**: **Hotwire** (Turbo Drive, Turbo Frames, Turbo Streams) + Stimulus.js.
+  * 透過 HTML Over The Wire 達成類 SPA 體驗，同時保持開發單純性。
 * **Styling**: **Tailwind CSS**.
 * **Database**: **PostgreSQL 16+**.
 * **Design System**: NetBox-inspired (Data-dense, slate headers, bold uppercase titles, square corners).
@@ -110,15 +113,41 @@ Changes: Standardized UI with NetBox theme, implemented v2 Host Hardware Info (M
   * Storage (Disk usage, Mountpoints)  
   * Network (Interfaces, IP, MAC)
 
-### **5.2 Agent Lifecycle Management (新增)**
+### **5.2 Agent Lifecycle Management**
 
-* **遠端安裝 (Remote Install)**:
-  * 透過 Web UI 填寫跳板機 (Bastion) 與目標節點資訊（Sudo 密碼）。
-  * 自動化流程：連線 -> 上傳 Binary -> 設定服務 -> 啟動並向 API 註冊。
-  * 支援選取不同的 API Key。
-* **遠端卸載 (Remote Uninstall)**:
-  * 一鍵移除節點上的 Agent 服務與相關檔案。
-  * 狀態追蹤：即時顯示卸載進度。
+Complete agent lifecycle management with install, update, uninstall, and compilation services.
+
+#### **5.2.1 InstallService**
+* **Multi-Architecture Support**: Automatically selects correct binary (x86_64, aarch64) based on node architecture.
+* **SSH Deployment**: Connects via bastion (global or custom) or direct SSH based on node configuration.
+* **Systemd Integration**: Deploys agent as a systemd service with auto-start.
+* **UUID Assignment**: Generates and writes unique node UUID to `/etc/hpc-agent/node_id`.
+* **SELinux Configuration**: Sets appropriate contexts (`bin_t`, `systemd_unit_file_t`).
+* **Checksum Verification**: Verifies binary integrity before and after deployment.
+* **dmidecode Setup**: Configures SUID for dmidecode to allow hardware inventory collection.
+
+#### **5.2.2 UpdateService**
+* **Version Upgrade**: Upgrades agent to newer release versions.
+* **Rollback Support**: Backs up existing binary for automatic rollback on failure.
+* **Health Verification**: Verifies service health after update via systemd status check.
+* **Busy Node Prevention**: Blocks updates when node has running benchmarks.
+
+#### **5.2.3 UninstallService**
+* **SSH-based Removal**: Removes agent binary, service file, and configuration.
+* **Service Cleanup**: Stops and disables systemd service before removal.
+* **Configuration Removal**: Cleans up `/etc/hpc-agent/` directory.
+
+#### **5.2.4 CompilerService**
+* **Source Compilation**: Builds agent from Go source code.
+* **Cross-Compilation**: Supports building for different architectures (GOOS/GOARCH).
+* **Version Tagging**: Embeds version information via ldflags.
+
+#### **5.2.5 AgentEvent (Audit Trail)**
+* **Operation Tracking**: Records install, upgrade, and uninstall operations.
+* **Status Lifecycle**: pending -> running -> success/failed/rolled_back.
+* **Error Capture**: Stores error messages and detailed error information as JSON.
+* **Duration Tracking**: Records started_at and completed_at timestamps.
+* **User Attribution**: Links operations to the user who initiated them.
 
 ### **5.3 Benchmarks Repository**
 
@@ -126,16 +155,26 @@ Changes: Standardized UI with NetBox theme, implemented v2 Host Hardware Info (M
   * **HPCG (High Performance Conjugate Gradients)**  
 * 資訊包含：Version, Profiles (Module stack, Flags, Parameters), Supported Arch.
 
-### **5.4 Benchmark Runs (Slurm-first)**
+### **5.4 Benchmark Runs**
 
-* 流程：使用者提交 Slurm Script -> Job 啟動 Agent -> Agent 執行評測。  
-* Agent 職責 (Go Binary)：  
-  1. **Environment Setup**: Load Modules, Check Fingerprint.  
-  2. **Build**: Compile xhpcg (Native).  
-  3. **Config**: 自動生成 hpcg.dat。  
-  4. **Run**: 執行 srun ./xhpcg。  
-  5. **Parse**: 解析 Log 取得 GFLOPS, Time, Residual, Pass/Fail。  
+* **Execution Flow**: Web UI triggers Agent -> Agent executes benchmark -> Results uploaded via API.
+* **Status Lifecycle**: `pending` -> `running` -> `success` / `failed` / `cancelled`
+* **Real-time Updates**: Turbo Streams broadcast status changes to connected clients.
+* **Agent 職責 (Go Binary)**:
+  1. **Environment Setup**: Load Modules, Check Fingerprint.
+  2. **Build**: Compile xhpcg (Native).
+  3. **Config**: 自動生成 hpcg.dat。
+  4. **Run**: 執行 srun ./xhpcg。
+  5. **Parse**: 解析 Log 取得 GFLOPS, Time, Residual, Pass/Fail。
   6. **Upload**: 更新 DB 狀態 (API)，上傳 Artifact Index。
+* **Cancellation Flow**:
+  * User clicks Cancel in Web UI -> POST to `/benchmark_runs/:id/cancel`.
+  * Agent polls cancellation status and terminates running process.
+  * Status updated to `cancelled` with timestamp.
+* **Artifact Upload**:
+  * Artifacts uploaded as base64-encoded content via API.
+  * Stored using ActiveStorage with path tracking in `artifact_indices`.
+  * Supports download via `/benchmark_runs/:id/artifacts/:artifact_id/download`.
 
 ### **5.5 Artifacts Management**
 
@@ -184,30 +223,87 @@ Changes: Standardized UI with NetBox theme, implemented v2 Host Hardware Info (M
   * **Hardware Tab**: 展示 V2 硬體資訊，包含 System/BIOS 表格與互動式 **Memory Topology Map**。
   * **History**: 支援切換不同時間點的硬體快照。
 
-### **5.7 Agent V1 Scope (Go)**
+### **5.7 Agent CLI Commands (Go)**
 
-V1 Agent 功能定義：
+| Command | Description |
+|---------|-------------|
+| `hpc-agent start` | Daemon mode: runs as systemd service, sends periodic heartbeats to server, handles benchmark execution requests |
+| `hpc-agent collect` | Output system info JSON to stdout (CPU, Memory, Disk, Network, DMI) |
+| `hpc-agent push` | Collect inventory and POST to server API (`/api/v1/inventory/push`) |
+| `hpc-agent hpcg` | Execute HPCG benchmark workflow (build, configure, run, parse, upload) |
+| `hpc-agent cancel` | Cancel a running benchmark by UUID |
+| `hpc-agent check-key` | Validate API key against server |
 
-1. **Collect**:  
-   * `hpc-agent collect`: 輸出系統資訊 (CPU/Mem/Disk/Net) JSON 到 stdout。
-   * `hpc-agent inventory push`: 收集資訊並主動 POST 至 API。
-2. **HPCG Run (Single-node)**: 完整 Build/Run/Parse 流程。
+* **Daemon Mode** (`start`):
+  * Sends heartbeats every 30 seconds to `/api/v1/nodes/:id/heartbeat`.
+  * Reads configuration from environment variables: `HPC_SERVER_URL`, `HPC_API_TOKEN`, `HPC_NODE_UUID`.
+  * Node UUID stored in `/etc/hpc-agent/node_id`.
+* **Non-Goals (Future)**: Build Cache, Multi-node orchestration (Rank0 leader), HPL support.
+* **Deploy**: 單一靜態編譯執行檔 (Single Static Binary).
 
-* **Non-Goals**: Build Cache, Multi-node orchestration (Rank0 leader), HPL support.  
-* **Deploy**: 單一靜態編譯執行檔 (Single Static Binary)。
+## **6. 資料模型 (Data Schema)**
 
-## **6. 資料模型 (Data Schema - V1)**
+### **6.1 Core Models**
 
-* nodes: id, hostname, ip, role, arch, source (csv/manual/agent_push).  
-* node_states: **(Versioned Data)**  
-  * id: PK  
-  * node_id: FK  
-  * cpu_json, mem_json, disk_json, net_json, host_json, dmi_json: 系統資訊快照。  
-  * captured_at: 此版本建立時間 (Timestamp)。  
-  * 說明：One Node has_many NodeStates。最新的一筆即為 Current State。  
-* benchmark_recipes: id, name (hpcg), version, default_profile_json.  
-* benchmark_runs: id, node_id, recipe_id, start_time, end_time, status, metrics_json (gflops).  
-* artifact_indices: run_id, path, file_type, size.
+* **nodes**: Node inventory and configuration
+  * id, hostname (unique), ip, role (compute/login/admin), arch (x86_64/aarch64/arm64), source (manual/csv/agent_push)
+  * uuid: Unique identifier for agent registration
+  * ssh_port, ssh_user, ssh_password, ssh_key, ssh_connect_method (global_bastion/custom_bastion/direct)
+  * jump_host, jump_user, jump_port: Custom bastion configuration
+  * agent_path, agent_version, agent_status, api_token, api_key_id
+  * last_seen_at, last_heartbeat_at, benchmark_work_dir
+
+* **node_states**: **(Versioned Data)**
+  * id: PK, node_id: FK
+  * cpu_info, mem_info, disk_info, net_info, host_info, dmi_info, network_inventory: JSONB system info snapshots
+  * captured_at: Version creation timestamp
+  * 說明：One Node has_many NodeStates。最新的一筆即為 Current State。
+
+* **benchmark_recipes**: Benchmark definitions
+  * id, name (unique with version), version, slug (unique)
+  * command, description, default_profile (JSONB)
+  * timeout_seconds (default: 3600), status (active/archived)
+
+* **benchmark_runs**: Benchmark execution records
+  * id, node_id: FK, benchmark_recipe_id: FK, uuid (unique)
+  * started_at, finished_at, status (pending/running/success/failed/cancelled)
+  * metrics (JSONB), arguments (JSONB), error_message
+  * current_phase, log_content, log_path, last_heartbeat_at
+
+* **artifact_indices**: Benchmark output files
+  * id, benchmark_run_id: FK, path, stored_path, file_type, size
+
+### **6.2 Agent Management Models**
+
+* **agent_releases**: Agent version releases
+  * id, version (unique, semantic version format)
+  * checksum (SHA256), release_notes
+  * status (active/deprecated/recalled)
+
+* **agent_binaries**: Architecture-specific binaries (belongs_to agent_release)
+  * id, agent_release_id: FK, arch (unique per release)
+  * checksum (SHA256)
+  * binary: ActiveStorage attachment
+
+* **agent_events**: Audit trail for agent operations
+  * id, node_id: FK, user_id: FK (optional), agent_release_id: FK (optional)
+  * operation (install/upgrade/uninstall), status (pending/running/success/failed/rolled_back)
+  * from_version, to_version, forced
+  * error_message, error_details (JSONB)
+  * started_at, completed_at
+
+### **6.3 Authentication & Configuration Models**
+
+* **users**: Web UI authentication (Devise)
+  * id, email (unique), encrypted_password, name
+  * role (viewer/requester/approver), reset_password_token
+
+* **api_keys**: Agent API authentication
+  * id, name, token (unique), status (active/revoked), last_used_at
+
+* **ssh_settings**: Global SSH configuration (singleton)
+  * id, bastion_host, bastion_user, bastion_port (default: 22)
+  * server_url, benchmark_work_dir
 
 ## **7. 非功能需求 (Non-Functional Requirements)**
 
@@ -220,9 +316,9 @@ V1 Agent 功能定義：
 ## **8. 系統架構圖 (System Architecture)**
 
 ```mermaid
-flowchart LR  
-  %% =========================  
-  %% HPC System Detection & Benchmark Tool - System Architecture (v0.6.0)  
+flowchart LR
+  %% =========================
+  %% HPC System Detection & Benchmark Tool - System Architecture (v0.9.0)
   %% =========================
 
   subgraph USERS["Users"]
@@ -231,8 +327,10 @@ flowchart LR
   end
 
   subgraph WEB["Web Application"]
-    RAILS["Ruby on Rails<br/>(Hotwire + Tailwind)"]
-    JOBS["Solid Queue / Sidekiq<br/>(Async Jobs)"]
+    RAILS["Ruby on Rails 7.2.3<br/>(Hotwire + Tailwind)"]
+    JOBS["Rails ActiveJob<br/>(Async Operations)"]
+    CABLE["ActionCable<br/>(WebSocket)"]
+    DEVISE["Devise Auth"]
   end
 
   subgraph DB["Database"]
@@ -245,7 +343,7 @@ flowchart LR
 
   subgraph HPC["HPC Cluster"]
     subgraph NODES["Compute Nodes (Private Network)"]
-      AG["HPC Agent CLI (Go)<br/>collect / push / hpcg"]
+      AG["HPC Agent CLI (Go)<br/>start / collect / push / hpcg / cancel"]
     end
     subgraph LOGIN["Admin / Login Node (Gateway)"]
       COL["Proxy Command / SSH Jump<br/>(SSH Trigger Endpoint)"]
@@ -253,525 +351,172 @@ flowchart LR
     end
   end
 
-  %% Interactions
-  U1 --> RAILS
-  U2 --> RAILS
-    
+  %% User Interactions
+  U1 --> DEVISE
+  U2 --> DEVISE
+  DEVISE --> RAILS
+
+  %% Web App Interactions
   RAILS -- "Read/Write" --> PG
   RAILS -- "Enqueue" --> JOBS
-    
+  RAILS -- "Broadcast" --> CABLE
+  CABLE -- "Real-time Updates" --> U1
+
+  %% Agent Lifecycle (SSH)
+  JOBS -- "SSH (Install/Update/Uninstall)" --> COL
+  COL -- "Internal SSH" --> AG
+
+  %% Inventory Collection (Pull)
   JOBS -- "SSH to Admin Node" --> COL
-  COL -- "Internal SSH / srun" --> AG
+  COL -- "SSH + hpc-agent collect" --> AG
   AG -- "Return JSON" --> COL
   COL -- "Update" --> RAILS
 
-  %% Active Push Inventory
+  %% Agent Daemon Mode (Push)
+  AG -- "Heartbeat (API)" --> RAILS
   AG -- "Push Inventory (API)" --> RAILS
+  AG -- "Benchmark Status (API)" --> RAILS
 
+  %% Benchmark Execution
   SLURM -- "Start Job" --> AG
   AG -- "Write" --> ART
-  AG -- "Upload Meta (API)" --> RAILS
+  AG -- "Upload Artifacts (API)" --> RAILS
 ```
 
-## **9. 功能需求延伸與需求備忘 (Feature Requests Backlog)**
+## **9. 未來增強 (Future Enhancements)**
 
-此段落整合原先散落於 `docs/FEATURE_REQUEST_*.md` 與 `docs/agent/FEATURE_REQUEST_*.md` 的內容，作為單一來源。
+此段落記錄尚未實作的功能規劃。
 
-### **9.1 Host Info Collection & Visualization (Phased)**
+> **Note**: The following features from previous backlog have been implemented and integrated into main sections:
+> - Host Info Collection & Visualization (Section 5.1)
+> - Network Interface & InfiniBand Discovery (Section 5.1)
+> - UI Theme Migration / NetBox Style (Section 5.6)
+> - Manual Node CRUD & SSH Jump Host Support (Sections 5.1, 5.6)
 
-**Status**: Draft  
-**Priority**: High  
-**Target Version**: v0.6.x (Phase 1), v0.7.x (Phase 2), v0.9.x (Phase 3)
+### **9.1 Intel PerfSpect Integration**
 
-#### **9.1.1 Context & Roadmap**
-
-為了取得詳細的硬體資訊（System, BIOS, Memory DIMM），採用三階段導入策略：
-
-| Phase | Method | Ops Requirement | Pros | Cons |
-| :--- | :--- | :--- | :--- | :--- |
-| **Phase 1** | **dmidecode + SUID** | `chmod u+s /usr/sbin/dmidecode` | 實作最快，Agent 無需改動 sudo 邏輯 | 安全性較低 (全域使用者皆可讀 DMI) |
-| **Phase 2** | **dmidecode + Sudoers** | `/etc/sudoers` NOPASSWD 設定 | 安全性標準，符合資安稽核 | 需維護 Sudoers 規則 |
-| **Phase 3** | **Intel PerfSpect** | 安裝 PerfSpect 依賴 | 可取得更深層 PMU/Uncore 數據 | 部署成本較高 |
-
-#### **9.1.2 Data Requirements**
-
-Agent 需透過 `dmidecode -t 0,1,17` 取得並解析以下資訊：
-
-**System Information (Type 1)**
-
-* Manufacturer, Product Name, Version  
-* Serial Number, UUID (節點去重識別)  
-* SKU Number, Family  
-
-**BIOS Information (Type 0)**
-
-* Vendor, Version, Release Date  
-* Address, Runtime Size, ROM Size  
-
-**Memory Information (Type 17)**
-
-* Bank Locator (UI 拓樸分組 Primary Key)  
-* Locator, Size, Type  
-* Speed, Configured Memory Speed  
-* Manufacturer, Part Number, Serial Number  
-* Asset Tag, Rank, Voltage, Firmware Version, Form Factor  
-
-#### **9.1.3 UI Requirements (NetBox Style)**
-
-**Page Header & Layout**
-
-* Breadcrumb: `Home / Nodes / [Node Name] / Hardware`  
-* Header: Title (節點名稱) + Subtitle (Product Name & Serial Number)  
-* Actions: Edit, Delete, Refresh  
-
-**Info Panels (System & BIOS)**
-
-* Two-column cards with key-value tables  
-* Header background `bg-slate-100`  
-* Zebra rows (`odd:bg-white even:bg-slate-50`)  
-* Key column bold, left-aligned  
-
-**Memory Topology Map**
-
-* Container title: "Memory Topology"  
-* Hierarchy: `Socket -> Channel (Optional) -> Slot`  
-* Socket block header (e.g., "CPU 0") with per-socket grid layout  
-* Slot component shape: vertical rectangle  
-* DIMM Slot states:
-  * Installed: `bg-green-500` with bold white text  
-  * Empty: `bg-slate-100` with dashed border  
-  * Warning (Config Speed < Spec Speed): yellow badge  
-* Slot content layout: Locator (top, small), Size (middle, bold), Type (bottom, tiny)  
-* Tooltip: Manufacturer, Part Number, Speed  
-
-**Memory Detailed Table**
-
-* Columns: Slot, Status (Badge), Size, Type, Speed (Config/Spec), Manufacturer, Part Number  
-* Compact padding with row hover highlight  
-
-#### **9.1.4 V2 Enhancements (Flexible Grouper)**
-
-* Regex Extraction: 從 `Bank Locator` 或 `Locator` 提取 CPU/Socket/Node 標記  
-* Fallback: 若無法解析，顯示為 Default Group  
-* Grouping: `Socket Container -> Channel Subgroup -> Slot Item`  
-* 保留原始 `Bank Locator` 字串，讓前端擴展解析  
-* Parser 必須辨識 "No Module Installed" / "Not Specified" 並回傳 Empty 狀態  
-* Reference: Oracle Memory Topology Documentation (visual grouping guidance) - <https://docs.oracle.com/cd/E27124_01/html/E27125/z40006011391452.html>  
-
-#### **9.1.5 Technical Implementation (Agent)**
-
-**Model Update (`agent/core/model/inventory.go`)**
-
-```go
-type HostDMIInfo struct {
-    System SystemInfo   `json:"system"`
-    BIOS   BIOSInfo     `json:"bios"`
-    Memory []DIMMInfo   `json:"memory"`
-}
-
-type SystemInfo struct {
-    Manufacturer string `json:"manufacturer"`
-    ProductName  string `json:"product_name"`
-    Version      string `json:"version"`
-    SerialNumber string `json:"serial_number"`
-    UUID         string `json:"uuid"`
-    SKU          string `json:"sku_number"`
-    Family       string `json:"family"`
-}
-
-type BIOSInfo struct {
-    Vendor      string `json:"vendor"`
-    Version     string `json:"version"`
-    ReleaseDate string `json:"release_date"`
-    Address     string `json:"address"`
-    RuntimeSize string `json:"runtime_size"`
-    ROMSize     string `json:"rom_size"`
-}
-
-type DIMMInfo struct {
-    Locator         string `json:"locator"`
-    BankLocator     string `json:"bank_locator"`
-    Size            string `json:"size"`
-    Type            string `json:"type"`
-    Speed           string `json:"speed"`
-    ConfiguredSpeed string `json:"configured_speed"`
-    Manufacturer    string `json:"manufacturer"`
-    PartNumber      string `json:"part_number"`
-    SerialNumber    string `json:"serial_number"`
-}
-```
-
-**Execution Strategy**
-
-1. Check `HPC_DMIDECODE_METHOD` (`direct` vs `sudo`)  
-2. Execute `dmidecode -t 0,1,17` in one call  
-3. Parse sections (`System Information`, `BIOS Information`, `Memory Device`)  
-
-#### **9.1.6 Operations Guide**
-
-**Phase 1 Setup**
-
-```bash
-sudo chmod u+s $(which dmidecode)
-```
-
-**Phase 2 Migration**
-
-```bash
-sudo chmod u-s $(which dmidecode)
-echo "hpc-user ALL=(root) NOPASSWD: /usr/sbin/dmidecode" | sudo tee /etc/sudoers.d/hpc-agent
-```
-
-### **9.2 Network Interface & InfiniBand Discovery**
-
-**Status**: Draft  
-**Priority**: High  
-**Target Version**: v0.7.x  
-**Style Guide**: NetBox-inspired (Interface Tables, Status Badges, LAG/Bonding visualization)
-
-#### **9.2.1 Context & Strategy**
-
-採用分層收集策略 (Layered Collection Strategy)：
-
-| Layer | Scope | Source | Purpose |
-| --- | --- | --- | --- |
-| **L1** | Hardware (PCIe) | `lspci` | 識別卡型號與 NUMA 綁定 |
-| **L2** | OS / Logical | `ip`, `/sys/class/net` | IP, MAC, MTU, Link State |
-| **L3** | High Performance (IB) | `ibv_devinfo`, `/sys/class/infiniband` | LID, GUID, Link Width/Speed |
-
-#### **9.2.2 Data Requirements**
-
-**L1: Physical Hardware (PCIe)**
-
-* Source: `lspci -vmm -D`
-* PCI Address (Primary Key), Vendor, Device, NUMA Node  
-
-**L2: Logical Interfaces (Ethernet & IB)**
-
-* MTU: `ip -j link show`  
-* Speed:  
-  * Ethernet: `/sys/class/net/<iface>/speed`  
-  * InfiniBand: `ibv_devinfo` or `/sys/class/infiniband/<hca>/ports/<port>/rate`  
-  * Handle `-1` or missing values for virtual interfaces  
-* UI Display: Human readable (e.g., "200 Gbps (HDR)")  
-
-**L3: InfiniBand Specifics**
-
-* HCA Name, Port State, LID, GUID, Link Rate, Link Width  
-
-#### **9.2.3 UI Requirements (NetBox Style)**
-
-**Interfaces Table**
-
-* Columns: Name, Status, Type, IP Address, MAC/GUID, Speed, PCI, Actions  
-* Name: bold link, indent child rows for bond members  
-* Type: label (e.g., `1000BASE-T`, `InfiniBand HDR`)  
-* IP Address: show primary IP, with "+N more" tooltip when multiple  
-* MAC/GUID: monospace  
-* PCI: show PCI address; clicking filters to matching interfaces  
-* Status Badges:
-  * Active (UP): `bg-green-500 text-white`
-  * Down: `bg-red-500 text-white`
-  * Testing/PFC: `bg-yellow-500`  
-* Row Actions: "Graph" (traffic) and "Edit"  
-
-**InfiniBand Detail Card**
-
-* Header: `HCA Details: mlx5_0`  
-* Fields: LID (hex + decimal), GUID, Firmware (tooltip or extra field), Negotiated Speed vs Supported  
-* Warning if Negotiated < Supported  
-
-**LAG / Bonding Visualization**
-
-* Parent row `bond0` (Type: LAG)  
-* Child rows `eth0`, `eth1` with slightly darker background  
-
-#### **9.2.4 Technical Implementation (Agent)**
-
-**Dependencies**
-
-* `iproute2`, `pciutils`, `rdma-core` (optional)  
-* If `rdma-core` missing, return L1/L2 only (graceful degradation)  
-
-**Model Structure (`agent/core/model/network.go`)**
-
-```go
-type NetworkInventory struct {
-    Interfaces []InterfaceInfo `json:"interfaces"`
-}
-
-type InterfaceInfo struct {
-    // L2: Logical (OS)
-    Name        string   `json:"name"`
-    Type        string   `json:"type"`
-    OperState   string   `json:"oper_state"`
-    MACAddress  string   `json:"mac_address"`
-    MTU         int      `json:"mtu"`
-    IPAddresses []string `json:"ip_addresses"`
-    Master      string   `json:"master"`
-
-    // L1: Physical (PCI)
-    PCIAddress  string   `json:"pci_address,omitempty"`
-    Vendor      string   `json:"vendor,omitempty"`
-    Model       string   `json:"model,omitempty"`
-    NUMANode    int      `json:"numa_node"`
-
-    // L3: InfiniBand
-    InfiniBand  *IBInfo  `json:"infiniband,omitempty"`
-}
-
-type IBInfo struct {
-    HCAName   string `json:"hca_name"`
-    Port      int    `json:"port"`
-    LID       string `json:"lid"`
-    GUID      string `json:"guid"`
-    LinkSpeed string `json:"link_speed"`
-}
-```
-
-**Execution Logic**
-
-1. PCI Discovery: `lspci -vmm` -> map PCI Address to Vendor/Model  
-2. Link Discovery: `ip -j link show`  
-3. IP Discovery: `ip -j addr show`  
-4. IB Enrichment: `/sys/class/infiniband/<hca>/ports/<port>/`  
-
-#### **9.2.5 Operations Guide**
-
-* `ip` and `lspci` usually do not require root  
-* For full `/sys` access, use sudo or grant `CAP_NET_ADMIN`  
-
-### **9.3 Intel PerfSpect Integration**
-
-**Status**: Draft  
-**Priority**: High  
-**Target Version**: v0.9.x  
+**Status**: Pending
+**Priority**: High
+**Target Version**: v1.0.x
 **Dependencies**: `agent` (Go), `perfspect` (External Binary)
 
-#### **9.3.1 Context & Goal**
+#### **9.1.1 Context & Goal**
 
 為了取得更深層的系統資訊 (Uncore counters, NUMA topology, PCIe bandwidth)，整合 Intel PerfSpect。若 PerfSpect 失敗，回落到 `dmidecode`。
 
-#### **9.3.2 Integration Strategy (Untracked Approach)**
+#### **9.1.2 Integration Strategy (Untracked Approach)**
 
-* 不將 PerfSpect 原始碼納入 Git  
-* Web Server 依架構準備對應 binary 並推送到目標主機  
-* 安裝位置：與 `hpc-agent` 同層目錄  
+* 不將 PerfSpect 原始碼納入 Git
+* Web Server 依架構準備對應 binary 並推送到目標主機
+* 安裝位置：與 `hpc-agent` 同層目錄
 
-#### **9.3.3 Version Binding & Parser Logic**
+#### **9.1.3 Version Binding & Parser Logic**
 
-* Parser 需綁定特定版本  
-* Target Version: Release v3.x.x (specify concrete version, e.g., v3.12.1)  
-* 啟動或收集時執行 `./perfspect version`  
-* 若版本不符，視為不可用並 fallback  
-* Version-specific structs in `agent/core/parser/perfspect/v3_x_x/`  
-* 嚴格解碼 JSON，缺欄位即錯誤  
+* Parser 需綁定特定版本
+* Target Version: Release v3.x.x (specify concrete version, e.g., v3.12.1)
+* 啟動或收集時執行 `./perfspect version`
+* 若版本不符，視為不可用並 fallback
+* Version-specific structs in `agent/core/parser/perfspect/v3_x_x/`
+* 嚴格解碼 JSON，缺欄位即錯誤
 
-#### **9.3.4 Execution Flow & Fallback**
+#### **9.1.4 Execution Flow & Fallback**
 
 The Agent should implement a `HybridInventoryCollector`.
 
 1. Attempt PerfSpect:
    * `sudo ./perfspect report --format json --output /tmp/report.json`
-   * Timeout: 120 seconds  
-   * Success criteria: exit code 0 and JSON file exists and is non-empty  
-2. Parse & Transform JSON -> `HostInventory`  
-3. Fallback to `dmidecode -t 0,1,17` on failure  
-4. UI 顯示資料來源：PerfSpect (green) / Legacy DMI (yellow)  
+   * Timeout: 120 seconds
+   * Success criteria: exit code 0 and JSON file exists and is non-empty
+2. Parse & Transform JSON -> `HostInventory`
+3. Fallback to `dmidecode -t 0,1,17` on failure
+4. UI 顯示資料來源：PerfSpect (green) / Legacy DMI (yellow)
 
-#### **9.3.5 UI Requirements (Node Show Page)**
+#### **9.1.5 UI Requirements (Node Show Page)**
 
-* Advanced Telemetry section (PerfSpect only)  
-* Hardware Topology (Socket/Core/Thread map)  
-* PCIe Bandwidth (Negotiated width/speed)  
-* PMU/Uncore counters summary  
-* Source Indicator: `Data Source: Intel PerfSpect vX.Y`  
+* Advanced Telemetry section (PerfSpect only)
+* Hardware Topology (Socket/Core/Thread map)
+* PCIe Bandwidth (Negotiated width/speed)
+* PMU/Uncore counters summary
+* Source Indicator: `Data Source: Intel PerfSpect vX.Y`
 
-#### **9.3.6 Action Items**
+#### **9.1.6 Action Items**
 
-1. Build per-architecture PerfSpect binaries  
-2. Push binaries to target servers  
-3. Install alongside `hpc-agent`  
-4. Implement `PerfspectCollector`  
-5. Implement `FallbackCollector`  
+1. Build per-architecture PerfSpect binaries
+2. Push binaries to target servers
+3. Install alongside `hpc-agent`
+4. Implement `PerfspectCollector`
+5. Implement `FallbackCollector`
 
-### **9.4 UI Theme Migration (NetBox Style)**
+### **9.2 Agent WebSocket Mode**
 
-**Objective**: Replace current UI theme with a strict NetBox v4+ visual style while staying on Rails + Tailwind.  
-**Constraint**: Do not introduce Bootstrap, Sass, or Tabler CSS; use Tailwind utilities only.  
+**Status**: Pending
+**Priority**: Medium
+**Target Version**: v1.1.x
 
-#### **9.4.1 Design System & Tokens**
+#### **9.2.1 Context**
 
-**Color Palette (Tailwind Mapping)**
+Replace HTTP polling with bidirectional WebSocket communication via ActionCable for real-time agent control.
 
-| UI Element | NetBox Context | Tailwind Class | Hex Approximation |
-| --- | --- | --- | --- |
-| Brand Primary | Buttons, Active Links | `bg-teal-600` / `text-teal-600` | `#0097a7` |
-| Sidebar Bg | Left Navigation | `bg-slate-900` | `#242e42` |
-| Sidebar Text | Inactive Links | `text-slate-400` | `#9ca3af` |
-| Sidebar Hover | Active/Hover Link | `bg-slate-800 text-teal-400` | -- |
-| Page Bg | App Background | `bg-slate-100` | `#f1f5f9` |
-| Card Bg | Content Containers | `bg-white` | `#ffffff` |
-| Border | Tables, Separators | `border-slate-300` | `#cbd5e1` |
+#### **9.2.2 Features**
 
-**Status Colors**
+* Agent connects to ActionCable endpoint on startup
+* Server can push commands to agent (run benchmark, cancel, collect inventory)
+* Real-time log streaming during benchmark execution
+* Immediate status updates without polling
 
-* Active/Online: `bg-green-100 text-green-800`  
-* Offline/Down: `bg-red-100 text-red-800`  
-* Staged/Provisioning: `bg-blue-100 text-blue-800`  
-* Warning/Alert: `bg-yellow-100 text-yellow-800`  
+#### **9.2.3 Technical Considerations**
 
-**Typography**
+* Fallback to HTTP polling when WebSocket unavailable
+* Connection reconnection with exponential backoff
+* Authentication via API token in connection params
 
-* Sans-serif (`Inter` preferred, fallback to system stack)  
-* Dense layout: base `text-sm`  
+### **9.3 HPL Benchmark Support**
 
-#### **9.4.2 Implementation Tasks**
+**Status**: Pending
+**Priority**: Medium
+**Target Version**: v1.1.x
 
-**Layout Refactor**
+#### **9.3.1 Context**
 
-* Update `app/views/layouts/application.html.erb` and `app/views/layouts/dashboard.html.erb`  
-* Sidebar fixed left (`w-64`, `bg-slate-900`)  
-* Top header sticky, white, border bottom, includes search bar and user profile dropdown  
-* Main content `bg-slate-100` with `p-4`/`p-6`  
-* Breadcrumbs always visible  
-* Footer with version info  
+Add support for High-Performance Linpack (HPL) benchmark alongside HPCG.
 
-**Cards**
+#### **9.3.2 Features**
 
-* White background, thin border (`border-slate-200`), `shadow-sm`  
-* Distinct header with separator line  
+* HPL benchmark recipe with configurable parameters (N, NB, P, Q)
+* Auto-detection of optimal problem size based on available memory
+* Parse HPL.out for GFLOPS result
+* Support for OpenMPI and Intel MPI
 
-**Sidebar & Navigation**
+### **9.4 Multi-Node Orchestration**
 
-* `app/views/shared/_sidebar.html.erb`  
-* Section headers: uppercase `text-xs font-bold text-slate-500`  
-* Links: icon + label, hover `bg-slate-800 text-teal-400`  
-* Collapsible groups for dense navigation  
-* Grouping: Organization (Nodes, Clusters), Benchmarks (Recipes, Runs), Admin (Users, API Keys, Settings)  
+**Status**: Pending
+**Priority**: Low
+**Target Version**: v1.2.x
 
-**Node Details View**
+#### **9.4.1 Context**
 
-* `app/views/nodes/show.html.erb`  
-* Header: Title, Status Badge, Action Buttons (Edit, Delete, Connect/Run)  
-* Grid layout: Info panel + Metrics panel  
-* Related Objects: recent benchmark runs table  
-* Tabs: Overview, Interfaces, Hardware, Benchmarks, Logs  
+Enable distributed benchmarks across multiple nodes using Rank0 leader pattern.
 
-**Tables**
+#### **9.4.2 Features**
 
-* `app/views/nodes/_table.html.erb`, `app/views/benchmark_runs/index.html.erb`  
-* Container: `border border-slate-300 rounded overflow-hidden`  
-* Header: `bg-slate-50 text-xs font-bold text-slate-500 uppercase tracking-wider`  
-* Rows: `bg-white border-b border-slate-200 hover:bg-slate-50 transition duration-150` (optionally `hover:bg-teal-50`)  
-* Cells: `text-sm text-slate-700` with dense padding (`py-2 px-3`)  
-* Actions: right aligned, ghost icons  
+* Rank0 agent coordinates benchmark across participating nodes
+* Aggregate results from all ranks
+* Handle node failures gracefully
+* Support for MPI-based benchmarks (HPL, HPCG with MPI)
 
-**Forms**
+### **9.5 Build Cache**
 
-* `app/components/node_form_component.html.erb`  
-* Labels above inputs, help text below  
-* Fieldsets with legends for long forms  
+**Status**: Pending
+**Priority**: Low
+**Target Version**: v1.2.x
 
-#### **9.4.3 Specific Components**
+#### **9.5.1 Context**
 
-**Status Badges**
+Cache compiled benchmark binaries to avoid repeated compilation.
 
-* `online`: `bg-emerald-500 text-white px-2 py-0.5 rounded text-xs font-bold shadow-sm`  
-* `offline`: `bg-red-500 text-white ...`  
-* `running`: `bg-blue-500 text-white animate-pulse ...`  
+#### **9.5.2 Features**
 
-**Buttons**
-
-* Primary: `bg-teal-600 hover:bg-teal-700 text-white ...`  
-* Secondary: `bg-white border border-slate-300 text-slate-700 ...`  
-* Danger: `text-red-600 hover:bg-red-50 ...`  
-
-#### **9.4.4 Acceptance Criteria / Validation Checklist**
-
-1. UI is visually consistent with NetBox v4+  
-2. No Bootstrap or Sass dependencies added (Gemfile and package.json stay clean)  
-3. Sidebar is dark (`bg-slate-900`) regardless of OS theme  
-4. Tables use dense padding (`py-2`)  
-5. "Create Node" button uses `bg-teal-600`  
-6. Sidebar navigation present on all dashboard/admin pages  
-7. Mobile responsive (sidebar collapses)  
-8. Hotwire features remain intact  
-
-#### **9.4.5 Reference Files**
-
-* `netbox/templates/base/layout.html`  
-* `netbox/project-static/styles/_variables.scss`  
-* `netbox/templates/dcim/device.html`  
-* `netbox/templates/inc/table.html`  
-
-### **9.5 Manual Node CRUD & SSH Jump Host Support**
-
-**Status**: Pending Implementation  
-**Priority**: High  
-**Context**: 現有 Rails + Go Agent 架構需補足節點手動管理與跳板機 SSH 支援。  
-
-#### **9.5.1 Feature 1: Manual Node CRUD (Web UI)**
-
-**Description**
-
-* Nodes 目前僅支援 CSV 匯入或 Agent Push，需支援手動新增/修改/刪除  
-
-**Specifications**
-
-* Create: Nodes 列表頁新增 "Add Node" 按鈕，表單以 modal 或 slide-over 顯示  
-* Update: 每列提供 "Edit"  
-* Delete: 提供 "Delete" 並有確認對話框，成功後以 Turbo Stream 移除該列  
-* Required: `Hostname`, `Role` (login/compute), `Arch` (x86_64/arm64)  
-* Optional: `IP Address`, `SSH Port` (default 22), `SSH User`  
-* Validation: Hostname 必須唯一  
-
-**Implementation Notes**
-
-1. Migration: add `ssh_port` (integer, default 22), `ssh_user` (string, optional)  
-2. Model: validate unique hostname; define role enum if missing  
-3. Controller: `new`, `create`, `edit`, `update`, `destroy`  
-4. Views: Turbo Frames for new/edit, Turbo Streams for create/update/destroy  
-5. Component: `NodeFormComponent` shared for create/update  
-6. UX: Tailwind styling; `data-turbo-confirm` for delete  
-
-#### **9.5.2 Feature 2: SSH via Jump Host (Bastion)**
-
-**Description**
-
-* Web Server 無法直接 SSH 到內網節點時，需支援 Jump Host  
-
-**Specifications**
-
-* Configuration via ENV or credentials:
-  * `JUMP_HOST`, `JUMP_USER`, `JUMP_PORT`  
-* Logic:
-  * If Jump Host configured, use `Net::SSH::Gateway` to proxy to node  
-  * Otherwise, use direct `Net::SSH.start`  
-* Error handling: timeouts for jump host and target node  
-
-**Implementation Notes (Ruby)**
-
-* Create `SshConfig` wrapper to read ENV (`JUMP_HOST`, `JUMP_USER`, `JUMP_PORT`)  
-* `use_jump_host?` returns true when `JUMP_HOST` is present  
-
-```ruby
-gateway = Net::SSH::Gateway.new(jump_host, jump_user, options)
-gateway.ssh(target_node_host, target_user) do |ssh|
-  # run command
-end
-```
-
-#### **9.5.3 Test Verification**
-
-* RSpec: mock `Net::SSH::Gateway` and `Net::SSH.start`  
-* Jump host configured: expect Gateway usage  
-* Direct connection: expect `Net::SSH.start` only  
-* Verify `agent collect --json` command executed  
-
-#### **9.5.4 Definition of Done**
-
-* UI can add/edit/delete Nodes  
-* SSH Port/User editable  
-* Jump Host env vars enable proxy SSH  
-* "Collect Now" still works with new SSH logic  
+* Hash-based cache key (compiler version, flags, source version)
+* Shared cache on shared storage or per-node local cache
+* Cache invalidation on module stack changes
+* Configurable cache TTL  
