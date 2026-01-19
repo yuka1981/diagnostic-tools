@@ -57,5 +57,21 @@ FactoryBot.define do
       jump_user { "bastion_user" }
       jump_port { 22 }
     end
+
+    # Rack-related traits
+    trait :in_rack do
+      rack { association :equipment_rack }
+      rack_position { 1 }
+      rack_height { 1 }
+      rack_face { :front }
+    end
+
+    trait :rear_mounted do
+      rack_face { :rear }
+    end
+
+    trait :multi_u do
+      rack_height { 2 }
+    end
   end
 end

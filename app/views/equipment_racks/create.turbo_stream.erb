@@ -1,0 +1,9 @@
+<%= turbo_stream.append "equipment_racks_tbody" do %>
+  <%= render "equipment_racks/equipment_rack", equipment_rack: @equipment_rack %>
+<% end %>
+
+<%= turbo_stream.update "equipment_rack_modal", "" %>
+
+<%= turbo_stream.update "flash_messages" do %>
+  <%= render "shared/flash" %>
+<% end %>

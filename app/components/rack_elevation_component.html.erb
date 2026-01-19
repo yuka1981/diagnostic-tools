@@ -1,0 +1,76 @@
+<%= helpers.turbo_frame_tag "rack_elevation_#{@rack.id}" do %>
+  <div class="card-netbox" data-controller="rack-elevation">
+    <div class="card-header flex items-center justify-between">
+      <h3 class="card-title text-xs font-bold text-slate-500 uppercase">Rack Elevation</h3>
+      <div class="flex items-center gap-1">
+        <% if current_face == :front %>
+          <span class="px-2 py-1 text-xs font-medium bg-teal-100 text-teal-700 rounded">Front</span>
+          <%= link_to equipment_rack_path(@rack, face: :rear),
+              class: "px-2 py-1 text-xs font-medium text-slate-500 hover:bg-slate-100 rounded transition-colors",
+              data: { turbo_frame: "rack_elevation_#{@rack.id}" } do %>
+            Rear
+          <% end %>
+        <% else %>
+          <%= link_to equipment_rack_path(@rack, face: :front),
+              class: "px-2 py-1 text-xs font-medium text-slate-500 hover:bg-slate-100 rounded transition-colors",
+              data: { turbo_frame: "rack_elevation_#{@rack.id}" } do %>
+            Front
+          <% end %>
+          <span class="px-2 py-1 text-xs font-medium bg-teal-100 text-teal-700 rounded">Rear</span>
+        <% end %>
+      </div>
+    </div>
+
+    <div class="p-4">
+      <div class="flex">
+        <%# U Position Labels (left side) %>
+        <div class="flex flex-col-reverse w-8 text-right pr-2 border-r border-slate-300" style="<%= total_height_style %>">
+          <% @rack.u_height.times do |i| %>
+            <div class="flex items-center justify-end text-xs text-slate-400 font-mono"
+                 style="height: <%= U_HEIGHT_PX %>px;">
+              <%= i + 1 %>
+            </div>
+          <% end %>
+        </div>
+
+        <%# Rack Elevation Grid %>
+        <div class="flex-1 relative border border-slate-300 bg-slate-100" style="width: 260px; <%= total_height_style %>">
+          <%# Render cells from top to bottom %>
+          <% elevation_cells.each do |cell| %>
+            <% if cell[:type] == :empty %>
+              <%# Empty slot %>
+              <div class="absolute w-full border-b border-slate-200 bg-slate-50"
+                   style="<%= cell_height_style(1) %> bottom: <%= (cell[:u] - 1) * U_HEIGHT_PX %>px;">
+              </div>
+            <% else %>
+              <%# Node cell (merged) %>
+              <% node = cell[:node] %>
+              <%= link_to node_path(node),
+                  class: "absolute w-full flex items-center justify-center text-xs font-medium border border-slate-300 rounded-sm shadow-sm transition-colors cursor-pointer #{node_status_classes(node)}",
+                  style: "#{cell_height_style(cell[:height])} bottom: #{(node.rack_position - 1) * U_HEIGHT_PX}px;",
+                  title: "#{node.hostname} (U#{node.rack_position}-U#{node.rack_position + node.rack_height - 1}) - #{node.status.to_s.capitalize}" do %>
+                <span class="truncate px-2"><%= node.hostname %></span>
+              <% end %>
+            <% end %>
+          <% end %>
+        </div>
+      </div>
+
+      <%# Legend %>
+      <div class="mt-4 flex items-center gap-4 text-xs text-slate-500">
+        <div class="flex items-center gap-1">
+          <div class="w-3 h-3 rounded bg-emerald-500"></div>
+          <span>Online</span>
+        </div>
+        <div class="flex items-center gap-1">
+          <div class="w-3 h-3 rounded bg-slate-400"></div>
+          <span>Offline</span>
+        </div>
+        <div class="flex items-center gap-1">
+          <div class="w-3 h-3 rounded bg-slate-50 border border-slate-200"></div>
+          <span>Empty</span>
+        </div>
+      </div>
+    </div>
+  </div>
+<% end %>

@@ -1,0 +1,5 @@
+<%= turbo_stream.remove dom_id(@equipment_rack) %>
+
+<%= turbo_stream.update "flash_messages" do %>
+  <%= render "shared/flash" %>
+<% end %>

@@ -1,0 +1,5 @@
+<%= turbo_frame_tag "equipment_rack_modal" do %>
+  <%= render "shared/modal", title: "Add New Rack" do %>
+    <%= render "form", equipment_rack: @equipment_rack, rooms: @rooms %>
+  <% end %>
+<% end %>

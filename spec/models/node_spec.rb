@@ -282,4 +282,154 @@ RSpec.describe Node, type: :model do
       end
     end
   end
+
+  describe "rack associations" do
+    it { is_expected.to belong_to(:rack).optional }
+  end
+
+  describe "rack_face enum" do
+    it "defines front and rear faces with prefix" do
+      expect(Node.rack_faces).to eq({ "front" => 0, "rear" => 1 })
+    end
+
+    it "defaults to front face" do
+      node = Node.new
+      expect(node.rack_face).to eq("front")
+    end
+
+    it "provides prefixed methods for front" do
+      node = build(:node, rack_face: :front)
+      expect(node).to be_rack_face_front
+    end
+
+    it "provides prefixed methods for rear" do
+      node = build(:node, rack_face: :rear)
+      expect(node).to be_rack_face_rear
+    end
+  end
+
+  describe "rack position validations" do
+    let(:rack) { create(:equipment_rack, u_height: 42) }
+
+    describe "#rack_position_within_bounds" do
+      context "when rack and rack_position are present" do
+        it "is valid when position is 1" do
+          node = build(:node, rack: rack, rack_position: 1, rack_height: 1)
+          expect(node).to be_valid
+        end
+
+        it "is valid when position + height - 1 equals rack u_height" do
+          # Position 40, height 3 = occupies U40, U41, U42 (max = 42)
+          node = build(:node, rack: rack, rack_position: 40, rack_height: 3)
+          expect(node).to be_valid
+        end
+
+        it "is invalid when position is less than 1" do
+          node = build(:node, rack: rack, rack_position: 0, rack_height: 1)
+          expect(node).not_to be_valid
+          expect(node.errors[:rack_position]).to include("must be at least 1")
+        end
+
+        it "is invalid when position + height - 1 exceeds rack u_height" do
+          # Position 41, height 3 = occupies U41, U42, U43 (max = 43, exceeds 42)
+          node = build(:node, rack: rack, rack_position: 41, rack_height: 3)
+          expect(node).not_to be_valid
+          expect(node.errors[:rack_position]).to include("exceeds rack height (max U42)")
+        end
+
+        it "is invalid when single-U node at position exceeds rack u_height" do
+          node = build(:node, rack: rack, rack_position: 43, rack_height: 1)
+          expect(node).not_to be_valid
+          expect(node.errors[:rack_position]).to include("exceeds rack height (max U42)")
+        end
+      end
+
+      context "when rack is nil" do
+        it "skips validation" do
+          node = build(:node, rack: nil, rack_position: 100, rack_height: 10)
+          expect(node).to be_valid
+        end
+      end
+
+      context "when rack_position is nil" do
+        it "skips validation" do
+          node = build(:node, rack: rack, rack_position: nil, rack_height: 10)
+          expect(node).to be_valid
+        end
+      end
+    end
+
+    describe "#rack_position_no_overlap" do
+      let!(:existing_node) do
+        create(:node, rack: rack, rack_position: 10, rack_height: 3, rack_face: :front)
+        # Occupies U10, U11, U12
+      end
+
+      context "same rack and face" do
+        it "is invalid when new node overlaps from below" do
+          # Position 9, height 2 = occupies U9, U10 (overlaps with U10)
+          node = build(:node, rack: rack, rack_position: 9, rack_height: 2, rack_face: :front)
+          expect(node).not_to be_valid
+          expect(node.errors[:rack_position].first).to match(/overlaps with/)
+        end
+
+        it "is invalid when new node overlaps from above" do
+          # Position 12, height 2 = occupies U12, U13 (overlaps with U12)
+          node = build(:node, rack: rack, rack_position: 12, rack_height: 2, rack_face: :front)
+          expect(node).not_to be_valid
+          expect(node.errors[:rack_position].first).to match(/overlaps with/)
+        end
+
+        it "is invalid when new node is completely inside existing" do
+          # Position 11, height 1 = occupies U11 (inside U10-U12)
+          node = build(:node, rack: rack, rack_position: 11, rack_height: 1, rack_face: :front)
+          expect(node).not_to be_valid
+          expect(node.errors[:rack_position].first).to match(/overlaps with/)
+        end
+
+        it "is invalid when new node completely contains existing" do
+          # Position 9, height 5 = occupies U9-U13 (contains U10-U12)
+          node = build(:node, rack: rack, rack_position: 9, rack_height: 5, rack_face: :front)
+          expect(node).not_to be_valid
+          expect(node.errors[:rack_position].first).to match(/overlaps with/)
+        end
+
+        it "is valid when new node is directly adjacent below" do
+          # Position 8, height 2 = occupies U8, U9 (no overlap with U10-U12)
+          node = build(:node, rack: rack, rack_position: 8, rack_height: 2, rack_face: :front)
+          expect(node).to be_valid
+        end
+
+        it "is valid when new node is directly adjacent above" do
+          # Position 13, height 2 = occupies U13, U14 (no overlap with U10-U12)
+          node = build(:node, rack: rack, rack_position: 13, rack_height: 2, rack_face: :front)
+          expect(node).to be_valid
+        end
+      end
+
+      context "same rack but different face" do
+        it "is valid when nodes overlap on different faces" do
+          # Same position as existing but rear face
+          node = build(:node, rack: rack, rack_position: 10, rack_height: 3, rack_face: :rear)
+          expect(node).to be_valid
+        end
+      end
+
+      context "different racks" do
+        let(:other_rack) { create(:equipment_rack, u_height: 42) }
+
+        it "is valid when nodes have same position on different racks" do
+          node = build(:node, rack: other_rack, rack_position: 10, rack_height: 3, rack_face: :front)
+          expect(node).to be_valid
+        end
+      end
+
+      context "updating existing node" do
+        it "does not conflict with itself" do
+          existing_node.rack_position = 11
+          expect(existing_node).to be_valid
+        end
+      end
+    end
+  end
 end

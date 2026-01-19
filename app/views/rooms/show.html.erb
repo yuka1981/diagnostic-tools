@@ -1,0 +1,114 @@
+<% content_for(:page_title) { @room.name } %>
+
+<div class="mb-6">
+  <nav class="text-sm text-slate-500 mb-2">
+    <%= link_to "Rooms", rooms_path, class: "hover:text-teal-600" %> /
+    <span class="text-slate-700"><%= @room.name %></span>
+  </nav>
+  <div class="flex items-center justify-between">
+    <div class="flex items-center gap-4">
+      <h1 class="text-2xl font-bold text-slate-900"><%= @room.name %></h1>
+    </div>
+    <% if current_user.approver? %>
+      <div class="flex items-center gap-2">
+        <%= link_to edit_room_path(@room), class: "btn-secondary" do %>
+          <svg class="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+          </svg>
+          Edit
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+</div>
+
+<div class="grid gap-6 lg:grid-cols-2">
+  <%# Overview Card %>
+  <div class="card-netbox">
+    <div class="card-header">
+      <h3 class="card-title">Overview</h3>
+    </div>
+    <div class="p-0">
+      <table class="w-full text-sm text-left">
+        <tbody class="divide-y divide-slate-100">
+          <tr class="hover:bg-slate-50">
+            <th class="px-4 py-2 font-bold text-slate-700 w-1/3 border-r border-slate-200">Name</th>
+            <td class="px-4 py-2 text-slate-700 font-bold"><%= @room.name %></td>
+          </tr>
+          <tr class="hover:bg-slate-50">
+            <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">Description</th>
+            <td class="px-4 py-2 text-slate-700"><%= @room.description.presence || "-" %></td>
+          </tr>
+          <tr class="hover:bg-slate-50">
+            <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">Total Racks</th>
+            <td class="px-4 py-2 text-slate-700"><%= @room.equipment_racks.count %></td>
+          </tr>
+          <tr class="hover:bg-slate-50">
+            <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">Created</th>
+            <td class="px-4 py-2 text-slate-700"><%= @room.created_at.strftime("%Y-%m-%d %H:%M") %></td>
+          </tr>
+          <tr class="hover:bg-slate-50">
+            <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">Updated</th>
+            <td class="px-4 py-2 text-slate-700"><%= @room.updated_at.strftime("%Y-%m-%d %H:%M") %></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <%# Racks Card %>
+  <div class="card-netbox">
+    <div class="card-header">
+      <h3 class="card-title">Equipment Racks</h3>
+    </div>
+    <% if @room.equipment_racks.any? %>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm text-left">
+          <thead class="bg-slate-50">
+            <tr>
+              <th class="px-4 py-2 text-xs font-bold uppercase text-slate-500 border-b">Name</th>
+              <th class="px-4 py-2 text-xs font-bold uppercase text-slate-500 border-b">U Height</th>
+              <th class="px-4 py-2 text-xs font-bold uppercase text-slate-500 border-b">Width</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100">
+            <% @room.equipment_racks.order(:name).each do |rack| %>
+              <tr class="hover:bg-slate-50">
+                <td class="px-4 py-2 font-bold text-slate-900"><%= rack.name %></td>
+                <td class="px-4 py-2 text-slate-600"><%= rack.u_height %>U</td>
+                <td class="px-4 py-2 text-slate-600"><%= rack.width %>"</td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    <% else %>
+      <div class="p-4 text-center text-slate-500 text-sm">
+        No equipment racks in this room
+      </div>
+    <% end %>
+  </div>
+</div>
+
+<%# Danger Zone %>
+<% if current_user.approver? && @room.equipment_racks.empty? %>
+  <div class="card-netbox mt-6 border-red-200">
+    <div class="card-header bg-red-50 border-red-200">
+      <h3 class="card-title text-red-800">Danger Zone</h3>
+    </div>
+    <div class="p-4">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm font-medium text-slate-900">Delete this room</p>
+          <p class="text-xs text-slate-500">Once deleted, this room cannot be recovered.</p>
+        </div>
+        <%= button_to room_path(@room),
+            method: :delete,
+            class: "btn-danger",
+            data: { turbo_confirm: "Are you sure you want to delete this room? This action cannot be undone." } do %>
+          Delete Room
+        <% end %>
+      </div>
+    </div>
+  </div>
+<% end %>

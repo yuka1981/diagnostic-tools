@@ -1,0 +1,63 @@
+<%= form_with(model: equipment_rack, class: "space-y-4") do |f| %>
+  <% if equipment_rack.errors.any? %>
+    <div class="rounded-lg bg-red-50 p-4 text-sm text-red-700 border border-red-200">
+      <h2 class="font-bold mb-2"><%= pluralize(equipment_rack.errors.count, "error") %> prohibited this rack from being saved:</h2>
+      <ul class="list-disc list-inside">
+        <% equipment_rack.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div>
+    <%= f.label :name, class: "block text-sm font-bold text-slate-700 mb-1" %>
+    <%= f.text_field :name, required: true,
+        placeholder: "R01",
+        class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" %>
+    <p class="mt-1 text-xs text-slate-500">Unique name for this rack.</p>
+  </div>
+
+  <div>
+    <%= f.label :room_id, "Room", class: "block text-sm font-bold text-slate-700 mb-1" %>
+    <%= f.select :room_id,
+        options_from_collection_for_select(rooms, :id, :name, equipment_rack.room_id),
+        { include_blank: "-- No Room (Unassigned) --" },
+        class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" %>
+    <p class="mt-1 text-xs text-slate-500">Optionally assign this rack to a room.</p>
+  </div>
+
+  <div class="grid grid-cols-2 gap-4">
+    <div>
+      <%= f.label :u_height, "U Height", class: "block text-sm font-bold text-slate-700 mb-1" %>
+      <%= f.number_field :u_height, min: 1, max: 60,
+          placeholder: "42",
+          class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" %>
+      <p class="mt-1 text-xs text-slate-500">Rack height in U (typical: 42).</p>
+    </div>
+
+    <div>
+      <%= f.label :width, "Width (inches)", class: "block text-sm font-bold text-slate-700 mb-1" %>
+      <%= f.number_field :width, min: 1,
+          placeholder: "19",
+          class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" %>
+      <p class="mt-1 text-xs text-slate-500">Rack width in inches (typical: 19).</p>
+    </div>
+  </div>
+
+  <div>
+    <%= f.label :notes, class: "block text-sm font-bold text-slate-700 mb-1" %>
+    <%= f.text_area :notes, rows: 3,
+        placeholder: "Optional notes about this rack...",
+        class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" %>
+  </div>
+
+  <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-200">
+    <button type="button"
+            class="btn-secondary"
+            data-action="modal#close">
+      Cancel
+    </button>
+    <%= f.submit equipment_rack.new_record? ? "Create Rack" : "Update Rack", class: "btn-primary" %>
+  </div>
+<% end %>

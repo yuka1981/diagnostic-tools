@@ -1,0 +1,46 @@
+<div class="card-netbox">
+  <div class="overflow-x-auto">
+    <% if equipment_racks.any? %>
+      <table class="min-w-full divide-y divide-slate-200 text-sm">
+        <thead class="bg-slate-50">
+          <tr>
+            <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Name</th>
+            <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Room</th>
+            <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">U Height</th>
+            <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Utilization</th>
+            <th scope="col" class="relative px-3 py-2 border-b">
+              <span class="sr-only">Actions</span>
+            </th>
+          </tr>
+        </thead>
+        <tbody id="equipment_racks_tbody" class="divide-y divide-slate-200 bg-white">
+          <%= render partial: "equipment_racks/equipment_rack", collection: equipment_racks, as: :equipment_rack %>
+        </tbody>
+      </table>
+    <% else %>
+      <div class="flex flex-col items-center justify-center py-12 text-center">
+        <div class="h-12 w-12 rounded-full bg-slate-100 flex items-center justify-center mb-4">
+          <svg class="h-6 w-6 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+          </svg>
+        </div>
+        <h3 class="text-sm font-semibold text-slate-900">No racks found</h3>
+        <p class="mt-1 text-sm text-slate-500">Get started by creating a new rack.</p>
+
+        <div class="mt-6">
+          <% if current_user.approver? %>
+            <%= link_to new_equipment_rack_path,
+                class: "btn-primary",
+                data: { turbo_frame: "equipment_rack_modal" } do %>
+              <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+              </svg>
+              Add Rack
+            <% end %>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+  </div>
+</div>

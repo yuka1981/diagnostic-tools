@@ -7,11 +7,13 @@ class Node < ApplicationRecord
   has_many :node_states, dependent: :destroy
   has_many :benchmark_runs, dependent: :destroy
   belongs_to :api_key, optional: true
+  belongs_to :rack, class_name: "EquipmentRack", optional: true
 
   # Enums
   enum :role, { compute: 0, login: 1, admin: 2 }, default: :compute
   enum :source, { manual: 0, csv: 1, agent_push: 2 }, default: :manual
   enum :ssh_connect_method, { global_bastion: 0, custom_bastion: 1, direct: 2 }, default: :global_bastion
+  enum :rack_face, { front: 0, rear: 1 }, default: :front, prefix: true
 
   # Validations
   validates :hostname, presence: true, uniqueness: true, length: { maximum: 255 }
@@ -23,6 +25,8 @@ class Node < ApplicationRecord
   validates :arch, inclusion: { in: %w[x86_64 aarch64 arm64], allow_blank: true }
   validate :hostname_not_localhost
   validate :ip_not_localhost
+  validate :rack_position_within_bounds, if: :rack_position_required?
+  validate :rack_position_no_overlap, if: :rack_position_required?
 
   # Callbacks
   before_validation :generate_uuid, on: :create
@@ -113,6 +117,36 @@ class Node < ApplicationRecord
 
     if self.class.localhost?(ip)
       errors.add(:ip, "cannot be a localhost address. Please use a remote IP address.")
+    end
+  end
+
+  def rack_position_required?
+    rack.present? && rack_position.present?
+  end
+
+  def rack_position_within_bounds
+    return unless rack_height.present?
+
+    if rack_position < 1
+      errors.add(:rack_position, "must be at least 1")
+    elsif rack_position + rack_height - 1 > rack.u_height
+      errors.add(:rack_position, "exceeds rack height (max U#{rack.u_height})")
+    end
+  end
+
+  def rack_position_no_overlap
+    conflicting = rack.nodes
+      .where(rack_face: rack_face)
+      .where.not(id: id)
+      .where.not(rack_position: nil)
+      .select do |other|
+        my_range = rack_position...(rack_position + (rack_height || 1))
+        other_range = other.rack_position...(other.rack_position + (other.rack_height || 1))
+        my_range.cover?(other_range.first) || other_range.cover?(my_range.first)
+      end
+
+    if conflicting.any?
+      errors.add(:rack_position, "overlaps with #{conflicting.first.hostname}")
     end
   end
 end

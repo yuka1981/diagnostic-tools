@@ -56,6 +56,8 @@ Rails.application.routes.draw do
       post :cancel
     end
   end
+  resources :rooms
+  resources :equipment_racks, path: "racks"
   resources :benchmark_recipes do
     member do
       patch :archive

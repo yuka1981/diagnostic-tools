@@ -1,5 +1,5 @@
 <%= turbo_frame_tag "node_modal" do %>
   <%= render "shared/modal", title: "Edit Node: #{@node.hostname}" do %>
-    <%= render(NodeFormComponent.new(node: @node, api_keys: @api_keys)) %>
+    <%= render(NodeFormComponent.new(node: @node, api_keys: @api_keys, racks: @racks)) %>
   <% end %>
 <% end %>

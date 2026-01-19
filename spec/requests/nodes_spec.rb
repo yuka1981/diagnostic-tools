@@ -247,4 +247,96 @@ RSpec.describe "Nodes", type: :request do
       expect(response).to redirect_to(new_user_session_path)
     end
   end
+
+  describe "rack assignment" do
+    let(:room) { create(:room, name: "Server Room A") }
+    let(:rack) { create(:equipment_rack, name: "Rack-01", room: room, u_height: 42) }
+
+    describe "GET /nodes/new" do
+      it "renders Physical Location section" do
+        get new_node_path
+        expect(response.body).to include("Physical Location")
+        expect(response.body).to include("Rack")
+        expect(response.body).to include("Position (U)")
+        expect(response.body).to include("Height (U)")
+        expect(response.body).to include("Face")
+      end
+
+      it "includes available racks in dropdown" do
+        rack # create the rack
+        get new_node_path
+        expect(response.body).to include("Server Room A - Rack-01")
+      end
+    end
+
+    describe "POST /nodes with rack fields" do
+      let(:valid_params_with_rack) do
+        {
+          node: {
+            hostname: "racked-node",
+            role: "compute",
+            arch: "x86_64",
+            ssh_port: 22,
+            rack_id: rack.id,
+            rack_position: 10,
+            rack_height: 2,
+            rack_face: "front"
+          }
+        }
+      end
+
+      it "creates a node with rack assignment" do
+        expect do
+          post nodes_path, params: valid_params_with_rack
+        end.to change(Node, :count).by(1)
+
+        created_node = Node.last
+        expect(created_node.rack).to eq(rack)
+        expect(created_node.rack_position).to eq(10)
+        expect(created_node.rack_height).to eq(2)
+        expect(created_node.rack_face).to eq("front")
+      end
+    end
+
+    describe "PATCH /nodes/:id with rack fields" do
+      it "can assign a node to a rack" do
+        patch node_path(node), params: {
+          node: {
+            rack_id: rack.id,
+            rack_position: 5,
+            rack_height: 1,
+            rack_face: "rear"
+          }
+        }
+
+        node.reload
+        expect(node.rack).to eq(rack)
+        expect(node.rack_position).to eq(5)
+        expect(node.rack_height).to eq(1)
+        expect(node.rack_face).to eq("rear")
+      end
+
+      it "can remove rack assignment" do
+        node.update!(rack: rack, rack_position: 1, rack_height: 1)
+
+        patch node_path(node), params: { node: { rack_id: "" } }
+
+        node.reload
+        expect(node.rack).to be_nil
+      end
+    end
+
+    describe "GET /nodes/:id/edit" do
+      it "renders Physical Location section" do
+        get edit_node_path(node)
+        expect(response.body).to include("Physical Location")
+      end
+
+      it "includes available racks in dropdown" do
+        rack # create the rack
+        get edit_node_path(node)
+        expect(response.body).to include("Server Room A - Rack-01")
+      end
+    end
+  end
 end

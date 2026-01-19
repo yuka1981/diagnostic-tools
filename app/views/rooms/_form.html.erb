@@ -1,0 +1,41 @@
+<%= form_with(model: @room, class: "space-y-6") do |f| %>
+  <% if @room.errors.any? %>
+    <div class="rounded-lg bg-red-50 p-4 text-sm text-red-700 border border-red-200">
+      <h2 class="font-bold mb-2"><%= pluralize(@room.errors.count, "error") %> prohibited this room from being saved:</h2>
+      <ul class="list-disc list-inside">
+        <% @room.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <%# Basic Information %>
+  <div class="card-netbox">
+    <div class="card-header">
+      <h3 class="card-title">Room Details</h3>
+    </div>
+    <div class="p-4 grid grid-cols-1 gap-6">
+      <div>
+        <%= f.label :name, class: "block text-sm font-bold text-slate-700 mb-1" %>
+        <%= f.text_field :name, required: true,
+            placeholder: "Machine Room A",
+            class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" %>
+        <p class="mt-1 text-xs text-slate-500">Unique name for the room.</p>
+      </div>
+
+      <div>
+        <%= f.label :description, class: "block text-sm font-bold text-slate-700 mb-1" %>
+        <%= f.text_area :description, rows: 3,
+            placeholder: "Primary data center room on floor 2...",
+            class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" %>
+        <p class="mt-1 text-xs text-slate-500">Optional description of this room.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="flex items-center justify-end gap-3 pt-4">
+    <%= link_to "Cancel", (@room.persisted? ? room_path(@room) : rooms_path), class: "btn-secondary" %>
+    <%= f.submit @room.new_record? ? "Create Room" : "Update Room", class: "btn-primary" %>
+  </div>
+<% end %>
