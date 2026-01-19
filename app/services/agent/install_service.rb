@@ -62,12 +62,12 @@ module Agent
       has_binary_path = @binary_path.present? && File.exist?(@binary_path)
 
       unless has_release || has_binary_path
-        raise ValidationError.new("Either agent_release or binary_path must be provided", phase: :preflight)
+        raise Errors::ValidationError.new("Either agent_release or binary_path must be provided", phase: :preflight)
       end
 
       if has_release
         @agent_binary = @agent_release.binary_for_arch(node_arch) || legacy_binary_wrapper
-        raise ValidationError.new("No binary available for architecture: #{node_arch}", phase: :preflight) unless @agent_binary
+        raise Errors::ValidationError.new("No binary available for architecture: #{node_arch}", phase: :preflight) unless @agent_binary
       end
     end
 
@@ -206,13 +206,13 @@ module Agent
         elsif status == "activating"
           retry_count += 1
           if retry_count >= max_retries
-            raise ServiceError.new("Service stuck in activating state", phase: :verify)
+            raise Errors::ServiceError.new("Service stuck in activating state", phase: :verify)
           end
           report_progress "Service is starting... (#{retry_count}/#{max_retries})"
           sleep 1
         else
           diagnostics = ssh.nil? ? {} : capture_diagnostics(ssh)
-          raise ServiceError.new("Service failed to start. Status: #{status}", phase: :verify, details: diagnostics)
+          raise Errors::ServiceError.new("Service failed to start. Status: #{status}", phase: :verify, details: diagnostics)
         end
       end
     end
@@ -226,7 +226,7 @@ module Agent
         output = execute_command(ssh, cmd, password: @sudo_password)
         output.strip
       end
-    rescue DeploymentError => e
+    rescue Errors::DeploymentError => e
       e.details[:stdout]&.strip || "unknown"
     end
 

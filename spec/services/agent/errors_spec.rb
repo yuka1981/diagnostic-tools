@@ -3,7 +3,7 @@
 require "rails_helper"
 require_relative "../../../app/services/agent/errors"
 
-RSpec.describe Agent::LifecycleError do
+RSpec.describe Agent::Errors::LifecycleError do
   describe "initialization" do
     it "accepts message, phase, details, and recoverable" do
       error = described_class.new("Something failed", phase: :preflight, details: { foo: "bar" }, recoverable: true)
@@ -25,38 +25,38 @@ RSpec.describe Agent::LifecycleError do
   end
 end
 
-RSpec.describe Agent::ConnectionError do
+RSpec.describe Agent::Errors::ConnectionError do
   it "inherits from LifecycleError" do
-    expect(described_class.new("SSH failed", phase: :connect)).to be_a(Agent::LifecycleError)
+    expect(described_class.new("SSH failed", phase: :connect)).to be_a(Agent::Errors::LifecycleError)
   end
 end
 
-RSpec.describe Agent::ValidationError do
+RSpec.describe Agent::Errors::ValidationError do
   it "inherits from LifecycleError" do
-    expect(described_class.new("Invalid", phase: :preflight)).to be_a(Agent::LifecycleError)
+    expect(described_class.new("Invalid", phase: :preflight)).to be_a(Agent::Errors::LifecycleError)
   end
 end
 
-RSpec.describe Agent::DeploymentError do
+RSpec.describe Agent::Errors::DeploymentError do
   it "inherits from LifecycleError" do
-    expect(described_class.new("Deploy failed", phase: :deploy)).to be_a(Agent::LifecycleError)
+    expect(described_class.new("Deploy failed", phase: :deploy)).to be_a(Agent::Errors::LifecycleError)
   end
 end
 
-RSpec.describe Agent::ServiceError do
+RSpec.describe Agent::Errors::ServiceError do
   it "inherits from LifecycleError" do
-    expect(described_class.new("Service failed", phase: :start)).to be_a(Agent::LifecycleError)
+    expect(described_class.new("Service failed", phase: :start)).to be_a(Agent::Errors::LifecycleError)
   end
 end
 
-RSpec.describe Agent::HealthCheckError do
+RSpec.describe Agent::Errors::HealthCheckError do
   it "inherits from LifecycleError" do
-    expect(described_class.new("Health check failed", phase: :verify)).to be_a(Agent::LifecycleError)
+    expect(described_class.new("Health check failed", phase: :verify)).to be_a(Agent::Errors::LifecycleError)
   end
 end
 
-RSpec.describe Agent::RollbackError do
+RSpec.describe Agent::Errors::RollbackError do
   it "inherits from LifecycleError" do
-    expect(described_class.new("Rollback failed", phase: :rollback)).to be_a(Agent::LifecycleError)
+    expect(described_class.new("Rollback failed", phase: :rollback)).to be_a(Agent::Errors::LifecycleError)
   end
 end

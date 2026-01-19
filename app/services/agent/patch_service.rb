@@ -50,7 +50,7 @@ module Agent
       return if @force
       return unless @node.busy?
 
-      raise NodeBusyError
+      raise Errors::NodeBusyError
     end
 
     def validate_prerequisites!

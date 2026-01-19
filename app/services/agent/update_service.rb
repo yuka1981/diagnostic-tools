@@ -47,7 +47,7 @@ module Agent
     def verify_health(ssh)
       report_progress "Verifying service health"
       verify_service_running(ssh)
-    rescue ServiceError => e
+    rescue Errors::ServiceError => e
       attempt_rollback(ssh)
       raise
     end
@@ -71,19 +71,19 @@ module Agent
       return if @force
       return unless @node.busy?
 
-      raise NodeBusyError
+      raise Errors::NodeBusyError
     end
 
     def validate_release!
-      raise ValidationError.new("Agent release must be persisted", phase: :preflight) unless @agent_release.persisted?
-      raise ValidationError.new("Agent release is recalled and cannot be deployed", phase: :preflight) if @agent_release.recalled?
+      raise Errors::ValidationError.new("Agent release must be persisted", phase: :preflight) unless @agent_release.persisted?
+      raise Errors::ValidationError.new("Agent release is recalled and cannot be deployed", phase: :preflight) if @agent_release.recalled?
     end
 
     def find_agent_binary!
       @agent_binary = @agent_release.binary_for_arch(node_arch)
       @agent_binary ||= legacy_binary_wrapper
 
-      raise ValidationError.new("No binary available for architecture: #{node_arch}", phase: :preflight) unless @agent_binary
+      raise Errors::ValidationError.new("No binary available for architecture: #{node_arch}", phase: :preflight) unless @agent_binary
     end
 
     def node_arch
@@ -175,7 +175,7 @@ module Agent
       actual = output.strip
 
       unless actual == @local_checksum
-        raise ValidationError.new("Checksum mismatch! Expected: #{@local_checksum}, Got: #{actual}", phase: :verify)
+        raise Errors::ValidationError.new("Checksum mismatch! Expected: #{@local_checksum}, Got: #{actual}", phase: :verify)
       end
     end
 
@@ -185,7 +185,7 @@ module Agent
       actual = output.strip
 
       unless actual == @local_checksum
-        raise ValidationError.new("Checksum mismatch! Expected: #{@local_checksum}, Got: #{actual}", phase: :verify)
+        raise Errors::ValidationError.new("Checksum mismatch! Expected: #{@local_checksum}, Got: #{actual}", phase: :verify)
       end
     end
 
@@ -262,13 +262,13 @@ module Agent
         elsif status == "activating"
           retry_count += 1
           if retry_count >= max_retries
-            raise ServiceError.new("Service stuck in activating state", phase: :verify)
+            raise Errors::ServiceError.new("Service stuck in activating state", phase: :verify)
           end
           report_progress "Service is starting... (#{retry_count}/#{max_retries})"
           sleep 1
         else
           diagnostics = ssh.nil? ? {} : capture_diagnostics(ssh)
-          raise ServiceError.new(
+          raise Errors::ServiceError.new(
             "Service failed to start. Status: #{status}",
             phase: :verify,
             details: diagnostics
@@ -286,7 +286,7 @@ module Agent
         output = execute_command(ssh, cmd, password: @sudo_password)
         output.strip
       end
-    rescue DeploymentError => e
+    rescue Errors::DeploymentError => e
       e.details[:stdout]&.strip || "unknown"
     end
 
@@ -310,11 +310,11 @@ module Agent
           @agent_event.mark_rolled_back!(message: "Update failed, rolled back to previous version")
           report_progress "Rollback successful, restored previous version"
         else
-          raise RollbackError.new("Rollback failed - service still not running", phase: :rollback)
+          raise Errors::RollbackError.new("Rollback failed - service still not running", phase: :rollback)
         end
       rescue StandardError => e
         Rails.logger.error "[UpdateService] Rollback failed: #{e.message}"
-        raise RollbackError.new("Rollback failed: #{e.message}", phase: :rollback, details: { original_error: e.class.name })
+        raise Errors::RollbackError.new("Rollback failed: #{e.message}", phase: :rollback, details: { original_error: e.class.name })
       end
     end
 

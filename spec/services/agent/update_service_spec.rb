@@ -28,7 +28,7 @@ RSpec.describe Agent::UpdateService do
       it "raises NodeBusyError" do
         service = described_class.new(node: node, agent_release: agent_release)
         allow(service).to receive(:with_connection).and_yield(nil)
-        expect { service.call }.to raise_error(Agent::NodeBusyError)
+        expect { service.call }.to raise_error(Agent::Errors::NodeBusyError)
       end
 
       it "allows force bypass" do
@@ -48,7 +48,7 @@ RSpec.describe Agent::UpdateService do
       it "raises ValidationError" do
         service = described_class.new(node: node, agent_release: recalled_release)
         allow(service).to receive(:with_connection).and_yield(nil)
-        expect { service.call }.to raise_error(Agent::ValidationError, /recalled/)
+        expect { service.call }.to raise_error(Agent::Errors::ValidationError, /recalled/)
       end
     end
 
@@ -58,7 +58,7 @@ RSpec.describe Agent::UpdateService do
       it "raises ValidationError" do
         service = described_class.new(node: node, agent_release: release_without_binary)
         allow(service).to receive(:with_connection).and_yield(nil)
-        expect { service.call }.to raise_error(Agent::ValidationError, /No binary/)
+        expect { service.call }.to raise_error(Agent::Errors::ValidationError, /No binary/)
       end
     end
   end

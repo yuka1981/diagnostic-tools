@@ -53,7 +53,7 @@ module Agent
         node.sudo_credential = original_sudo_credential
         node.ssh_password = original_ssh_password
       end
-    rescue Agent::NodeBusyError => e
+    rescue Agent::Errors::NodeBusyError => e
       Rails.logger.warn "[Agent::UpdateJob] Node busy: #{node.hostname}"
       broadcast_status(node, "error", "Node is busy with pending/running tasks. Use force option to override.")
     rescue Agent::PatchService::PatchError => e

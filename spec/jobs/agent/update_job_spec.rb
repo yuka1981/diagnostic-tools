@@ -105,7 +105,7 @@ RSpec.describe Agent::UpdateJob, type: :job do
 
     context "when node is busy" do
       before do
-        allow(patch_service).to receive(:call).and_raise(Agent::NodeBusyError)
+        allow(patch_service).to receive(:call).and_raise(Agent::Errors::NodeBusyError)
       end
 
       it "broadcasts error status" do

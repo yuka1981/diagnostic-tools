@@ -106,7 +106,7 @@ module Agent
           end
 
           ch.exec(actual_cmd) do |channel, success|
-            raise Agent::DeploymentError.new("Could not execute command", phase: :execute, details: { command: log_cmd }) unless success
+            raise Agent::Errors::DeploymentError.new("Could not execute command", phase: :execute, details: { command: log_cmd }) unless success
 
             channel.on_data do |_, data|
               stdout += data
@@ -131,7 +131,7 @@ module Agent
           clean_stderr = stderr.gsub(/\[sudo\] password for .*:\s*|Sorry, try again\.\s*/i, "").strip
           clean_stdout = stdout.gsub(/\[sudo\] password for .*:\s*|Sorry, try again\.\s*/i, "").strip
           error_output = clean_stderr.presence || clean_stdout.presence || "Unknown error"
-          raise Agent::DeploymentError.new(
+          raise Agent::Errors::DeploymentError.new(
             "Command failed (exit #{exit_code}): #{error_output}",
             phase: :execute,
             details: { command: log_cmd, exit_code: exit_code, stderr: clean_stderr, stdout: clean_stdout }
@@ -154,7 +154,7 @@ module Agent
         broadcast_log(filtered_stderr, "stderr") if filtered_stderr.present?
 
         unless status.success?
-          raise Agent::DeploymentError.new(
+          raise Agent::Errors::DeploymentError.new(
             "Command failed (exit #{status.exitstatus}): #{filtered_stderr.strip}",
             phase: :execute,
             details: { command: log_cmd, exit_code: status.exitstatus, stderr: filtered_stderr, stdout: stdout }
@@ -207,14 +207,14 @@ module Agent
         begin
           status_cmd = build_remote_command("systemctl status #{SERVICE_NAME} --no-pager -l 2>&1 | tail -20", via_ssh: via_ssh, use_sudo: true)
           diagnostics[:systemctl_status] = execute_command(ssh, status_cmd, password: @sudo_password)
-        rescue Agent::DeploymentError => e
+        rescue Agent::Errors::DeploymentError => e
           diagnostics[:systemctl_status] = e.details[:stderr] || e.message
         end
 
         begin
           journal_cmd = build_remote_command("journalctl -u #{SERVICE_NAME} -n 20 --no-pager 2>&1", via_ssh: via_ssh, use_sudo: true)
           diagnostics[:journalctl_output] = execute_command(ssh, journal_cmd, password: @sudo_password)
-        rescue Agent::DeploymentError => e
+        rescue Agent::Errors::DeploymentError => e
           diagnostics[:journalctl_output] = e.details[:stderr] || e.message
         end
 

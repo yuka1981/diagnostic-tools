@@ -91,7 +91,7 @@ RSpec.describe Agent::InstallService do
           api_token: "token"
         )
         allow(service).to receive(:with_connection).and_yield(nil)
-        expect { service.call }.to raise_error(Agent::ValidationError, /binary_path must be provided/)
+        expect { service.call }.to raise_error(Agent::Errors::ValidationError, /binary_path must be provided/)
       end
     end
 
@@ -106,7 +106,7 @@ RSpec.describe Agent::InstallService do
           api_token: "token"
         )
         allow(service).to receive(:with_connection).and_yield(nil)
-        expect { service.call }.to raise_error(Agent::ValidationError, /No binary/)
+        expect { service.call }.to raise_error(Agent::Errors::ValidationError, /No binary/)
       end
     end
   end

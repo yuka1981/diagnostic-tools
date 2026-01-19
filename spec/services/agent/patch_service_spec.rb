@@ -7,19 +7,19 @@ RSpec.describe Agent::PatchService do
   let(:agent_release) { create(:agent_release, version: "v1.0.0") }
   let(:recipe) { create(:benchmark_recipe) }
 
-  describe Agent::NodeBusyError do
+  describe Agent::Errors::NodeBusyError do
     it "has a default message" do
-      error = Agent::NodeBusyError.new
+      error = Agent::Errors::NodeBusyError.new
       expect(error.message).to eq("Update blocked: Node is currently busy (Pending/Running tasks).")
     end
 
     it "can have a custom message" do
-      error = Agent::NodeBusyError.new("Custom message")
+      error = Agent::Errors::NodeBusyError.new("Custom message")
       expect(error.message).to eq("Custom message")
     end
 
     it "is a StandardError" do
-      expect(Agent::NodeBusyError.new).to be_a(StandardError)
+      expect(Agent::Errors::NodeBusyError.new).to be_a(StandardError)
     end
   end
 
@@ -43,12 +43,12 @@ RSpec.describe Agent::PatchService do
 
         it "raises NodeBusyError" do
           service = described_class.new(node: node, agent_release: agent_release)
-          expect { service.call }.to raise_error(Agent::NodeBusyError)
+          expect { service.call }.to raise_error(Agent::Errors::NodeBusyError)
         end
 
         it "includes descriptive message in error" do
           service = described_class.new(node: node, agent_release: agent_release)
-          expect { service.call }.to raise_error(Agent::NodeBusyError, /currently busy/)
+          expect { service.call }.to raise_error(Agent::Errors::NodeBusyError, /currently busy/)
         end
 
         it "does not raise error when force is true" do
@@ -59,7 +59,7 @@ RSpec.describe Agent::PatchService do
 
         it "bypasses safety check with force flag" do
           service = described_class.new(node: node, agent_release: agent_release, force: true)
-          expect { service.call }.not_to raise_error(Agent::NodeBusyError)
+          expect { service.call }.not_to raise_error(Agent::Errors::NodeBusyError)
         end
       end
 
@@ -70,12 +70,12 @@ RSpec.describe Agent::PatchService do
 
         it "raises NodeBusyError" do
           service = described_class.new(node: node, agent_release: agent_release)
-          expect { service.call }.to raise_error(Agent::NodeBusyError)
+          expect { service.call }.to raise_error(Agent::Errors::NodeBusyError)
         end
 
         it "allows force update" do
           service = described_class.new(node: node, agent_release: agent_release, force: true)
-          expect { service.call }.not_to raise_error(Agent::NodeBusyError)
+          expect { service.call }.not_to raise_error(Agent::Errors::NodeBusyError)
         end
       end
 
@@ -87,7 +87,7 @@ RSpec.describe Agent::PatchService do
 
         it "raises NodeBusyError" do
           service = described_class.new(node: node, agent_release: agent_release)
-          expect { service.call }.to raise_error(Agent::NodeBusyError)
+          expect { service.call }.to raise_error(Agent::Errors::NodeBusyError)
         end
       end
 
@@ -105,7 +105,7 @@ RSpec.describe Agent::PatchService do
 
         it "does not raise NodeBusyError" do
           service = described_class.new(node: node, agent_release: agent_release)
-          expect { service.call }.not_to raise_error(Agent::NodeBusyError)
+          expect { service.call }.not_to raise_error(Agent::Errors::NodeBusyError)
         end
       end
 
@@ -117,7 +117,7 @@ RSpec.describe Agent::PatchService do
 
         it "does not raise NodeBusyError" do
           service = described_class.new(node: node, agent_release: agent_release)
-          expect { service.call }.not_to raise_error(Agent::NodeBusyError)
+          expect { service.call }.not_to raise_error(Agent::Errors::NodeBusyError)
         end
       end
     end

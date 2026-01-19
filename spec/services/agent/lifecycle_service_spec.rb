@@ -62,7 +62,7 @@ RSpec.describe Agent::LifecycleService do
       before do
         allow(service).to receive(:with_connection).and_yield(nil)
         allow(service).to receive(:execute_operation).and_raise(
-          Agent::DeploymentError.new("Deploy failed", phase: :deploy, details: { stderr: "Permission denied" })
+          Agent::Errors::DeploymentError.new("Deploy failed", phase: :deploy, details: { stderr: "Permission denied" })
         )
       end
 
@@ -74,7 +74,7 @@ RSpec.describe Agent::LifecycleService do
       end
 
       it "raises the error" do
-        expect { service.call }.to raise_error(Agent::DeploymentError)
+        expect { service.call }.to raise_error(Agent::Errors::DeploymentError)
       end
     end
   end
@@ -145,7 +145,7 @@ RSpec.describe Agent::LifecycleService do
 
         expect {
           service.send(:with_connection) { |_ssh| }
-        }.to raise_error(Agent::ConnectionError, /authentication failed/i)
+        }.to raise_error(Agent::Errors::ConnectionError, /authentication failed/i)
       end
     end
 
@@ -161,7 +161,7 @@ RSpec.describe Agent::LifecycleService do
 
         expect {
           service.send(:with_connection) { |_ssh| }
-        }.to raise_error(Agent::ConnectionError)
+        }.to raise_error(Agent::Errors::ConnectionError)
       end
     end
 
@@ -177,7 +177,7 @@ RSpec.describe Agent::LifecycleService do
 
         expect {
           service.send(:with_connection) { |_ssh| }
-        }.to raise_error(Agent::ConnectionError)
+        }.to raise_error(Agent::Errors::ConnectionError)
       end
     end
   end

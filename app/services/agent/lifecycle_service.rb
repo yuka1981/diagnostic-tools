@@ -45,11 +45,11 @@ module Agent
       @agent_event.mark_success!
 
       Result.new(success: true, message: success_message, agent_event: @agent_event)
-    rescue Agent::LifecycleError => e
+    rescue Agent::Errors::LifecycleError => e
       handle_error(e)
       raise
     rescue StandardError => e
-      wrapped = Agent::DeploymentError.new(e.message, phase: :unknown, details: { original_class: e.class.name })
+      wrapped = Agent::Errors::DeploymentError.new(e.message, phase: :unknown, details: { original_class: e.class.name })
       handle_error(wrapped)
       raise wrapped
     end
@@ -66,7 +66,7 @@ module Agent
     end
 
     def run_preflight_checks
-      raise ValidationError.new("Node must be persisted", phase: :preflight) unless @node.persisted?
+      raise Errors::ValidationError.new("Node must be persisted", phase: :preflight) unless @node.persisted?
     end
 
     def verify_health(_ssh)
@@ -117,7 +117,7 @@ module Agent
 
       begin
         attempt_connection(primary_host, &block)
-      rescue ConnectionError => e
+      rescue Errors::ConnectionError => e
         raise unless fallback_host && e.recoverable
 
         report_progress "Connection to #{primary_host} failed, retrying with #{fallback_host}..."
@@ -130,14 +130,14 @@ module Agent
       Net::SSH.start(host, ssh_user, ssh_options.merge(port: @node.ssh_port || 22), &block)
     rescue Errno::ECONNREFUSED, Errno::EHOSTUNREACH, Errno::ETIMEDOUT,
            Net::SSH::ConnectionTimeout => e
-      raise ConnectionError.new(
+      raise Errors::ConnectionError.new(
         "SSH connection failed: #{e.message}",
         phase: :connect,
         details: { host: host, error_class: e.class.name },
         recoverable: true
       )
     rescue Net::SSH::AuthenticationFailed => e
-      raise ConnectionError.new(
+      raise Errors::ConnectionError.new(
         "SSH authentication failed: #{e.message}",
         phase: :connect,
         details: { host: host, error_class: e.class.name },
@@ -163,7 +163,7 @@ module Agent
 
       Net::SSH.start(gateway_host, gateway_user, ssh_options.merge(port: gateway_port), &block)
     rescue Errno::ECONNREFUSED, Errno::EHOSTUNREACH, Errno::ETIMEDOUT, Net::SSH::AuthenticationFailed => e
-      raise ConnectionError.new(
+      raise Errors::ConnectionError.new(
         "Bastion connection failed: #{e.message}",
         phase: :connect,
         details: { bastion: gateway_host, error_class: e.class.name },
