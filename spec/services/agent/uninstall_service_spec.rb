@@ -198,5 +198,16 @@ RSpec.describe Agent::UninstallService do
 
       service.call
     end
+
+    it "removes the configuration directory" do
+      expect(service).to receive(:execute_command).with(
+        ssh_session,
+        match(/rm -rf.*\/etc\/hpc-agent/),
+        anything
+      ).and_return("")
+      allow(service).to receive(:execute_command).and_return("")
+
+      service.call
+    end
   end
 end
