@@ -21,20 +21,21 @@ module Inventory
       end
     end
 
-    def initialize(node_id: nil, hostname: nil, uuid: nil, raw_json:)
+    def initialize(node_id: nil, hostname: nil, uuid: nil, raw_json:, agent_version: nil)
       raise ArgumentError, "Either node_id, hostname or uuid must be provided" if node_id.blank? && hostname.blank? && uuid.blank?
 
       @node_id = node_id
       @hostname = hostname
       @uuid = uuid
       @raw_json = raw_json&.with_indifferent_access
+      @agent_version = agent_version
     end
 
     def call
       return error_result("Raw JSON is empty", :bad_request) if @raw_json.nil?
 
       node = find_or_create_node
-      return error_result("Node not found and could not be registered", :not_found) unless node
+      return error_result("Node not found and could not be registered", :not_found) unless node&.persisted?
 
       process_state(node)
     end
@@ -45,14 +46,38 @@ module Inventory
       if @node_id.present?
         Node.find_by(id: @node_id)
       elsif @uuid.present?
-        Node.find_or_create_by(uuid: @uuid) do |n|
-          n.hostname = @hostname || "node-#{@uuid[0..7]}"
-          n.ip = @raw_json&.dig(:host, :ip)
-          n.source = :agent_push
-        end
+        find_or_create_by_uuid
       elsif @hostname.present?
         Node.find_by(hostname: @hostname)
       end
+    end
+
+    def find_or_create_by_uuid
+      # First, try to find by UUID
+      node = Node.find_by(uuid: @uuid)
+      return node if node
+
+      # UUID not found - check if hostname already exists
+      # This handles agent reinstall scenarios where UUID changed but hostname is same
+      hostname_to_use = @hostname || @raw_json&.dig(:host, :hostname) || "node-#{@uuid[0..7]}"
+
+      existing_by_hostname = Node.find_by(hostname: hostname_to_use)
+      if existing_by_hostname
+        # Adopt the new UUID for the existing node
+        existing_by_hostname.update!(uuid: @uuid)
+        return existing_by_hostname
+      end
+
+      # Both UUID and hostname are new - create a new node
+      Node.create!(
+        uuid: @uuid,
+        hostname: hostname_to_use,
+        ip: @raw_json&.dig(:host, :ip),
+        source: :agent_push
+      )
+    rescue ActiveRecord::RecordInvalid => e
+      Rails.logger.error "[ProcessStateService] Failed to create/update node: #{e.message}"
+      nil
     end
 
     def process_state(node)
@@ -72,12 +97,16 @@ module Inventory
     end
 
     def update_node_attributes(node, host_info)
-      return if host_info.blank?
-
       updates = {}
-      updates[:hostname] = host_info[:hostname] if host_info[:hostname].present?
-      updates[:arch] = host_info[:arch] if host_info[:arch].present?
-      updates[:ip] = host_info[:ip] if host_info[:ip].present?
+
+      if host_info.present?
+        updates[:hostname] = host_info[:hostname] if host_info[:hostname].present?
+        updates[:arch] = host_info[:arch] if host_info[:arch].present?
+        updates[:ip] = host_info[:ip] if host_info[:ip].present?
+      end
+
+      # Always update agent_version if provided (even if host_info is blank)
+      updates[:agent_version] = @agent_version if @agent_version.present?
 
       node.update(updates) if updates.any?
     end

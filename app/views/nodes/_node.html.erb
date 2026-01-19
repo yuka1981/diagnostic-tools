@@ -44,6 +44,24 @@
            <% end %>
         <% end %>
 
+        <%# Update Agent Action %>
+        <% if node.agent_push? %>
+          <%= link_to new_node_update_path(node),
+              class: "text-slate-400 hover:text-emerald-600 transition-colors",
+              title: "Update Agent",
+              data: { turbo_frame: "update_modal" } do %>
+            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+            </svg>
+          <% end %>
+        <% else %>
+           <span class="text-slate-300 cursor-not-allowed" title="hpc-agent is not installed">
+             <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+             </svg>
+           </span>
+        <% end %>
+
         <%# Uninstall Action %>
         <% if node.agent_push? %>
           <%= link_to new_node_uninstall_path(hostname: node.hostname),

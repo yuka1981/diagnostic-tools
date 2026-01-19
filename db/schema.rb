@@ -10,9 +10,81 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_01_15_144205) do
+ActiveRecord::Schema[7.2].define(version: 2026_01_17_172816) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
+
+  create_table "active_storage_attachments", force: :cascade do |t|
+    t.string "name", null: false
+    t.string "record_type", null: false
+    t.bigint "record_id", null: false
+    t.bigint "blob_id", null: false
+    t.datetime "created_at", null: false
+    t.index ["blob_id"], name: "index_active_storage_attachments_on_blob_id"
+    t.index ["record_type", "record_id", "name", "blob_id"], name: "index_active_storage_attachments_uniqueness", unique: true
+  end
+
+  create_table "active_storage_blobs", force: :cascade do |t|
+    t.string "key", null: false
+    t.string "filename", null: false
+    t.string "content_type"
+    t.text "metadata"
+    t.string "service_name", null: false
+    t.bigint "byte_size", null: false
+    t.string "checksum"
+    t.datetime "created_at", null: false
+    t.index ["key"], name: "index_active_storage_blobs_on_key", unique: true
+  end
+
+  create_table "active_storage_variant_records", force: :cascade do |t|
+    t.bigint "blob_id", null: false
+    t.string "variation_digest", null: false
+    t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
+  end
+
+  create_table "agent_binaries", force: :cascade do |t|
+    t.bigint "agent_release_id", null: false
+    t.string "arch", null: false
+    t.string "checksum"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["agent_release_id", "arch"], name: "index_agent_binaries_on_agent_release_id_and_arch", unique: true
+    t.index ["agent_release_id"], name: "index_agent_binaries_on_agent_release_id"
+  end
+
+  create_table "agent_events", force: :cascade do |t|
+    t.bigint "node_id", null: false
+    t.bigint "user_id"
+    t.bigint "agent_release_id"
+    t.string "operation", null: false
+    t.string "status", default: "pending", null: false
+    t.string "from_version"
+    t.string "to_version"
+    t.text "error_message"
+    t.jsonb "error_details", default: {}
+    t.boolean "forced", default: false
+    t.datetime "started_at"
+    t.datetime "completed_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["agent_release_id"], name: "index_agent_events_on_agent_release_id"
+    t.index ["created_at"], name: "index_agent_events_on_created_at"
+    t.index ["node_id"], name: "index_agent_events_on_node_id"
+    t.index ["operation"], name: "index_agent_events_on_operation"
+    t.index ["status"], name: "index_agent_events_on_status"
+    t.index ["user_id"], name: "index_agent_events_on_user_id"
+  end
+
+  create_table "agent_releases", force: :cascade do |t|
+    t.string "version", null: false
+    t.string "checksum"
+    t.text "release_notes"
+    t.integer "status", default: 0, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["status"], name: "index_agent_releases_on_status"
+    t.index ["version"], name: "index_agent_releases_on_version", unique: true
+  end
 
   create_table "api_keys", force: :cascade do |t|
     t.string "name", null: false
@@ -114,6 +186,10 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_15_144205) do
     t.string "benchmark_work_dir"
     t.string "api_token"
     t.bigint "api_key_id"
+    t.string "agent_version"
+    t.string "ssh_password"
+    t.datetime "last_heartbeat_at"
+    t.string "agent_status", default: "idle"
     t.index ["api_key_id"], name: "index_nodes_on_api_key_id"
     t.index ["hostname"], name: "index_nodes_on_hostname", unique: true
     t.index ["role"], name: "index_nodes_on_role"
@@ -145,6 +221,12 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_15_144205) do
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
   end
 
+  add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "agent_binaries", "agent_releases"
+  add_foreign_key "agent_events", "agent_releases"
+  add_foreign_key "agent_events", "nodes"
+  add_foreign_key "agent_events", "users"
   add_foreign_key "artifact_indices", "benchmark_runs"
   add_foreign_key "benchmark_runs", "benchmark_recipes"
   add_foreign_key "benchmark_runs", "nodes"

@@ -33,8 +33,9 @@ RSpec.describe Dashboard::MetricsService do
     context "when there are nodes" do
       before do
         # Create 5 nodes: 3 online, 2 offline
-        create_list(:node, 3, last_seen_at: 1.minute.ago)
-        create_list(:node, 2, last_seen_at: 10.minutes.ago)
+        # Node.online? uses last_heartbeat_at with HEARTBEAT_ONLINE_THRESHOLD (2 minutes)
+        create_list(:node, 3, last_heartbeat_at: 1.minute.ago)
+        create_list(:node, 2, last_heartbeat_at: 10.minutes.ago)
       end
 
       it "returns correct total nodes count" do
@@ -56,7 +57,7 @@ RSpec.describe Dashboard::MetricsService do
 
     context "when all nodes are online" do
       before do
-        create_list(:node, 4, last_seen_at: 1.minute.ago)
+        create_list(:node, 4, last_heartbeat_at: 1.minute.ago)
       end
 
       it "returns 100% availability" do
@@ -67,7 +68,7 @@ RSpec.describe Dashboard::MetricsService do
 
     context "when all nodes are offline" do
       before do
-        create_list(:node, 3, last_seen_at: 10.minutes.ago)
+        create_list(:node, 3, last_heartbeat_at: 10.minutes.ago)
       end
 
       it "returns 0% availability" do

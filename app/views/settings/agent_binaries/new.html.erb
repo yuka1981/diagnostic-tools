@@ -1,0 +1,300 @@
+<% content_for(:page_title) { "Add Binary - #{@agent_release.version}" } %>
+<% content_for(:breadcrumbs) do %>
+  <span class="mx-2">/</span>
+  <%= link_to "Settings", settings_agent_path, class: "hover:text-teal-600 font-bold" %>
+  <span class="mx-2">/</span>
+  <%= link_to "Agent Config", settings_agent_path, class: "hover:text-teal-600 font-bold" %>
+  <span class="mx-2">/</span>
+  <%= link_to @agent_release.version, settings_agent_release_path(@agent_release), class: "hover:text-teal-600 font-bold" %>
+  <span class="mx-2">/</span>
+  <span class="font-medium text-slate-700">Add Binary</span>
+<% end %>
+
+<div class="mb-6">
+  <h1 class="text-2xl font-bold text-slate-900">Add Binary for <%= @agent_release.version %></h1>
+  <p class="text-sm text-slate-500 mt-1">Add an architecture-specific binary to this release</p>
+</div>
+
+<%= form_with(url: settings_agent_release_binaries_path(@agent_release), method: :post, data: { controller: "release-mode", release_mode_target: "form" }) do |form| %>
+  <% if @agent_binary.errors.any? %>
+    <div class="rounded-md bg-red-50 border border-red-200 p-4 mb-6">
+      <div class="flex">
+        <div class="flex-shrink-0">
+          <svg class="h-5 w-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+        <div class="ml-3">
+          <h3 class="text-sm font-medium text-red-800">
+            <%= pluralize(@agent_binary.errors.count, "error") %> prevented this binary from being saved:
+          </h3>
+          <div class="mt-2 text-sm text-red-700">
+            <ul class="list-disc list-inside space-y-1">
+              <% @agent_binary.errors.each do |error| %>
+                <li><%= error.full_message %></li>
+              <% end %>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  <% end %>
+
+  <%# Mode Selection Tabs %>
+  <div class="card-netbox mb-6">
+    <div class="card-header">
+      <h3 class="card-title">Creation Method</h3>
+    </div>
+    <div class="p-4">
+      <div class="flex gap-4">
+        <%# Build Tab (default when Go available) %>
+        <label class="flex-1 <%= @go_available ? 'cursor-pointer' : 'cursor-not-allowed opacity-60' %>" data-release-mode-target="buildLabel">
+          <input type="radio" name="creation_mode" value="build"
+                 class="sr-only peer"
+                 data-action="change->release-mode#toggleMode"
+                 data-release-mode-target="buildRadio"
+                 <%= 'disabled' unless @go_available %>
+                 <%= 'checked' if @go_available %>>
+          <div class="border-2 rounded-lg p-4 transition-all
+                      peer-checked:border-teal-500 peer-checked:bg-teal-50
+                      peer-disabled:bg-slate-50
+                      border-slate-200 hover:border-slate-300">
+            <div class="flex items-center gap-3">
+              <div class="flex-shrink-0">
+                <svg class="h-8 w-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+              </div>
+              <div>
+                <p class="font-bold text-slate-900">Build from Source</p>
+                <% if @go_available %>
+                  <p class="text-xs text-slate-500">Compile agent from <code class="bg-slate-100 px-1 rounded">agent/</code> directory</p>
+                <% else %>
+                  <p class="text-xs text-red-500">Go toolchain not available</p>
+                <% end %>
+              </div>
+            </div>
+          </div>
+        </label>
+
+        <%# Upload Tab %>
+        <label class="flex-1 cursor-pointer" data-release-mode-target="uploadLabel">
+          <input type="radio" name="creation_mode" value="upload"
+                 class="sr-only peer"
+                 data-action="change->release-mode#toggleMode"
+                 data-release-mode-target="uploadRadio"
+                 <%= 'checked' unless @go_available %>>
+          <div class="border-2 rounded-lg p-4 transition-all
+                      peer-checked:border-teal-500 peer-checked:bg-teal-50
+                      border-slate-200 hover:border-slate-300">
+            <div class="flex items-center gap-3">
+              <div class="flex-shrink-0">
+                <svg class="h-8 w-8 text-slate-400 peer-checked:text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                </svg>
+              </div>
+              <div>
+                <p class="font-bold text-slate-900">Upload Binary</p>
+                <p class="text-xs text-slate-500">Upload a pre-compiled agent binary file</p>
+              </div>
+            </div>
+          </div>
+        </label>
+      </div>
+
+      <% if @go_available && @go_version %>
+        <p class="mt-3 text-xs text-slate-500">
+          <svg class="inline h-4 w-4 text-emerald-500 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+          </svg>
+          <%= @go_version %>
+        </p>
+      <% end %>
+    </div>
+  </div>
+
+  <div class="card-netbox">
+    <div class="card-header">
+      <h3 class="card-title">Binary Information</h3>
+    </div>
+
+    <div class="p-4 space-y-6">
+      <%# Release Info (read-only) %>
+      <div class="bg-slate-50 border border-slate-200 rounded-md p-4">
+        <div class="flex items-center gap-4">
+          <div>
+            <span class="text-xs text-slate-500">Release Version</span>
+            <p class="font-bold text-slate-900 font-mono"><%= @agent_release.version %></p>
+          </div>
+          <div class="border-l border-slate-300 pl-4">
+            <span class="text-xs text-slate-500">Existing Architectures</span>
+            <p class="font-medium text-slate-700">
+              <% if @agent_release.agent_binaries.any? %>
+                <% @agent_release.agent_binaries.each do |binary| %>
+                  <span class="inline-flex items-center rounded-sm px-2 py-0.5 text-xs font-mono bg-emerald-100 text-emerald-700 border border-emerald-200 mr-1">
+                    <%= binary.arch %>
+                  </span>
+                <% end %>
+              <% else %>
+                <span class="text-slate-400 text-sm">None</span>
+              <% end %>
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <%# Architecture Selection %>
+      <div>
+        <h3 class="text-sm font-bold text-slate-700">Target Architecture</h3>
+        <p class="text-[10px] text-slate-500 italic mb-4">Select the architecture for this binary</p>
+
+        <% if @available_architectures.empty? %>
+          <div class="rounded-md bg-amber-50 border border-amber-200 p-4">
+            <div class="flex">
+              <svg class="h-5 w-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+              <div class="ml-3">
+                <p class="text-sm text-amber-700">All supported architectures already have binaries for this release.</p>
+              </div>
+            </div>
+          </div>
+        <% else %>
+          <div class="grid grid-cols-1 gap-4 sm:grid-cols-6">
+            <div class="sm:col-span-3">
+              <%# For upload mode %>
+              <div data-release-mode-target="uploadSection" class="<%= 'hidden' if @go_available %>">
+                <%= label_tag "agent_binary[arch]", "Architecture", class: "block text-xs font-bold text-slate-700 mb-1" %>
+                <%= select_tag "agent_binary[arch]",
+                    options_for_select(@available_architectures.map { |a| [a, a] }),
+                    class: "block w-full rounded border border-slate-300 py-1.5 px-3 text-slate-900 shadow-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500 sm:text-sm" %>
+              </div>
+              <%# For build mode %>
+              <div data-release-mode-target="buildSection" class="<%= 'hidden' unless @go_available %>">
+                <%= label_tag :target_arch, "Architecture", class: "block text-xs font-bold text-slate-700 mb-1" %>
+                <%= select_tag :target_arch,
+                    options_for_select(@available_architectures.map { |a|
+                      label = a == "x86_64" ? "linux/amd64 (x86_64)" : "linux/arm64 (aarch64)"
+                      [label, a]
+                    }),
+                    class: "block w-full rounded border border-slate-300 py-1.5 px-3 text-slate-900 shadow-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500 sm:text-sm" %>
+              </div>
+              <p class="mt-1 text-[10px] text-slate-500">Select the target platform for this binary</p>
+            </div>
+          </div>
+        <% end %>
+      </div>
+
+      <hr class="border-slate-200">
+
+      <%# Upload Section (shown when upload mode selected) %>
+      <div data-release-mode-target="uploadSection" class="<%= 'hidden' if @go_available %>">
+        <h3 class="text-sm font-bold text-slate-700">Binary Upload</h3>
+        <p class="text-[10px] text-slate-500 italic mb-4">Upload the compiled agent binary. The SHA256 checksum will be calculated automatically.</p>
+
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-6">
+          <div class="sm:col-span-4">
+            <%= label_tag "agent_binary[binary]", "Agent Binary", class: "block text-xs font-bold text-slate-700 mb-1" %>
+            <%= file_field_tag "agent_binary[binary]",
+                class: "block w-full text-sm text-slate-500
+                       file:mr-4 file:py-2 file:px-4
+                       file:rounded-md file:border-0
+                       file:text-sm file:font-semibold
+                       file:bg-teal-50 file:text-teal-700
+                       hover:file:bg-teal-100
+                       cursor-pointer",
+                accept: "application/octet-stream,application/x-executable,application/x-elf",
+                data: { release_mode_target: "binaryField" } %>
+          </div>
+        </div>
+      </div>
+
+      <%# Build Section (shown when build mode selected) %>
+      <div data-release-mode-target="buildSection" class="<%= 'hidden' unless @go_available %>">
+        <h3 class="text-sm font-bold text-slate-700">Build from Source</h3>
+        <p class="text-[10px] text-slate-500 italic mb-4">
+          The agent will be compiled from source with version <span class="font-mono font-bold"><%= @agent_release.version %></span> embedded.
+        </p>
+
+        <div class="space-y-4">
+          <%# Source Directory %>
+          <div class="grid grid-cols-1 gap-4 sm:grid-cols-6">
+            <div class="sm:col-span-4">
+              <%= label_tag :source_path, "Source Directory", class: "block text-xs font-bold text-slate-700 mb-1" %>
+              <div class="flex items-center gap-2">
+                <code class="flex-1 block rounded border border-slate-200 bg-slate-50 py-1.5 px-3 text-slate-700 text-sm font-mono">
+                  <%= Rails.root.join('agent').to_s %>
+                </code>
+                <span class="inline-flex items-center rounded px-2 py-1 text-xs font-medium bg-emerald-100 text-emerald-800 border border-emerald-200">
+                  <svg class="h-3 w-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                  </svg>
+                  Detected
+                </span>
+              </div>
+              <p class="mt-1 text-[10px] text-slate-500">Go module directory containing the agent source code</p>
+            </div>
+          </div>
+
+          <%# Custom Compile Flags %>
+          <div class="grid grid-cols-1 gap-4 sm:grid-cols-6">
+            <div class="sm:col-span-4">
+              <%= label_tag :custom_ldflags, "Custom Linker Flags", class: "block text-xs font-bold text-slate-700 mb-1" %>
+              <%= text_field_tag :custom_ldflags, nil,
+                  class: "block w-full rounded border border-slate-300 py-1.5 px-3 text-slate-900 shadow-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500 sm:text-sm font-mono",
+                  placeholder: "-s -w (optional)" %>
+              <p class="mt-1 text-[10px] text-slate-500">
+                Additional ldflags to pass to the Go compiler. Common flags:
+                <code class="bg-slate-100 px-1 rounded">-s</code> (strip symbol table),
+                <code class="bg-slate-100 px-1 rounded">-w</code> (strip debug info)
+              </p>
+            </div>
+          </div>
+
+          <%# Build Info Box %>
+          <div class="bg-slate-50 border border-slate-200 rounded-md p-4 mt-4">
+            <div class="flex">
+              <div class="flex-shrink-0">
+                <svg class="h-5 w-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <div class="ml-3">
+                <p class="text-sm text-slate-700 font-medium">Build Configuration</p>
+                <ul class="mt-2 text-xs text-slate-600 space-y-1">
+                  <li>
+                    <span class="text-slate-500">Environment:</span>
+                    <code class="bg-slate-100 px-1 rounded">CGO_ENABLED=0</code>
+                  </li>
+                  <li>
+                    <span class="text-slate-500">Version Flag:</span>
+                    <code class="bg-slate-100 px-1 rounded">-X main.Version=<%= @agent_release.version %></code>
+                  </li>
+                  <li>
+                    <span class="text-slate-500">Output:</span>
+                    Static binary (no external dependencies)
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="flex items-center justify-end gap-3 bg-slate-50 border-t border-slate-200 px-4 py-3">
+      <%= link_to "Cancel", settings_agent_release_path(@agent_release), class: "btn-secondary" %>
+      <% if @available_architectures.any? %>
+        <button type="submit" class="btn-primary" data-release-mode-target="submitButton">
+          <span data-release-mode-target="submitText"><%= @go_available ? "Build Binary" : "Upload Binary" %></span>
+        </button>
+      <% end %>
+    </div>
+  </div>
+<% end %>

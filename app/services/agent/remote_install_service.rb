@@ -2,6 +2,7 @@
 
 require "net/ssh"
 require "net/scp"
+require "open3"
 
 module Agent
   class RemoteInstallService
@@ -18,6 +19,7 @@ module Agent
     TARGET_BIN_PATH = "/usr/local/bin/hpc-agent"
     AGENT_CONFIG_DIR = "/etc/hpc-agent"
     AGENT_NODE_ID_PATH = "#{AGENT_CONFIG_DIR}/node_id"
+    LOCAL_SUDO_TIMEOUT = 30 # seconds - timeout for local sudo commands to prevent hanging
 
     def initialize(target_host:, arch:, bastion_user: nil, bastion_host: nil, bastion_password: nil, sudo_password:, local_binary_path:, server_url: nil, agent_token: nil, node: nil, on_progress: nil)
       @target_host = target_host
@@ -29,17 +31,27 @@ module Agent
       @bastion_password = bastion_password
       @sudo_password = sudo_password
       @local_binary_path = local_binary_path
-      @server_url = server_url || ENV.fetch("APP_URL", "http://localhost:3000")
+      @server_url = normalize_server_url(server_url || ENV.fetch("APP_URL", "http://localhost:3000"))
       @agent_token = agent_token || Rails.application.credentials.dig(:api, :agent_token) || ENV["AGENT_TOKEN"]
       @node = node
       @on_progress = on_progress
     end
 
     def call
-      report_progress "Starting remote installation on #{@target_host}"
-      if use_bastion?
+      ActiveSupport::Deprecation.new.warn(
+        "Agent::RemoteInstallService is deprecated. Use Agent::InstallService instead. " \
+        "Called from: #{caller_locations(1, 1)&.first}",
+        caller_locations
+      )
+
+      if localhost?
+        report_progress "Starting local installation on #{@target_host}"
+        install_local
+      elsif use_bastion?
+        report_progress "Starting remote installation on #{@target_host}"
         install_via_bastion
       else
+        report_progress "Starting remote installation on #{@target_host}"
         install_direct
       end
     end
@@ -116,6 +128,22 @@ module Agent
       end
 
       Result.new(success: true, agent_uuid: agent_uuid)
+    rescue Net::SSH::AuthenticationFailed => e
+      Rails.logger.error "Direct remote install failed: Authentication failed for #{e.message}"
+      Rails.logger.error e.backtrace.first(10).join("\n")
+      raise InstallError, "Installation failed: SSH authentication failed for #{connect_host}. Please check your credentials."
+    rescue Errno::ECONNREFUSED => e
+      Rails.logger.error "Direct remote install failed: Connection refused to #{connect_host}"
+      Rails.logger.error e.backtrace.first(10).join("\n")
+      raise InstallError, "Installation failed: Connection refused to #{connect_host}. Is SSH running on the target?"
+    rescue Errno::EHOSTUNREACH => e
+      Rails.logger.error "Direct remote install failed: Host unreachable #{connect_host}"
+      Rails.logger.error e.backtrace.first(10).join("\n")
+      raise InstallError, "Installation failed: Host unreachable (#{connect_host}). Check network connectivity."
+    rescue Net::SSH::ConnectionTimeout, Errno::ETIMEDOUT => e
+      Rails.logger.error "Direct remote install failed: Connection timed out to #{connect_host}"
+      Rails.logger.error e.backtrace.first(10).join("\n")
+      raise InstallError, "Installation failed: Connection timed out to #{connect_host}. Check network or firewall settings."
     rescue => e
       Rails.logger.error "Direct remote install failed: #{e.message}"
       Rails.logger.error e.backtrace.first(10).join("\n")
@@ -138,6 +166,159 @@ module Agent
 
       # Phase 3: Read agent UUID for sync
       read_agent_uuid(ssh, via_ssh: false)
+    end
+
+    # Local installation for localhost targets (no SSH required)
+    def install_local
+      agent_uuid = nil
+
+      begin
+        # Phase 1: Copy binary to temp location
+        report_progress "Copying binary to /tmp/agent_bin_install"
+        FileUtils.cp(@local_binary_path, "/tmp/agent_bin_install")
+
+        # Phase 2: Move to final location using sudo
+        report_progress "Moving binary to #{TARGET_BIN_PATH}"
+        execute_local_command("mv /tmp/agent_bin_install #{TARGET_BIN_PATH}", use_sudo: true)
+
+        # Phase 3: Configure agent service
+        configure_target_local
+
+        # Phase 4: Read agent UUID for sync
+        agent_uuid = read_agent_uuid_local
+      rescue => e
+        Rails.logger.error "[RemoteInstallService] Local install failed: #{e.message}"
+        Rails.logger.error e.backtrace.first(10).join("\n")
+        raise InstallError, "Installation failed: #{e.message}"
+      end
+
+      Result.new(success: true, agent_uuid: agent_uuid)
+    end
+
+    def configure_target_local
+      report_progress "Configuring agent service locally"
+
+      # chmod +x
+      execute_local_command("chmod +x #{TARGET_BIN_PATH}", use_sudo: true)
+
+      # Ensure node has a UUID for identity consistency
+      node_uuid = ensure_node_uuid
+
+      # Create systemd service file
+      service_content = <<~SERVICE
+        [Unit]
+        Description=HPC Diagnostic Agent
+        Documentation=https://github.com/yuka1981/diagnostic-tools
+        Wants=network-online.target
+        After=network-online.target
+
+        [Service]
+        Type=simple
+        ExecStart=#{TARGET_BIN_PATH} start --server "#{@server_url}" --token "#{@agent_token}" --node-uuid "#{node_uuid}" --heartbeat-interval 60s --inventory-interval 60s
+        Restart=always
+        RestartSec=10
+        User=root
+        StandardOutput=journal
+        StandardError=journal
+        SyslogIdentifier=hpc-agent
+
+        [Install]
+        WantedBy=multi-user.target
+      SERVICE
+
+      service_file_path = "/etc/systemd/system/hpc-agent.service"
+      tmp_service_path = "/tmp/hpc-agent.service"
+
+      # Write to temp file first
+      File.write(tmp_service_path, service_content)
+
+      # Move to final location
+      execute_local_command("mv #{tmp_service_path} #{service_file_path}", use_sudo: true)
+
+      # Set ownership
+      report_progress "Setting file ownership to root:root"
+      execute_local_command("chown root:root #{TARGET_BIN_PATH} #{service_file_path}", use_sudo: true)
+
+      # Set SELinux context if SELinux is available (for RHEL/CentOS/Fedora systems)
+      # This is critical: both the binary AND the service file need correct contexts
+      # - Binary needs bin_t to be executable
+      # - Service file needs systemd_unit_file_t to be recognized by systemd
+      report_progress "Setting SELinux context (if available)"
+      selinux_cmd = <<~SELINUX
+        if command -v getenforce >/dev/null 2>&1 && [ "$(getenforce)" != "Disabled" ]; then
+          restorecon -v #{TARGET_BIN_PATH} #{service_file_path} 2>/dev/null ||
+          (chcon -t bin_t #{TARGET_BIN_PATH} 2>/dev/null || true;
+           chcon -t systemd_unit_file_t #{service_file_path} 2>/dev/null || true);
+        fi
+      SELINUX
+      execute_local_command(selinux_cmd, use_sudo: true)
+
+      # Enable and start service
+      report_progress "Starting agent service"
+      execute_local_command("systemctl daemon-reload && systemctl enable --now hpc-agent", use_sudo: true)
+
+      # Set dmidecode SUID
+      report_progress "Ensuring dmidecode has SUID permission (4755)"
+      execute_local_command("which dmidecode && chmod 4755 $(which dmidecode)", use_sudo: true)
+    end
+
+    def read_agent_uuid_local
+      report_progress "Reading agent UUID for identity sync"
+
+      uuid = File.read(AGENT_NODE_ID_PATH).strip
+      if uuid.present?
+        Rails.logger.info "[RemoteInstallService] Agent UUID: #{uuid}"
+        uuid
+      else
+        Rails.logger.warn "[RemoteInstallService] Could not read agent UUID from #{AGENT_NODE_ID_PATH}"
+        nil
+      end
+    rescue => e
+      Rails.logger.warn "[RemoteInstallService] Failed to read agent UUID: #{e.message}"
+      nil
+    end
+
+    def execute_local_command(cmd, use_sudo: false)
+      full_cmd = build_local_command(cmd, use_sudo: use_sudo)
+
+      # Mask password in logs
+      log_cmd = @sudo_password.present? ? full_cmd.gsub(@sudo_password.to_s, "********") : full_cmd
+      Rails.logger.debug "[RemoteInstallService] Executing locally: #{log_cmd}"
+
+      stdout, stderr, status = Open3.capture3(full_cmd)
+
+      report_log(stdout, "stdout") if stdout.present?
+      # Filter out sudo password prompts from stderr
+      filtered_stderr = stderr.lines.reject { |line| line.match?(/\[sudo\] password for/) }.join
+      report_log(filtered_stderr, "stderr") if filtered_stderr.present?
+
+      unless status.success?
+        Rails.logger.error "[RemoteInstallService] Local command failed: #{log_cmd}"
+        Rails.logger.error "[RemoteInstallService] Stderr: #{stderr}"
+        # Use stdout if stderr is empty for better error messages
+        error_output = filtered_stderr.strip.presence || stdout.strip
+        raise InstallError, "Command failed (exit #{status.exitstatus}): #{error_output}"
+      end
+
+      stdout
+    end
+
+    def build_local_command(cmd, use_sudo:)
+      return cmd unless use_sudo
+
+      # Always use:
+      # - timeout: prevents hanging if sudo blocks
+      # - sudo -S: reads password from stdin (not TTY) to prevent TTY hang in background jobs
+      escaped_cmd = Shellwords.escape(cmd)
+
+      if @sudo_password.present?
+        # Pipe password to sudo -S
+        "echo #{Shellwords.escape(@sudo_password)} | timeout #{LOCAL_SUDO_TIMEOUT} sudo -S bash -c #{escaped_cmd}"
+      else
+        # No password - sudo -S will read empty stdin and fail quickly if password required
+        # This is better than hanging forever waiting for TTY input
+        "timeout #{LOCAL_SUDO_TIMEOUT} sudo -S bash -c #{escaped_cmd}"
+      end
     end
 
     private
@@ -207,48 +388,37 @@ module Agent
 
 
           # 3.2: Create systemd service
+          # Ensure node has a UUID for identity consistency
+          node_uuid = ensure_node_uuid
 
           service_content = <<~SERVICE
-
             [Unit]
-
             Description=HPC Diagnostic Agent
-
-            After=network.target
-
-
+            Documentation=https://github.com/yuka1981/diagnostic-tools
+            Wants=network-online.target
+            After=network-online.target
 
             [Service]
-
-            ExecStart=#{TARGET_BIN_PATH} inventory push --server "#{@server_url}" --token "#{@agent_token}"
-
+            Type=simple
+            ExecStart=#{TARGET_BIN_PATH} start --server "#{@server_url}" --token "#{@agent_token}" --node-uuid "#{node_uuid}" --heartbeat-interval 60s --inventory-interval 60s
             Restart=always
-
+            RestartSec=10
             User=root
-
-
+            StandardOutput=journal
+            StandardError=journal
+            SyslogIdentifier=hpc-agent
 
             [Install]
-
             WantedBy=multi-user.target
-
           SERVICE
 
-
-
           service_file_path = "/etc/systemd/system/hpc-agent.service"
-
           tmp_service_path = "/tmp/hpc-agent.service"
 
-
-
-          # Write content to temp file on the current session (bastion or target)
-
-          # We use a simple heredoc. Shellwords.escape isn't ideal for whole files,
-
-          # but we trust our own service_content.
-
-          ssh.exec!("cat << 'EOF' > #{tmp_service_path}\n#{service_content}EOF")
+          # Write content to temp file using base64 encoding to avoid shell escaping issues
+          encoded_content = Base64.strict_encode64(service_content)
+          write_service_cmd = "echo '#{encoded_content}' | base64 -d > #{tmp_service_path}"
+          execute_remote_command(ssh, write_service_cmd, password: nil)
 
 
 
@@ -299,7 +469,25 @@ module Agent
       end
       execute_remote_command(ssh, chown_cmd, password: @sudo_password)
 
-
+      # 3.2.6 Set SELinux context if available (for RHEL/CentOS/Fedora systems)
+      # This is critical: both the binary AND the service file need correct contexts
+      # - Binary needs bin_t to be executable
+      # - Service file needs systemd_unit_file_t to be recognized by systemd
+      report_progress "Setting SELinux context (if available)"
+      inner_selinux = <<~SELINUX.squish
+        if command -v getenforce >/dev/null 2>&1 && [ "$(getenforce)" != "Disabled" ]; then
+          restorecon -v #{TARGET_BIN_PATH} #{service_file_path} 2>/dev/null ||
+          (chcon -t bin_t #{TARGET_BIN_PATH} 2>/dev/null || true;
+           chcon -t systemd_unit_file_t #{service_file_path} 2>/dev/null || true);
+        fi
+      SELINUX
+      selinux_cmd = if via_ssh
+                      remote_cmd = bash_c_command(inner_selinux)
+                      "sudo -S ssh -o StrictHostKeyChecking=no #{target_user}@#{Shellwords.escape(@target_host)} #{Shellwords.escape(remote_cmd)}"
+      else
+                      "sudo -S #{bash_c_command(inner_selinux)}"
+      end
+      execute_remote_command(ssh, selinux_cmd, password: @sudo_password)
 
       # 3.3: systemctl enable --now
       report_progress "Starting agent service"
@@ -341,17 +529,18 @@ module Agent
 
     # Read the agent's UUID from the remote node after installation
     # The agent generates and stores its UUID in /etc/hpc-agent/node_id
+    # Note: The file is owned by root, so sudo is required to read it
     def read_agent_uuid(ssh, via_ssh: false)
       report_progress "Reading agent UUID for identity sync"
 
       inner_cmd = "cat #{AGENT_NODE_ID_PATH}"
       read_cmd = if via_ssh
-                   "sudo -S ssh -o StrictHostKeyChecking=no #{target_user}@#{Shellwords.escape(@target_host)} #{Shellwords.escape(inner_cmd)}"
+                   "sudo -S ssh -o StrictHostKeyChecking=no #{target_user}@#{Shellwords.escape(@target_host)} #{Shellwords.escape("sudo #{inner_cmd}")}"
       else
-                   inner_cmd
+                   "sudo -S #{inner_cmd}"
       end
 
-      output = execute_remote_command(ssh, read_cmd, password: via_ssh ? @sudo_password : nil)
+      output = execute_remote_command(ssh, read_cmd, password: @sudo_password)
       uuid = output.strip
 
       if uuid.present?
@@ -366,6 +555,18 @@ module Agent
       nil
     end
 
+    # Ensure the node has a UUID - generate one if missing
+    # This is used to inject the UUID into the service file for identity consistency
+    def ensure_node_uuid
+      return @node.uuid if @node&.uuid.present?
+
+      # Generate a new UUID if node doesn't have one
+      new_uuid = SecureRandom.uuid
+      @node&.update_column(:uuid, new_uuid) if @node&.persisted?
+      Rails.logger.info "[RemoteInstallService] Generated new node UUID: #{new_uuid}"
+      new_uuid
+    end
+
     def report_progress(message)
       @on_progress&.call(message)
 
@@ -378,6 +579,33 @@ module Agent
       unless @target_host =~ /\A[a-zA-Z0-9.:-]+\z/
         raise InstallError, "Invalid target host format: #{@target_host}"
       end
+    end
+
+    # Normalize server URL to base URL only (protocol + host + port)
+    # Strips any path components to prevent routing errors
+    # Example: "http://localhost:3000/nodes" -> "http://localhost:3000"
+    def normalize_server_url(url)
+      return url if url.blank?
+
+      uri = URI.parse(url)
+
+      # Check if URL has required components (scheme and host)
+      if uri.scheme.blank? || uri.host.blank?
+        Rails.logger.warn "[RemoteInstallService] Invalid server URL format (missing scheme or host): #{url}"
+        return url
+      end
+
+      normalized = "#{uri.scheme}://#{uri.host}"
+      normalized += ":#{uri.port}" if uri.port && !default_port?(uri)
+      normalized
+    rescue URI::InvalidURIError
+      # If URL is malformed, return as-is and let it fail later with a clearer error
+      Rails.logger.warn "[RemoteInstallService] Invalid server URL format: #{url}"
+      url
+    end
+
+    def default_port?(uri)
+      (uri.scheme == "http" && uri.port == 80) || (uri.scheme == "https" && uri.port == 443)
     end
 
     def execute_remote_command(ssh, cmd, password: nil)
@@ -421,11 +649,13 @@ module Agent
       if exit_code != 0
         # Filter out the sudo password prompt if it exists in stderr
         clean_stderr = stderr.gsub(/\[sudo\] password for .*: /, "").strip
+        # Use stdout if stderr is empty for better error messages
+        error_output = clean_stderr.presence || stdout.strip
         # Log the full error context
         Rails.logger.error "[RemoteInstallService] Command failed: #{cmd}"
-        Rails.logger.error "[RemoteInstallService] Error output: #{clean_stderr}"
+        Rails.logger.error "[RemoteInstallService] Error output: #{error_output}"
 
-        raise InstallError, "Command failed with exit code #{exit_code}. Error: #{clean_stderr}"
+        raise InstallError, "Command failed with exit code #{exit_code}. Error: #{error_output}"
       end
 
       stdout

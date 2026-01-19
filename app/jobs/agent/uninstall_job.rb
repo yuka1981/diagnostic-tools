@@ -48,7 +48,7 @@ module Agent
       # For now, we'll just log it. Maybe in future we update source to manual.
 
       if node
-        node.update(source: :manual)
+        node.update(source: :manual, agent_version: nil)
       end
 
       # 3. Success Broadcast

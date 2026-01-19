@@ -22,10 +22,10 @@ RSpec.describe "Dashboard Heatmap", type: :system do
     end
 
     context "when there are nodes" do
-      let!(:compute_node) { create(:node, hostname: "compute-001", role: :compute, last_seen_at: 1.minute.ago) }
-      let!(:login_node) { create(:node, hostname: "login-001", role: :login, last_seen_at: 1.minute.ago) }
-      let!(:admin_node) { create(:node, hostname: "admin-001", role: :admin, last_seen_at: 1.minute.ago) }
-      let!(:offline_node) { create(:node, hostname: "compute-002", role: :compute, last_seen_at: 10.minutes.ago) }
+      let!(:compute_node) { create(:node, hostname: "compute-001", role: :compute, last_heartbeat_at: 1.minute.ago) }
+      let!(:login_node) { create(:node, hostname: "login-001", role: :login, last_heartbeat_at: 1.minute.ago) }
+      let!(:admin_node) { create(:node, hostname: "admin-001", role: :admin, last_heartbeat_at: 1.minute.ago) }
+      let!(:offline_node) { create(:node, hostname: "compute-002", role: :compute, last_heartbeat_at: 10.minutes.ago) }
 
       it "displays heatmap grid with all nodes" do
         visit dashboard_path
@@ -60,8 +60,8 @@ RSpec.describe "Dashboard Heatmap", type: :system do
   end
 
   describe "click filtering" do
-    let!(:node1) { create(:node, hostname: "compute-001", last_seen_at: 1.minute.ago) }
-    let!(:node2) { create(:node, hostname: "compute-002", last_seen_at: 1.minute.ago) }
+    let!(:node1) { create(:node, hostname: "compute-001", last_heartbeat_at: 1.minute.ago) }
+    let!(:node2) { create(:node, hostname: "compute-002", last_heartbeat_at: 1.minute.ago) }
     let!(:recipe) { create(:benchmark_recipe) }
 
     let!(:run1) { create(:benchmark_run, :success, node: node1, benchmark_recipe: recipe, started_at: 1.hour.ago) }
@@ -101,7 +101,7 @@ RSpec.describe "Dashboard Heatmap", type: :system do
     end
 
     context "when filtered node has no runs" do
-      let!(:node3) { create(:node, hostname: "compute-003", last_seen_at: 1.minute.ago) }
+      let!(:node3) { create(:node, hostname: "compute-003", last_heartbeat_at: 1.minute.ago) }
 
       it "shows empty state for that node" do
         visit dashboard_path(node_id: node3.id)
@@ -117,29 +117,29 @@ RSpec.describe "Dashboard Heatmap", type: :system do
   describe "helper methods" do
     context "node_heatmap_class" do
       it "returns amber classes for online admin nodes" do
-        node = create(:node, role: :admin, last_seen_at: 1.minute.ago)
+        node = create(:node, role: :admin, last_heartbeat_at: 1.minute.ago)
         expect(ApplicationController.helpers.node_heatmap_class(node)).to include("bg-amber-500")
       end
 
       it "returns emerald classes for online compute nodes" do
-        node = create(:node, role: :compute, last_seen_at: 1.minute.ago)
+        node = create(:node, role: :compute, last_heartbeat_at: 1.minute.ago)
         expect(ApplicationController.helpers.node_heatmap_class(node)).to include("bg-emerald-500")
       end
 
             it "returns blue classes for online login nodes" do
-              node = create(:node, role: :login, last_seen_at: 1.minute.ago)
+              node = create(:node, role: :login, last_heartbeat_at: 1.minute.ago)
               expect(ApplicationController.helpers.node_heatmap_class(node)).to include("bg-blue-500")
             end
             it "returns gray classes for offline nodes" do
-        node = create(:node, role: :compute, last_seen_at: 10.minutes.ago)
+        node = create(:node, role: :compute, last_heartbeat_at: 10.minutes.ago)
         expect(ApplicationController.helpers.node_heatmap_class(node)).to include("bg-slate-300")
       end
     end
   end
 
   describe "Stimulus controller interactions", :js do
-    let!(:node1) { create(:node, hostname: "compute-001", last_seen_at: 1.minute.ago) }
-    let!(:node2) { create(:node, hostname: "compute-002", last_seen_at: 1.minute.ago) }
+    let!(:node1) { create(:node, hostname: "compute-001", last_heartbeat_at: 1.minute.ago) }
+    let!(:node2) { create(:node, hostname: "compute-002", last_heartbeat_at: 1.minute.ago) }
     let!(:recipe) { create(:benchmark_recipe) }
     let!(:run1) { create(:benchmark_run, :success, node: node1, benchmark_recipe: recipe, started_at: 1.hour.ago) }
     let!(:run2) { create(:benchmark_run, :failed, node: node2, benchmark_recipe: recipe, started_at: 2.hours.ago) }

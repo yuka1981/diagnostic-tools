@@ -1,0 +1,27 @@
+<% content_for(:page_title) { "Agent Releases" } %>
+<% content_for(:breadcrumbs) do %>
+  <span class="mx-2">/</span>
+  <%= link_to "Settings", settings_agent_path, class: "hover:text-teal-600 font-bold" %>
+  <span class="mx-2">/</span>
+  <span class="font-medium text-slate-700">Agent Releases</span>
+<% end %>
+
+<div class="flex items-center justify-between mb-6">
+  <div>
+    <h1 class="text-2xl font-bold text-slate-900">Agent Releases</h1>
+    <p class="text-sm text-slate-500 mt-1">Manage HPC agent binary versions</p>
+  </div>
+  <% if current_user.approver? %>
+    <%= link_to new_settings_agent_release_path, class: "btn-primary" do %>
+      <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+      </svg>
+      New Release
+    <% end %>
+  <% end %>
+</div>
+
+<div class="card-netbox">
+  <%= render partial: "releases_table",
+             locals: { agent_releases: @agent_releases, latest_release: @latest_release } %>
+</div>

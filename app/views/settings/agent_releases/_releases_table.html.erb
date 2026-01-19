@@ -1,0 +1,69 @@
+<% if agent_releases.any? %>
+  <div class="overflow-x-auto">
+    <table class="min-w-full divide-y divide-slate-200 text-sm">
+      <thead class="bg-slate-50">
+        <tr>
+          <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Version</th>
+          <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Binary</th>
+          <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Size</th>
+          <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Status</th>
+          <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Uploaded</th>
+          <th scope="col" class="relative px-3 py-2 border-b">
+            <span class="sr-only">Actions</span>
+          </th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-slate-200 bg-white">
+        <% agent_releases.each do |release| %>
+          <tr class="hover:bg-slate-50 transition-colors">
+            <td class="whitespace-nowrap px-3 py-2">
+              <%= link_to settings_agent_release_path(release), class: "group flex items-center gap-2" do %>
+                <p class="text-sm font-bold text-slate-900 group-hover:text-teal-600"><%= release.version %></p>
+                <% if release == latest_release %>
+                  <span class="inline-flex items-center rounded-sm px-1.5 py-0.5 text-xs font-medium bg-teal-100 text-teal-800 border border-teal-200">
+                    Latest
+                  </span>
+                <% end %>
+              <% end %>
+            </td>
+            <td class="whitespace-nowrap px-3 py-2 text-sm text-slate-600 font-mono">
+              <%= release.binary_filename || "—" %>
+            </td>
+            <td class="whitespace-nowrap px-3 py-2 text-sm text-slate-500">
+              <%= release.formatted_size %>
+            </td>
+            <td class="whitespace-nowrap px-3 py-2">
+              <%= render partial: "settings/agent_releases/status_badge", locals: { release: release } %>
+            </td>
+            <td class="whitespace-nowrap px-3 py-2 text-sm text-slate-500">
+              <%= time_ago_in_words(release.created_at) %> ago
+            </td>
+            <td class="whitespace-nowrap px-3 py-2 text-right text-sm">
+              <%= link_to "View", settings_agent_release_path(release), class: "text-teal-600 hover:text-teal-700 font-medium" %>
+              <% if current_user.approver? %>
+                <span class="text-slate-300 mx-1">|</span>
+                <%= link_to "Edit", edit_settings_agent_release_path(release), class: "text-slate-600 hover:text-slate-700 font-medium" %>
+              <% end %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+<% else %>
+  <div class="flex flex-col items-center justify-center py-12 text-center">
+    <div class="h-12 w-12 rounded-full bg-slate-100 flex items-center justify-center mb-4">
+      <svg class="h-6 w-6 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+      </svg>
+    </div>
+    <p class="text-sm font-medium text-slate-900">No agent releases yet</p>
+    <p class="mt-1 text-xs text-slate-500">Upload an agent binary to get started</p>
+    <% if current_user.approver? %>
+      <%= link_to new_settings_agent_release_path, class: "mt-4 btn-primary" do %>
+        Upload Release
+      <% end %>
+    <% end %>
+  </div>
+<% end %>

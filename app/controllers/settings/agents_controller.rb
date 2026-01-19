@@ -8,6 +8,8 @@ module Settings
 
     def show
       @ssh_setting = SshSetting.current
+      @agent_releases = AgentRelease.latest_first
+      @latest_release = AgentRelease.latest
     end
 
     def update

@@ -1,2 +1,12 @@
+<%# Replace node row in index table (if present) - turbo_stream handles missing targets gracefully %>
 <%= turbo_stream.replace @node %>
-<%= turbo_stream.replace "node_modal", turbo_frame_tag("node_modal") %>
+
+<%# Close the modal by replacing with empty frame %>
+<%= turbo_stream.replace "node_modal" do %>
+  <%= turbo_frame_tag "node_modal" %>
+<% end %>
+
+<%# Show flash message %>
+<%= turbo_stream.update "flash_messages" do %>
+  <%= render "shared/flash" %>
+<% end %>

@@ -30,10 +30,10 @@ module Agent
       # Small delay to allow the browser to establish ActionCable connection
       sleep 1 if Rails.env.development?
 
-      # 1. Compile Agent
+      # 1. Compile Agent (always pull latest source code)
       Rails.logger.debug "[Agent::InstallJob] Phase 1: Compiling"
       broadcast_status(target_host, "processing", "Compiling Go agent for #{arch}")
-      compiler = Agent::CompilerService.new(arch)
+      compiler = Agent::CompilerService.new(arch: arch, update_source: true)
       local_binary_path = compiler.call
 
       # 2. Remote Install
@@ -59,10 +59,12 @@ module Agent
 
       result = installer.call
 
-      # 3. Sync agent UUID to node record
+      # 3. Sync agent UUID and version to node record
       if result.agent_uuid.present? && node&.persisted?
         Rails.logger.info "[Agent::InstallJob] Syncing agent UUID #{result.agent_uuid} to node #{node.hostname}"
-        node.update!(uuid: result.agent_uuid)
+        # Set agent_version to "dev" since we compiled from source without a version tag
+        # The actual version will be updated when the agent does its first inventory push
+        node.update!(uuid: result.agent_uuid, agent_version: "dev")
       end
 
       # 4. Success Broadcast

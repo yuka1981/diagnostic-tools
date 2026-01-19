@@ -7,6 +7,7 @@ Rails.application.routes.draw do
       get "health", to: "health#show"
       post "inventory/push", to: "inventory#push"
       resources :benchmark_runs, only: [ :create, :update ]
+      post "nodes/:id/heartbeat", to: "heartbeats#create"
     end
   end
 
@@ -23,6 +24,14 @@ Rails.application.routes.draw do
   namespace :settings do
     resource :ssh, only: [ :show, :update ], controller: :ssh
     resource :agent, only: [ :show, :update ], controller: :agents
+    resources :agent_releases do
+      member do
+        patch :deprecate
+        patch :activate
+        patch :recall
+      end
+      resources :binaries, only: %i[new create destroy], controller: "agent_binaries"
+    end
   end
 
   resources :nodes do
@@ -34,6 +43,7 @@ Rails.application.routes.draw do
     resource :network, only: [], controller: "nodes/network" do
       get :ib_details
     end
+    resource :update, only: %i[new create], controller: "nodes/updates"
     collection do
       resources :imports, only: %i[new create], controller: "nodes/imports", as: :node_import
       resources :installs, only: %i[new create], controller: "nodes/installs", as: :node_install

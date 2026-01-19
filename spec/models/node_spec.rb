@@ -20,6 +20,50 @@ RSpec.describe Node, type: :model do
 
     it { is_expected.to validate_presence_of(:role) }
     it { is_expected.to validate_presence_of(:source) }
+
+    describe "localhost validation" do
+      it { is_expected.not_to allow_value("localhost").for(:hostname).with_message(/cannot be localhost/) }
+      it { is_expected.not_to allow_value("127.0.0.1").for(:hostname).with_message(/cannot be localhost/) }
+      it { is_expected.not_to allow_value("::1").for(:hostname).with_message(/cannot be localhost/) }
+      it { is_expected.not_to allow_value("LOCALHOST").for(:hostname).with_message(/cannot be localhost/) }
+
+      it { is_expected.not_to allow_value("127.0.0.1").for(:ip).with_message(/cannot be a localhost/) }
+      it { is_expected.not_to allow_value("::1").for(:ip).with_message(/cannot be a localhost/) }
+
+      it { is_expected.to allow_value("compute-001").for(:hostname) }
+      it { is_expected.to allow_value("192.168.1.100").for(:ip) }
+    end
+  end
+
+  describe ".localhost?" do
+    it "returns true for localhost" do
+      expect(Node.localhost?("localhost")).to be true
+    end
+
+    it "returns true for 127.0.0.1" do
+      expect(Node.localhost?("127.0.0.1")).to be true
+    end
+
+    it "returns true for ::1" do
+      expect(Node.localhost?("::1")).to be true
+    end
+
+    it "returns true for LOCALHOST (case insensitive)" do
+      expect(Node.localhost?("LOCALHOST")).to be true
+    end
+
+    it "returns false for regular hostname" do
+      expect(Node.localhost?("compute-001")).to be false
+    end
+
+    it "returns false for regular IP" do
+      expect(Node.localhost?("192.168.1.1")).to be false
+    end
+
+    it "returns false for blank value" do
+      expect(Node.localhost?("")).to be false
+      expect(Node.localhost?(nil)).to be false
+    end
   end
 
   describe "enums" do
@@ -122,18 +166,18 @@ RSpec.describe Node, type: :model do
   end
 
   describe "#online?" do
-    it "returns true if last_seen_at is within 5 minutes" do
-      node = build(:node, last_seen_at: 2.minutes.ago)
+    it "returns true if last_heartbeat_at is within 2 minutes" do
+      node = build(:node, last_heartbeat_at: 1.minute.ago)
       expect(node).to be_online
     end
 
-    it "returns false if last_seen_at is older than 5 minutes" do
-      node = build(:node, last_seen_at: 10.minutes.ago)
+    it "returns false if last_heartbeat_at is older than 2 minutes" do
+      node = build(:node, last_heartbeat_at: 3.minutes.ago)
       expect(node).not_to be_online
     end
 
-    it "returns false if last_seen_at is nil" do
-      node = build(:node, last_seen_at: nil)
+    it "returns false if last_heartbeat_at is nil" do
+      node = build(:node, last_heartbeat_at: nil)
       expect(node).not_to be_online
     end
   end
@@ -181,6 +225,60 @@ RSpec.describe Node, type: :model do
         api_key = create(:api_key)
         node = build(:node, api_token: "", api_key: api_key)
         expect(node.effective_api_token).to eq(api_key.token)
+      end
+    end
+  end
+
+  describe "#busy?" do
+    let(:node) { create(:node) }
+    let(:recipe) { create(:benchmark_recipe) }
+
+    context "when node has no benchmark runs" do
+      it "returns false" do
+        expect(node.busy?).to be false
+      end
+    end
+
+    context "when node has only completed benchmark runs" do
+      before do
+        create(:benchmark_run, node: node, benchmark_recipe: recipe, status: :success)
+        create(:benchmark_run, node: node, benchmark_recipe: recipe, status: :failed)
+        create(:benchmark_run, node: node, benchmark_recipe: recipe, status: :cancelled)
+      end
+
+      it "returns false" do
+        expect(node.busy?).to be false
+      end
+    end
+
+    context "when node has a pending benchmark run" do
+      before do
+        create(:benchmark_run, node: node, benchmark_recipe: recipe, status: :pending)
+      end
+
+      it "returns true" do
+        expect(node.busy?).to be true
+      end
+    end
+
+    context "when node has a running benchmark run" do
+      before do
+        create(:benchmark_run, node: node, benchmark_recipe: recipe, status: :running)
+      end
+
+      it "returns true" do
+        expect(node.busy?).to be true
+      end
+    end
+
+    context "when node has both completed and pending runs" do
+      before do
+        create(:benchmark_run, node: node, benchmark_recipe: recipe, status: :success)
+        create(:benchmark_run, node: node, benchmark_recipe: recipe, status: :pending)
+      end
+
+      it "returns true" do
+        expect(node.busy?).to be true
       end
     end
   end
