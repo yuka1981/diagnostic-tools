@@ -183,7 +183,7 @@ RSpec.describe Agent::RemoteInstallService do
   end
 
   describe "localhost local execution" do
-    let(:localhost_node) { create(:node, ip: "127.0.0.1", hostname: "localhost-node") }
+    let(:localhost_node) { build_stubbed(:node, ip: "127.0.0.1", hostname: "localhost-node") }
 
     describe "#localhost?" do
       it "returns true for 127.0.0.1" do
