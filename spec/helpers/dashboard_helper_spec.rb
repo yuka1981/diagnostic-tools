@@ -112,11 +112,11 @@ RSpec.describe DashboardHelper, type: :helper do
   end
 
   describe "#node_heatmap_class" do
-    # Node status is computed from last_seen_at, not a status attribute
-    let(:online_compute_node) { build(:node, role: :compute, last_seen_at: 1.minute.ago) }
-    let(:offline_compute_node) { build(:node, role: :compute, last_seen_at: 10.minutes.ago) }
-    let(:online_login_node) { build(:node, role: :login, last_seen_at: 1.minute.ago) }
-    let(:online_admin_node) { build(:node, role: :admin, last_seen_at: 1.minute.ago) }
+    # Node status is computed from last_heartbeat_at, not a status attribute
+    let(:online_compute_node) { build(:node, role: :compute, last_heartbeat_at: 1.minute.ago) }
+    let(:offline_compute_node) { build(:node, role: :compute, last_heartbeat_at: 10.minutes.ago) }
+    let(:online_login_node) { build(:node, role: :login, last_heartbeat_at: 1.minute.ago) }
+    let(:online_admin_node) { build(:node, role: :admin, last_heartbeat_at: 1.minute.ago) }
 
     it "returns emerald for online compute nodes" do
       expect(helper.node_heatmap_class(online_compute_node)).to include("emerald")
