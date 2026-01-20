@@ -54,6 +54,24 @@ RSpec.describe User, type: :model do
     end
   end
 
+  describe "rack_node_preview_fields" do
+    it "defaults to cpu, ram, storage, network" do
+      user = User.new
+      expect(user.rack_node_preview_fields).to eq(%w[cpu ram storage network])
+    end
+
+    it "can be set to custom fields" do
+      user = build(:user, rack_node_preview_fields: %w[cpu gpu])
+      expect(user.rack_node_preview_fields).to eq(%w[cpu gpu])
+    end
+
+    it "persists the array to the database" do
+      user = create(:user, rack_node_preview_fields: %w[ram network])
+      user.reload
+      expect(user.rack_node_preview_fields).to eq(%w[ram network])
+    end
+  end
+
   describe "Devise modules" do
     it "includes database_authenticatable" do
       expect(User.devise_modules).to include(:database_authenticatable)
