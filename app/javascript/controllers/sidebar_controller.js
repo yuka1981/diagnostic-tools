@@ -22,7 +22,8 @@ export default class extends Controller {
 
   static values = {
     collapsed: { type: Boolean, default: false },
-    roomsExpanded: { type: Boolean, default: true }
+    roomsExpanded: { type: Boolean, default: true },
+    roomsUrl: { type: String, default: "/rooms" }
   }
 
   connect() {
@@ -52,7 +53,11 @@ export default class extends Controller {
 
   // Rooms section expand/collapse
   toggleRooms() {
-    if (this.collapsedValue) return // Don't toggle when sidebar collapsed
+    if (this.collapsedValue) {
+      // Navigate to rooms index when sidebar is collapsed
+      window.location.href = this.roomsUrlValue
+      return
+    }
     this.roomsExpandedValue = !this.roomsExpandedValue
     this.saveState()
     this.applyRoomsState()
