@@ -113,9 +113,9 @@ RSpec.describe RackElevationCompactComponent, type: :component do
     context "with online node" do
       let(:node) { create(:node, last_heartbeat_at: 1.minute.ago) }
 
-      it "returns emerald classes" do
+      it "returns emerald-600 background" do
         classes = component.node_status_classes(node)
-        expect(classes).to include("bg-emerald-500")
+        expect(classes).to include("bg-emerald-600")
         expect(classes).to include("text-white")
       end
     end
@@ -123,9 +123,9 @@ RSpec.describe RackElevationCompactComponent, type: :component do
     context "with offline node" do
       let(:node) { create(:node, last_heartbeat_at: 10.minutes.ago) }
 
-      it "returns slate/gray classes" do
+      it "returns slate-600 background" do
         classes = component.node_status_classes(node)
-        expect(classes).to include("bg-slate-400")
+        expect(classes).to include("bg-slate-600")
         expect(classes).to include("text-white")
       end
     end
@@ -133,9 +133,9 @@ RSpec.describe RackElevationCompactComponent, type: :component do
     context "with never-seen node" do
       let(:node) { create(:node, last_heartbeat_at: nil) }
 
-      it "returns slate/gray classes" do
+      it "returns slate-600 background" do
         classes = component.node_status_classes(node)
-        expect(classes).to include("bg-slate-400")
+        expect(classes).to include("bg-slate-600")
       end
     end
   end
@@ -171,6 +171,18 @@ RSpec.describe RackElevationCompactComponent, type: :component do
       render_inline(described_class.new(rack: rack))
 
       expect(page).to have_css("[style*='width: 150px']")
+    end
+
+    it "renders empty slots with bg-slate-100 background" do
+      render_inline(described_class.new(rack: rack))
+
+      expect(page).to have_css(".bg-slate-100")
+    end
+
+    it "renders node hostname with text-shadow style" do
+      render_inline(described_class.new(rack: rack))
+
+      expect(page).to have_css("span.truncate[style*='text-shadow']")
     end
   end
 end

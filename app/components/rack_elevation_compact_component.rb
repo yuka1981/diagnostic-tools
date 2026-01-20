@@ -62,9 +62,9 @@ class RackElevationCompactComponent < ViewComponent::Base
 
   def node_status_classes(node)
     if node.online?
-      "bg-emerald-500 text-white"
+      "bg-emerald-600 text-white"
     else
-      "bg-slate-400 text-white"
+      "bg-slate-600 text-white"
     end
   end
 
