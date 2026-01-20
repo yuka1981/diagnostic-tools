@@ -181,5 +181,60 @@ RSpec.describe "Sidebar", type: :system do
       collapse_icon = find("svg[data-sidebar-target='collapseIcon']")
       expect(collapse_icon[:class]).to include("rotate-180")
     end
+
+    it "renders sidebar collapsed on page load when cookie indicates collapsed state" do
+      # Visit first to establish the domain, then set cookie via JS
+      visit dashboard_path
+      page.execute_script("document.cookie = 'sidebar_collapsed=true; path=/'")
+
+      # Revisit to test server-side rendering with cookie
+      visit dashboard_path
+
+      # Sidebar should be rendered with w-16 (collapsed) from server-side
+      # without needing JavaScript to fix it
+      sidebar = find("aside")
+      expect(sidebar[:class]).to include("w-16")
+      expect(sidebar[:class]).not_to include("w-64")
+    end
+
+    it "renders sidebar expanded on page load when cookie indicates expanded state" do
+      # Visit first to establish the domain, then set cookie via JS
+      visit dashboard_path
+      page.execute_script("document.cookie = 'sidebar_collapsed=false; path=/'")
+
+      # Revisit to test server-side rendering with cookie
+      visit dashboard_path
+
+      sidebar = find("aside")
+      expect(sidebar[:class]).to include("w-64")
+      expect(sidebar[:class]).not_to include("w-16")
+    end
+
+    it "does not flash expanded sidebar when navigating while collapsed" do
+      create(:room, name: "Test Room")
+
+      # Visit first to establish the domain, then set cookie via JS
+      visit dashboard_path
+      page.execute_script("document.cookie = 'sidebar_collapsed=true; path=/'")
+
+      # Revisit with cookie set
+      visit dashboard_path
+
+      # Verify sidebar is collapsed
+      expect(find("aside")[:class]).to include("w-16")
+
+      # Click Rooms icon to navigate
+      within("aside") do
+        find("button[data-action='click->sidebar#toggleRooms']").click
+      end
+
+      # Should navigate to rooms index
+      expect(page).to have_current_path(rooms_path)
+
+      # Sidebar should still be collapsed (rendered from cookie, no flash)
+      sidebar = find("aside")
+      expect(sidebar[:class]).to include("w-16")
+      expect(sidebar[:class]).not_to include("w-64")
+    end
   end
 end

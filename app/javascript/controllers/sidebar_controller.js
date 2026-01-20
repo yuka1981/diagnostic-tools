@@ -47,9 +47,18 @@ export default class extends Controller {
   // Desktop collapse/expand
   toggleCollapse() {
     this.collapsedValue = !this.collapsedValue
-    // Reset rooms expanded when collapsing sidebar
-    if (this.collapsedValue) {
+    // Reset rooms expanded when collapsing sidebar (without animation)
+    if (this.collapsedValue && this.roomsExpandedValue) {
       this.roomsExpandedValue = false
+      // Disable transition, reset chevron, re-enable (prevents animation)
+      if (this.hasRoomsChevronTarget) {
+        this.roomsChevronTarget.style.transition = 'none'
+        this.roomsChevronTarget.classList.remove("rotate-90")
+        // Force reflow to apply changes immediately
+        this.roomsChevronTarget.offsetHeight
+        // Restore transition for future animations
+        this.roomsChevronTarget.style.transition = ''
+      }
     }
     this.saveState()
     this.applyState()
@@ -58,7 +67,8 @@ export default class extends Controller {
   // Rooms section expand/collapse
   toggleRooms() {
     if (this.collapsedValue) {
-      // Navigate to rooms index when sidebar is collapsed
+      // Disable transitions before navigating to prevent animation glitch
+      this.menuTarget.style.transition = 'none'
       window.location.href = this.roomsUrlValue
       return
     }
@@ -67,23 +77,31 @@ export default class extends Controller {
     this.applyRoomsState()
   }
 
-  // Load state from localStorage
+  // Load state from localStorage (with cookie fallback for collapsed state)
   loadState() {
     const collapsed = localStorage.getItem("sidebarCollapsed")
     const roomsExpanded = localStorage.getItem("sidebarRoomsExpanded")
 
     if (collapsed !== null) {
       this.collapsedValue = collapsed === "true"
+    } else {
+      // Fall back to cookie if localStorage doesn't have the value
+      const cookieMatch = document.cookie.match(/sidebar_collapsed=(\w+)/)
+      if (cookieMatch) {
+        this.collapsedValue = cookieMatch[1] === "true"
+      }
     }
     if (roomsExpanded !== null) {
       this.roomsExpandedValue = roomsExpanded === "true"
     }
   }
 
-  // Save state to localStorage
+  // Save state to localStorage and cookie (cookie enables server-side rendering)
   saveState() {
     localStorage.setItem("sidebarCollapsed", this.collapsedValue)
     localStorage.setItem("sidebarRoomsExpanded", this.roomsExpandedValue)
+    // Set cookie for server-side rendering (prevents flash on page load)
+    document.cookie = `sidebar_collapsed=${this.collapsedValue}; path=/; max-age=31536000`
   }
 
   // Apply collapsed/expanded state to UI

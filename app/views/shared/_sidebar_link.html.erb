@@ -34,7 +34,7 @@
   <svg class="h-5 w-5 opacity-75 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="<%= icon_path %>" />
   </svg>
-  <span data-sidebar-target="label"><%= label %></span>
+  <span data-sidebar-target="label" class="<%= 'hidden' if sidebar_collapsed? %>"><%= label %></span>
 
   <%# Tooltip for collapsed state %>
   <span class="absolute left-full top-1/2 -translate-y-1/2 ml-2 px-2 py-1 bg-slate-800 text-white text-xs rounded whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none z-50 hidden"
