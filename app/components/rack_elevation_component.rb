@@ -62,9 +62,9 @@ class RackElevationComponent < ViewComponent::Base
 
   def node_status_classes(node)
     if node.online?
-      "bg-emerald-500 hover:bg-emerald-600 text-white"
+      "bg-emerald-600 hover:bg-emerald-700 text-white"
     else
-      "bg-slate-400 hover:bg-slate-500 text-white"
+      "bg-slate-600 hover:bg-slate-700 text-white"
     end
   end
 

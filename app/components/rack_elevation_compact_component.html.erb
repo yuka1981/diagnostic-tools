@@ -26,7 +26,7 @@
           <% elevation_cells.each do |cell| %>
             <% if cell[:type] == :empty %>
               <%# Empty slot %>
-              <div class="absolute w-full border-b border-slate-200 bg-slate-50"
+              <div class="absolute w-full border-b border-slate-200 bg-slate-100"
                    style="<%= cell_height_style(1) %> bottom: <%= (cell[:u] - 1) * U_HEIGHT_PX %>px;">
               </div>
             <% else %>
@@ -35,7 +35,7 @@
               <div class="absolute w-full flex items-center justify-center text-xs font-medium border border-slate-300 rounded-sm <%= node_status_classes(node) %>"
                    style="<%= cell_height_style(cell[:height]) %> bottom: <%= (node.rack_position - 1) * U_HEIGHT_PX %>px;"
                    title="<%= node.hostname %> (U<%= node.rack_position %>-U<%= node.rack_position + node.rack_height - 1 %>) - <%= node.status.to_s.capitalize %>">
-                <span class="truncate px-1 text-[10px]"><%= node.hostname %></span>
+                <span class="truncate px-1 text-[10px]" style="text-shadow: 0 1px 2px rgba(0,0,0,0.3);"><%= node.hostname %></span>
               </div>
             <% end %>
           <% end %>
