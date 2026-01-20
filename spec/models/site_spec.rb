@@ -12,12 +12,7 @@ RSpec.describe Site, type: :model do
   end
 
   describe "associations" do
-    # Note: Rack model will be created in Task 2
-    # This test will be enabled once Rack model exists
-    it "has many racks with dependent destroy" do
-      skip "Rack model not yet created (Task 2)"
-      is_expected.to have_many(:racks).dependent(:destroy)
-    end
+    it { is_expected.to have_many(:server_racks).dependent(:destroy) }
   end
 
   describe "factory" do
