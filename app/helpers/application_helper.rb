@@ -1,5 +1,6 @@
 module ApplicationHelper
   include DashboardHelper
+  include SidebarHelper
 
   def format_bytes(bytes)
     return "—" if bytes.blank? || bytes.to_i.zero?
