@@ -153,6 +153,12 @@ export default class extends Controller {
     )
   }
 
+  // Prevent click from bubbling up to card (used for links inside cards)
+  // Called via data-action="click->rack-show#stopPropagation"
+  stopPropagation(event) {
+    event.stopPropagation()
+  }
+
   // Value changed callback - useful for debugging or future features
   selectedNodeIdValueChanged(newId, previousId) {
     // Dispatch custom event for other controllers that might need to know

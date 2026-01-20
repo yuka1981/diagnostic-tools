@@ -6,140 +6,279 @@
   <span class="font-medium text-slate-700"><%= @equipment_rack.name %></span>
 <% end %>
 
-<%# Header %>
-<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-  <div>
-    <div class="flex items-center gap-3">
-      <h1 class="text-2xl font-bold text-slate-900"><%= @equipment_rack.name %></h1>
-    </div>
-    <div class="mt-1 flex items-center gap-4 text-sm text-slate-500">
-      <span>Room: <span class="font-medium text-slate-700"><%= @equipment_rack.room&.name || "Unassigned" %></span></span>
-      <span>UUID: <span class="font-mono"><%= @equipment_rack.id %></span></span>
-    </div>
-  </div>
-
-  <div class="flex items-center gap-2">
-    <% if current_user.approver? %>
-      <%= link_to edit_equipment_rack_path(@equipment_rack),
-          class: "btn-secondary",
-          data: { turbo_frame: "equipment_rack_modal" } do %>
-        <svg class="h-4 w-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-        </svg>
-        Edit
-      <% end %>
-
-      <%= button_to equipment_rack_path(@equipment_rack),
-          method: :delete,
-          class: "btn-danger",
-          data: { turbo_confirm: "Are you sure you want to delete this rack?" } do %>
-        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h14" />
-        </svg>
-        Delete
-      <% end %>
-    <% end %>
-  </div>
-</div>
-
-<div class="grid grid-cols-12 gap-6">
-  <%# Rack Elevation %>
-  <div class="col-span-12 lg:col-span-3">
-    <%= render RackElevationComponent.new(rack: @equipment_rack, face: @face || :front) %>
-  </div>
-
-  <%# Details Card %>
-  <div class="col-span-12 lg:col-span-3">
-    <div class="card-netbox">
-      <div class="card-header">
-        <h3 class="card-title text-xs font-bold text-slate-500 uppercase">Rack Details</h3>
+<%# Main container with rack-show controller %>
+<div data-controller="rack-show">
+  <%# Header %>
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+    <div>
+      <div class="flex items-center gap-3">
+        <h1 class="text-2xl font-bold text-slate-900"><%= @equipment_rack.name %></h1>
       </div>
-      <div class="p-4">
-        <dl class="space-y-3">
-          <div class="flex justify-between">
-            <dt class="text-sm font-medium text-slate-500">Name</dt>
-            <dd class="text-sm text-slate-900"><%= @equipment_rack.name %></dd>
-          </div>
-          <div class="flex justify-between">
-            <dt class="text-sm font-medium text-slate-500">Room</dt>
-            <dd class="text-sm text-slate-900"><%= @equipment_rack.room&.name || "Unassigned" %></dd>
-          </div>
-          <div class="flex justify-between">
-            <dt class="text-sm font-medium text-slate-500">U Height</dt>
-            <dd class="text-sm text-slate-900"><%= @equipment_rack.u_height %>U</dd>
-          </div>
-          <div class="flex justify-between">
-            <dt class="text-sm font-medium text-slate-500">Width</dt>
-            <dd class="text-sm text-slate-900"><%= @equipment_rack.width %>"</dd>
-          </div>
-          <div class="flex justify-between items-center">
-            <dt class="text-sm font-medium text-slate-500">Utilization</dt>
-            <dd class="text-sm text-slate-900">
-              <% utilization = @equipment_rack.utilization_percentage %>
-              <div class="flex items-center gap-2">
-                <div class="w-16 h-2 bg-slate-200 rounded-full overflow-hidden">
-                  <div class="h-full rounded-full <%= utilization > 80 ? 'bg-red-500' : utilization > 50 ? 'bg-amber-500' : 'bg-teal-500' %>"
-                       style="width: <%= utilization %>%"></div>
-                </div>
-                <span><%= utilization %>%</span>
-              </div>
-            </dd>
-          </div>
-          <% if @equipment_rack.notes.present? %>
-            <div class="pt-3 border-t border-slate-200">
-              <dt class="text-sm font-medium text-slate-500 mb-1">Notes</dt>
-              <dd class="text-sm text-slate-700"><%= @equipment_rack.notes %></dd>
-            </div>
-          <% end %>
-        </dl>
-      </div>
-    </div>
-  </div>
-
-  <%# Nodes Card %>
-  <div class="col-span-12 lg:col-span-6">
-    <div class="card-netbox">
-      <div class="card-header">
-        <h3 class="card-title text-xs font-bold text-slate-500 uppercase">Nodes in Rack</h3>
-      </div>
-      <div class="overflow-x-auto">
-        <% if @nodes.any? %>
-          <table class="min-w-full divide-y divide-slate-200 text-sm">
-            <thead class="bg-slate-50">
-              <tr>
-                <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Hostname</th>
-                <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Position</th>
-                <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Height</th>
-                <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Face</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-slate-200 bg-white">
-              <% @nodes.each do |node| %>
-                <tr class="hover:bg-slate-50">
-                  <td class="px-3 py-3 whitespace-nowrap">
-                    <%= link_to node.hostname, node_path(node), class: "font-medium text-teal-600 hover:text-teal-800" %>
-                  </td>
-                  <td class="px-3 py-3 whitespace-nowrap text-slate-600">
-                    <% if node.rack_position %>
-                      U<%= node.rack_position %>
-                    <% else %>
-                      <span class="text-slate-400">Unpositioned</span>
-                    <% end %>
-                  </td>
-                  <td class="px-3 py-3 whitespace-nowrap text-slate-600">
-                    <%= node.rack_height %>U
-                  </td>
-                  <td class="px-3 py-3 whitespace-nowrap text-slate-600">
-                    <%= node.rack_face.humanize %>
-                  </td>
-                </tr>
-              <% end %>
-            </tbody>
-          </table>
-        <% else %>
-          <div class="p-8 text-center text-slate-500">No nodes assigned to this rack.</div>
+      <div class="mt-1 flex items-center gap-4 text-sm text-slate-500">
+        <span>Room: <span class="font-medium text-slate-700"><%= @equipment_rack.room&.name || "Unassigned" %></span></span>
+        <% if @equipment_rack.row.present? %>
+          <span>Row: <span class="font-medium text-slate-700"><%= @equipment_rack.row %></span></span>
         <% end %>
       </div>
+    </div>
+
+    <div class="flex items-center gap-2">
+      <% if current_user.approver? %>
+        <%= link_to edit_equipment_rack_path(@equipment_rack),
+            class: "btn-secondary",
+            data: { turbo_frame: "equipment_rack_modal" } do %>
+          <svg class="h-4 w-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+          </svg>
+          Edit
+        <% end %>
+
+        <%= button_to equipment_rack_path(@equipment_rack),
+            method: :delete,
+            class: "btn-danger",
+            data: { turbo_confirm: "Are you sure you want to delete this rack?" } do %>
+          <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h14" />
+          </svg>
+          Delete
+        <% end %>
+      <% end %>
+    </div>
+  </div>
+
+  <%# Two-column layout %>
+  <div class="flex flex-col lg:flex-row gap-6">
+    <%# Left Column: Rack Elevation (sticky on desktop) %>
+    <div class="w-full lg:w-[320px] lg:flex-shrink-0">
+      <div class="lg:sticky lg:top-4">
+        <%= render RackElevationComponent.new(rack: @equipment_rack, face: @face || :front) %>
+      </div>
+    </div>
+
+    <%# Right Column: Summary + Nodes List %>
+    <div class="flex-1 min-w-0">
+      <%# Summary Bar %>
+      <div class="flex flex-wrap items-center gap-4 p-4 bg-slate-50 rounded-lg mb-4 border border-slate-200">
+        <div class="flex items-center gap-2">
+          <span class="text-sm text-slate-500">U Height:</span>
+          <span class="text-sm font-bold text-slate-700"><%= @equipment_rack.u_height %>U</span>
+        </div>
+        <div class="hidden sm:block w-px h-4 bg-slate-300"></div>
+        <div class="flex items-center gap-2">
+          <span class="text-sm text-slate-500">Width:</span>
+          <span class="text-sm font-bold text-slate-700"><%= @equipment_rack.width %>"</span>
+        </div>
+        <div class="hidden sm:block w-px h-4 bg-slate-300"></div>
+        <div class="flex items-center gap-2">
+          <span class="text-sm text-slate-500">Utilization:</span>
+          <% utilization = @equipment_rack.utilization_percentage %>
+          <div class="flex items-center gap-2">
+            <div class="w-20 h-2 bg-slate-200 rounded-full overflow-hidden">
+              <div class="h-full rounded-full <%= utilization > 80 ? 'bg-red-500' : utilization > 50 ? 'bg-amber-500' : 'bg-teal-500' %>"
+                   style="width: <%= utilization %>%"></div>
+            </div>
+            <span class="text-sm font-bold text-slate-700"><%= utilization %>%</span>
+          </div>
+        </div>
+      </div>
+
+      <%# Nodes List Card %>
+      <div class="card-netbox">
+        <div class="card-header flex items-center justify-between">
+          <h3 class="card-title text-xs font-bold text-slate-500 uppercase">
+            Nodes in Rack (<%= @nodes.count %>)
+          </h3>
+        </div>
+
+        <div class="p-4">
+          <% positioned_nodes = @nodes.where.not(rack_position: nil).order(rack_position: :desc) %>
+          <% unpositioned_nodes = @nodes.where(rack_position: nil) %>
+
+          <% if positioned_nodes.any? || unpositioned_nodes.any? %>
+            <%# Positioned Nodes %>
+            <% positioned_nodes.each do |node| %>
+              <div data-rack-show-target="nodeCard"
+                   data-node-id="<%= node.id %>"
+                   data-action="click->rack-show#selectFromCard"
+                   class="border border-slate-200 rounded-lg p-4 mb-3 cursor-pointer hover:bg-slate-50 transition-colors"
+                   aria-expanded="false">
+                <div class="flex items-start justify-between">
+                  <div class="flex-1 min-w-0">
+                    <div class="flex items-center gap-2">
+                      <%= link_to node.hostname, node_path(node),
+                          class: "font-bold text-teal-600 hover:text-teal-800 hover:underline",
+                          data: { action: "click->rack-show#stopPropagation" } %>
+                      <% if node.online? %>
+                        <span class="inline-flex items-center gap-1 text-xs text-emerald-600">
+                          <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                          Online
+                        </span>
+                      <% else %>
+                        <span class="inline-flex items-center gap-1 text-xs text-slate-400">
+                          <span class="w-2 h-2 rounded-full bg-slate-300"></span>
+                          Offline
+                        </span>
+                      <% end %>
+                    </div>
+                    <div class="text-sm text-slate-500 mt-1">
+                      <%= node.rack_face.humanize %> face
+                    </div>
+                  </div>
+                  <div class="flex items-center gap-3 text-sm text-slate-600">
+                    <span class="font-mono">U<%= node.rack_position %></span>
+                    <span class="px-2 py-0.5 bg-slate-100 rounded text-xs font-bold"><%= node.rack_height %>U</span>
+                  </div>
+                </div>
+
+                <%# Expandable Content %>
+                <div data-rack-show-target="nodeCardContent"
+                     data-node-id="<%= node.id %>"
+                     class="hidden mt-4 pt-4 border-t border-slate-200">
+                  <% state = node.current_state %>
+                  <% preview_fields = current_user.rack_node_preview_fields || %w[cpu ram storage network] %>
+
+                  <% if state %>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                      <% if preview_fields.include?("cpu") && state.cpu_info.present? %>
+                        <div class="flex flex-col">
+                          <span class="text-xs font-bold text-slate-400 uppercase">CPU</span>
+                          <span class="text-slate-700">
+                            <%= state.cpu_info["model_name"] || "Unknown" %>
+                            <% if state.cpu_info["sockets"].to_i > 1 %>
+                              <span class="text-slate-500">(<%= state.cpu_info["sockets"] %>x)</span>
+                            <% end %>
+                          </span>
+                        </div>
+                      <% end %>
+
+                      <% if preview_fields.include?("ram") && state.mem_info.present? %>
+                        <div class="flex flex-col">
+                          <span class="text-xs font-bold text-slate-400 uppercase">RAM</span>
+                          <span class="text-slate-700"><%= format_bytes(state.mem_info["total"]) %></span>
+                        </div>
+                      <% end %>
+
+                      <% if preview_fields.include?("storage") && state.disk_info.present? %>
+                        <div class="flex flex-col">
+                          <span class="text-xs font-bold text-slate-400 uppercase">Storage</span>
+                          <span class="text-slate-700">
+                            <% total_storage = state.disk_info.sum { |d| d["total"].to_i } %>
+                            <%= format_bytes(total_storage) %> total
+                          </span>
+                        </div>
+                      <% end %>
+
+                      <% if preview_fields.include?("network") && state.net_info.present? %>
+                        <div class="flex flex-col">
+                          <span class="text-xs font-bold text-slate-400 uppercase">Network</span>
+                          <span class="text-slate-700">
+                            <% active_interfaces = state.net_info.select { |n| n["status"]&.downcase == "up" }.count %>
+                            <%= active_interfaces %> active interface<%= active_interfaces == 1 ? '' : 's' %>
+                          </span>
+                        </div>
+                      <% end %>
+
+                      <% if preview_fields.include?("load") && state.host_info.present? %>
+                        <div class="flex flex-col">
+                          <span class="text-xs font-bold text-slate-400 uppercase">Load</span>
+                          <span class="text-slate-700"><%= state.host_info["load_average"] || "N/A" %></span>
+                        </div>
+                      <% end %>
+
+                      <% if preview_fields.include?("uptime") && state.host_info.present? %>
+                        <div class="flex flex-col">
+                          <span class="text-xs font-bold text-slate-400 uppercase">Uptime</span>
+                          <span class="text-slate-700"><%= state.host_info["uptime"] || "N/A" %></span>
+                        </div>
+                      <% end %>
+
+                      <% if preview_fields.include?("last_seen") %>
+                        <div class="flex flex-col">
+                          <span class="text-xs font-bold text-slate-400 uppercase">Last Seen</span>
+                          <span class="text-slate-700">
+                            <%= node.last_seen_at ? time_ago_in_words(node.last_seen_at) + " ago" : "Never" %>
+                          </span>
+                        </div>
+                      <% end %>
+
+                      <% if preview_fields.include?("os") && state.host_info.present? %>
+                        <div class="flex flex-col">
+                          <span class="text-xs font-bold text-slate-400 uppercase">OS</span>
+                          <span class="text-slate-700">
+                            <%= [state.host_info["os"], state.host_info["os_version"]].compact.join(" ") || "Unknown" %>
+                          </span>
+                        </div>
+                      <% end %>
+                    </div>
+
+                    <div class="mt-4">
+                      <%= link_to "View Node Details", node_path(node),
+                          class: "text-sm text-teal-600 hover:text-teal-800 font-medium",
+                          data: { action: "click->rack-show#stopPropagation" } %>
+                    </div>
+                  <% else %>
+                    <p class="text-sm text-slate-500 italic">No hardware information available. Run inventory collection to populate.</p>
+                    <div class="mt-3">
+                      <%= link_to "View Node", node_path(node),
+                          class: "text-sm text-teal-600 hover:text-teal-800 font-medium",
+                          data: { action: "click->rack-show#stopPropagation" } %>
+                    </div>
+                  <% end %>
+                </div>
+              </div>
+            <% end %>
+
+            <%# Unpositioned Nodes Section %>
+            <% if unpositioned_nodes.any? %>
+              <div class="mt-6 pt-4 border-t border-slate-200">
+                <h4 class="text-xs font-bold text-slate-400 uppercase mb-3">Unpositioned Nodes</h4>
+                <% unpositioned_nodes.each do |node| %>
+                  <div class="border border-dashed border-slate-300 rounded-lg p-3 mb-2 bg-slate-50">
+                    <div class="flex items-center justify-between">
+                      <div class="flex items-center gap-2">
+                        <%= link_to node.hostname, node_path(node),
+                            class: "font-medium text-teal-600 hover:text-teal-800" %>
+                        <% if node.online? %>
+                          <span class="inline-flex items-center gap-1 text-xs text-emerald-600">
+                            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                            Online
+                          </span>
+                        <% else %>
+                          <span class="inline-flex items-center gap-1 text-xs text-slate-400">
+                            <span class="w-2 h-2 rounded-full bg-slate-300"></span>
+                            Offline
+                          </span>
+                        <% end %>
+                      </div>
+                      <span class="text-xs text-slate-400">No position set</span>
+                    </div>
+                  </div>
+                <% end %>
+              </div>
+            <% end %>
+          <% else %>
+            <div class="py-12 text-center">
+              <svg class="mx-auto h-12 w-12 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01" />
+              </svg>
+              <h3 class="mt-2 text-sm font-medium text-slate-900">No nodes in rack</h3>
+              <p class="mt-1 text-sm text-slate-500">This rack is empty. Nodes will appear here when assigned to this rack with a position.</p>
+            </div>
+          <% end %>
+        </div>
+      </div>
+
+      <%# Notes section if present %>
+      <% if @equipment_rack.notes.present? %>
+        <div class="card-netbox mt-4">
+          <div class="card-header">
+            <h3 class="card-title text-xs font-bold text-slate-500 uppercase">Notes</h3>
+          </div>
+          <div class="p-4">
+            <p class="text-sm text-slate-700 whitespace-pre-wrap"><%= @equipment_rack.notes %></p>
+          </div>
+        </div>
+      <% end %>
     </div>
   </div>
 </div>
