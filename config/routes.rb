@@ -35,6 +35,11 @@ Rails.application.routes.draw do
   end
 
   resources :sites
+  resources :server_racks, path: "racks" do
+    member do
+      patch :update_layout
+    end
+  end
   resources :nodes do
     member do
       post :test_connection
