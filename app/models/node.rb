@@ -13,7 +13,8 @@ class Node < ApplicationRecord
   enum :role, { compute: 0, login: 1, admin: 2 }, default: :compute
   enum :source, { manual: 0, csv: 1, agent_push: 2 }, default: :manual
   enum :ssh_connect_method, { global_bastion: 0, custom_bastion: 1, direct: 2 }, default: :global_bastion
-  enum :rack_face, { front: 0, rear: 1 }, default: :front, prefix: true
+  # Guard rack_face enum to handle case when column doesn't exist yet during migrations
+  enum :rack_face, { front: 0, rear: 1 }, default: :front, prefix: true if table_exists? && column_names.include?("rack_face")
 
   # Validations
   validates :hostname, presence: true, uniqueness: true, length: { maximum: 255 }
