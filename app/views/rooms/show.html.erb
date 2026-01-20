@@ -99,6 +99,22 @@
       <h3 class="card-title">Rack Elevation Overview</h3>
     </div>
     <div class="p-4">
+      <%# Legend %>
+      <div class="mb-4 pb-4 border-b border-slate-200 flex items-center gap-4 text-xs text-slate-500">
+        <div class="flex items-center gap-1">
+          <div class="w-3 h-3 rounded bg-emerald-600"></div>
+          <span>Online</span>
+        </div>
+        <div class="flex items-center gap-1">
+          <div class="w-3 h-3 rounded bg-slate-600"></div>
+          <span>Offline</span>
+        </div>
+        <div class="flex items-center gap-1">
+          <div class="w-3 h-3 rounded bg-slate-100 border border-slate-200"></div>
+          <span>Empty</span>
+        </div>
+      </div>
+
       <% @racks_by_row.each do |row_name, racks| %>
         <div class="mb-6 last:mb-0">
           <h4 class="text-sm font-semibold text-slate-600 mb-3"><%= row_name %></h4>
@@ -109,22 +125,6 @@
           </div>
         </div>
       <% end %>
-
-      <%# Legend %>
-      <div class="mt-4 pt-4 border-t border-slate-200 flex items-center gap-4 text-xs text-slate-500">
-        <div class="flex items-center gap-1">
-          <div class="w-3 h-3 rounded bg-emerald-500"></div>
-          <span>Online</span>
-        </div>
-        <div class="flex items-center gap-1">
-          <div class="w-3 h-3 rounded bg-slate-400"></div>
-          <span>Offline</span>
-        </div>
-        <div class="flex items-center gap-1">
-          <div class="w-3 h-3 rounded bg-slate-50 border border-slate-200"></div>
-          <span>Empty</span>
-        </div>
-      </div>
     </div>
   </div>
 <% end %>
