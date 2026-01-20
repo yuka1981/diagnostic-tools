@@ -308,6 +308,120 @@ RSpec.describe Node, type: :model do
     end
   end
 
+  describe "#cpu_summary" do
+    context "when node has current_state with cpu_info" do
+      it "returns formatted CPU summary" do
+        node = create(:node)
+        create(:node_state, node: node, cpu_info: {
+          "model_name" => "Intel(R) Xeon(R) Gold 6330 CPU @ 2.00GHz",
+          "sockets" => 2,
+          "cores" => 56
+        })
+
+        expect(node.cpu_summary).to eq("2x Xeon Gold 6330")
+      end
+
+      it "handles AMD processors" do
+        node = create(:node)
+        create(:node_state, node: node, cpu_info: {
+          "model_name" => "AMD EPYC 7763 64-Core Processor",
+          "sockets" => 2,
+          "cores" => 128
+        })
+
+        expect(node.cpu_summary).to eq("2x EPYC 7763 64-Core")
+      end
+
+      it "handles single socket" do
+        node = create(:node)
+        create(:node_state, node: node, cpu_info: {
+          "model_name" => "Intel(R) Core(TM) i9-12900K CPU @ 3.20GHz",
+          "sockets" => 1,
+          "cores" => 16
+        })
+
+        expect(node.cpu_summary).to eq("1x Core i9-12900K")
+      end
+    end
+
+    context "when node has no current_state" do
+      it "returns nil" do
+        node = create(:node)
+        expect(node.cpu_summary).to be_nil
+      end
+    end
+
+    context "when current_state has no cpu_info" do
+      it "returns nil" do
+        node = create(:node)
+        create(:node_state, node: node, cpu_info: {})
+        expect(node.cpu_summary).to be_nil
+      end
+    end
+
+    context "when cpu_info has no model_name" do
+      it "returns nil" do
+        node = create(:node)
+        create(:node_state, node: node, cpu_info: { "sockets" => 2, "cores" => 56 })
+        expect(node.cpu_summary).to be_nil
+      end
+    end
+  end
+
+  describe "#ram_summary" do
+    context "when node has current_state with mem_info" do
+      it "returns formatted RAM summary in GB" do
+        node = create(:node)
+        create(:node_state, node: node, mem_info: {
+          "total" => 2163427692544  # ~2015 GB
+        })
+
+        expect(node.ram_summary).to eq("2015 GB")
+      end
+
+      it "handles smaller memory amounts" do
+        node = create(:node)
+        create(:node_state, node: node, mem_info: {
+          "total" => 68719476736  # 64 GB
+        })
+
+        expect(node.ram_summary).to eq("64 GB")
+      end
+
+      it "rounds to nearest GB" do
+        node = create(:node)
+        create(:node_state, node: node, mem_info: {
+          "total" => 137438953472  # exactly 128 GB
+        })
+
+        expect(node.ram_summary).to eq("128 GB")
+      end
+    end
+
+    context "when node has no current_state" do
+      it "returns nil" do
+        node = create(:node)
+        expect(node.ram_summary).to be_nil
+      end
+    end
+
+    context "when current_state has no mem_info" do
+      it "returns nil" do
+        node = create(:node)
+        create(:node_state, node: node, mem_info: {})
+        expect(node.ram_summary).to be_nil
+      end
+    end
+
+    context "when mem_info has no total" do
+      it "returns nil" do
+        node = create(:node)
+        create(:node_state, node: node, mem_info: { "free" => 1000000 })
+        expect(node.ram_summary).to be_nil
+      end
+    end
+  end
+
   describe "rack position validations" do
     let(:rack) { create(:equipment_rack, u_height: 42) }
 

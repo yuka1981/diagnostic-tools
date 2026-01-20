@@ -84,6 +84,31 @@ class Node < ApplicationRecord
     online? ? :online : :offline
   end
 
+  # Returns a short CPU summary like "2x Xeon Gold 6330"
+  def cpu_summary
+    cpu_info = current_state&.cpu_info
+    return nil if cpu_info.blank?
+
+    model_name = cpu_info["model_name"]
+    sockets = cpu_info["sockets"]
+    return nil if model_name.blank?
+
+    shortened = shorten_cpu_model(model_name)
+    "#{sockets || 1}x #{shortened}"
+  end
+
+  # Returns a RAM summary like "2016 GB"
+  def ram_summary
+    mem_info = current_state&.mem_info
+    return nil if mem_info.blank?
+
+    total_bytes = mem_info["total"]
+    return nil if total_bytes.blank?
+
+    total_gb = (total_bytes.to_f / 1.gigabyte).round
+    "#{total_gb} GB"
+  end
+
   # Returns true if the node has any pending or running benchmark runs
   # Used to prevent agent updates while benchmarks are in progress
   def busy?
@@ -100,6 +125,22 @@ class Node < ApplicationRecord
   end
 
   private
+
+  # Shortens CPU model name by removing common prefixes, suffixes, and clutter
+  # "Intel(R) Xeon(R) Gold 6330 CPU @ 2.00GHz" -> "Xeon Gold 6330"
+  # "AMD EPYC 7763 64-Core Processor" -> "EPYC 7763 64-Core"
+  def shorten_cpu_model(model_name)
+    model_name
+      .gsub(/Intel\(R\)\s*/i, "")
+      .gsub(/AMD\s*/i, "")
+      .gsub(/\(R\)/i, "")
+      .gsub(/\(TM\)/i, "")
+      .gsub(/\s*CPU\s*/i, " ")
+      .gsub(/\s*Processor\s*/i, "")
+      .gsub(/\s*@\s*[\d.]+\s*GHz/i, "")
+      .gsub(/\s+/, " ")
+      .strip
+  end
 
   def generate_uuid
     self.uuid ||= SecureRandom.uuid
