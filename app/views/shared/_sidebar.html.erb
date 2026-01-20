@@ -1,8 +1,7 @@
 <%# Read sidebar collapsed state from cookie for initial render (prevents flash) %>
 <% sidebar_collapsed = sidebar_collapsed? %>
 <aside class="fixed inset-y-0 left-0 z-50 <%= sidebar_collapsed ? 'w-16' : 'w-64' %> bg-slate-900 text-slate-300 flex flex-col transition-all duration-300 ease-in-out lg:translate-x-0"
-       data-sidebar-target="menu"
-       data-sidebar-rooms-url-value="<%= rooms_path %>">
+       data-sidebar-target="menu">
 
   <%# Brand %>
   <div class="flex h-14 items-center px-4 border-b border-slate-800 bg-slate-900">
