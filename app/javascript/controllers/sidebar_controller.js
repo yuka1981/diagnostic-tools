@@ -107,7 +107,7 @@ export default class extends Controller {
 
       // Update collapse icon to show expand arrow
       if (this.hasCollapseIconTarget) {
-        this.collapseIconTarget.classList.remove("rotate-180")
+        this.collapseIconTarget.classList.add("rotate-180")
       }
 
       // Hide rooms list when collapsed
@@ -132,7 +132,7 @@ export default class extends Controller {
 
       // Update collapse icon to show collapse arrow
       if (this.hasCollapseIconTarget) {
-        this.collapseIconTarget.classList.add("rotate-180")
+        this.collapseIconTarget.classList.remove("rotate-180")
       }
 
       // Apply rooms state
