@@ -34,6 +34,7 @@ Rails.application.routes.draw do
     end
   end
 
+  resources :sites
   resources :nodes do
     member do
       post :test_connection
