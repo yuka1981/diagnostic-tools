@@ -61,14 +61,58 @@ RSpec.describe User, type: :model do
     end
 
     it "can be set to custom fields" do
-      user = build(:user, rack_node_preview_fields: %w[cpu gpu])
-      expect(user.rack_node_preview_fields).to eq(%w[cpu gpu])
+      user = build(:user, rack_node_preview_fields: %w[cpu load uptime])
+      expect(user.rack_node_preview_fields).to eq(%w[cpu load uptime])
     end
 
     it "persists the array to the database" do
       user = create(:user, rack_node_preview_fields: %w[ram network])
       user.reload
       expect(user.rack_node_preview_fields).to eq(%w[ram network])
+    end
+
+    describe "validation" do
+      it "defines VALID_RACK_NODE_PREVIEW_FIELDS constant" do
+        expect(User::VALID_RACK_NODE_PREVIEW_FIELDS).to eq(%w[cpu ram storage network load uptime last_seen os tags])
+      end
+
+      it "accepts all valid fields" do
+        user = build(:user, rack_node_preview_fields: User::VALID_RACK_NODE_PREVIEW_FIELDS)
+        expect(user).to be_valid
+      end
+
+      it "accepts a subset of valid fields" do
+        user = build(:user, rack_node_preview_fields: %w[cpu ram storage])
+        expect(user).to be_valid
+      end
+
+      it "accepts an empty array" do
+        user = build(:user, rack_node_preview_fields: [])
+        expect(user).to be_valid
+      end
+
+      it "accepts nil" do
+        user = build(:user, rack_node_preview_fields: nil)
+        expect(user).to be_valid
+      end
+
+      it "rejects invalid fields" do
+        user = build(:user, rack_node_preview_fields: %w[cpu invalid_field])
+        expect(user).not_to be_valid
+        expect(user.errors[:rack_node_preview_fields]).to include("contains invalid fields: invalid_field")
+      end
+
+      it "rejects multiple invalid fields" do
+        user = build(:user, rack_node_preview_fields: %w[cpu bad_field another_bad])
+        expect(user).not_to be_valid
+        expect(user.errors[:rack_node_preview_fields]).to include("contains invalid fields: bad_field, another_bad")
+      end
+
+      it "rejects gpu as an invalid field" do
+        user = build(:user, rack_node_preview_fields: %w[cpu gpu])
+        expect(user).not_to be_valid
+        expect(user.errors[:rack_node_preview_fields]).to include("contains invalid fields: gpu")
+      end
     end
   end
 
