@@ -72,7 +72,7 @@ class EquipmentRacksController < ApplicationController
   end
 
   def equipment_rack_params
-    params.require(:equipment_rack).permit(:name, :room_id, :u_height, :width, :notes)
+    params.require(:equipment_rack).permit(:name, :room_id, :row, :u_height, :width, :notes)
   end
 
   def authorize_approver!

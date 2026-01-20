@@ -7,4 +7,10 @@ class Room < ApplicationRecord
 
   # Validations
   validates :name, presence: true, uniqueness: true
+
+  # Returns racks grouped by row for room layout visualization
+  # Racks without a row are grouped under "Unassigned"
+  def racks_by_row
+    equipment_racks.order(:row, :name).group_by { |r| r.row.presence || "Unassigned" }
+  end
 end

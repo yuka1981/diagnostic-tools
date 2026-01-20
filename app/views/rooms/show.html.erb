@@ -67,6 +67,7 @@
           <thead class="bg-slate-50">
             <tr>
               <th class="px-4 py-2 text-xs font-bold uppercase text-slate-500 border-b">Name</th>
+              <th class="px-4 py-2 text-xs font-bold uppercase text-slate-500 border-b">Row</th>
               <th class="px-4 py-2 text-xs font-bold uppercase text-slate-500 border-b">U Height</th>
               <th class="px-4 py-2 text-xs font-bold uppercase text-slate-500 border-b">Width</th>
             </tr>
@@ -75,6 +76,7 @@
             <% @room.equipment_racks.order(:name).each do |rack| %>
               <tr class="hover:bg-slate-50">
                 <td class="px-4 py-2 font-bold text-slate-900"><%= rack.name %></td>
+                <td class="px-4 py-2 text-slate-600"><%= rack.row.presence || "-" %></td>
                 <td class="px-4 py-2 text-slate-600"><%= rack.u_height %>U</td>
                 <td class="px-4 py-2 text-slate-600"><%= rack.width %>"</td>
               </tr>
@@ -89,6 +91,43 @@
     <% end %>
   </div>
 </div>
+
+<%# Rack Elevation Overview %>
+<% if @room.equipment_racks.any? %>
+  <div class="card-netbox mt-6">
+    <div class="card-header">
+      <h3 class="card-title">Rack Elevation Overview</h3>
+    </div>
+    <div class="p-4">
+      <% @racks_by_row.each do |row_name, racks| %>
+        <div class="mb-6 last:mb-0">
+          <h4 class="text-sm font-semibold text-slate-600 mb-3"><%= row_name %></h4>
+          <div class="flex gap-4 overflow-x-auto pb-2">
+            <% racks.each do |rack| %>
+              <%= render RackElevationCompactComponent.new(rack: rack) %>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+
+      <%# Legend %>
+      <div class="mt-4 pt-4 border-t border-slate-200 flex items-center gap-4 text-xs text-slate-500">
+        <div class="flex items-center gap-1">
+          <div class="w-3 h-3 rounded bg-emerald-500"></div>
+          <span>Online</span>
+        </div>
+        <div class="flex items-center gap-1">
+          <div class="w-3 h-3 rounded bg-slate-400"></div>
+          <span>Offline</span>
+        </div>
+        <div class="flex items-center gap-1">
+          <div class="w-3 h-3 rounded bg-slate-50 border border-slate-200"></div>
+          <span>Empty</span>
+        </div>
+      </div>
+    </div>
+  </div>
+<% end %>
 
 <%# Danger Zone %>
 <% if current_user.approver? && @room.equipment_racks.empty? %>

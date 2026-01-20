@@ -1,0 +1,46 @@
+<%= link_to equipment_rack_path(@rack), class: "block", data: { turbo_frame: "_top" } do %>
+  <div class="bg-white border border-slate-200 rounded-lg shadow-sm hover:shadow-md transition-shadow cursor-pointer" style="width: <%= rack_width %>;">
+    <%# Rack header %>
+    <div class="px-3 py-2 border-b border-slate-200 bg-slate-50 rounded-t-lg">
+      <h4 class="text-sm font-semibold text-slate-700 truncate" title="<%= rack_name %>"><%= rack_name %></h4>
+    </div>
+
+    <div class="p-2">
+      <div class="flex">
+        <%# U Position Labels (left side) - every 10 U only %>
+        <div class="flex flex-col-reverse w-6 text-right pr-1 border-r border-slate-300" style="<%= total_height_style %>">
+          <% @rack.u_height.times do |i| %>
+            <% u_pos = i + 1 %>
+            <div class="flex items-center justify-end text-xs text-slate-400 font-mono"
+                 style="height: <%= U_HEIGHT_PX %>px;">
+              <% if labeled_u_positions.include?(u_pos) %>
+                <%= u_pos %>
+              <% end %>
+            </div>
+          <% end %>
+        </div>
+
+        <%# Rack Elevation Grid %>
+        <div class="flex-1 relative border border-slate-300 bg-slate-100" style="<%= total_height_style %>">
+          <%# Render cells from top to bottom %>
+          <% elevation_cells.each do |cell| %>
+            <% if cell[:type] == :empty %>
+              <%# Empty slot %>
+              <div class="absolute w-full border-b border-slate-200 bg-slate-50"
+                   style="<%= cell_height_style(1) %> bottom: <%= (cell[:u] - 1) * U_HEIGHT_PX %>px;">
+              </div>
+            <% else %>
+              <%# Node cell (merged) %>
+              <% node = cell[:node] %>
+              <div class="absolute w-full flex items-center justify-center text-xs font-medium border border-slate-300 rounded-sm <%= node_status_classes(node) %>"
+                   style="<%= cell_height_style(cell[:height]) %> bottom: <%= (node.rack_position - 1) * U_HEIGHT_PX %>px;"
+                   title="<%= node.hostname %> (U<%= node.rack_position %>-U<%= node.rack_position + node.rack_height - 1 %>) - <%= node.status.to_s.capitalize %>">
+                <span class="truncate px-1 text-[10px]"><%= node.hostname %></span>
+              </div>
+            <% end %>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+<% end %>

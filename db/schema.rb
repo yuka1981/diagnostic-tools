@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_01_20_000002) do
+ActiveRecord::Schema[7.2].define(version: 2026_01_20_000003) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -135,8 +135,6 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_20_000002) do
     t.datetime "updated_at", null: false
     t.string "log_path"
     t.uuid "uuid", default: -> { "gen_random_uuid()" }, null: false
-    t.datetime "last_heartbeat_at"
-    t.string "current_phase"
     t.text "log_content"
     t.jsonb "arguments", default: {}
     t.index ["benchmark_recipe_id"], name: "index_benchmark_runs_on_benchmark_recipe_id"
@@ -211,7 +209,9 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_20_000002) do
     t.text "notes"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "row"
     t.index ["room_id", "name"], name: "index_racks_on_room_id_and_name", unique: true
+    t.index ["room_id", "row", "name"], name: "index_racks_on_room_id_and_row_and_name"
     t.index ["room_id"], name: "index_racks_on_room_id"
   end
 

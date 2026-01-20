@@ -94,6 +94,7 @@ RSpec.describe "EquipmentRacks", type: :request do
           u_height: 42,
           width: 19,
           room_id: room.id,
+          row: "Row A",
           notes: "Test notes"
         }
       }
@@ -103,6 +104,11 @@ RSpec.describe "EquipmentRacks", type: :request do
       expect do
         post equipment_racks_path, params: valid_params
       end.to change(EquipmentRack, :count).by(1)
+    end
+
+    it "saves the row parameter" do
+      post equipment_racks_path, params: valid_params
+      expect(EquipmentRack.last.row).to eq("Row A")
     end
 
     it "redirects to racks index" do
@@ -142,6 +148,11 @@ RSpec.describe "EquipmentRacks", type: :request do
     it "updates the equipment rack" do
       patch equipment_rack_path(equipment_rack), params: update_params
       expect(equipment_rack.reload.name).to eq("Updated-Rack-Name")
+    end
+
+    it "updates the row parameter" do
+      patch equipment_rack_path(equipment_rack), params: { equipment_rack: { row: "Row B" } }
+      expect(equipment_rack.reload.row).to eq("Row B")
     end
 
     it "redirects to racks index" do

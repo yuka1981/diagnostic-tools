@@ -11,6 +11,10 @@ class RoomsController < ApplicationController
   end
 
   def show
+    @racks_by_row = @room.equipment_racks
+      .includes(:nodes)
+      .order(:row, :name)
+      .group_by { |r| r.row.presence || "Unassigned" }
   end
 
   def new

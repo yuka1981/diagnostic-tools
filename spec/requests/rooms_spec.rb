@@ -46,6 +46,12 @@ RSpec.describe "Rooms", type: :request do
         get room_path(room)
         expect(response.body).to include(room.name)
       end
+
+      it "displays rack elevation overview when racks exist" do
+        create(:equipment_rack, room: room)
+        get room_path(room)
+        expect(response.body).to include("Rack Elevation Overview")
+      end
     end
   end
 
