@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_01_20_000003) do
+ActiveRecord::Schema[7.2].define(version: 2026_01_20_151343) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -135,6 +135,8 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_20_000003) do
     t.datetime "updated_at", null: false
     t.string "log_path"
     t.uuid "uuid", default: -> { "gen_random_uuid()" }, null: false
+    t.datetime "last_heartbeat_at"
+    t.string "current_phase"
     t.text "log_content"
     t.jsonb "arguments", default: {}
     t.index ["benchmark_recipe_id"], name: "index_benchmark_runs_on_benchmark_recipe_id"
@@ -194,7 +196,6 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_20_000003) do
     t.integer "rack_face", default: 0
     t.index ["api_key_id"], name: "index_nodes_on_api_key_id"
     t.index ["hostname"], name: "index_nodes_on_hostname", unique: true
-    t.index ["rack_id", "rack_face", "rack_position"], name: "index_nodes_on_rack_id_and_rack_face_and_rack_position"
     t.index ["rack_id"], name: "index_nodes_on_rack_id"
     t.index ["role"], name: "index_nodes_on_role"
     t.index ["source"], name: "index_nodes_on_source"
@@ -243,6 +244,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_20_000003) do
     t.integer "role", default: 0, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "rack_node_preview_fields", default: ["cpu", "ram", "storage", "network"], array: true
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
   end

@@ -2,10 +2,9 @@ import { Controller } from "@hotwired/stimulus"
 
 // Connects to data-controller="sidebar"
 // Handles:
-// - Mobile sidebar toggle (existing)
-// - Desktop sidebar collapse/expand (new)
-// - Expandable sections like Rooms (new)
-// - State persistence via localStorage (new)
+// - Mobile sidebar toggle
+// - Desktop sidebar collapse/expand
+// - State persistence via localStorage
 export default class extends Controller {
   static targets = [
     "menu",
@@ -14,16 +13,12 @@ export default class extends Controller {
     "collapseIcon",
     "label",
     "sectionHeader",
-    "roomsList",
-    "roomsChevron",
     "brandText",
     "userInfo"
   ]
 
   static values = {
-    collapsed: { type: Boolean, default: false },
-    roomsExpanded: { type: Boolean, default: true },
-    roomsUrl: { type: String, default: "/rooms" }
+    collapsed: { type: Boolean, default: false }
   }
 
   connect() {
@@ -47,40 +42,13 @@ export default class extends Controller {
   // Desktop collapse/expand
   toggleCollapse() {
     this.collapsedValue = !this.collapsedValue
-    // Reset rooms expanded when collapsing sidebar (without animation)
-    if (this.collapsedValue && this.roomsExpandedValue) {
-      this.roomsExpandedValue = false
-      // Disable transition, reset chevron, re-enable (prevents animation)
-      if (this.hasRoomsChevronTarget) {
-        this.roomsChevronTarget.style.transition = 'none'
-        this.roomsChevronTarget.classList.remove("rotate-90")
-        // Force reflow to apply changes immediately
-        this.roomsChevronTarget.offsetHeight
-        // Restore transition for future animations
-        this.roomsChevronTarget.style.transition = ''
-      }
-    }
     this.saveState()
     this.applyState()
-  }
-
-  // Rooms section expand/collapse
-  toggleRooms() {
-    if (this.collapsedValue) {
-      // Disable transitions before navigating to prevent animation glitch
-      this.menuTarget.style.transition = 'none'
-      window.location.href = this.roomsUrlValue
-      return
-    }
-    this.roomsExpandedValue = !this.roomsExpandedValue
-    this.saveState()
-    this.applyRoomsState()
   }
 
   // Load state from localStorage (with cookie fallback for collapsed state)
   loadState() {
     const collapsed = localStorage.getItem("sidebarCollapsed")
-    const roomsExpanded = localStorage.getItem("sidebarRoomsExpanded")
 
     if (collapsed !== null) {
       this.collapsedValue = collapsed === "true"
@@ -91,15 +59,11 @@ export default class extends Controller {
         this.collapsedValue = cookieMatch[1] === "true"
       }
     }
-    if (roomsExpanded !== null) {
-      this.roomsExpandedValue = roomsExpanded === "true"
-    }
   }
 
   // Save state to localStorage and cookie (cookie enables server-side rendering)
   saveState() {
     localStorage.setItem("sidebarCollapsed", this.collapsedValue)
-    localStorage.setItem("sidebarRoomsExpanded", this.roomsExpandedValue)
     // Set cookie for server-side rendering (prevents flash on page load)
     document.cookie = `sidebar_collapsed=${this.collapsedValue}; path=/; max-age=31536000`
   }
@@ -128,11 +92,6 @@ export default class extends Controller {
       if (this.hasCollapseIconTarget) {
         this.collapseIconTarget.classList.add("rotate-180")
       }
-
-      // Hide rooms list when collapsed
-      if (this.hasRoomsListTarget) {
-        this.roomsListTarget.classList.add("hidden")
-      }
     } else {
       // Expand: w-64, show labels
       menu.classList.remove("w-16")
@@ -153,22 +112,6 @@ export default class extends Controller {
       if (this.hasCollapseIconTarget) {
         this.collapseIconTarget.classList.remove("rotate-180")
       }
-
-      // Apply rooms state
-      this.applyRoomsState()
-    }
-  }
-
-  // Apply rooms section expanded/collapsed state
-  applyRoomsState() {
-    if (!this.hasRoomsListTarget || !this.hasRoomsChevronTarget) return
-
-    if (this.roomsExpandedValue && !this.collapsedValue) {
-      this.roomsListTarget.classList.remove("hidden")
-      this.roomsChevronTarget.classList.add("rotate-90")
-    } else {
-      this.roomsListTarget.classList.add("hidden")
-      this.roomsChevronTarget.classList.remove("rotate-90")
     }
   }
 }

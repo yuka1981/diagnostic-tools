@@ -1,0 +1,239 @@
+<%# Nodes List Card - used in both mobile and desktop views %>
+<div class="card-netbox">
+  <div class="card-header flex items-center justify-between">
+    <h3 class="card-title text-xs font-bold text-slate-500 uppercase">
+      Nodes in Rack (<%= nodes.count %>)
+    </h3>
+
+    <%# Fields configuration dropdown %>
+    <div class="relative" data-controller="fields-config">
+      <button type="button"
+              class="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-200 rounded transition-colors"
+              data-action="click->fields-config#toggle"
+              title="Configure displayed fields">
+        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+        </svg>
+      </button>
+
+      <%# Dropdown panel %>
+      <div data-fields-config-target="dropdown"
+           data-action="click->fields-config#stopPropagation"
+           class="hidden absolute right-0 top-full mt-1 w-56 bg-white border border-slate-300 rounded-lg shadow-lg z-50">
+        <div class="px-3 py-2 border-b border-slate-200">
+          <span class="text-xs font-bold text-slate-500 uppercase">Show in node preview</span>
+        </div>
+
+        <div class="p-2 space-y-1">
+          <% preview_fields = current_user.rack_node_preview_fields || %w[cpu ram storage network] %>
+          <% field_labels = {
+            'cpu' => 'CPU',
+            'ram' => 'RAM',
+            'storage' => 'Storage',
+            'network' => 'Network',
+            'load' => 'Load',
+            'uptime' => 'Uptime',
+            'last_seen' => 'Last seen',
+            'os' => 'OS',
+            'tags' => 'Tags'
+          } %>
+
+          <% User::VALID_RACK_NODE_PREVIEW_FIELDS.each do |field| %>
+            <label class="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-slate-50 cursor-pointer">
+              <input type="checkbox"
+                     value="<%= field %>"
+                     <%= 'checked' if preview_fields.include?(field) %>
+                     data-fields-config-target="checkbox"
+                     data-action="change->fields-config#save"
+                     class="rounded border-slate-300 text-teal-600 focus:ring-teal-500">
+              <span class="text-sm text-slate-700"><%= field_labels[field] || field.titleize %></span>
+            </label>
+          <% end %>
+        </div>
+
+        <div class="px-3 py-2 border-t border-slate-200">
+          <button type="button"
+                  data-action="click->fields-config#resetToDefaults"
+                  class="text-xs text-teal-600 hover:text-teal-800 font-medium">
+            Reset to defaults
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="p-4">
+    <% if positioned_nodes.any? || unpositioned_nodes.any? %>
+      <%# Positioned Nodes %>
+      <% positioned_nodes.each do |node| %>
+        <div data-rack-show-target="nodeCard"
+             data-node-id="<%= node.id %>"
+             data-action="click->rack-show#selectFromCard"
+             class="border border-slate-200 rounded-lg p-4 mb-3 cursor-pointer hover:bg-slate-50 transition-colors"
+             aria-expanded="false">
+          <div class="flex items-start justify-between">
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-2">
+                <%= link_to node.hostname, node_path(node),
+                    class: "font-bold text-teal-600 hover:text-teal-800 hover:underline",
+                    data: { action: "click->rack-show#stopPropagation" } %>
+                <% if node.online? %>
+                  <span class="inline-flex items-center gap-1 text-xs text-emerald-600">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                    Online
+                  </span>
+                <% else %>
+                  <span class="inline-flex items-center gap-1 text-xs text-slate-400">
+                    <span class="w-2 h-2 rounded-full bg-slate-300"></span>
+                    Offline
+                  </span>
+                <% end %>
+              </div>
+              <div class="text-sm text-slate-500 mt-1">
+                <%= node.rack_face.humanize %> face
+              </div>
+            </div>
+            <div class="flex items-center gap-3 text-sm text-slate-600">
+              <span class="font-mono">U<%= node.rack_position %></span>
+              <span class="px-2 py-0.5 bg-slate-100 rounded text-xs font-bold"><%= node.rack_height %>U</span>
+            </div>
+          </div>
+
+          <%# Expandable Content %>
+          <div data-rack-show-target="nodeCardContent"
+               data-node-id="<%= node.id %>"
+               class="hidden mt-4 pt-4 border-t border-slate-200">
+            <% state = node.current_state %>
+            <% preview_fields = current_user.rack_node_preview_fields || %w[cpu ram storage network] %>
+
+            <% if state %>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                <% if preview_fields.include?("cpu") && state.cpu_info.present? %>
+                  <div class="flex flex-col">
+                    <span class="text-xs font-bold text-slate-400 uppercase">CPU</span>
+                    <span class="text-slate-700">
+                      <%= state.cpu_info["model_name"] || "Unknown" %>
+                      <% if state.cpu_info["sockets"].to_i > 1 %>
+                        <span class="text-slate-500">(<%= state.cpu_info["sockets"] %>x)</span>
+                      <% end %>
+                    </span>
+                  </div>
+                <% end %>
+
+                <% if preview_fields.include?("ram") && state.mem_info.present? %>
+                  <div class="flex flex-col">
+                    <span class="text-xs font-bold text-slate-400 uppercase">RAM</span>
+                    <span class="text-slate-700"><%= format_bytes(state.mem_info["total"]) %></span>
+                  </div>
+                <% end %>
+
+                <% if preview_fields.include?("storage") && state.disk_info.present? %>
+                  <div class="flex flex-col">
+                    <span class="text-xs font-bold text-slate-400 uppercase">Storage</span>
+                    <span class="text-slate-700">
+                      <% total_storage = state.disk_info.sum { |d| d["total"].to_i } %>
+                      <%= format_bytes(total_storage) %> total
+                    </span>
+                  </div>
+                <% end %>
+
+                <% if preview_fields.include?("network") && state.net_info.present? %>
+                  <div class="flex flex-col">
+                    <span class="text-xs font-bold text-slate-400 uppercase">Network</span>
+                    <span class="text-slate-700">
+                      <% active_interfaces = state.net_info.select { |n| n["status"]&.downcase == "up" }.count %>
+                      <%= active_interfaces %> active interface<%= active_interfaces == 1 ? '' : 's' %>
+                    </span>
+                  </div>
+                <% end %>
+
+                <% if preview_fields.include?("load") && state.host_info.present? %>
+                  <div class="flex flex-col">
+                    <span class="text-xs font-bold text-slate-400 uppercase">Load</span>
+                    <span class="text-slate-700"><%= state.host_info["load_average"] || "N/A" %></span>
+                  </div>
+                <% end %>
+
+                <% if preview_fields.include?("uptime") && state.host_info.present? %>
+                  <div class="flex flex-col">
+                    <span class="text-xs font-bold text-slate-400 uppercase">Uptime</span>
+                    <span class="text-slate-700"><%= state.host_info["uptime"] || "N/A" %></span>
+                  </div>
+                <% end %>
+
+                <% if preview_fields.include?("last_seen") %>
+                  <div class="flex flex-col">
+                    <span class="text-xs font-bold text-slate-400 uppercase">Last Seen</span>
+                    <span class="text-slate-700">
+                      <%= node.last_seen_at ? time_ago_in_words(node.last_seen_at) + " ago" : "Never" %>
+                    </span>
+                  </div>
+                <% end %>
+
+                <% if preview_fields.include?("os") && state.host_info.present? %>
+                  <div class="flex flex-col">
+                    <span class="text-xs font-bold text-slate-400 uppercase">OS</span>
+                    <span class="text-slate-700">
+                      <%= [state.host_info["os"], state.host_info["os_version"]].compact.join(" ") || "Unknown" %>
+                    </span>
+                  </div>
+                <% end %>
+              </div>
+
+              <div class="mt-4">
+                <%= link_to "View Node Details", node_path(node),
+                    class: "text-sm text-teal-600 hover:text-teal-800 font-medium",
+                    data: { action: "click->rack-show#stopPropagation" } %>
+              </div>
+            <% else %>
+              <p class="text-sm text-slate-500 italic">No hardware information available. Run inventory collection to populate.</p>
+              <div class="mt-3">
+                <%= link_to "View Node", node_path(node),
+                    class: "text-sm text-teal-600 hover:text-teal-800 font-medium",
+                    data: { action: "click->rack-show#stopPropagation" } %>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+
+      <%# Unpositioned Nodes Section %>
+      <% if unpositioned_nodes.any? %>
+        <div class="mt-6 pt-4 border-t border-slate-200">
+          <h4 class="text-xs font-bold text-slate-400 uppercase mb-3">Unpositioned Nodes</h4>
+          <% unpositioned_nodes.each do |node| %>
+            <div class="border border-dashed border-slate-300 rounded-lg p-3 mb-2 bg-slate-50">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <%= link_to node.hostname, node_path(node),
+                      class: "font-medium text-teal-600 hover:text-teal-800" %>
+                  <% if node.online? %>
+                    <span class="inline-flex items-center gap-1 text-xs text-emerald-600">
+                      <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                      Online
+                    </span>
+                  <% else %>
+                    <span class="inline-flex items-center gap-1 text-xs text-slate-400">
+                      <span class="w-2 h-2 rounded-full bg-slate-300"></span>
+                      Offline
+                    </span>
+                  <% end %>
+                </div>
+                <span class="text-xs text-slate-400">No position set</span>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
+    <% else %>
+      <div class="py-12 text-center">
+        <svg class="mx-auto h-12 w-12 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01" />
+        </svg>
+        <h3 class="mt-2 text-sm font-medium text-slate-900">No nodes in rack</h3>
+        <p class="mt-1 text-sm text-slate-500">This rack is empty. Nodes will appear here when assigned to this rack with a position.</p>
+      </div>
+    <% end %>
+  </div>
+</div>

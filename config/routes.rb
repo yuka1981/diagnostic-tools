@@ -1,6 +1,9 @@
 Rails.application.routes.draw do
   devise_for :users
 
+  # User preferences
+  patch "users/preferences", to: "users#update_preferences"
+
   # API routes
   namespace :api do
     namespace :v1 do

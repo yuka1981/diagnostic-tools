@@ -5,6 +5,22 @@
 
 @layer components {
 
+  /* Mobile swipe navigation */
+  .swipe-container {
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none; /* Firefox */
+  }
+
+  .swipe-container::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
+  }
+
+  .swipe-view {
+    scroll-snap-align: center;
+    scroll-snap-stop: always;
+  }
+
   .card {
 
     @apply bg-white shadow-sm ring-1 ring-slate-200 rounded-lg overflow-hidden;
