@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_01_17_172816) do
+ActiveRecord::Schema[7.2].define(version: 2026_01_20_174009) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -190,11 +190,46 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_17_172816) do
     t.string "ssh_password"
     t.datetime "last_heartbeat_at"
     t.string "agent_status", default: "idle"
+    t.bigint "rack_id"
+    t.integer "rack_position"
+    t.integer "rack_height", default: 1
+    t.integer "rack_face", default: 0
     t.index ["api_key_id"], name: "index_nodes_on_api_key_id"
     t.index ["hostname"], name: "index_nodes_on_hostname", unique: true
+    t.index ["rack_id"], name: "index_nodes_on_rack_id"
     t.index ["role"], name: "index_nodes_on_role"
     t.index ["source"], name: "index_nodes_on_source"
     t.index ["uuid"], name: "index_nodes_on_uuid"
+  end
+
+  create_table "racks", force: :cascade do |t|
+    t.bigint "room_id"
+    t.string "name", null: false
+    t.integer "u_height", default: 42, null: false
+    t.integer "width", default: 19, null: false
+    t.text "notes"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.string "row"
+    t.index ["room_id", "name"], name: "index_racks_on_room_id_and_name", unique: true
+    t.index ["room_id", "row", "name"], name: "index_racks_on_room_id_and_row_and_name"
+    t.index ["room_id"], name: "index_racks_on_room_id"
+  end
+
+  create_table "rooms", force: :cascade do |t|
+    t.string "name", null: false
+    t.text "description"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["name"], name: "index_rooms_on_name", unique: true
+  end
+
+  create_table "sites", force: :cascade do |t|
+    t.string "name", limit: 255, null: false
+    t.text "description"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["name"], name: "index_sites_on_name", unique: true
   end
 
   create_table "ssh_settings", force: :cascade do |t|
@@ -217,6 +252,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_17_172816) do
     t.integer "role", default: 0, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "rack_node_preview_fields", default: ["cpu", "ram", "storage", "network"], array: true
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
   end
@@ -232,4 +268,6 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_17_172816) do
   add_foreign_key "benchmark_runs", "nodes"
   add_foreign_key "node_states", "nodes"
   add_foreign_key "nodes", "api_keys"
+  add_foreign_key "nodes", "racks"
+  add_foreign_key "racks", "rooms"
 end
