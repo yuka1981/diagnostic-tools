@@ -16,46 +16,19 @@ RSpec.describe "Sidebar", type: :system do
       within("aside") do
         expect(page).to have_link("Dashboard")
         expect(page).to have_link("Nodes")
-        expect(page).to have_button("Rooms")
+        expect(page).to have_link("Rooms")
         expect(page).to have_link("Racks")
       end
     end
-  end
 
-  describe "rooms expansion", :js do
-    let!(:room1) { create(:room, name: "Server Room A") }
-    let!(:room2) { create(:room, name: "Data Center B") }
-
-    before do
-      # Clear localStorage to ensure consistent test state (rooms expanded by default)
+    it "clicking Rooms navigates to rooms index" do
       visit dashboard_path
-      page.execute_script("localStorage.removeItem('sidebarRoomsExpanded')")
-      page.execute_script("localStorage.removeItem('sidebarCollapsed')")
-      visit dashboard_path
-    end
 
-    it "shows rooms list when expanded" do
       within("aside") do
-        expect(page).to have_text("Server Room A")
-        expect(page).to have_text("Data Center B")
-      end
-    end
-
-    it "hides rooms list when collapsed" do
-      within("aside") do
-        click_button "Rooms"
-
-        expect(page).not_to have_text("Server Room A")
-        expect(page).not_to have_text("Data Center B")
-      end
-    end
-
-    it "navigates to room when clicking room name" do
-      within("aside") do
-        click_link "Server Room A"
+        click_link "Rooms"
       end
 
-      expect(page).to have_current_path(room_path(room1))
+      expect(page).to have_current_path(rooms_path)
     end
   end
 
@@ -64,7 +37,6 @@ RSpec.describe "Sidebar", type: :system do
       # Clear localStorage to ensure consistent test state
       visit dashboard_path
       page.execute_script("localStorage.removeItem('sidebarCollapsed')")
-      page.execute_script("localStorage.removeItem('sidebarRoomsExpanded')")
       visit dashboard_path
     end
 
@@ -96,59 +68,6 @@ RSpec.describe "Sidebar", type: :system do
       sidebar = find("aside")
       expect(sidebar[:class]).to include("w-64")
       expect(sidebar[:class]).not_to include("w-16")
-    end
-
-    it "navigates to rooms index when clicking Rooms icon while collapsed" do
-      create(:room, name: "Test Room")
-      visit dashboard_path
-
-      # Clear localStorage and collapse sidebar
-      page.execute_script("localStorage.removeItem('sidebarCollapsed')")
-      page.execute_script("localStorage.removeItem('sidebarRoomsExpanded')")
-      visit dashboard_path
-
-      # Collapse the sidebar
-      within("aside") do
-        click_button "Collapse"
-      end
-
-      # Wait for collapse animation
-      expect(find("aside")[:class]).to include("w-16")
-
-      # Click the Rooms icon (button) when collapsed
-      within("aside") do
-        find("button[data-action='click->sidebar#toggleRooms']").click
-      end
-
-      # Should navigate to rooms index
-      expect(page).to have_current_path(rooms_path)
-    end
-
-    it "resets rooms dropdown to collapsed when sidebar collapses" do
-      create(:room, name: "Test Room")
-      visit dashboard_path
-
-      # Set up initial state: rooms expanded
-      page.execute_script("localStorage.setItem('sidebarRoomsExpanded', 'true')")
-      page.execute_script("localStorage.removeItem('sidebarCollapsed')")
-      visit dashboard_path
-
-      # Verify rooms list is visible (expanded)
-      within("aside") do
-        expect(page).to have_text("Test Room")
-      end
-
-      # Collapse the sidebar - this should reset roomsExpanded to false
-      within("aside") do
-        click_button "Collapse"
-      end
-
-      # Wait for collapse
-      expect(find("aside")[:class]).to include("w-16")
-
-      # localStorage should have roomsExpanded set to false immediately after collapse
-      rooms_expanded = page.evaluate_script("localStorage.getItem('sidebarRoomsExpanded')")
-      expect(rooms_expanded).to eq("false")
     end
 
     it "shows collapse icon pointing left (<<) when sidebar is expanded" do
@@ -211,8 +130,6 @@ RSpec.describe "Sidebar", type: :system do
     end
 
     it "does not flash expanded sidebar when navigating while collapsed" do
-      create(:room, name: "Test Room")
-
       # Visit first to establish the domain, then set cookie via JS
       visit dashboard_path
       page.execute_script("document.cookie = 'sidebar_collapsed=true; path=/'")
@@ -223,9 +140,9 @@ RSpec.describe "Sidebar", type: :system do
       # Verify sidebar is collapsed
       expect(find("aside")[:class]).to include("w-16")
 
-      # Click Rooms icon to navigate
+      # Click Rooms link to navigate
       within("aside") do
-        find("button[data-action='click->sidebar#toggleRooms']").click
+        click_link "Rooms"
       end
 
       # Should navigate to rooms index

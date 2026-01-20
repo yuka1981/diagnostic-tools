@@ -34,39 +34,7 @@
       <div class="space-y-0.5">
         <%= render "shared/sidebar_link", path: nodes_path, label: "Nodes", icon: "nodes" %>
 
-        <%# Rooms - Expandable %>
-        <div class="relative">
-          <%# Rooms header (clickable to expand) %>
-          <button type="button"
-                  data-action="click->sidebar#toggleRooms"
-                  class="w-full flex items-center gap-3 px-3 py-2 text-sm font-bold rounded transition-colors <%= request.path.start_with?('/rooms') ? 'bg-slate-800 text-teal-400' : 'hover:bg-slate-800 hover:text-teal-400' %> group">
-            <svg class="h-5 w-5 opacity-75 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-            </svg>
-            <span data-sidebar-target="label" class="flex-1 text-left<%= ' hidden' if sidebar_collapsed %>">Rooms</span>
-            <svg class="h-4 w-4 transition-transform duration-200" data-sidebar-target="roomsChevron" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-            </svg>
-          </button>
-
-          <%# Tooltip for collapsed state %>
-          <div class="hidden absolute left-full top-1/2 -translate-y-1/2 ml-2 px-2 py-1 bg-slate-800 text-white text-xs rounded whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none z-50">
-            Rooms
-          </div>
-
-          <%# Rooms sub-list %>
-          <div data-sidebar-target="roomsList" class="mt-1 ml-8 space-y-0.5<%= ' hidden' if sidebar_collapsed %>">
-            <% sidebar_rooms.each do |room| %>
-              <%= link_to room_path(room),
-                  class: "block px-3 py-1.5 text-sm rounded transition-colors #{current_page?(room_path(room)) ? 'text-teal-400 bg-slate-800/50' : 'text-slate-400 hover:text-teal-400 hover:bg-slate-800/50'}" do %>
-                <%= room.name %>
-              <% end %>
-            <% end %>
-            <% if sidebar_rooms.empty? %>
-              <span class="block px-3 py-1.5 text-xs text-slate-500 italic">No rooms</span>
-            <% end %>
-          </div>
-        </div>
+        <%= render "shared/sidebar_link", path: rooms_path, label: "Rooms", icon: "rooms" %>
 
         <%= render "shared/sidebar_link", path: equipment_racks_path, label: "Racks", icon: "racks" %>
       </div>
