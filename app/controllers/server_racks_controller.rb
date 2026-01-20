@@ -51,9 +51,10 @@ class ServerRacksController < ApplicationController
   end
 
   def update_layout
-    # Placeholder for Task 6 - RackLayoutService
-    # For now, return success to pass the basic test
-    render json: { success: true }
+    service = Racks::UpdateLayoutService.new(@server_rack, params[:positions])
+    result = service.call
+
+    render json: { success: result.success?, errors: result.errors }
   end
 
   private
