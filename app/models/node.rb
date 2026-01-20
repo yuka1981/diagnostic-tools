@@ -7,6 +7,7 @@ class Node < ApplicationRecord
   has_many :node_states, dependent: :destroy
   has_many :benchmark_runs, dependent: :destroy
   belongs_to :api_key, optional: true
+  belongs_to :server_rack, foreign_key: :rack_id, optional: true
 
   # Enums
   enum :role, { compute: 0, login: 1, admin: 2 }, default: :compute
@@ -21,8 +22,12 @@ class Node < ApplicationRecord
   validates :ssh_port, numericality: { only_integer: true, greater_than: 0, less_than: 65536 }
   validates :ssh_user, length: { maximum: 255 }
   validates :arch, inclusion: { in: %w[x86_64 aarch64 arm64], allow_blank: true }
+  validates :rack_height, numericality: { only_integer: true, greater_than: 0 }, allow_nil: true
   validate :hostname_not_localhost
   validate :ip_not_localhost
+  validate :rack_position_required_when_racked
+  validate :rack_position_within_bounds
+  validate :no_overlapping_nodes
 
   # Callbacks
   before_validation :generate_uuid, on: :create
@@ -44,6 +49,8 @@ class Node < ApplicationRecord
 
   # Scopes
   scope :online, -> { where(last_heartbeat_at: HEARTBEAT_ONLINE_THRESHOLD.ago..) }
+  scope :unracked, -> { where(rack_id: nil) }
+  scope :racked, -> { where.not(rack_id: nil) }
 
   # Instance methods
   def online?
@@ -114,5 +121,41 @@ class Node < ApplicationRecord
     if self.class.localhost?(ip)
       errors.add(:ip, "cannot be a localhost address. Please use a remote IP address.")
     end
+  end
+
+  def rack_position_required_when_racked
+    return unless rack_id.present? && rack_position.blank?
+
+    errors.add(:rack_position, "can't be blank when rack is assigned")
+  end
+
+  def rack_position_within_bounds
+    return unless server_rack.present? && rack_position.present?
+
+    if rack_position < 1
+      errors.add(:rack_position, "must be greater than or equal to 1")
+    elsif rack_position > server_rack.u_height
+      errors.add(:rack_position, "must be less than or equal to #{server_rack.u_height}")
+    elsif (rack_position + (rack_height || 1) - 1) > server_rack.u_height
+      errors.add(:base, "Node extends beyond rack height (position #{rack_position} + height #{rack_height} - 1 = #{rack_position + rack_height - 1}, rack height is #{server_rack.u_height})")
+    end
+  end
+
+  def no_overlapping_nodes
+    return unless server_rack.present? && rack_position.present?
+
+    node_top = rack_position + (rack_height || 1) - 1
+    overlapping = server_rack.nodes.where.not(id: id).find do |other|
+      other_top = other.rack_position + (other.rack_height || 1) - 1
+      ranges_overlap?(rack_position, node_top, other.rack_position, other_top)
+    end
+
+    if overlapping
+      errors.add(:base, "Position overlaps with existing node #{overlapping.hostname}")
+    end
+  end
+
+  def ranges_overlap?(a_start, a_end, b_start, b_end)
+    a_start <= b_end && b_start <= a_end
   end
 end
