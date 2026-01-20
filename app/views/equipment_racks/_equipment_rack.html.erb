@@ -1,50 +1,48 @@
-<%= turbo_frame_tag dom_id(equipment_rack) do %>
-  <tr class="hover:bg-slate-50 transition-colors" id="<%= dom_id(equipment_rack) %>_row">
-    <td class="px-3 py-3 whitespace-nowrap">
-      <%= link_to equipment_rack.name, equipment_rack_path(equipment_rack), class: "font-medium text-teal-600 hover:text-teal-800", data: { turbo_frame: "_top" } %>
-    </td>
-    <td class="px-3 py-3 whitespace-nowrap text-slate-600">
-      <% if equipment_rack.room %>
-        <%= equipment_rack.room.name %>
-      <% else %>
-        <span class="text-slate-400">Unassigned</span>
-      <% end %>
-    </td>
-    <td class="px-3 py-3 whitespace-nowrap text-slate-600">
-      <%= equipment_rack.u_height %>U
-    </td>
-    <td class="px-3 py-3 whitespace-nowrap">
-      <% utilization = equipment_rack.utilization_percentage %>
-      <div class="flex items-center gap-2">
-        <div class="w-16 h-2 bg-slate-200 rounded-full overflow-hidden">
-          <div class="h-full rounded-full <%= utilization > 80 ? 'bg-red-500' : utilization > 50 ? 'bg-amber-500' : 'bg-teal-500' %>"
-               style="width: <%= utilization %>%"></div>
-        </div>
-        <span class="text-sm text-slate-600"><%= utilization %>%</span>
+<tr id="<%= dom_id(equipment_rack) %>" class="hover:bg-slate-50 transition-colors">
+  <td class="px-3 py-3 whitespace-nowrap">
+    <%= link_to equipment_rack.name, equipment_rack_path(equipment_rack), class: "font-medium text-teal-600 hover:text-teal-800", data: { turbo_frame: "_top" } %>
+  </td>
+  <td class="px-3 py-3 whitespace-nowrap text-slate-600">
+    <% if equipment_rack.room %>
+      <%= equipment_rack.room.name %>
+    <% else %>
+      <span class="text-slate-400">Unassigned</span>
+    <% end %>
+  </td>
+  <td class="px-3 py-3 whitespace-nowrap text-slate-600">
+    <%= equipment_rack.u_height %>U
+  </td>
+  <td class="px-3 py-3 whitespace-nowrap">
+    <% utilization = equipment_rack.utilization_percentage %>
+    <div class="flex items-center gap-2">
+      <div class="w-16 h-2 bg-slate-200 rounded-full overflow-hidden">
+        <div class="h-full rounded-full <%= utilization > 80 ? 'bg-red-500' : utilization > 50 ? 'bg-amber-500' : 'bg-teal-500' %>"
+             style="width: <%= utilization %>%"></div>
       </div>
-    </td>
-    <td class="px-3 py-3 whitespace-nowrap text-right text-sm">
-      <% if current_user.approver? %>
-        <div class="flex items-center justify-end gap-2">
-          <%= link_to edit_equipment_rack_path(equipment_rack),
-              class: "text-slate-400 hover:text-amber-600 transition-colors",
-              title: "Edit",
-              data: { turbo_frame: "equipment_rack_modal" } do %>
-            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-            </svg>
-          <% end %>
-          <%= button_to equipment_rack_path(equipment_rack),
-              method: :delete,
-              class: "text-slate-400 hover:text-red-600 transition-colors",
-              title: "Delete",
-              data: { turbo_confirm: "Are you sure you want to delete this rack?" } do %>
-            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h14" />
-            </svg>
-          <% end %>
-        </div>
-      <% end %>
-    </td>
-  </tr>
-<% end %>
+      <span class="text-sm text-slate-600"><%= utilization %>%</span>
+    </div>
+  </td>
+  <td class="px-3 py-3 whitespace-nowrap text-right text-sm">
+    <% if current_user.approver? %>
+      <div class="flex items-center justify-end gap-2">
+        <%= link_to edit_equipment_rack_path(equipment_rack),
+            class: "text-slate-400 hover:text-amber-600 transition-colors",
+            title: "Edit",
+            data: { turbo_frame: "equipment_rack_modal" } do %>
+          <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+          </svg>
+        <% end %>
+        <%= button_to equipment_rack_path(equipment_rack),
+            method: :delete,
+            class: "text-slate-400 hover:text-red-600 transition-colors",
+            title: "Delete",
+            data: { turbo_confirm: "Are you sure you want to delete this rack?" } do %>
+          <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h14" />
+          </svg>
+        <% end %>
+      </div>
+    <% end %>
+  </td>
+</tr>
