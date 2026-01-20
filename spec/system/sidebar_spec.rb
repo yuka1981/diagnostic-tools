@@ -97,5 +97,89 @@ RSpec.describe "Sidebar", type: :system do
       expect(sidebar[:class]).to include("w-64")
       expect(sidebar[:class]).not_to include("w-16")
     end
+
+    it "navigates to rooms index when clicking Rooms icon while collapsed" do
+      create(:room, name: "Test Room")
+      visit dashboard_path
+
+      # Clear localStorage and collapse sidebar
+      page.execute_script("localStorage.removeItem('sidebarCollapsed')")
+      page.execute_script("localStorage.removeItem('sidebarRoomsExpanded')")
+      visit dashboard_path
+
+      # Collapse the sidebar
+      within("aside") do
+        click_button "Collapse"
+      end
+
+      # Wait for collapse animation
+      expect(find("aside")[:class]).to include("w-16")
+
+      # Click the Rooms icon (button) when collapsed
+      within("aside") do
+        find("button[data-action='click->sidebar#toggleRooms']").click
+      end
+
+      # Should navigate to rooms index
+      expect(page).to have_current_path(rooms_path)
+    end
+
+    it "resets rooms dropdown to collapsed when sidebar collapses" do
+      create(:room, name: "Test Room")
+      visit dashboard_path
+
+      # Set up initial state: rooms expanded
+      page.execute_script("localStorage.setItem('sidebarRoomsExpanded', 'true')")
+      page.execute_script("localStorage.removeItem('sidebarCollapsed')")
+      visit dashboard_path
+
+      # Verify rooms list is visible (expanded)
+      within("aside") do
+        expect(page).to have_text("Test Room")
+      end
+
+      # Collapse the sidebar - this should reset roomsExpanded to false
+      within("aside") do
+        click_button "Collapse"
+      end
+
+      # Wait for collapse
+      expect(find("aside")[:class]).to include("w-16")
+
+      # localStorage should have roomsExpanded set to false immediately after collapse
+      rooms_expanded = page.evaluate_script("localStorage.getItem('sidebarRoomsExpanded')")
+      expect(rooms_expanded).to eq("false")
+    end
+
+    it "shows collapse icon pointing left (<<) when sidebar is expanded" do
+      visit dashboard_path
+
+      # Clear localStorage to ensure expanded state
+      page.execute_script("localStorage.removeItem('sidebarCollapsed')")
+      visit dashboard_path
+
+      # Sidebar should be expanded (w-64)
+      expect(find("aside")[:class]).to include("w-64")
+
+      # Collapse icon should NOT have rotate-180 (pointing left <<)
+      collapse_icon = find("svg[data-sidebar-target='collapseIcon']")
+      expect(collapse_icon[:class]).not_to include("rotate-180")
+    end
+
+    it "shows expand icon pointing right (>>) when sidebar is collapsed" do
+      visit dashboard_path
+
+      # Collapse the sidebar
+      within("aside") do
+        click_button "Collapse"
+      end
+
+      # Wait for collapse
+      expect(find("aside")[:class]).to include("w-16")
+
+      # Collapse icon should have rotate-180 (pointing right >>)
+      collapse_icon = find("svg[data-sidebar-target='collapseIcon']")
+      expect(collapse_icon[:class]).to include("rotate-180")
+    end
   end
 end
