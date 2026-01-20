@@ -80,4 +80,18 @@ class RackElevationCompactComponent < ViewComponent::Base
   def rack_width
     "150px"
   end
+
+  # Returns data attributes hash for node preview hover card
+  def node_preview_data(node)
+    {
+      controller: "node-preview",
+      node_preview_hostname_value: node.hostname,
+      node_preview_position_value: "U#{node.rack_position}-U#{node.rack_position + node.rack_height - 1}",
+      node_preview_height_value: "#{node.rack_height}U",
+      node_preview_cpu_value: node.cpu_summary,
+      node_preview_ram_value: node.ram_summary,
+      node_preview_url_value: Rails.application.routes.url_helpers.node_path(node),
+      action: "mouseenter->node-preview#mouseEnter mouseleave->node-preview#mouseLeave click->node-preview#click"
+    }
+  end
 end

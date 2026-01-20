@@ -155,9 +155,10 @@ RSpec.describe RackElevationCompactComponent, type: :component do
       expect(page).to have_text(rack.name)
     end
 
-    it "renders link to rack page" do
+    it "renders link to rack page in header only" do
       render_inline(described_class.new(rack: rack))
 
+      # Header should have link to rack page
       expect(page).to have_link(href: "/racks/#{rack.id}")
     end
 
@@ -183,6 +184,97 @@ RSpec.describe RackElevationCompactComponent, type: :component do
       render_inline(described_class.new(rack: rack))
 
       expect(page).to have_css("span.truncate[style*='text-shadow']")
+    end
+  end
+
+  describe "node preview integration" do
+    let!(:node) { create(:node, rack: rack, rack_position: 5, rack_height: 2, rack_face: :front, last_heartbeat_at: 1.minute.ago) }
+
+    it "renders node cells with node-preview controller" do
+      render_inline(described_class.new(rack: rack))
+
+      expect(page).to have_css("[data-controller='node-preview']")
+    end
+
+    it "renders node cells with hostname data attribute" do
+      render_inline(described_class.new(rack: rack))
+
+      expect(page).to have_css("[data-node-preview-hostname-value='#{node.hostname}']")
+    end
+
+    it "renders node cells with position data attribute" do
+      render_inline(described_class.new(rack: rack))
+
+      # Node at position 5 with height 2 spans U5-U6
+      expect(page).to have_css("[data-node-preview-position-value='U5-U6']")
+    end
+
+    it "renders node cells with height data attribute" do
+      render_inline(described_class.new(rack: rack))
+
+      expect(page).to have_css("[data-node-preview-height-value='2U']")
+    end
+
+    it "renders node cells with URL data attribute" do
+      render_inline(described_class.new(rack: rack))
+
+      expect(page).to have_css("[data-node-preview-url-value='/nodes/#{node.id}']")
+    end
+
+    it "renders node cells with mouseenter/mouseleave/click actions" do
+      render_inline(described_class.new(rack: rack))
+
+      expect(page).to have_css("[data-action*='mouseenter->node-preview#mouseEnter']")
+      expect(page).to have_css("[data-action*='mouseleave->node-preview#mouseLeave']")
+      expect(page).to have_css("[data-action*='click->node-preview#click']")
+    end
+
+    it "renders node cells with cpu and ram data attributes when available" do
+      # Create a node state with CPU and memory info (use Intel(R) format that gets shortened)
+      create(:node_state, node: node, cpu_info: { "model_name" => "Intel(R) Xeon(R) Gold 6330 CPU @ 2.00GHz", "sockets" => 2 }, mem_info: { "total" => 256.gigabytes })
+
+      render_inline(described_class.new(rack: rack))
+
+      expect(page).to have_css("[data-node-preview-cpu-value='2x Xeon Gold 6330']")
+      expect(page).to have_css("[data-node-preview-ram-value='256 GB']")
+    end
+  end
+
+  describe "#node_preview_data" do
+    let!(:node) { create(:node, rack: rack, rack_position: 10, rack_height: 4, rack_face: :front) }
+    let(:component) { described_class.new(rack: rack) }
+
+    it "returns hash with controller key" do
+      data = component.node_preview_data(node)
+      expect(data[:controller]).to eq("node-preview")
+    end
+
+    it "returns hash with hostname value" do
+      data = component.node_preview_data(node)
+      expect(data[:node_preview_hostname_value]).to eq(node.hostname)
+    end
+
+    it "returns hash with position value formatted as U range" do
+      data = component.node_preview_data(node)
+      # Node at position 10 with height 4 spans U10-U13
+      expect(data[:node_preview_position_value]).to eq("U10-U13")
+    end
+
+    it "returns hash with height value" do
+      data = component.node_preview_data(node)
+      expect(data[:node_preview_height_value]).to eq("4U")
+    end
+
+    it "returns hash with URL value" do
+      data = component.node_preview_data(node)
+      expect(data[:node_preview_url_value]).to eq("/nodes/#{node.id}")
+    end
+
+    it "returns hash with action string for mouse events and click" do
+      data = component.node_preview_data(node)
+      expect(data[:action]).to include("mouseenter->node-preview#mouseEnter")
+      expect(data[:action]).to include("mouseleave->node-preview#mouseLeave")
+      expect(data[:action]).to include("click->node-preview#click")
     end
   end
 end
