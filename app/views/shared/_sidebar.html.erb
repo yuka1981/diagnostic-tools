@@ -1,16 +1,16 @@
-<aside class="fixed inset-y-0 left-0 z-50 w-64 bg-slate-900 text-slate-300 flex flex-col transition-transform duration-300 ease-in-out lg:translate-x-0" 
+<aside class="fixed inset-y-0 left-0 z-50 w-64 bg-slate-900 text-slate-300 flex flex-col transition-all duration-300 ease-in-out lg:translate-x-0"
        data-sidebar-target="menu">
-  
+
   <%# Brand %>
   <div class="flex h-14 items-center px-4 border-b border-slate-800 bg-slate-900">
     <div class="flex items-center gap-3">
-      <div class="flex h-8 w-8 items-center justify-center rounded bg-teal-600 text-white shadow-sm">
+      <div class="flex h-8 w-8 items-center justify-center rounded bg-teal-600 text-white shadow-sm flex-shrink-0">
         <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
             d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
         </svg>
       </div>
-      <span class="text-base font-bold text-white tracking-tight">HPC Diagnostics</span>
+      <span class="text-base font-bold text-white tracking-tight" data-sidebar-target="brandText">HPC Diagnostics</span>
     </div>
   </div>
 
@@ -19,133 +19,123 @@
 
     <%# Organization %>
     <div>
-      <h3 class="px-3 text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Organization</h3>
+      <h3 class="px-3 text-xs font-bold text-slate-500 uppercase tracking-wider mb-1" data-sidebar-target="sectionHeader">Organization</h3>
       <div class="space-y-0.5">
-        <%= link_to dashboard_path,
-            class: "flex items-center gap-3 px-3 py-2 text-sm font-bold rounded transition-colors #{current_page?(dashboard_path) ? 'bg-slate-800 text-teal-400' : 'hover:bg-slate-800 hover:text-teal-400'}" do %>
-          <svg class="h-5 w-5 opacity-75" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-          </svg>
-          Dashboard
-        <% end %>
+        <%= render "shared/sidebar_link", path: dashboard_path, label: "Dashboard", icon: "dashboard" %>
       </div>
     </div>
 
     <%# Inventory %>
     <div>
-      <h3 class="px-3 text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Inventory</h3>
+      <h3 class="px-3 text-xs font-bold text-slate-500 uppercase tracking-wider mb-1" data-sidebar-target="sectionHeader">Inventory</h3>
       <div class="space-y-0.5">
-        <%= link_to nodes_path,
-            class: "flex items-center gap-3 px-3 py-2 text-sm font-bold rounded transition-colors #{request.path.start_with?('/nodes') ? 'bg-slate-800 text-teal-400' : 'hover:bg-slate-800 hover:text-teal-400'}" do %>
-          <svg class="h-5 w-5 opacity-75" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01" />
-          </svg>
-          Nodes
-        <% end %>
+        <%= render "shared/sidebar_link", path: nodes_path, label: "Nodes", icon: "nodes" %>
 
-        <%= link_to rooms_path,
-            class: "flex items-center gap-3 px-3 py-2 text-sm font-bold rounded transition-colors #{request.path.start_with?('/rooms') ? 'bg-slate-800 text-teal-400' : 'hover:bg-slate-800 hover:text-teal-400'}" do %>
-          <svg class="h-5 w-5 opacity-75" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-          </svg>
-          Rooms
-        <% end %>
+        <%# Rooms - Expandable %>
+        <div class="relative">
+          <%# Rooms header (clickable to expand) %>
+          <button type="button"
+                  data-action="click->sidebar#toggleRooms"
+                  class="w-full flex items-center gap-3 px-3 py-2 text-sm font-bold rounded transition-colors <%= request.path.start_with?('/rooms') ? 'bg-slate-800 text-teal-400' : 'hover:bg-slate-800 hover:text-teal-400' %> group">
+            <svg class="h-5 w-5 opacity-75 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+            </svg>
+            <span data-sidebar-target="label" class="flex-1 text-left">Rooms</span>
+            <svg class="h-4 w-4 transition-transform duration-200" data-sidebar-target="roomsChevron" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
 
-        <%= link_to equipment_racks_path,
-            class: "flex items-center gap-3 px-3 py-2 text-sm font-bold rounded transition-colors #{request.path.start_with?('/racks') ? 'bg-slate-800 text-teal-400' : 'hover:bg-slate-800 hover:text-teal-400'}" do %>
-          <svg class="h-5 w-5 opacity-75" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
-          </svg>
-          Racks
-        <% end %>
+          <%# Tooltip for collapsed state %>
+          <div class="hidden absolute left-full top-1/2 -translate-y-1/2 ml-2 px-2 py-1 bg-slate-800 text-white text-xs rounded whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none z-50">
+            Rooms
+          </div>
+
+          <%# Rooms sub-list %>
+          <div data-sidebar-target="roomsList" class="mt-1 ml-8 space-y-0.5">
+            <% sidebar_rooms.each do |room| %>
+              <%= link_to room_path(room),
+                  class: "block px-3 py-1.5 text-sm rounded transition-colors #{current_page?(room_path(room)) ? 'text-teal-400 bg-slate-800/50' : 'text-slate-400 hover:text-teal-400 hover:bg-slate-800/50'}" do %>
+                <%= room.name %>
+              <% end %>
+            <% end %>
+            <% if sidebar_rooms.empty? %>
+              <span class="block px-3 py-1.5 text-xs text-slate-500 italic">No rooms</span>
+            <% end %>
+          </div>
+        </div>
+
+        <%= render "shared/sidebar_link", path: equipment_racks_path, label: "Racks", icon: "racks" %>
       </div>
     </div>
 
     <%# Benchmarks %>
     <div>
-      <h3 class="px-3 text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Benchmarks</h3>
+      <h3 class="px-3 text-xs font-bold text-slate-500 uppercase tracking-wider mb-1" data-sidebar-target="sectionHeader">Benchmarks</h3>
       <div class="space-y-0.5">
-        <%= link_to benchmark_runs_path,
-            class: "flex items-center gap-3 px-3 py-2 text-sm font-bold rounded transition-colors #{request.path.start_with?('/benchmark_runs') ? 'bg-slate-800 text-teal-400' : 'hover:bg-slate-800 hover:text-teal-400'}" do %>
-          <svg class="h-5 w-5 opacity-75" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-          </svg>
-          Benchmark Runs
-        <% end %>
-
-        <%= link_to benchmark_recipes_path,
-            class: "flex items-center gap-3 px-3 py-2 text-sm font-bold rounded transition-colors #{request.path.start_with?('/benchmark_recipes') ? 'bg-slate-800 text-teal-400' : 'hover:bg-slate-800 hover:text-teal-400'}" do %>
-          <svg class="h-5 w-5 opacity-75" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
-          </svg>
-          Recipes
-        <% end %>
+        <%= render "shared/sidebar_link", path: benchmark_runs_path, label: "Benchmark Runs", icon: "benchmark_runs" %>
+        <%= render "shared/sidebar_link", path: benchmark_recipes_path, label: "Recipes", icon: "recipes" %>
       </div>
     </div>
 
     <%# Admin %>
     <% if current_user&.approver? %>
       <div>
-        <h3 class="px-3 text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Admin</h3>
+        <h3 class="px-3 text-xs font-bold text-slate-500 uppercase tracking-wider mb-1" data-sidebar-target="sectionHeader">Admin</h3>
         <div class="space-y-0.5">
-          <%= link_to api_keys_path,
-              class: "flex items-center gap-3 px-3 py-2 text-sm font-bold rounded transition-colors #{request.path.start_with?('/api_keys') ? 'bg-slate-800 text-teal-400' : 'hover:bg-slate-800 hover:text-teal-400'}" do %>
-            <svg class="h-5 w-5 opacity-75" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 012.93-.707l5.964-5.964A6 6 0 1121 9z" />
-            </svg>
-            API Keys
-          <% end %>
-
-          <%= link_to settings_ssh_path,
-              class: "flex items-center gap-3 px-3 py-2 text-sm font-bold rounded transition-colors #{request.path.start_with?('/settings/ssh') ? 'bg-slate-800 text-teal-400' : 'hover:bg-slate-800 hover:text-teal-400'}" do %>
-            <svg class="h-5 w-5 opacity-75" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-            </svg>
-            SSH Settings
-          <% end %>
-
-          <%= link_to settings_agent_path,
-              class: "flex items-center gap-3 px-3 py-2 text-sm font-bold rounded transition-colors #{request.path.start_with?('/settings/agent') ? 'bg-slate-800 text-teal-400' : 'hover:bg-slate-800 hover:text-teal-400'}" do %>
-            <svg class="h-5 w-5 opacity-75" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-            </svg>
-            Agent Config
-          <% end %>
+          <%= render "shared/sidebar_link", path: api_keys_path, label: "API Keys", icon: "api_keys" %>
+          <%= render "shared/sidebar_link", path: settings_ssh_path, label: "SSH Settings", icon: "ssh" %>
+          <%= render "shared/sidebar_link", path: settings_agent_path, label: "Agent Config", icon: "settings" %>
         </div>
       </div>
     <% end %>
   </nav>
 
   <%# Footer %>
-  <% if current_user %>
-    <div class="border-t border-slate-800 p-4">
-      <div class="flex items-center gap-3">
-        <div class="h-8 w-8 rounded-full bg-slate-700 flex items-center justify-center text-sm font-medium text-white">
-          <%= current_user.name&.first&.upcase || current_user.email.first.upcase %>
+  <div class="border-t border-slate-800">
+    <% if current_user %>
+      <div class="p-4">
+        <div class="flex items-center gap-3">
+          <div class="h-8 w-8 rounded-full bg-slate-700 flex items-center justify-center text-sm font-medium text-white flex-shrink-0">
+            <%= current_user.name&.first&.upcase || current_user.email.first.upcase %>
+          </div>
+          <div class="flex-1 min-w-0" data-sidebar-target="userInfo">
+            <p class="text-sm font-medium text-white truncate"><%= current_user.name || current_user.email %></p>
+            <p class="text-xs text-slate-500 truncate"><%= current_user.role.humanize %></p>
+          </div>
         </div>
-        <div class="flex-1 min-w-0">
-          <p class="text-sm font-medium text-white truncate"><%= current_user.name || current_user.email %></p>
-          <p class="text-xs text-slate-500 truncate"><%= current_user.role.humanize %></p>
+        <div data-sidebar-target="label">
+          <%= link_to destroy_user_session_path,
+              data: { turbo_method: :delete },
+              class: "mt-3 flex items-center gap-2 text-xs text-slate-500 hover:text-slate-300 transition-colors" do %>
+            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
+            Sign out
+          <% end %>
         </div>
       </div>
-      <%= link_to destroy_user_session_path, 
-          data: { turbo_method: :delete },
-          class: "mt-3 flex items-center gap-2 text-xs text-slate-500 hover:text-slate-300 transition-colors" do %>
-        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+    <% else %>
+      <div class="p-4">
+        <%= link_to new_user_session_path, class: "flex items-center gap-2 text-sm text-slate-500 hover:text-white transition-colors" do %>
+          <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+          </svg>
+          <span data-sidebar-target="label">Sign in</span>
+        <% end %>
+      </div>
+    <% end %>
+
+    <%# Collapse toggle button %>
+    <div class="border-t border-slate-800 p-2">
+      <button type="button"
+              data-action="click->sidebar#toggleCollapse"
+              class="w-full flex items-center justify-center gap-2 px-3 py-2 text-xs text-slate-500 hover:text-slate-300 hover:bg-slate-800 rounded transition-colors">
+        <svg class="h-4 w-4 rotate-180 transition-transform duration-200" data-sidebar-target="collapseIcon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
         </svg>
-        Sign out
-      <% end %>
+        <span data-sidebar-target="label">Collapse</span>
+      </button>
     </div>
-  <% else %>
-    <div class="border-t border-slate-800 p-4">
-      <%= link_to new_user_session_path, class: "flex items-center gap-2 text-sm text-slate-500 hover:text-white transition-colors" do %>
-        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-        </svg>
-        Sign in
-      <% end %>
-    </div>
-  <% end %>
+  </div>
 </aside>
