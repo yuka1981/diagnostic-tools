@@ -54,6 +54,9 @@ export default class extends Controller {
   // Rooms section expand/collapse
   toggleRooms() {
     if (this.collapsedValue) {
+      // Reset rooms expanded state to collapsed (default) before navigating
+      this.roomsExpandedValue = false
+      this.saveState()
       // Navigate to rooms index when sidebar is collapsed
       window.location.href = this.roomsUrlValue
       return
