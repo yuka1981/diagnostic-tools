@@ -1,7 +1,7 @@
 <%= turbo_frame_tag dom_id(equipment_rack) do %>
   <tr class="hover:bg-slate-50 transition-colors" id="<%= dom_id(equipment_rack) %>_row">
     <td class="px-3 py-3 whitespace-nowrap">
-      <%= link_to equipment_rack.name, equipment_rack_path(equipment_rack), class: "font-medium text-teal-600 hover:text-teal-800" %>
+      <%= link_to equipment_rack.name, equipment_rack_path(equipment_rack), class: "font-medium text-teal-600 hover:text-teal-800", data: { turbo_frame: "_top" } %>
     </td>
     <td class="px-3 py-3 whitespace-nowrap text-slate-600">
       <% if equipment_rack.room %>

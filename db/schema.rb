@@ -196,6 +196,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_20_000002) do
     t.integer "rack_face", default: 0
     t.index ["api_key_id"], name: "index_nodes_on_api_key_id"
     t.index ["hostname"], name: "index_nodes_on_hostname", unique: true
+    t.index ["rack_id", "rack_face", "rack_position"], name: "index_nodes_on_rack_id_and_rack_face_and_rack_position"
     t.index ["rack_id"], name: "index_nodes_on_rack_id"
     t.index ["role"], name: "index_nodes_on_role"
     t.index ["source"], name: "index_nodes_on_source"

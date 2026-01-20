@@ -48,7 +48,8 @@
               <%= link_to node_path(node),
                   class: "absolute w-full flex items-center justify-center text-xs font-medium border border-slate-300 rounded-sm shadow-sm transition-colors cursor-pointer #{node_status_classes(node)}",
                   style: "#{cell_height_style(cell[:height])} bottom: #{(node.rack_position - 1) * U_HEIGHT_PX}px;",
-                  title: "#{node.hostname} (U#{node.rack_position}-U#{node.rack_position + node.rack_height - 1}) - #{node.status.to_s.capitalize}" do %>
+                  title: "#{node.hostname} (U#{node.rack_position}-U#{node.rack_position + node.rack_height - 1}) - #{node.status.to_s.capitalize}",
+                  data: { turbo_frame: "_top" } do %>
                 <span class="truncate px-2"><%= node.hostname %></span>
               <% end %>
             <% end %>
