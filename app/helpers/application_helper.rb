@@ -106,6 +106,25 @@ module ApplicationHelper
     end
   end
 
+  # Render status icon partial for notifications
+  def render_status_icon(status, css_class: "w-4 h-4 mr-1")
+    icon_name = case status.to_s
+    when "pending"
+      "clock"
+    when "running"
+      "spinner"
+    when "completed"
+      "check_circle"
+    when "failed"
+      "x_circle"
+    else
+      "clock"
+    end
+
+    animation_class = status.to_s == "running" ? "#{css_class} animate-spin" : css_class
+    render partial: "notifications/icons/#{icon_name}", locals: { class: animation_class }
+  end
+
   # Icon for benchmark run status
   def status_icon(status)
     case status.to_s

@@ -10,6 +10,7 @@
             <%= notification.title %>
           </p>
           <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium <%= status_badge_class(notification.status) %>">
+            <%= render_status_icon(notification.status) %>
             <%= notification.status.capitalize %>
           </span>
         </div>
