@@ -7,3 +7,9 @@
 #   ["Action", "Comedy", "Drama", "Horror"].each do |genre_name|
 #     MovieGenre.find_or_create_by!(name: genre_name)
 #   end
+
+# Load server products from seed files
+result = Seeds::ServerProductsSeeder.new.call
+if result.seeded_count.positive?
+  puts "Seeded #{result.seeded_count} server products"
+end
