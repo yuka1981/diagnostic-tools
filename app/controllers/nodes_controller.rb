@@ -143,7 +143,7 @@ class NodesController < ApplicationController
   end
 
   def node_params
-    params.require(:node).permit(:hostname, :ip, :arch, :ssh_port, :ssh_user, :ssh_key, :ssh_password, :sudo_credential, :ssh_connect_method, :jump_host, :jump_user, :jump_port, :agent_path, :benchmark_work_dir, :api_key_id, :rack_id, :rack_position, :rack_height)
+    params.require(:node).permit(:hostname, :ip, :arch, :ssh_port, :ssh_user, :ssh_key, :ssh_password, :sudo_credential, :ssh_connect_method, :jump_host, :jump_user, :jump_port, :agent_path, :benchmark_work_dir, :api_key_id, :rack_id, :rack_position, :rack_height, :server_product_id)
   end
 
   def set_sensitive_params
