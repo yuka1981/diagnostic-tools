@@ -37,6 +37,14 @@
           Sites
         <% end %>
 
+        <%= link_to rooms_path,
+            class: "flex items-center gap-3 px-3 py-2 text-sm font-bold rounded transition-colors #{request.path.start_with?('/rooms') ? 'bg-slate-800 text-teal-400' : 'hover:bg-slate-800 hover:text-teal-400'}" do %>
+          <svg class="h-5 w-5 opacity-75" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6h18M3 6v12a2 2 0 002 2h14a2 2 0 002-2V6m-3 0V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2M9 11h6m-6 4h6" />
+          </svg>
+          Rooms
+        <% end %>
+
         <%= link_to server_racks_path,
             class: "flex items-center gap-3 px-3 py-2 text-sm font-bold rounded transition-colors #{request.path.start_with?('/racks') ? 'bg-slate-800 text-teal-400' : 'hover:bg-slate-800 hover:text-teal-400'}" do %>
           <svg class="h-5 w-5 opacity-75" fill="none" stroke="currentColor" viewBox="0 0 24 24">
