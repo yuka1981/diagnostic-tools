@@ -229,6 +229,7 @@ class QctScraperService
       form_factor: form_factor,
       rack_height: rack_height,
       qct_product_url: url,
+      image_url: extract_image_url(doc),
       cpu_generations: extract_cpu_generations(specs_text, full_text),
       socket_count: extract_socket_count(specs_text, full_text),
       max_memory_gb: extract_max_memory(specs_text, full_text),
@@ -285,6 +286,28 @@ class QctScraperService
     # Try various selectors for product name
     name_element = doc.at_css("h1, .product-name, .product-title")
     name_element&.text&.strip
+  end
+
+  def extract_image_url(doc)
+    # Try multiple selectors for product image
+    # QCT uses .image_block for product images
+    img = doc.at_css(".image_block img") ||
+          doc.at_css(".product-image img") ||
+          doc.at_css("img.img-responsive") ||
+          doc.at_css("img[src*='/upload/']") ||
+          doc.at_css("img[src*='/product/']")
+
+    return nil unless img
+
+    src = img["src"]
+    return nil if src.blank?
+
+    # Convert relative URLs to absolute
+    if src.start_with?("http")
+      src
+    else
+      "https://www.qct.io#{src}"
+    end
   end
 
   def extract_series(model_name)

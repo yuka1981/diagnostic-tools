@@ -301,6 +301,61 @@ RSpec.describe QctScraperService do
       expect(attrs[:qct_product_url]).to eq("https://www.qct.io/product/test")
     end
 
+    context "image extraction" do
+      it "extracts image URL from .image_block img" do
+        html = <<~HTML
+          <html>
+          <body>
+            <h1>QuantaGrid D52BM-2U</h1>
+            <div class="image_block">
+              <a href="/product/...">
+                <img src="/upload/website/product/images/_DSC4112.png" class="img-responsive">
+              </a>
+            </div>
+          </body>
+          </html>
+        HTML
+        attrs = service.send(:parse_product_page, html, "https://example.com")
+        expect(attrs[:image_url]).to eq("https://www.qct.io/upload/website/product/images/_DSC4112.png")
+      end
+
+      it "extracts image URL from .product-image img" do
+        html = <<~HTML
+          <html>
+          <body>
+            <h1>Test Server</h1>
+            <div class="product-image">
+              <img src="/images/server.jpg">
+            </div>
+          </body>
+          </html>
+        HTML
+        attrs = service.send(:parse_product_page, html, "https://example.com")
+        expect(attrs[:image_url]).to eq("https://www.qct.io/images/server.jpg")
+      end
+
+      it "preserves absolute image URLs" do
+        html = <<~HTML
+          <html>
+          <body>
+            <h1>Test Server</h1>
+            <div class="image_block">
+              <img src="https://cdn.example.com/images/server.png">
+            </div>
+          </body>
+          </html>
+        HTML
+        attrs = service.send(:parse_product_page, html, "https://example.com")
+        expect(attrs[:image_url]).to eq("https://cdn.example.com/images/server.png")
+      end
+
+      it "returns nil when no product image is found" do
+        html = '<html><body><h1>Test Server</h1></body></html>'
+        attrs = service.send(:parse_product_page, html, "https://example.com")
+        expect(attrs[:image_url]).to be_nil
+      end
+    end
+
     context "with actual QCT website HTML format" do
       let(:qct_product_html) do
         <<~HTML
