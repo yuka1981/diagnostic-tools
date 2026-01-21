@@ -28,6 +28,9 @@ application.register("file-drop", FileDropController)
 import HeatmapController from "./heatmap_controller"
 application.register("heatmap", HeatmapController)
 
+import ImageViewerController from "./image_viewer_controller"
+application.register("image-viewer", ImageViewerController)
+
 import HostnameValidationController from "./hostname_validation_controller"
 application.register("hostname-validation", HostnameValidationController)
 
