@@ -7,6 +7,13 @@ class QctScraperService
   BASE_URL = "https://www.qct.io/product/index/Server/rackmount-server"
   USER_AGENT = "Mozilla/5.0 (compatible; DiagnosticTools/1.0)"
 
+  # URL path segments: /product/index/Server/rackmount-server/{category}/{product}
+  # Base URL: /product/index/Server/rackmount-server = 4 segments
+  # Category: /product/index/Server/rackmount-server/1U-Rackmount-Server = 5 segments
+  # Product: /product/index/Server/rackmount-server/1U-Rackmount-Server/QuantaGrid-D54X = 6 segments
+  CATEGORY_PATH_SEGMENTS = 5
+  PRODUCT_PATH_SEGMENTS = 6
+
   Result = Struct.new(:added_count, :updated_count, :errors, :new_products, keyword_init: true)
 
   def sync_all
@@ -79,12 +86,47 @@ class QctScraperService
     html = fetch_page(BASE_URL)
     doc = Nokogiri::HTML(html)
 
+    # Collect all rackmount-server URLs from main page
+    all_urls = extract_rackmount_urls(doc)
+
+    # Separate category URLs from product URLs
+    category_urls, product_urls = all_urls.partition { |url| category_url?(url) }
+
+    # Stage 2: Visit each category page to collect product URLs
+    category_urls.each do |category_url|
+      category_product_urls = fetch_products_from_category(category_url)
+      product_urls.concat(category_product_urls)
+    rescue StandardError
+      # Continue processing other categories if one fails
+      next
+    end
+
+    product_urls.uniq
+  end
+
+  def fetch_products_from_category(category_url)
+    html = fetch_page(category_url)
+    doc = Nokogiri::HTML(html)
+
+    extract_rackmount_urls(doc).reject { |url| category_url?(url) }
+  end
+
+  def extract_rackmount_urls(doc)
     doc.css('a[href*="/product/index/Server/rackmount-server/"]').filter_map do |link|
       href = link["href"]
       next if href == "/product/index/Server/rackmount-server" || href == BASE_URL
 
       href.start_with?("http") ? href : "https://www.qct.io#{href}"
     end.uniq
+  end
+
+  def category_url?(url)
+    # Count path segments to determine if URL is a category or product
+    # /product/index/Server/rackmount-server/1U-Rackmount-Server = 4 segments (category)
+    # /product/index/Server/rackmount-server/1U-Rackmount-Server/QuantaGrid-D54X = 5 segments (product)
+    path = URI.parse(url).path
+    segments = path.split("/").reject(&:empty?)
+    segments.size == CATEGORY_PATH_SEGMENTS
   end
 
   def parse_product_page(html, url)
