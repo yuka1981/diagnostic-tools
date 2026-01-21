@@ -93,4 +93,56 @@ RSpec.describe ServerProduct, type: :model do
       expect(variant.key).to be_present
     end
   end
+
+  describe ".series_options" do
+    before do
+      create(:server_product, product_series: "QuantaGrid")
+      create(:server_product, product_series: "QuantaPlex")
+      create(:server_product, product_series: nil)
+      Rails.cache.clear
+    end
+
+    it "returns sorted unique series values" do
+      expect(ServerProduct.series_options).to eq([ "QuantaGrid", "QuantaPlex" ])
+    end
+
+    it "caches the result" do
+      ServerProduct.series_options
+      expect(Rails.cache.exist?("server_product_series_options")).to be true
+    end
+  end
+
+  describe ".form_factor_options" do
+    before do
+      create(:server_product, form_factor: "2U")
+      create(:server_product, form_factor: "1U")
+      create(:server_product, form_factor: nil)
+      Rails.cache.clear
+    end
+
+    it "returns sorted unique form factor values" do
+      expect(ServerProduct.form_factor_options).to eq([ "1U", "2U" ])
+    end
+
+    it "caches the result" do
+      ServerProduct.form_factor_options
+      expect(Rails.cache.exist?("server_product_form_factor_options")).to be true
+    end
+  end
+
+  describe "cache invalidation" do
+    before { Rails.cache.clear }
+
+    it "clears series cache when product is saved" do
+      Rails.cache.write("server_product_series_options", [ "old" ])
+      create(:server_product)
+      expect(Rails.cache.exist?("server_product_series_options")).to be false
+    end
+
+    it "clears form_factor cache when product is saved" do
+      Rails.cache.write("server_product_form_factor_options", [ "old" ])
+      create(:server_product)
+      expect(Rails.cache.exist?("server_product_form_factor_options")).to be false
+    end
+  end
 end
