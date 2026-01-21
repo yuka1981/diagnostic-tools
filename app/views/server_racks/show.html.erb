@@ -137,24 +137,13 @@
   </div>
   <div class="p-6">
     <% if @server_rack.nodes.any? %>
-      <div class="grid grid-cols-3 gap-6"
-           data-controller="rack-diagram"
+      <div data-controller="rack-diagram"
            data-rack-diagram-rack-id-value="<%= @server_rack.id %>"
            data-rack-diagram-rack-height-value="<%= @server_rack.u_height %>"
            data-rack-diagram-desc-units-value="<%= @server_rack.desc_units %>"
            data-rack-diagram-nodes-value="<%= @server_rack.nodes.map { |n| { id: n.id, hostname: n.hostname, position: n.rack_position, height: n.rack_height || 1, status: n.online? ? 'Online' : 'Offline' } }.to_json %>"
            data-rack-diagram-readonly-value="<%= !current_user&.approver? %>">
-        <div class="col-span-2">
-          <div data-rack-diagram-target="container" class="w-full"></div>
-        </div>
-        <div class="col-span-1">
-          <div class="sticky top-4">
-            <h4 class="text-sm font-semibold text-slate-700 mb-3">Details</h4>
-            <div data-rack-diagram-target="details">
-              <%= render partial: "rack_details_panel", locals: { server_rack: @server_rack } %>
-            </div>
-          </div>
-        </div>
+        <div data-rack-diagram-target="container" class="w-full"></div>
       </div>
     <% else %>
       <div class="text-center py-8">
