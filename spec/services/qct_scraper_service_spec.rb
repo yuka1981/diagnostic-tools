@@ -573,6 +573,70 @@ RSpec.describe QctScraperService do
       end
     end
 
+    context "when pages contain links back to base URL or non-product URLs" do
+      # Regression test: previously, any URL that wasn't a category (5 segments) was
+      # treated as a product, including the base page URL (4 segments). This caused
+      # invalid model names like "Rackmount Server" to be created.
+
+      let(:main_listing_with_invalid_urls) do
+        <<~HTML
+          <html>
+          <body>
+            <nav>
+              <!-- Back link to main page (4 segments - should be filtered out) -->
+              <a href="/product/index/Server/rackmount-server/">Rackmount Server</a>
+              <!-- Breadcrumb link (3 segments - should be filtered out) -->
+              <a href="/product/index/Server/">All Servers</a>
+            </nav>
+            <div class="category-nav">
+              <a href="/product/index/Server/rackmount-server/1U-Rackmount-Server">1U Servers</a>
+            </div>
+          </body>
+          </html>
+        HTML
+      end
+
+      let(:category_1u_with_back_link) do
+        <<~HTML
+          <html>
+          <body>
+            <nav>
+              <!-- Back link to main listing (4 segments - should be filtered out) -->
+              <a href="/product/index/Server/rackmount-server/">Back to All Rackmount</a>
+              <!-- Back link to category (5 segments - should be filtered out) -->
+              <a href="/product/index/Server/rackmount-server/1U-Rackmount-Server/">1U Category</a>
+            </nav>
+            <div class="product-list">
+              <a href="/product/index/Server/rackmount-server/1U-Rackmount-Server/QuantaGrid-D54X-1U">QuantaGrid D54X-1U</a>
+            </div>
+          </body>
+          </html>
+        HTML
+      end
+
+      before do
+        stub_request(:get, QctScraperService::BASE_URL)
+          .to_return(status: 200, body: main_listing_with_invalid_urls)
+        stub_request(:get, "https://www.qct.io/product/index/Server/rackmount-server/1U-Rackmount-Server")
+          .to_return(status: 200, body: category_1u_with_back_link)
+      end
+
+      it "filters out URLs that are not exactly 6 segments (product pages)" do
+        urls = service.send(:fetch_product_listing)
+
+        # Should only include valid product URLs (6 segments)
+        expect(urls).to eq([ "https://www.qct.io/product/index/Server/rackmount-server/1U-Rackmount-Server/QuantaGrid-D54X-1U" ])
+      end
+
+      it "does not include base page URL or other non-product URLs" do
+        urls = service.send(:fetch_product_listing)
+
+        # These should all be filtered out (wrong segment count)
+        expect(urls).not_to include("https://www.qct.io/product/index/Server/rackmount-server/")
+        expect(urls).not_to include("https://www.qct.io/product/index/Server/")
+      end
+    end
+
     context "when category page fails" do
       let(:main_listing_html) do
         <<~HTML

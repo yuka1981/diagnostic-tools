@@ -108,8 +108,9 @@ class QctScraperService
     # Collect all rackmount-server URLs from main page (including paginated pages)
     all_urls = fetch_all_pages_urls(BASE_URL, doc)
 
-    # Separate category URLs from product URLs
-    category_urls, product_urls = all_urls.partition { |url| category_url?(url) }
+    # Separate category URLs from product URLs (explicitly filter both)
+    category_urls = all_urls.select { |url| category_url?(url) }
+    product_urls = all_urls.select { |url| product_url?(url) }
 
     # Stage 2: Visit each category page to collect product URLs (with pagination)
     category_urls.each do |category_url|
@@ -128,8 +129,8 @@ class QctScraperService
     html = fetch_page(category_url)
     doc = Nokogiri::HTML(html)
 
-    # Fetch products from all pages of this category
-    fetch_all_pages_urls(category_url, doc).reject { |url| category_url?(url) }
+    # Fetch products from all pages of this category (explicitly filter for product URLs)
+    fetch_all_pages_urls(category_url, doc).select { |url| product_url?(url) }
   end
 
   def fetch_all_pages_urls(base_url, first_page_doc)
@@ -195,12 +196,19 @@ class QctScraperService
   end
 
   def category_url?(url)
-    # Count path segments to determine if URL is a category or product
-    # /product/index/Server/rackmount-server/1U-Rackmount-Server = 4 segments (category)
-    # /product/index/Server/rackmount-server/1U-Rackmount-Server/QuantaGrid-D54X = 5 segments (product)
+    # Count path segments to determine if URL is a category
+    # /product/index/Server/rackmount-server/1U-Rackmount-Server = 5 segments (category)
     path = URI.parse(url).path
     segments = path.split("/").reject(&:empty?)
     segments.size == CATEGORY_PATH_SEGMENTS
+  end
+
+  def product_url?(url)
+    # Count path segments to determine if URL is a product
+    # /product/index/Server/rackmount-server/1U-Rackmount-Server/QuantaGrid-D54X = 6 segments (product)
+    path = URI.parse(url).path
+    segments = path.split("/").reject(&:empty?)
+    segments.size == PRODUCT_PATH_SEGMENTS
   end
 
   def parse_product_page(html, url)
