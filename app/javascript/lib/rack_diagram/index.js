@@ -184,48 +184,50 @@ export class RackDiagram {
 
   setupDraggable(nodeId, nodeEl, pos) {
     const height = pos.rack_height
+    const minY = 2
     const maxY = (this.options.rackHeight - height) * this.ruHeight + 2
 
+    console.log("[RackDiagram] Setting up draggable for node:", nodeId, "height:", height, "maxY:", maxY)
+
     const interactable = interact(nodeEl).draggable({
-      // Only allow vertical movement
-      startAxis: "y",
-      lockAxis: "y",
+      inertia: false,
+      autoScroll: false,
 
       modifiers: [
-        // Restrict to rack bounds
+        // Restrict vertical movement within rack bounds
         interact.modifiers.restrict({
-          restriction: {
-            x: 4,
-            y: 2,
-            width: this.rackWidth - 8,
-            height: maxY + (height * this.ruHeight) - 4
-          },
-          elementRect: { top: 0, left: 0, bottom: 1, right: 1 }
-        }),
-        // Snap to RU grid
-        interact.modifiers.snap({
-          targets: this.generateSnapTargets(height),
-          relativePoints: [{ x: 0, y: 0 }],
-          offset: "self"
+          restriction: "parent",
+          endOnly: false
         })
       ],
 
       listeners: {
-        start: () => {
+        start: (event) => {
+          console.log("[RackDiagram] Drag start:", nodeId)
           nodeEl.style.cursor = "grabbing"
           nodeEl.style.zIndex = "100"
+          nodeEl.setAttribute("data-start-top", nodeEl.style.top)
         },
         move: (event) => {
-          const target = event.target
-          const y = (parseFloat(target.getAttribute("data-y")) || 0) + event.dy
+          // Only move vertically
+          const currentTop = parseFloat(nodeEl.style.top) || 0
+          let newTop = currentTop + event.dy
 
-          target.style.top = `${parseFloat(target.style.top) + event.dy}px`
-          target.setAttribute("data-y", y)
+          // Clamp to rack bounds
+          newTop = Math.max(minY, Math.min(maxY, newTop))
+
+          nodeEl.style.top = `${newTop}px`
         },
         end: (event) => {
+          console.log("[RackDiagram] Drag end:", nodeId)
           nodeEl.style.cursor = "grab"
           nodeEl.style.zIndex = ""
-          nodeEl.removeAttribute("data-y")
+
+          // Snap to nearest RU
+          const currentTop = parseFloat(nodeEl.style.top) || 0
+          const snappedRU = Math.round((currentTop - 2) / this.ruHeight)
+          const snappedTop = snappedRU * this.ruHeight + 2
+          nodeEl.style.top = `${Math.max(minY, Math.min(maxY, snappedTop))}px`
 
           this.handleNodeMoveEnd(nodeId, nodeEl)
         }
@@ -233,6 +235,7 @@ export class RackDiagram {
     })
 
     this.interactables.set(nodeId, interactable)
+    console.log("[RackDiagram] Draggable setup complete for node:", nodeId)
   }
 
   generateSnapTargets(nodeHeight) {
