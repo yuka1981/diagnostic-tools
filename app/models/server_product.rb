@@ -10,6 +10,16 @@ class ServerProduct < ApplicationRecord
 
   before_validation :set_rack_height_from_form_factor
 
+  def thumbnail_variant
+    images.first&.variant(resize_to_fill: [ 48, 48 ])
+  end
+
+  def preprocess_image_variants!
+    images.each do |image|
+      image.variant(resize_to_fill: [ 48, 48 ]).processed
+    end
+  end
+
   private
 
   def set_rack_height_from_form_factor

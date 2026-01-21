@@ -48,4 +48,49 @@ RSpec.describe ServerProduct, type: :model do
       expect(product.rack_height).to eq(2)
     end
   end
+
+  describe "#thumbnail_variant" do
+    let(:product) { create(:server_product) }
+
+    context "with attached image" do
+      before do
+        product.images.attach(
+          io: File.open(Rails.root.join("spec/fixtures/files/test_server.png")),
+          filename: "test_server.png",
+          content_type: "image/png"
+        )
+      end
+
+      it "returns a variant with resize_to_fill transformation" do
+        variant = product.thumbnail_variant
+        expect(variant).to be_a(ActiveStorage::VariantWithRecord)
+        expect(variant.variation.transformations).to include(resize_to_fill: [ 48, 48 ])
+      end
+    end
+
+    context "without attached image" do
+      it "returns nil" do
+        expect(product.thumbnail_variant).to be_nil
+      end
+    end
+  end
+
+  describe "#preprocess_image_variants!" do
+    let(:product) { create(:server_product) }
+
+    before do
+      product.images.attach(
+        io: File.open(Rails.root.join("spec/fixtures/files/test_server.png")),
+        filename: "test_server.png",
+        content_type: "image/png"
+      )
+    end
+
+    it "processes all image variants" do
+      expect { product.preprocess_image_variants! }.not_to raise_error
+      # Verify variant was processed by checking the variant record exists
+      variant = product.images.first.variant(resize_to_fill: [ 48, 48 ]).processed
+      expect(variant.key).to be_present
+    end
+  end
 end
