@@ -12,7 +12,8 @@ RSpec.describe Site, type: :model do
   end
 
   describe "associations" do
-    it { is_expected.to have_many(:server_racks).dependent(:destroy) }
+    it { is_expected.to have_many(:rooms).dependent(:destroy) }
+    it { is_expected.to have_many(:server_racks).through(:rooms) }
   end
 
   describe "factory" do

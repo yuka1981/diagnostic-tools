@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_01_20_174743) do
+ActiveRecord::Schema[7.2].define(version: 2026_01_21_013125) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -196,6 +196,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_20_174743) do
     t.integer "rack_face", default: 0
     t.index [ "api_key_id" ], name: "index_nodes_on_api_key_id"
     t.index [ "hostname" ], name: "index_nodes_on_hostname", unique: true
+    t.index [ "rack_id", "rack_face", "rack_position" ], name: "index_nodes_on_rack_id_and_rack_face_and_rack_position"
     t.index [ "rack_id" ], name: "index_nodes_on_rack_id"
     t.index [ "role" ], name: "index_nodes_on_role"
     t.index [ "source" ], name: "index_nodes_on_source"
@@ -203,7 +204,6 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_20_174743) do
   end
 
   create_table "racks", force: :cascade do |t|
-    t.bigint "site_id", null: false
     t.string "name", limit: 255, null: false
     t.string "facility_id", limit: 255
     t.string "asset_tag", limit: 255
@@ -215,18 +215,28 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_20_174743) do
     t.boolean "desc_units", default: false, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index [ "site_id", "facility_id" ], name: "index_racks_on_site_id_and_facility_id", unique: true, where: "(facility_id IS NOT NULL)"
-    t.index [ "site_id", "name" ], name: "index_racks_on_site_id_and_name", unique: true
-    t.index [ "site_id" ], name: "index_racks_on_site_id"
+    t.bigint "room_id", null: false
+    t.index [ "room_id", "facility_id" ], name: "index_racks_on_room_id_and_facility_id", unique: true, where: "(facility_id IS NOT NULL)"
+    t.index [ "room_id", "name" ], name: "index_racks_on_room_id_and_name", unique: true
+    t.index [ "room_id" ], name: "index_racks_on_room_id"
     t.index [ "status" ], name: "index_racks_on_status"
   end
 
   create_table "rooms", force: :cascade do |t|
+    t.bigint "site_id", null: false
     t.string "name", null: false
     t.text "description"
+    t.decimal "floor_area_sqm", precision: 10, scale: 2
+    t.decimal "power_capacity_kw", precision: 10, scale: 2
+    t.decimal "cooling_capacity_kw", precision: 10, scale: 2
+    t.integer "max_rack_count"
+    t.integer "floor_number"
+    t.string "building_wing"
+    t.string "grid_coordinates"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index [ "name" ], name: "index_rooms_on_name", unique: true
+    t.index [ "site_id", "name" ], name: "index_rooms_on_site_id_and_name", unique: true
+    t.index [ "site_id" ], name: "index_rooms_on_site_id"
   end
 
   create_table "sites", force: :cascade do |t|
@@ -257,7 +267,6 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_20_174743) do
     t.integer "role", default: 0, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.string "rack_node_preview_fields", default: [ "cpu", "ram", "storage", "network" ], array: true
     t.index [ "email" ], name: "index_users_on_email", unique: true
     t.index [ "reset_password_token" ], name: "index_users_on_reset_password_token", unique: true
   end
@@ -274,5 +283,6 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_20_174743) do
   add_foreign_key "node_states", "nodes"
   add_foreign_key "nodes", "api_keys"
   add_foreign_key "nodes", "racks"
-  add_foreign_key "racks", "sites"
+  add_foreign_key "racks", "rooms"
+  add_foreign_key "rooms", "sites"
 end

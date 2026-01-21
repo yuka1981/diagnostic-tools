@@ -4,7 +4,8 @@ require "rails_helper"
 
 RSpec.describe Racks::UpdateLayoutService do
   let(:site) { create(:site) }
-  let(:server_rack) { create(:server_rack, site: site, u_height: 10) }
+  let(:room) { create(:room, site: site) }
+  let(:server_rack) { create(:server_rack, room: room, u_height: 10) }
 
   describe "#call" do
     context "with valid positions" do

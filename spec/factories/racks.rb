@@ -2,7 +2,7 @@
 
 FactoryBot.define do
   factory :server_rack do
-    site
+    room
     sequence(:name) { |n| "Rack #{n}" }
     u_height { 42 }
     status { :active }

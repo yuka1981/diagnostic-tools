@@ -35,7 +35,8 @@ RSpec.describe "Sites", type: :request do
     end
 
     context "with server racks" do
-      let!(:server_rack) { create(:server_rack, site: site) }
+      let!(:room) { create(:room, site: site) }
+      let!(:server_rack) { create(:server_rack, room: room) }
 
       it "displays racks list" do
         get site_path(site)

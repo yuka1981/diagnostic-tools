@@ -5,7 +5,8 @@ require "rails_helper"
 RSpec.describe "ServerRacks", type: :request do
   let(:user) { create(:user, :approver) }
   let(:site) { create(:site) }
-  let(:server_rack) { create(:server_rack, site: site) }
+  let(:room) { create(:room, site: site) }
+  let(:server_rack) { create(:server_rack, room: room) }
 
   before do
     sign_in user
@@ -25,8 +26,9 @@ RSpec.describe "ServerRacks", type: :request do
 
     context "with site filter" do
       let(:other_site) { create(:site) }
-      let!(:rack_in_site) { create(:server_rack, site: site, name: "FilteredRack") }
-      let!(:rack_in_other_site) { create(:server_rack, site: other_site, name: "OtherRack") }
+      let(:other_room) { create(:room, site: other_site) }
+      let!(:rack_in_site) { create(:server_rack, room: room, name: "FilteredRack") }
+      let!(:rack_in_other_site) { create(:server_rack, room: other_room, name: "OtherRack") }
 
       it "filters racks by site when site_id param is provided" do
         get server_racks_path, params: { site_id: site.id }
@@ -76,11 +78,11 @@ RSpec.describe "ServerRacks", type: :request do
       expect(response.body).to include("U Height")
     end
 
-    it "preselects site when site_id param is provided" do
-      get new_server_rack_path, params: { site_id: site.id }
+    it "preselects room when room_id param is provided" do
+      get new_server_rack_path, params: { room_id: room.id }
       expect(response).to have_http_status(:success)
-      # The site should be preselected in the form
-      expect(response.body).to include(site.name)
+      # The room should be preselected in the form
+      expect(response.body).to include(room.name)
     end
   end
 
@@ -88,7 +90,7 @@ RSpec.describe "ServerRacks", type: :request do
     let(:valid_params) do
       {
         server_rack: {
-          site_id: site.id,
+          room_id: room.id,
           name: "New Rack A1",
           u_height: 42,
           status: "active",
@@ -111,7 +113,7 @@ RSpec.describe "ServerRacks", type: :request do
     end
 
     context "with invalid params" do
-      let(:invalid_params) { { server_rack: { name: "", site_id: site.id, u_height: 42 } } }
+      let(:invalid_params) { { server_rack: { name: "", room_id: room.id, u_height: 42 } } }
 
       it "does not create a rack" do
         expect do
@@ -215,7 +217,7 @@ RSpec.describe "ServerRacks", type: :request do
     end
 
     it "denies viewers access to create" do
-      post server_racks_path, params: { server_rack: { name: "Denied", site_id: site.id, u_height: 42 } }
+      post server_racks_path, params: { server_rack: { name: "Denied", room_id: room.id, u_height: 42 } }
       expect(response).to redirect_to(server_racks_path)
       expect(flash[:alert]).to be_present
     end

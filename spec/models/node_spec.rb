@@ -288,7 +288,8 @@ RSpec.describe Node, type: :model do
 
     describe "rack_position validation" do
       let(:site) { create(:site) }
-      let(:server_rack) { create(:server_rack, site: site, u_height: 42) }
+      let(:room) { create(:room, site: site) }
+      let(:server_rack) { create(:server_rack, room: room, u_height: 42) }
 
       context "when rack_id is present" do
         it "requires rack_position" do
@@ -342,7 +343,8 @@ RSpec.describe Node, type: :model do
 
     describe "overlap validation" do
       let(:site) { create(:site) }
-      let(:server_rack) { create(:server_rack, site: site, u_height: 42) }
+      let(:room) { create(:room, site: site) }
+      let(:server_rack) { create(:server_rack, room: room, u_height: 42) }
       let!(:existing_node) { create(:node, server_rack: server_rack, rack_position: 10, rack_height: 2) }
 
       it "rejects overlapping positions" do
@@ -371,7 +373,8 @@ RSpec.describe Node, type: :model do
   describe "scopes" do
     describe ".unracked" do
       let(:site) { create(:site) }
-      let(:server_rack) { create(:server_rack, site: site) }
+      let(:room) { create(:room, site: site) }
+      let(:server_rack) { create(:server_rack, room: room) }
       let!(:racked_node) { create(:node, server_rack: server_rack, rack_position: 1, rack_height: 1) }
       let!(:unracked_node) { create(:node, server_rack: nil) }
 
@@ -382,7 +385,8 @@ RSpec.describe Node, type: :model do
 
     describe ".racked" do
       let(:site) { create(:site) }
-      let(:server_rack) { create(:server_rack, site: site) }
+      let(:room) { create(:room, site: site) }
+      let(:server_rack) { create(:server_rack, room: room) }
       let!(:racked_node) { create(:node, server_rack: server_rack, rack_position: 1, rack_height: 1) }
       let!(:unracked_node) { create(:node, server_rack: nil) }
 

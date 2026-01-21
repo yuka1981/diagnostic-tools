@@ -8,8 +8,8 @@ RSpec.describe ServerRack, type: :model do
 
     it { is_expected.to validate_presence_of(:name) }
     it { is_expected.to validate_length_of(:name).is_at_most(255) }
-    it { is_expected.to validate_uniqueness_of(:name).scoped_to(:site_id) }
-    it { is_expected.to validate_uniqueness_of(:facility_id).scoped_to(:site_id).allow_nil }
+    it { is_expected.to validate_uniqueness_of(:name).scoped_to(:room_id) }
+    it { is_expected.to validate_uniqueness_of(:facility_id).scoped_to(:room_id).allow_nil }
 
     it { is_expected.to validate_numericality_of(:u_height).only_integer.is_greater_than(0).is_less_than_or_equal_to(100) }
     it { is_expected.to validate_numericality_of(:width_mm).only_integer.is_greater_than(0).allow_nil }
@@ -18,7 +18,7 @@ RSpec.describe ServerRack, type: :model do
   end
 
   describe "associations" do
-    it { is_expected.to belong_to(:site) }
+    it { is_expected.to belong_to(:room) }
     it { is_expected.to have_many(:nodes) }
   end
 
@@ -65,8 +65,8 @@ RSpec.describe ServerRack, type: :model do
   end
 
   describe "#utilization" do
-    let(:site) { create(:site) }
-    let(:server_rack) { create(:server_rack, site: site, u_height: 42) }
+    let(:room) { create(:room) }
+    let(:server_rack) { create(:server_rack, room: room, u_height: 42) }
 
     context "with no nodes" do
       it "returns 0" do
@@ -81,13 +81,22 @@ RSpec.describe ServerRack, type: :model do
   end
 
   describe "#utilization_percentage" do
-    let(:site) { create(:site) }
-    let(:server_rack) { create(:server_rack, site: site, u_height: 10) }
+    let(:room) { create(:room) }
+    let(:server_rack) { create(:server_rack, room: room, u_height: 10) }
 
     context "with no nodes" do
       it "returns 0.0" do
         expect(server_rack.utilization_percentage).to eq(0.0)
       end
+    end
+  end
+
+  describe "#site" do
+    it "delegates to room" do
+      site = create(:site)
+      room = create(:room, site: site)
+      server_rack = create(:server_rack, room: room)
+      expect(server_rack.site).to eq(site)
     end
   end
 end
