@@ -1,0 +1,108 @@
+<% content_for(:page_title) { "Server Products" } %>
+
+<div class="flex items-center justify-between mb-6">
+  <div>
+    <h1 class="text-2xl font-bold text-slate-900">Server Products</h1>
+    <p class="text-sm text-slate-500 mt-1">Manage QCT server product catalog</p>
+  </div>
+  <div class="flex items-center gap-3">
+    <%= button_to sync_settings_server_products_path, method: :post, class: "btn-secondary", data: { turbo_confirm: "Start sync from QCT website?" } do %>
+      <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+      </svg>
+      Sync from QCT
+    <% end %>
+    <%= link_to new_settings_server_product_path, class: "btn-primary" do %>
+      <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+      </svg>
+      Add Product
+    <% end %>
+  </div>
+</div>
+
+<% if @last_sync %>
+  <div class="mb-4 text-sm text-slate-500">
+    Last synced <%= time_ago_in_words(@last_sync.completed_at) %> ago
+    <% if @last_sync.products_added > 0 || @last_sync.products_updated > 0 %>
+      (<%= @last_sync.products_added %> added, <%= @last_sync.products_updated %> updated)
+    <% end %>
+  </div>
+<% end %>
+
+<div class="card-netbox mb-4">
+  <%= form_with url: settings_server_products_path, method: :get, class: "flex flex-wrap gap-4 p-4", data: { turbo_frame: "_top" } do |f| %>
+    <div class="flex-1 min-w-[200px]">
+      <%= f.text_field :q, value: params[:q], placeholder: "Search by name...", class: "form-input w-full" %>
+    </div>
+    <div class="w-48">
+      <%= f.select :series,
+            options_for_select(
+              ServerProduct.distinct.pluck(:product_series).compact.sort.map { |s| [s, s] },
+              params[:series]
+            ),
+            { include_blank: "All Series" },
+            class: "form-select w-full" %>
+    </div>
+    <div class="w-48">
+      <%= f.select :form_factor,
+            options_for_select(
+              ServerProduct.distinct.pluck(:form_factor).compact.sort.map { |ff| [ff, ff] },
+              params[:form_factor]
+            ),
+            { include_blank: "All Form Factors" },
+            class: "form-select w-full" %>
+    </div>
+    <div class="flex gap-2">
+      <%= f.submit "Filter", class: "btn-primary" %>
+      <%= link_to "Clear", settings_server_products_path, class: "btn-secondary" %>
+    </div>
+  <% end %>
+</div>
+
+<div class="card-netbox">
+  <% if @server_products.any? %>
+    <div class="overflow-x-auto">
+      <table class="min-w-full divide-y divide-slate-200 text-sm">
+        <thead class="bg-slate-50">
+          <tr>
+            <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b w-16">Image</th>
+            <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Model Name</th>
+            <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Series</th>
+            <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Form Factor</th>
+            <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">CPU Support</th>
+            <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Max Memory</th>
+            <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Last Synced</th>
+            <th scope="col" class="relative px-3 py-2 border-b">
+              <span class="sr-only">Actions</span>
+            </th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-200 bg-white">
+          <% @server_products.each do |product| %>
+            <%= render partial: "product", locals: { product: product } %>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% else %>
+    <div class="flex flex-col items-center justify-center py-12 text-center">
+      <div class="h-12 w-12 rounded-full bg-slate-100 flex items-center justify-center mb-4">
+        <svg class="h-6 w-6 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01" />
+        </svg>
+      </div>
+      <p class="text-sm font-medium text-slate-900">No server products yet</p>
+      <p class="mt-1 text-xs text-slate-500">Add a product manually or sync from QCT</p>
+      <div class="mt-4 flex gap-2">
+        <%= button_to sync_settings_server_products_path, method: :post, class: "btn-secondary" do %>
+          Sync from QCT
+        <% end %>
+        <%= link_to new_settings_server_product_path, class: "btn-primary" do %>
+          Add Product
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+</div>

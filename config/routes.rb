@@ -32,6 +32,11 @@ Rails.application.routes.draw do
       end
       resources :binaries, only: %i[new create destroy], controller: "agent_binaries"
     end
+    resources :server_products do
+      collection do
+        post :sync
+      end
+    end
   end
 
   resources :sites
