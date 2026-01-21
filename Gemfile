@@ -82,6 +82,9 @@ group :test do
 
   # SimpleCov for code coverage [https://github.com/simplecov-ruby/simplecov]
   gem "simplecov", require: false
+
+  # WebMock for stubbing HTTP requests [https://github.com/bblimke/webmock]
+  gem "webmock", "~> 3.19"
 end
 
 group :development do

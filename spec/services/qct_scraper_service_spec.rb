@@ -1,0 +1,334 @@
+# frozen_string_literal: true
+
+require "rails_helper"
+
+RSpec.describe QctScraperService do
+  describe "#sync_all" do
+    let(:service) { described_class.new }
+
+    let(:product_listing_html) do
+      <<~HTML
+        <html>
+        <body>
+          <div class="product-list">
+            <a href="/product/index/Server/rackmount-server/QuantaGrid-D54Q-2U" class="product-item">
+              QuantaGrid D54Q-2U
+            </a>
+            <a href="/product/index/Server/rackmount-server/QuantaGrid-S74G-2U" class="product-item">
+              QuantaGrid S74G-2U
+            </a>
+          </div>
+        </body>
+        </html>
+      HTML
+    end
+
+    let(:product_page_html_d54q) do
+      <<~HTML
+        <html>
+        <body>
+          <h1 class="product-name">QuantaGrid D54Q-2U</h1>
+          <div class="specs">
+            <span class="form-factor">2U</span>
+            <p>CPU: 2 Socket, 5th Gen Intel Xeon</p>
+            <p>Memory: 32 DIMM slots, DDR5, up to 8192 GB max</p>
+            <p>Storage: 24 x NVMe 2.5 drives</p>
+            <p>PCIe: 4 x PCIe 5.0 x16 slots</p>
+            <p>GPU accelerator support available</p>
+          </div>
+        </body>
+        </html>
+      HTML
+    end
+
+    let(:product_page_html_s74g) do
+      <<~HTML
+        <html>
+        <body>
+          <h1 class="product-name">QuantaGrid S74G-2U</h1>
+          <div class="specs">
+            <span class="form-factor">2U</span>
+            <p>CPU: 2 Socket, AMD EPYC</p>
+            <p>Memory: 24 DIMM slots, DDR5, up to 6144 GB max</p>
+          </div>
+        </body>
+        </html>
+      HTML
+    end
+
+    before do
+      stub_request(:get, QctScraperService::BASE_URL)
+        .to_return(status: 200, body: product_listing_html)
+      stub_request(:get, "https://www.qct.io/product/index/Server/rackmount-server/QuantaGrid-D54Q-2U")
+        .to_return(status: 200, body: product_page_html_d54q)
+      stub_request(:get, "https://www.qct.io/product/index/Server/rackmount-server/QuantaGrid-S74G-2U")
+        .to_return(status: 200, body: product_page_html_s74g)
+    end
+
+    it "returns a Result struct" do
+      result = service.sync_all
+      expect(result).to respond_to(:added_count)
+      expect(result).to respond_to(:updated_count)
+      expect(result).to respond_to(:errors)
+    end
+
+    context "when syncing new products" do
+      it "creates new ServerProduct records" do
+        expect { service.sync_all }.to change(ServerProduct, :count).by(2)
+      end
+
+      it "reports added count" do
+        result = service.sync_all
+        expect(result.added_count).to eq(2)
+      end
+
+      it "sets product attributes correctly" do
+        service.sync_all
+        product = ServerProduct.find_by(name: "QuantaGrid D54Q-2U")
+
+        expect(product).to be_present
+        expect(product.product_series).to eq("QuantaGrid")
+        expect(product.form_factor).to eq("2U")
+        expect(product.rack_height).to eq(2)
+        expect(product.qct_product_url).to eq("https://www.qct.io/product/index/Server/rackmount-server/QuantaGrid-D54Q-2U")
+      end
+    end
+
+    context "when syncing existing products" do
+      before do
+        create(:server_product,
+          name: "QuantaGrid D54Q-2U",
+          qct_product_url: "https://www.qct.io/product/index/Server/rackmount-server/QuantaGrid-D54Q-2U",
+          max_memory_gb: 1024) # Old value that should get updated
+      end
+
+      it "updates existing ServerProduct records" do
+        result = service.sync_all
+        expect(result.updated_count).to eq(1)
+        expect(result.added_count).to eq(1) # S74G is new
+      end
+
+      it "updates last_synced_at" do
+        service.sync_all
+        product = ServerProduct.find_by(name: "QuantaGrid D54Q-2U")
+        expect(product.last_synced_at).to be_within(1.second).of(Time.current)
+      end
+    end
+
+    context "when encountering HTTP errors" do
+      before do
+        stub_request(:get, QctScraperService::BASE_URL)
+          .to_return(status: 500)
+      end
+
+      it "captures errors in result" do
+        result = service.sync_all
+        expect(result.errors).not_to be_empty
+      end
+
+      it "returns zero counts on listing failure" do
+        result = service.sync_all
+        expect(result.added_count).to eq(0)
+        expect(result.updated_count).to eq(0)
+      end
+    end
+
+    context "when a single product page fails" do
+      before do
+        stub_request(:get, "https://www.qct.io/product/index/Server/rackmount-server/QuantaGrid-D54Q-2U")
+          .to_return(status: 404)
+      end
+
+      it "continues processing other products" do
+        result = service.sync_all
+        expect(result.added_count).to eq(1) # S74G succeeds
+        expect(result.errors.size).to eq(1) # D54Q fails
+      end
+
+      it "records error details" do
+        result = service.sync_all
+        error = result.errors.first
+        expect(error[:url]).to include("D54Q")
+        expect(error[:error]).to be_present
+      end
+    end
+  end
+
+  describe "#sync_product" do
+    let(:service) { described_class.new }
+
+    let(:product_page_html) do
+      <<~HTML
+        <html>
+        <body>
+          <h1>QuantaGrid D54Q-2U</h1>
+          <p>Form Factor: 2U</p>
+          <p>2 Socket, 5th Gen Intel Xeon Scalable</p>
+          <p>Memory: 32 DIMM DDR5 up to 8192 GB maximum</p>
+          <p>Storage: 24 x NVMe 2.5</p>
+        </body>
+        </html>
+      HTML
+    end
+
+    let(:url) { "https://www.qct.io/product/index/Server/rackmount-server/QuantaGrid-D54Q-2U" }
+
+    before do
+      stub_request(:get, url)
+        .to_return(status: 200, body: product_page_html)
+    end
+
+    it "creates a new product and returns :added" do
+      result = service.sync_product(url)
+      expect(result).to eq(:added)
+      expect(ServerProduct.count).to eq(1)
+    end
+
+    context "when product already exists" do
+      before do
+        create(:server_product,
+          name: "QuantaGrid D54Q-2U",
+          qct_product_url: url)
+      end
+
+      it "updates existing product and returns :updated" do
+        result = service.sync_product(url)
+        expect(result).to eq(:updated)
+        expect(ServerProduct.count).to eq(1)
+      end
+    end
+
+    context "when HTTP request fails" do
+      before do
+        stub_request(:get, url).to_return(status: 500)
+      end
+
+      it "returns error message string" do
+        result = service.sync_product(url)
+        expect(result).to be_a(String)
+        expect(result).to include("500")
+      end
+    end
+  end
+
+  describe "#parse_product_page" do
+    let(:service) { described_class.new }
+
+    it "extracts model name from h1 tag" do
+      html = '<html><body><h1>QuantaGrid D54Q-2U</h1></body></html>'
+      attrs = service.send(:parse_product_page, html, "https://example.com")
+      expect(attrs[:name]).to eq("QuantaGrid D54Q-2U")
+    end
+
+    it "extracts model name from product-name class" do
+      html = '<html><body><div class="product-name">QuantaPlex T41S-2U</div></body></html>'
+      attrs = service.send(:parse_product_page, html, "https://example.com")
+      expect(attrs[:name]).to eq("QuantaPlex T41S-2U")
+    end
+
+    it "extracts product series from model name" do
+      html = '<html><body><h1>QuantaGrid D54Q-2U</h1></body></html>'
+      attrs = service.send(:parse_product_page, html, "https://example.com")
+      expect(attrs[:product_series]).to eq("QuantaGrid")
+    end
+
+    it "extracts form factor from model name" do
+      html = '<html><body><h1>QuantaGrid D54Q-2U</h1></body></html>'
+      attrs = service.send(:parse_product_page, html, "https://example.com")
+      expect(attrs[:form_factor]).to eq("2U")
+      expect(attrs[:rack_height]).to eq(2)
+    end
+
+    it "extracts socket count" do
+      html = '<html><body><h1>Test Server</h1><p>2 Socket Intel Xeon</p></body></html>'
+      attrs = service.send(:parse_product_page, html, "https://example.com")
+      expect(attrs[:socket_count]).to eq(2)
+    end
+
+    it "extracts CPU generations for Intel Xeon" do
+      html = '<html><body><h1>Test Server</h1><p>5th Gen Intel Xeon</p></body></html>'
+      attrs = service.send(:parse_product_page, html, "https://example.com")
+      expect(attrs[:cpu_generations]).to include("5th Gen Xeon")
+    end
+
+    it "extracts max memory in GB" do
+      html = '<html><body><h1>Test Server</h1><p>up to 8192 GB max memory</p></body></html>'
+      attrs = service.send(:parse_product_page, html, "https://example.com")
+      expect(attrs[:max_memory_gb]).to eq(8192)
+    end
+
+    it "converts TB to GB for max memory" do
+      html = '<html><body><h1>Test Server</h1><p>up to 8 TB maximum memory</p></body></html>'
+      attrs = service.send(:parse_product_page, html, "https://example.com")
+      expect(attrs[:max_memory_gb]).to eq(8192)
+    end
+
+    it "extracts DIMM slots" do
+      html = '<html><body><h1>Test Server</h1><p>32 DIMM slots</p></body></html>'
+      attrs = service.send(:parse_product_page, html, "https://example.com")
+      expect(attrs[:dimm_slots]).to eq(32)
+    end
+
+    it "extracts memory types" do
+      html = '<html><body><h1>Test Server</h1><p>DDR5 memory support</p></body></html>'
+      attrs = service.send(:parse_product_page, html, "https://example.com")
+      expect(attrs[:memory_types]).to include("DDR5")
+    end
+
+    it "extracts GPU support" do
+      html = '<html><body><h1>Test Server</h1><p>NVIDIA GPU accelerator support</p></body></html>'
+      attrs = service.send(:parse_product_page, html, "https://example.com")
+      expect(attrs[:gpu_support]).to be true
+    end
+
+    it "sets qct_product_url from provided url" do
+      html = '<html><body><h1>Test Server</h1></body></html>'
+      attrs = service.send(:parse_product_page, html, "https://www.qct.io/product/test")
+      expect(attrs[:qct_product_url]).to eq("https://www.qct.io/product/test")
+    end
+  end
+
+  describe "#fetch_product_listing" do
+    let(:service) { described_class.new }
+
+    let(:listing_html) do
+      <<~HTML
+        <html>
+        <body>
+          <a href="/product/index/Server/rackmount-server/Product-A">Product A</a>
+          <a href="https://www.qct.io/product/index/Server/rackmount-server/Product-B">Product B</a>
+          <a href="/about">About Us</a>
+          <a href="/product/index/Server/rackmount-server/Product-A">Product A Duplicate</a>
+        </body>
+        </html>
+      HTML
+    end
+
+    before do
+      stub_request(:get, QctScraperService::BASE_URL)
+        .to_return(status: 200, body: listing_html)
+    end
+
+    it "extracts product URLs from listing page" do
+      urls = service.send(:fetch_product_listing)
+      expect(urls).to include("https://www.qct.io/product/index/Server/rackmount-server/Product-A")
+      expect(urls).to include("https://www.qct.io/product/index/Server/rackmount-server/Product-B")
+    end
+
+    it "excludes non-product URLs" do
+      urls = service.send(:fetch_product_listing)
+      expect(urls).not_to include(a_string_matching(/about/))
+    end
+
+    it "removes duplicate URLs" do
+      urls = service.send(:fetch_product_listing)
+      product_a_urls = urls.select { |u| u.include?("Product-A") }
+      expect(product_a_urls.size).to eq(1)
+    end
+
+    it "converts relative URLs to absolute" do
+      urls = service.send(:fetch_product_listing)
+      expect(urls).to all(start_with("https://"))
+    end
+  end
+end
