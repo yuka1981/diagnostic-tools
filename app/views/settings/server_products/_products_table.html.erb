@@ -1,0 +1,5 @@
+<tbody class="divide-y divide-slate-200 bg-white" id="products-tbody">
+  <% @server_products.each do |product| %>
+    <%= render partial: "product", locals: { product: product } %>
+  <% end %>
+</tbody>

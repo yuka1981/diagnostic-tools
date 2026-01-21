@@ -78,11 +78,9 @@
             </th>
           </tr>
         </thead>
-        <tbody class="divide-y divide-slate-200 bg-white">
-          <% @server_products.each do |product| %>
-            <%= render partial: "product", locals: { product: product } %>
-          <% end %>
-        </tbody>
+        <turbo-frame id="products-table-body">
+          <%= render "products_table" %>
+        </turbo-frame>
       </table>
     </div>
 
