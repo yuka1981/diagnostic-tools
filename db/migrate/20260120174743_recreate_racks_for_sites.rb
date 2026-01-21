@@ -2,11 +2,13 @@
 
 class RecreateRacksForSites < ActiveRecord::Migration[7.2]
   def change
-    # Remove foreign key from nodes table first
+    # Remove foreign key from nodes table first (if it exists from a previous migration)
     remove_foreign_key :nodes, :racks, if_exists: true
 
-    # Clear existing rack_id values on nodes (old rack references are no longer valid)
-    execute "UPDATE nodes SET rack_id = NULL WHERE rack_id IS NOT NULL"
+    # Clear existing rack_id values on nodes (only if column exists - from previous rack schema)
+    if column_exists?(:nodes, :rack_id)
+      execute "UPDATE nodes SET rack_id = NULL WHERE rack_id IS NOT NULL"
+    end
 
     # Remove old racks table that was tied to rooms
     drop_table :racks, if_exists: true
