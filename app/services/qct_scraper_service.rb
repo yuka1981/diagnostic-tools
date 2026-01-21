@@ -344,18 +344,29 @@ class QctScraperService
   end
 
   def extract_image_url(doc)
-    # Try multiple selectors for product image
-    # QCT uses .image_block for product images
-    img = doc.at_css(".image_block img") ||
-          doc.at_css(".product-image img") ||
-          doc.at_css("img.img-responsive") ||
-          doc.at_css("img[src*='/upload/']") ||
-          doc.at_css("img[src*='/product/']")
+    # QCT uses different image paths:
+    # - Product gallery: /upload/website/product/gallery/normal/ (high quality)
+    # - Product gallery: /upload/website/product/gallery/thumbnail/
+    # - Cover images: /upload/website/product/images/ (listing thumbnails)
+    # - Logos/icons: /upload/website/product/icon/ (should skip)
+
+    # Priority 1: Gallery images (product detail page - best quality)
+    img = doc.at_css("img[src*='/gallery/normal/']") ||
+          doc.at_css("img[src*='/gallery/thumbnail/']")
+
+    # Priority 2: Cover images from listing (product images folder)
+    img ||= doc.at_css("img[src*='/product/images/']")
+
+    # Priority 3: Generic image_block (listing page structure)
+    img ||= doc.at_css(".image_block img")
 
     return nil unless img
 
     src = img["src"]
     return nil if src.blank?
+
+    # Skip logos and icons
+    return nil if src.include?("/icon/") || src.include?("/media/")
 
     # Convert relative URLs to absolute
     if src.start_with?("http")

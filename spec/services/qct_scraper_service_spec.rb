@@ -370,36 +370,86 @@ RSpec.describe QctScraperService do
     end
 
     context "image extraction" do
-      it "extracts image URL from .image_block img" do
+      it "prioritizes gallery/normal images (highest quality)" do
         html = <<~HTML
           <html>
           <body>
-            <h1>QuantaGrid D52BM-2U</h1>
-            <div class="image_block">
-              <a href="/product/...">
-                <img src="/upload/website/product/images/_DSC4112.png" class="img-responsive">
-              </a>
-            </div>
+            <h1>QuantaGrid D54Q-2U</h1>
+            <img src="/upload/website/product/icon/xeon-logo.png">
+            <img src="/upload/website/product/gallery/normal/DSC04863.png">
+            <img src="/upload/website/product/images/cover.png">
           </body>
           </html>
         HTML
         attrs = service.send(:parse_product_page, html, "https://example.com")
-        expect(attrs[:image_url]).to eq("https://www.qct.io/upload/website/product/images/_DSC4112.png")
+        expect(attrs[:image_url]).to eq("https://www.qct.io/upload/website/product/gallery/normal/DSC04863.png")
       end
 
-      it "extracts image URL from .product-image img" do
+      it "falls back to gallery/thumbnail if no normal gallery image" do
         html = <<~HTML
           <html>
           <body>
             <h1>Test Server</h1>
-            <div class="product-image">
-              <img src="/images/server.jpg">
+            <img src="/upload/website/product/gallery/thumbnail/DSC04863.png">
+          </body>
+          </html>
+        HTML
+        attrs = service.send(:parse_product_page, html, "https://example.com")
+        expect(attrs[:image_url]).to eq("https://www.qct.io/upload/website/product/gallery/thumbnail/DSC04863.png")
+      end
+
+      it "extracts cover image from /product/images/ path" do
+        html = <<~HTML
+          <html>
+          <body>
+            <h1>QuantaGrid D52BM-2U</h1>
+            <img src="/upload/website/product/images/D52BM-2U-cover_12345.png">
+          </body>
+          </html>
+        HTML
+        attrs = service.send(:parse_product_page, html, "https://example.com")
+        expect(attrs[:image_url]).to eq("https://www.qct.io/upload/website/product/images/D52BM-2U-cover_12345.png")
+      end
+
+      it "extracts image from .image_block (listing page fallback)" do
+        html = <<~HTML
+          <html>
+          <body>
+            <h1>Test Server</h1>
+            <div class="image_block">
+              <img src="/some/other/path/server.jpg">
             </div>
           </body>
           </html>
         HTML
         attrs = service.send(:parse_product_page, html, "https://example.com")
-        expect(attrs[:image_url]).to eq("https://www.qct.io/images/server.jpg")
+        expect(attrs[:image_url]).to eq("https://www.qct.io/some/other/path/server.jpg")
+      end
+
+      it "skips icon images" do
+        html = <<~HTML
+          <html>
+          <body>
+            <h1>Test Server</h1>
+            <img src="/upload/website/product/icon/xeon-logo.png">
+          </body>
+          </html>
+        HTML
+        attrs = service.send(:parse_product_page, html, "https://example.com")
+        expect(attrs[:image_url]).to be_nil
+      end
+
+      it "skips media images" do
+        html = <<~HTML
+          <html>
+          <body>
+            <h1>Test Server</h1>
+            <img src="/upload/media/product/diagram.png">
+          </body>
+          </html>
+        HTML
+        attrs = service.send(:parse_product_page, html, "https://example.com")
+        expect(attrs[:image_url]).to be_nil
       end
 
       it "preserves absolute image URLs" do
@@ -407,14 +457,12 @@ RSpec.describe QctScraperService do
           <html>
           <body>
             <h1>Test Server</h1>
-            <div class="image_block">
-              <img src="https://cdn.example.com/images/server.png">
-            </div>
+            <img src="https://cdn.example.com/upload/website/product/gallery/normal/server.png">
           </body>
           </html>
         HTML
         attrs = service.send(:parse_product_page, html, "https://example.com")
-        expect(attrs[:image_url]).to eq("https://cdn.example.com/images/server.png")
+        expect(attrs[:image_url]).to eq("https://cdn.example.com/upload/website/product/gallery/normal/server.png")
       end
 
       it "returns nil when no product image is found" do
