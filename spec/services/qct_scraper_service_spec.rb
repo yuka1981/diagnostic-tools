@@ -225,6 +225,74 @@ RSpec.describe QctScraperService do
         expect(result).to include("500")
       end
     end
+
+    context "with product image" do
+      let(:product_page_with_image_html) do
+        <<~HTML
+          <html>
+          <body>
+            <h1>QuantaGrid D54Q-2U</h1>
+            <div class="image_block">
+              <img src="/upload/website/product/images/server_image.png" class="img-responsive">
+            </div>
+            <p>Form Factor: 2U</p>
+          </body>
+          </html>
+        HTML
+      end
+
+      let(:image_url) { "https://www.qct.io/upload/website/product/images/server_image.png" }
+      let(:image_data) { File.read(Rails.root.join("spec/fixtures/files/test_image.png"), mode: "rb") rescue "\x89PNG\r\n\x1a\n" }
+
+      before do
+        stub_request(:get, url)
+          .to_return(status: 200, body: product_page_with_image_html)
+        stub_request(:get, image_url)
+          .to_return(status: 200, body: image_data, headers: { "Content-Type" => "image/png" })
+      end
+
+      it "downloads and attaches the product image" do
+        expect { service.sync_product(url) }.to change(ActiveStorage::Attachment, :count).by(1)
+
+        product = ServerProduct.last
+        expect(product.images).to be_attached
+        expect(product.images.first.filename.to_s).to eq("server_image.png")
+      end
+
+      it "stores the source URL in image metadata" do
+        service.sync_product(url)
+        product = ServerProduct.last
+        expect(product.images.first.blob.metadata["source_url"]).to eq(image_url)
+      end
+
+      it "skips image download if already attached with same source URL" do
+        # First sync - should attach image
+        service.sync_product(url)
+        expect(ActiveStorage::Attachment.count).to eq(1)
+
+        # Second sync - should skip image download (same source URL)
+        service.sync_product(url)
+        expect(ActiveStorage::Attachment.count).to eq(1)
+      end
+
+      context "when image download fails" do
+        before do
+          stub_request(:get, image_url).to_return(status: 404)
+        end
+
+        it "still creates the product successfully" do
+          result = service.sync_product(url)
+          expect(result).to eq(:added)
+          expect(ServerProduct.count).to eq(1)
+        end
+
+        it "does not attach any image" do
+          service.sync_product(url)
+          product = ServerProduct.last
+          expect(product.images).not_to be_attached
+        end
+      end
+    end
   end
 
   describe "#parse_product_page" do

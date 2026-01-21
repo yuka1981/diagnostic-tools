@@ -66,12 +66,18 @@ class QctScraperService
     html = fetch_page(url)
     attrs = parse_product_page(html, url)
 
+    # Extract image_url before assigning attributes (we'll handle it separately)
+    image_url = attrs.delete(:image_url)
+
     product = ServerProduct.find_or_initialize_by(qct_product_url: url)
     is_new = product.new_record?
 
     product.assign_attributes(attrs)
     product.last_synced_at = Time.current
     product.save!
+
+    # Download and attach the image if URL is present and image not already attached
+    download_and_attach_image(product, image_url) if image_url.present?
 
     is_new ? :added : :updated
   rescue StandardError => e
@@ -98,6 +104,55 @@ class QctScraperService
     raise "HTTP #{response.code}" unless response.is_a?(Net::HTTPSuccess)
 
     response.body
+  end
+
+  def download_and_attach_image(product, image_url)
+    # Skip if product already has an image with the same source URL
+    return if product.images.any? { |img| img.blob&.metadata&.dig("source_url") == image_url }
+
+    rate_limit
+    image_data = fetch_image(image_url)
+    return unless image_data
+
+    filename = File.basename(URI.parse(image_url).path)
+    content_type = determine_content_type(filename)
+
+    product.images.attach(
+      io: StringIO.new(image_data),
+      filename: filename,
+      content_type: content_type,
+      metadata: { source_url: image_url }
+    )
+  rescue StandardError => e
+    # Log error but don't fail the sync
+    Rails.logger.warn("Failed to download image for #{product.name}: #{e.message}")
+  end
+
+  def fetch_image(url)
+    uri = URI.parse(url)
+    http = Net::HTTP.new(uri.host, uri.port)
+    http.use_ssl = uri.scheme == "https"
+    http.open_timeout = 10
+    http.read_timeout = 30
+
+    request = Net::HTTP::Get.new(uri.request_uri)
+    request["User-Agent"] = USER_AGENT
+
+    response = http.request(request)
+    return nil unless response.is_a?(Net::HTTPSuccess)
+
+    response.body
+  end
+
+  def determine_content_type(filename)
+    extension = File.extname(filename).downcase
+    case extension
+    when ".png" then "image/png"
+    when ".jpg", ".jpeg" then "image/jpeg"
+    when ".gif" then "image/gif"
+    when ".webp" then "image/webp"
+    else "application/octet-stream"
+    end
   end
 
   def fetch_product_listing
