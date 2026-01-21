@@ -217,8 +217,10 @@ export class RackDiagram {
     this.options.onSelect(this.selectedNode)
   }
 
-  handleNodeMove(nodeId, event) {
-    const obj = event.target
+  handleNodeMove(nodeId) {
+    const obj = this.nodeObjects.get(nodeId)
+    if (!obj) return
+
     const pos = this.positions.get(nodeId)
     const height = pos.rack_height
 
@@ -232,8 +234,10 @@ export class RackDiagram {
     obj.set({ top: y, left: this.rackX + 4 })
   }
 
-  handleNodeMoveEnd(nodeId, event) {
-    const obj = event.target
+  handleNodeMoveEnd(nodeId) {
+    const obj = this.nodeObjects.get(nodeId)
+    if (!obj) return
+
     const pos = this.positions.get(nodeId)
     const height = pos.rack_height
 
