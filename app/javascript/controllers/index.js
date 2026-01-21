@@ -28,6 +28,9 @@ application.register("file-drop", FileDropController)
 import HeatmapController from "./heatmap_controller"
 application.register("heatmap", HeatmapController)
 
+import ImageViewerController from "./image_viewer_controller"
+application.register("image-viewer", ImageViewerController)
+
 import HostnameValidationController from "./hostname_validation_controller"
 application.register("hostname-validation", HostnameValidationController)
 
@@ -42,6 +45,9 @@ application.register("rack-diagram", RackDiagramController)
 
 import ReleaseModeController from "./release_mode_controller"
 application.register("release-mode", ReleaseModeController)
+
+import ServerProductSearchController from "./server_product_search_controller"
+application.register("server-product-search", ServerProductSearchController)
 
 import SidebarController from "./sidebar_controller"
 application.register("sidebar", SidebarController)

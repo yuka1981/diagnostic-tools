@@ -56,6 +56,34 @@
     </div>
   </div>
 
+  <%# Section: Server Model %>
+  <div class="card-netbox">
+    <div class="card-header">
+      <h3 class="card-title">Server Model</h3>
+    </div>
+    <div class="p-4" data-controller="server-product-search">
+      <div>
+        <%= f.label :server_product_id, "Model", class: "block text-sm font-bold text-slate-700 mb-1" %>
+        <div class="relative">
+          <input type="text"
+                 placeholder="Search by model name (e.g., QuantaGrid D54Q)"
+                 value="<%= @node.server_product&.name %>"
+                 class="block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm"
+                 data-server-product-search-target="input"
+                 data-action="input->server-product-search#search" />
+          <%= f.hidden_field :server_product_id, data: { server_product_search_target: "hiddenField" } %>
+          <div data-server-product-search-target="results"
+               class="absolute z-10 hidden mt-1 w-full bg-white rounded-md shadow-lg border border-slate-200 max-h-60 overflow-auto">
+          </div>
+        </div>
+      </div>
+      <p class="mt-2 text-xs text-slate-500">
+        Optional: Select a server model to auto-fill rack height and view specifications.
+      </p>
+      <div data-server-product-search-target="preview" class="mt-4 hidden"></div>
+    </div>
+  </div>
+
   <%# Section: Rack Assignment %>
   <div class="card-netbox">
     <div class="card-header">

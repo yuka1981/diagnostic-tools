@@ -11,8 +11,12 @@
     {
       "fingerprint": "c37076f816671994d86d6a59b7b373a68d8b305f314874c1e238e9b17891f6e8",
       "note": "branch_stdout comes from running 'git symbolic-ref --short HEAD' which returns the current branch name from git's internal state, not user input. Additionally, Open3.capture3 with array arguments (not a single string) passes each argument separately to the command, preventing shell injection."
+    },
+    {
+      "fingerprint": "1f99b59e268a901ee207c47bb426994a1647c13f0d82a716796e6ba75ecd3a18",
+      "note": "URL is validated at runtime with start_with?('https://') before being used in link_to. Non-HTTPS URLs are displayed as plain text. This prevents javascript: and other malicious protocol injection."
     }
   ],
-  "updated": "2026-01-19",
+  "updated": "2026-01-21",
   "brakeman_version": "7.1.2"
 }

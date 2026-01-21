@@ -283,9 +283,12 @@ RSpec.describe Node, type: :model do
     end
   end
 
-  describe "rack associations and validations" do
+  describe "associations" do
     it { is_expected.to belong_to(:server_rack).optional }
+    it { is_expected.to belong_to(:server_product).optional }
+  end
 
+  describe "rack associations and validations" do
     describe "rack_position validation" do
       let(:site) { create(:site) }
       let(:room) { create(:room, site: site) }
