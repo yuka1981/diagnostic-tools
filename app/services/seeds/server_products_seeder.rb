@@ -45,11 +45,13 @@ module Seeds
       image_path = images_dir.join(image_filename)
       return unless image_path.exist?
 
-      product.images.attach(
-        io: File.open(image_path),
-        filename: image_filename,
-        content_type: Marcel::MimeType.for(image_path)
-      )
+      File.open(image_path, "rb") do |file|
+        product.images.attach(
+          io: file,
+          filename: image_filename,
+          content_type: Marcel::MimeType.for(image_path)
+        )
+      end
     end
   end
 end
