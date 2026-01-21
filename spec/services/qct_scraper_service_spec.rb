@@ -3,9 +3,10 @@
 require "rails_helper"
 
 RSpec.describe QctScraperService do
-  describe "#sync_all" do
-    let(:service) { described_class.new }
+  # Disable rate limiting in tests for faster execution
+  let(:service) { described_class.new(request_delay: 0) }
 
+  describe "#sync_all" do
     # Main listing page shows category links
     let(:product_listing_html) do
       <<~HTML
@@ -172,8 +173,6 @@ RSpec.describe QctScraperService do
   end
 
   describe "#sync_product" do
-    let(:service) { described_class.new }
-
     let(:product_page_html) do
       <<~HTML
         <html>
@@ -229,8 +228,6 @@ RSpec.describe QctScraperService do
   end
 
   describe "#parse_product_page" do
-    let(:service) { described_class.new }
-
     it "extracts model name from h1 tag" do
       html = '<html><body><h1>QuantaGrid D54Q-2U</h1></body></html>'
       attrs = service.send(:parse_product_page, html, "https://example.com")
@@ -306,7 +303,93 @@ RSpec.describe QctScraperService do
   end
 
   describe "#fetch_product_listing" do
-    let(:service) { described_class.new }
+    context "with pagination support" do
+      let(:main_listing_page1_html) do
+        <<~HTML
+          <html>
+          <body>
+            <a href="/product/index/Server/rackmount-server/2U-Rackmount-Server">2U Servers</a>
+            <a href="?page=2">Next</a>
+          </body>
+          </html>
+        HTML
+      end
+
+      let(:main_listing_page2_html) do
+        <<~HTML
+          <html>
+          <body>
+            <a href="/product/index/Server/rackmount-server/4U-Rackmount-Server">4U Servers</a>
+          </body>
+          </html>
+        HTML
+      end
+
+      let(:category_2u_page1_html) do
+        <<~HTML
+          <html>
+          <body>
+            <a href="/product/index/Server/rackmount-server/2U-Rackmount-Server/QuantaGrid-D54Q-2U">D54Q</a>
+            <a href="/product/index/Server/rackmount-server/2U-Rackmount-Server/QuantaGrid-D55Q-2U">D55Q</a>
+            <a href="?page=2">Next</a>
+          </body>
+          </html>
+        HTML
+      end
+
+      let(:category_2u_page2_html) do
+        <<~HTML
+          <html>
+          <body>
+            <a href="/product/index/Server/rackmount-server/2U-Rackmount-Server/QuantaGrid-S74G-2U">S74G</a>
+          </body>
+          </html>
+        HTML
+      end
+
+      let(:category_4u_html) do
+        <<~HTML
+          <html>
+          <body>
+            <a href="/product/index/Server/rackmount-server/4U-Rackmount-Server/QuantaGrid-D54X-4U">D54X</a>
+          </body>
+          </html>
+        HTML
+      end
+
+      before do
+        stub_request(:get, QctScraperService::BASE_URL)
+          .to_return(status: 200, body: main_listing_page1_html)
+        stub_request(:get, "https://www.qct.io/product/index/Server/rackmount-server?page=2")
+          .to_return(status: 200, body: main_listing_page2_html)
+        stub_request(:get, "https://www.qct.io/product/index/Server/rackmount-server/2U-Rackmount-Server")
+          .to_return(status: 200, body: category_2u_page1_html)
+        stub_request(:get, "https://www.qct.io/product/index/Server/rackmount-server/2U-Rackmount-Server?page=2")
+          .to_return(status: 200, body: category_2u_page2_html)
+        stub_request(:get, "https://www.qct.io/product/index/Server/rackmount-server/4U-Rackmount-Server")
+          .to_return(status: 200, body: category_4u_html)
+      end
+
+      it "fetches products from all pages of main listing" do
+        urls = service.send(:fetch_product_listing)
+        # Should find 4U category from page 2
+        expect(urls).to include("https://www.qct.io/product/index/Server/rackmount-server/4U-Rackmount-Server/QuantaGrid-D54X-4U")
+      end
+
+      it "fetches products from all pages within each category" do
+        urls = service.send(:fetch_product_listing)
+        # Should find all 3 products from 2U category (2 from page 1, 1 from page 2)
+        expect(urls).to include("https://www.qct.io/product/index/Server/rackmount-server/2U-Rackmount-Server/QuantaGrid-D54Q-2U")
+        expect(urls).to include("https://www.qct.io/product/index/Server/rackmount-server/2U-Rackmount-Server/QuantaGrid-D55Q-2U")
+        expect(urls).to include("https://www.qct.io/product/index/Server/rackmount-server/2U-Rackmount-Server/QuantaGrid-S74G-2U")
+      end
+
+      it "collects products from all categories across all pages" do
+        urls = service.send(:fetch_product_listing)
+        # Total: 3 from 2U category + 1 from 4U category = 4 products
+        expect(urls.size).to eq(4)
+      end
+    end
 
     context "with two-stage scraping (real QCT site structure)" do
       let(:main_listing_html) do

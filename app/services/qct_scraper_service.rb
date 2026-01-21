@@ -5,7 +5,10 @@ require "nokogiri"
 
 class QctScraperService
   BASE_URL = "https://www.qct.io/product/index/Server/rackmount-server"
-  USER_AGENT = "Mozilla/5.0 (compatible; DiagnosticTools/1.0)"
+
+  # Use a realistic browser User-Agent to avoid blocking
+  USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 " \
+               "(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
 
   # URL path segments: /product/index/Server/rackmount-server/{category}/{product}
   # Base URL: /product/index/Server/rackmount-server = 4 segments
@@ -14,7 +17,17 @@ class QctScraperService
   CATEGORY_PATH_SEGMENTS = 5
   PRODUCT_PATH_SEGMENTS = 6
 
+  # Rate limiting: delay between requests (in seconds)
+  DEFAULT_REQUEST_DELAY = 1.0
+
+  # Maximum pages to fetch per category (safety limit)
+  MAX_PAGES_PER_CATEGORY = 20
+
   Result = Struct.new(:added_count, :updated_count, :errors, :new_products, keyword_init: true)
+
+  def initialize(request_delay: DEFAULT_REQUEST_DELAY)
+    @request_delay = request_delay
+  end
 
   def sync_all
     product_urls = fetch_product_listing
@@ -49,6 +62,7 @@ class QctScraperService
   end
 
   def sync_product(url)
+    rate_limit
     html = fetch_page(url)
     attrs = parse_product_page(html, url)
 
@@ -65,6 +79,10 @@ class QctScraperService
   end
 
   private
+
+  def rate_limit
+    sleep(@request_delay) if @request_delay.positive?
+  end
 
   def fetch_page(url)
     uri = URI.parse(url)
@@ -83,16 +101,17 @@ class QctScraperService
   end
 
   def fetch_product_listing
+    rate_limit
     html = fetch_page(BASE_URL)
     doc = Nokogiri::HTML(html)
 
-    # Collect all rackmount-server URLs from main page
-    all_urls = extract_rackmount_urls(doc)
+    # Collect all rackmount-server URLs from main page (including paginated pages)
+    all_urls = fetch_all_pages_urls(BASE_URL, doc)
 
     # Separate category URLs from product URLs
     category_urls, product_urls = all_urls.partition { |url| category_url?(url) }
 
-    # Stage 2: Visit each category page to collect product URLs
+    # Stage 2: Visit each category page to collect product URLs (with pagination)
     category_urls.each do |category_url|
       category_product_urls = fetch_products_from_category(category_url)
       product_urls.concat(category_product_urls)
@@ -105,10 +124,65 @@ class QctScraperService
   end
 
   def fetch_products_from_category(category_url)
+    rate_limit
     html = fetch_page(category_url)
     doc = Nokogiri::HTML(html)
 
-    extract_rackmount_urls(doc).reject { |url| category_url?(url) }
+    # Fetch products from all pages of this category
+    fetch_all_pages_urls(category_url, doc).reject { |url| category_url?(url) }
+  end
+
+  def fetch_all_pages_urls(base_url, first_page_doc)
+    all_urls = extract_rackmount_urls(first_page_doc)
+    current_page = 1
+
+    # Check for pagination and fetch additional pages
+    while current_page < MAX_PAGES_PER_CATEGORY
+      next_page_url = find_next_page_url(base_url, first_page_doc, current_page)
+      break unless next_page_url
+
+      rate_limit
+      begin
+        html = fetch_page(next_page_url)
+        doc = Nokogiri::HTML(html)
+        page_urls = extract_rackmount_urls(doc)
+
+        # Stop if no new URLs found (we've reached the end)
+        break if page_urls.empty? || (page_urls - all_urls).empty?
+
+        all_urls.concat(page_urls)
+        current_page += 1
+        first_page_doc = doc
+      rescue StandardError
+        # Stop pagination on error, return what we have
+        break
+      end
+    end
+
+    all_urls.uniq
+  end
+
+  def find_next_page_url(base_url, doc, current_page)
+    next_page = current_page + 1
+
+    # Look for explicit next page link
+    next_link = doc.at_css("a[href*='page=#{next_page}']")
+    return nil unless next_link
+
+    href = next_link["href"]
+    return nil if href.nil? || href.empty?
+
+    # Build absolute URL
+    if href.start_with?("http")
+      href
+    elsif href.start_with?("?")
+      # Query string only, append to base URL
+      uri = URI.parse(base_url)
+      uri.query = href.sub(/^\?/, "")
+      uri.to_s
+    else
+      "https://www.qct.io#{href}"
+    end
   end
 
   def extract_rackmount_urls(doc)
