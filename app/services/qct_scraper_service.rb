@@ -206,9 +206,13 @@ class QctScraperService
   def parse_product_page(html, url)
     doc = Nokogiri::HTML(html)
 
+    # Extract specifications section for targeted parsing
+    specs_text = extract_specifications_text(doc)
+    full_text = doc.text
+
     model_name = extract_model_name(doc)
     product_series = extract_series(model_name)
-    form_factor = extract_form_factor(doc, model_name)
+    form_factor = extract_form_factor(doc, model_name, specs_text)
     rack_height = form_factor&.match(/(\d+)U/i)&.captures&.first&.to_i || 1
 
     {
@@ -217,15 +221,25 @@ class QctScraperService
       form_factor: form_factor,
       rack_height: rack_height,
       qct_product_url: url,
-      cpu_generations: extract_cpu_generations(doc),
-      socket_count: extract_socket_count(doc),
-      max_memory_gb: extract_max_memory(doc),
-      dimm_slots: extract_dimm_slots(doc),
-      memory_types: extract_memory_types(doc),
-      drive_bays: extract_drive_bays(doc),
-      pcie_slots: extract_pcie_slots(doc),
-      gpu_support: extract_gpu_support(doc)
+      cpu_generations: extract_cpu_generations(specs_text, full_text),
+      socket_count: extract_socket_count(specs_text, full_text),
+      max_memory_gb: extract_max_memory(specs_text, full_text),
+      dimm_slots: extract_dimm_slots(specs_text, full_text),
+      memory_types: extract_memory_types(specs_text, full_text),
+      drive_bays: extract_drive_bays(specs_text, full_text),
+      pcie_slots: extract_pcie_slots(specs_text, full_text),
+      gpu_support: extract_gpu_support(specs_text, full_text)
     }.compact
+  end
+
+  def extract_specifications_text(doc)
+    # Try multiple selectors for the specifications section
+    specs_section = doc.at_css("#specifications") ||
+                    doc.at_css("[id*='spec']") ||
+                    doc.at_css(".specifications") ||
+                    doc.at_css("[class*='spec']")
+
+    specs_section&.text || ""
   end
 
   def extract_model_name(doc)
@@ -240,32 +254,44 @@ class QctScraperService
     %w[QuantaGrid QuantaPlex QuantaMesh QuantaEdge].find { |s| model_name.include?(s) }
   end
 
-  def extract_form_factor(doc, model_name)
+  def extract_form_factor(doc, model_name, specs_text)
     # First try to extract from model name (e.g., "D54Q-2U")
     ff_match = model_name&.match(/(\d+U)/i)
     return ff_match[1].upcase if ff_match
 
-    # Fallback to page text
-    doc.text[/Form Factor[:\s]*(\d+U)/i, 1]&.upcase
+    # Try specs section first, then full page
+    text = specs_text.presence || doc.text
+    text[/Form Factor[:\s]*(\d+U)/i, 1]&.upcase
   end
 
-  def extract_cpu_generations(doc)
-    cpu_text = doc.text
+  def extract_cpu_generations(specs_text, full_text)
+    text = specs_text.presence || full_text
 
     generations = []
-    generations << "5th Gen Xeon" if cpu_text =~ /5th\s*Gen.*Xeon|Emerald\s*Rapids/i
-    generations << "4th Gen Xeon" if cpu_text =~ /4th\s*Gen.*Xeon|Sapphire\s*Rapids/i
-    generations << "3rd Gen Xeon" if cpu_text =~ /3rd\s*Gen.*Xeon|Ice\s*Lake/i
+    generations << "5th Gen Xeon" if text =~ /5th\s*Gen.*Xeon|Emerald\s*Rapids/i
+    generations << "4th Gen Xeon" if text =~ /4th\s*Gen.*Xeon|Sapphire\s*Rapids/i
+    generations << "3rd Gen Xeon" if text =~ /3rd\s*Gen.*Xeon|Ice\s*Lake/i
+    # Also match "Intel Xeon Scalable" without generation (older models)
+    generations << "Xeon Scalable" if generations.empty? && text =~ /Xeon.*Scalable/i
     generations
   end
 
-  def extract_socket_count(doc)
-    doc.text[/(\d+)\s*Socket/i, 1]&.to_i
+  def extract_socket_count(specs_text, full_text)
+    text = specs_text.presence || full_text
+
+    # QCT format: "Number of Processors: 2 Processors" or "2 Processors"
+    match = text[/Number of Processors[:\s]*(\d+)/i, 1] ||
+            text[/(\d+)\s*Processors?\b/i, 1] ||
+            text[/(\d+)\s*Socket/i, 1]
+    match&.to_i
   end
 
-  def extract_max_memory(doc)
-    # Match patterns like "8192 GB max" or "8 TB maximum"
-    mem_match = doc.text[/(\d+)\s*(TB|GB)\s*(?:max|maximum)/i]
+  def extract_max_memory(specs_text, full_text)
+    text = specs_text.presence || full_text
+
+    # QCT format: "Up to 3TB" or "Up to 8192 GB" or "8192 GB max"
+    mem_match = text[/Up to (\d+)\s*(TB|GB)/i] ||
+                text[/(\d+)\s*(TB|GB)\s*(?:max|maximum)/i]
     return nil unless mem_match
 
     value = mem_match[/(\d+)/, 1].to_i
@@ -273,42 +299,91 @@ class QctScraperService
     unit&.upcase == "TB" ? value * 1024 : value
   end
 
-  def extract_dimm_slots(doc)
-    doc.text[/(\d+)\s*DIMM/i, 1]&.to_i
+  def extract_dimm_slots(specs_text, full_text)
+    text = specs_text.presence || full_text
+
+    # QCT format: "Total Slots: 24" or "24 DIMM slots"
+    match = text[/Total Slots[:\s]*(\d+)/i, 1] ||
+            text[/(\d+)\s*DIMM/i, 1] ||
+            text[/Memory Slots[:\s]*(\d+)/i, 1]
+    match&.to_i
   end
 
-  def extract_memory_types(doc)
+  def extract_memory_types(specs_text, full_text)
+    text = specs_text.presence || full_text
+
     types = []
-    types << "DDR5" if doc.text =~ /DDR5/i
-    types << "DDR4" if doc.text =~ /DDR4/i
+    types << "DDR5" if text =~ /DDR5/i
+    types << "DDR4" if text =~ /DDR4/i
+    types << "DDR3" if text =~ /DDR3/i
     types
   end
 
-  def extract_drive_bays(doc)
+  def extract_drive_bays(specs_text, full_text)
+    text = specs_text.presence || full_text
     bays = []
-    doc.text.scan(/(\d+)\s*x?\s*(NVMe|SAS|SATA|SSD|HDD)\s*([\d.]+)?/i).each do |count, type, form_factor|
+
+    # QCT format: "(12) 3.5"/2.5" hot-plug SATA/SAS" or "(24) 2.5" hot-plug NVMe SSD"
+    # Pattern: (count) size hot-plug type
+    text.scan(/\((\d+)\)[^(]*?(NVMe|SAS|SATA|SSD|HDD)/i).each do |count, type|
+      # Normalize type
+      normalized_type = case type.upcase
+      when "NVME" then "NVME"
+      when "SSD" then "SSD"
+      when "HDD" then "HDD"
+      else type.upcase
+      end
+
       bays << {
         "count" => count.to_i,
-        "type" => type.upcase,
-        "form_factor" => form_factor || "2.5"
+        "type" => normalized_type,
+        "form_factor" => "2.5"
       }
     end
-    bays.uniq
+
+    # Fallback to old pattern if QCT format doesn't match
+    if bays.empty?
+      text.scan(/(\d+)\s*x?\s*(NVMe|SAS|SATA|SSD|HDD)\s*([\d.]+)?/i).each do |count, type, form_factor|
+        bays << {
+          "count" => count.to_i,
+          "type" => type.upcase,
+          "form_factor" => form_factor || "2.5"
+        }
+      end
+    end
+
+    bays.uniq { |b| [ b["count"], b["type"] ] }
   end
 
-  def extract_pcie_slots(doc)
+  def extract_pcie_slots(specs_text, full_text)
+    text = specs_text.presence || full_text
     slots = []
-    doc.text.scan(/(\d+)\s*x?\s*PCIe?\s*([\d.]+)\s*x(\d+)/i).each do |count, gen, lanes|
+
+    # QCT format: "(1) PCIe Gen3 x16" or "(2) PCIe Gen3 x8"
+    text.scan(/\((\d+)\)[^(]*?PCIe[^(]*?(?:Gen\s*)?(\d+)[^(]*?x(\d+)/i).each do |count, gen, lanes|
       slots << {
         "count" => count.to_i,
         "generation" => gen,
         "lanes" => lanes.to_i
       }
     end
-    slots.uniq
+
+    # Fallback to old pattern
+    if slots.empty?
+      text.scan(/(\d+)\s*x?\s*PCIe?\s*([\d.]+)\s*x(\d+)/i).each do |count, gen, lanes|
+        slots << {
+          "count" => count.to_i,
+          "generation" => gen,
+          "lanes" => lanes.to_i
+        }
+      end
+    end
+
+    slots.uniq { |s| [ s["count"], s["generation"], s["lanes"] ] }
   end
 
-  def extract_gpu_support(doc)
-    !!(doc.text =~ /GPU|NVIDIA|AMD\s*Radeon|accelerator/i)
+  def extract_gpu_support(specs_text, full_text)
+    text = specs_text.presence || full_text
+    !!(text =~ /GPU|NVIDIA|AMD\s*Radeon|accelerator/i)
   end
 end

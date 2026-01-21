@@ -300,6 +300,93 @@ RSpec.describe QctScraperService do
       attrs = service.send(:parse_product_page, html, "https://www.qct.io/product/test")
       expect(attrs[:qct_product_url]).to eq("https://www.qct.io/product/test")
     end
+
+    context "with actual QCT website HTML format" do
+      let(:qct_product_html) do
+        <<~HTML
+          <html>
+          <body>
+            <h1>QuantaGrid D52BQ-2U</h1>
+            <div id="specifications">
+              <div class="spec-section">
+                <strong>Processor Family</strong>
+                <span>Intel®Xeon® Processor Scalable Family</span>
+              </div>
+              <div class="spec-section">
+                <strong>Number of Processors</strong>
+                <span>2 Processors</span>
+              </div>
+              <div class="spec-section">
+                <strong>Memory</strong>
+                <ul>
+                  <li>Total Slots: 24</li>
+                  <li>Up to 3TB (128Gx24) of memory for RDIMM/LRDIMM</li>
+                  <li>2933Mhz DDR4 RDIMM/LRDIMM</li>
+                </ul>
+              </div>
+              <div class="spec-section">
+                <strong>Storage</strong>
+                <ul>
+                  <li>(12) 3.5"/2.5" hot-plug SATA/SAS</li>
+                  <li>(24) 2.5" hot-plug NVMe SSD</li>
+                </ul>
+              </div>
+              <div class="spec-section">
+                <strong>Expansion Slots</strong>
+                <ul>
+                  <li>(1) PCIe Gen3 x16 SAS mezzanine slot</li>
+                  <li>(2) PCIe Gen3 x8 FHHL</li>
+                  <li>(4) PCIe Gen3 x16 FHFL</li>
+                </ul>
+              </div>
+              <div class="spec-section">
+                <strong>Form Factor</strong>
+                <span>2U</span>
+              </div>
+            </div>
+          </body>
+          </html>
+        HTML
+      end
+
+      it "extracts socket count from QCT format 'Number of Processors: 2 Processors'" do
+        attrs = service.send(:parse_product_page, qct_product_html, "https://example.com")
+        expect(attrs[:socket_count]).to eq(2)
+      end
+
+      it "extracts DIMM slots from QCT format 'Total Slots: 24'" do
+        attrs = service.send(:parse_product_page, qct_product_html, "https://example.com")
+        expect(attrs[:dimm_slots]).to eq(24)
+      end
+
+      it "extracts max memory from QCT format 'Up to 3TB'" do
+        attrs = service.send(:parse_product_page, qct_product_html, "https://example.com")
+        expect(attrs[:max_memory_gb]).to eq(3072) # 3TB = 3072GB
+      end
+
+      it "extracts memory types from QCT format" do
+        attrs = service.send(:parse_product_page, qct_product_html, "https://example.com")
+        expect(attrs[:memory_types]).to include("DDR4")
+      end
+
+      it "extracts drive bays from QCT format '(12) 3.5\"/2.5\" hot-plug SATA/SAS'" do
+        attrs = service.send(:parse_product_page, qct_product_html, "https://example.com")
+        expect(attrs[:drive_bays]).to be_present
+        expect(attrs[:drive_bays].any? { |b| b["count"] == 12 && b["type"] == "SATA" }).to be true
+      end
+
+      it "extracts NVMe drive bays from QCT format" do
+        attrs = service.send(:parse_product_page, qct_product_html, "https://example.com")
+        expect(attrs[:drive_bays].any? { |b| b["count"] == 24 && b["type"] == "NVME" }).to be true
+      end
+
+      it "extracts PCIe slots from QCT format '(1) PCIe Gen3 x16'" do
+        attrs = service.send(:parse_product_page, qct_product_html, "https://example.com")
+        expect(attrs[:pcie_slots]).to be_present
+        # Should find x16 slots
+        expect(attrs[:pcie_slots].any? { |s| s["lanes"] == 16 }).to be true
+      end
+    end
   end
 
   describe "#fetch_product_listing" do
