@@ -91,8 +91,10 @@
             <tr class="hover:bg-slate-50">
               <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">QCT Product URL</th>
               <td class="px-4 py-2 text-slate-700">
-                <% if @server_product.qct_product_url.present? %>
-                  <%= link_to @server_product.qct_product_url, @server_product.qct_product_url, target: "_blank", class: "text-teal-600 hover:text-teal-700 hover:underline" %>
+                <% if @server_product.qct_product_url.present? && @server_product.qct_product_url.start_with?("https://") %>
+                  <%= link_to @server_product.qct_product_url, @server_product.qct_product_url, target: "_blank", rel: "noopener noreferrer", class: "text-teal-600 hover:text-teal-700 hover:underline" %>
+                <% elsif @server_product.qct_product_url.present? %>
+                  <%= @server_product.qct_product_url %>
                 <% else %>
                   -
                 <% end %>
