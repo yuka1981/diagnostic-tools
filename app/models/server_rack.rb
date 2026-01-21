@@ -7,6 +7,8 @@ class ServerRack < ApplicationRecord
 
   delegate :site, to: :room
 
+  before_validation :normalize_blank_facility_id
+
   enum :status, { active: 0, planned: 1, decommissioned: 2 }, default: :active
 
   validates :name, presence: true, length: { maximum: 255 }, uniqueness: { scope: :room_id }
@@ -24,5 +26,11 @@ class ServerRack < ApplicationRecord
     return 0.0 if u_height.zero?
 
     (utilization.to_f / u_height * 100).round(1)
+  end
+
+  private
+
+  def normalize_blank_facility_id
+    self.facility_id = nil if facility_id.blank?
   end
 end
