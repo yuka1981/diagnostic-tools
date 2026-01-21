@@ -42,6 +42,24 @@ RSpec.describe "ServerRacks", type: :request do
         expect(response.body).to include("OtherRack")
       end
     end
+
+    context "with room filter" do
+      let(:other_room_same_site) { create(:room, site: site) }
+      let!(:rack_in_room) { create(:server_rack, room: room, name: "RoomFilteredRack") }
+      let!(:rack_in_other_room) { create(:server_rack, room: other_room_same_site, name: "OtherRoomRack") }
+
+      it "filters racks by room when room_id param is provided" do
+        get server_racks_path, params: { room_id: room.id }
+        expect(response.body).to include("RoomFilteredRack")
+        expect(response.body).not_to include("OtherRoomRack")
+      end
+
+      it "shows all racks in site when only site_id filter is provided" do
+        get server_racks_path, params: { site_id: site.id }
+        expect(response.body).to include("RoomFilteredRack")
+        expect(response.body).to include("OtherRoomRack")
+      end
+    end
   end
 
   describe "GET /racks/:id" do
