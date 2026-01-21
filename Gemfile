@@ -92,7 +92,7 @@ group :development do
   gem "web-console"
 end
 
-gem "view_component", "~> 4.1"
+gem "view_component", "~> 4.2"
 
 gem "net-ssh-gateway", "~> 2.0"
 
