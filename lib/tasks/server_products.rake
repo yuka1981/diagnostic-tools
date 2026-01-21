@@ -28,4 +28,18 @@ namespace :server_products do
 
     puts "Done! Purged #{count} server product(s)."
   end
+
+  desc "Pre-process image variants for all server products"
+  task preprocess_variants: :environment do
+    count = 0
+    ServerProduct.includes(images_attachments: :blob).find_each do |product|
+      next unless product.images.attached?
+
+      print "Processing #{product.name}..."
+      product.preprocess_image_variants!
+      puts " done"
+      count += 1
+    end
+    puts "Processed #{count} products with images."
+  end
 end
