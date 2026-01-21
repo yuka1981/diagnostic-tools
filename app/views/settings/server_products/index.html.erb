@@ -96,22 +96,7 @@
             <span class="font-medium"><%= @server_products.total_count %></span>
             results
           </div>
-          <nav class="flex items-center justify-center gap-1" aria-label="Pagination">
-            <% if @server_products.prev_page %>
-              <%= link_to "Previous", settings_server_products_path(params.permit(:series, :form_factor, :q).merge(page: @server_products.prev_page)), class: "btn-secondary text-sm px-3 py-1.5", rel: "prev" %>
-            <% end %>
-            <% @server_products.total_pages.times do |i| %>
-              <% page_num = i + 1 %>
-              <% if page_num == @server_products.current_page %>
-                <span class="btn-primary text-sm px-3 py-1.5" aria-current="page"><%= page_num %></span>
-              <% else %>
-                <%= link_to page_num, settings_server_products_path(params.permit(:series, :form_factor, :q).merge(page: page_num)), class: "btn-secondary text-sm px-3 py-1.5" %>
-              <% end %>
-            <% end %>
-            <% if @server_products.next_page %>
-              <%= link_to "Next", settings_server_products_path(params.permit(:series, :form_factor, :q).merge(page: @server_products.next_page)), class: "btn-secondary text-sm px-3 py-1.5", rel: "next" %>
-            <% end %>
-          </nav>
+          <%= paginate @server_products, params: params.permit(:series, :form_factor, :q).to_h, window: 2, outer_window: 1 %>
         </div>
       </div>
     <% end %>
