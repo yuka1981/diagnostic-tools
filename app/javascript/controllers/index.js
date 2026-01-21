@@ -43,6 +43,9 @@ application.register("rack-diagram", RackDiagramController)
 import ReleaseModeController from "./release_mode_controller"
 application.register("release-mode", ReleaseModeController)
 
+import ServerProductSearchController from "./server_product_search_controller"
+application.register("server-product-search", ServerProductSearchController)
+
 import SidebarController from "./sidebar_controller"
 application.register("sidebar", SidebarController)
 
