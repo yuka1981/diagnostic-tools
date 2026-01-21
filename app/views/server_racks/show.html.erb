@@ -126,16 +126,10 @@
 </div>
 
 <%# Rack Diagram %>
-<div class="card-netbox mt-6"
-     data-controller="rack-diagram"
-     data-rack-diagram-rack-id-value="<%= @server_rack.id %>"
-     data-rack-diagram-rack-height-value="<%= @server_rack.u_height %>"
-     data-rack-diagram-desc-units-value="<%= @server_rack.desc_units %>"
-     data-rack-diagram-nodes-value="<%= @server_rack.nodes.map { |n| { id: n.id, hostname: n.hostname, position: n.rack_position, height: n.rack_height || 1, status: n.online? ? 'Online' : 'Offline' } }.to_json %>"
-     data-rack-diagram-readonly-value="<%= !current_user&.approver? %>">
+<div class="card-netbox mt-6">
   <div class="card-header flex items-center justify-between">
     <h3 class="card-title">Rack Diagram</h3>
-    <% if current_user&.approver? %>
+    <% if current_user&.approver? && @server_rack.nodes.any? %>
       <button id="save-layout-btn" class="hidden px-4 py-2 bg-teal-600 text-white text-sm rounded-lg hover:bg-teal-700 transition-colors">
         Save Layout
       </button>
@@ -143,7 +137,13 @@
   </div>
   <div class="p-6">
     <% if @server_rack.nodes.any? %>
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6"
+           data-controller="rack-diagram"
+           data-rack-diagram-rack-id-value="<%= @server_rack.id %>"
+           data-rack-diagram-rack-height-value="<%= @server_rack.u_height %>"
+           data-rack-diagram-desc-units-value="<%= @server_rack.desc_units %>"
+           data-rack-diagram-nodes-value="<%= @server_rack.nodes.map { |n| { id: n.id, hostname: n.hostname, position: n.rack_position, height: n.rack_height || 1, status: n.online? ? 'Online' : 'Offline' } }.to_json %>"
+           data-rack-diagram-readonly-value="<%= !current_user&.approver? %>">
         <div class="lg:col-span-2">
           <div data-rack-diagram-target="container" class="w-full"></div>
         </div>
