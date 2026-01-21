@@ -12,11 +12,6 @@ export default class extends Controller {
   }
 
   connect() {
-    console.log("[RackDiagram] Connecting controller...")
-    console.log("[RackDiagram] Container:", this.containerTarget)
-    console.log("[RackDiagram] Container dimensions:", this.containerTarget.clientWidth, "x", this.containerTarget.clientHeight)
-    console.log("[RackDiagram] Nodes:", this.nodesValue)
-
     this.hasChanges = false
 
     // Store initial details content for restoration when deselecting
@@ -24,19 +19,14 @@ export default class extends Controller {
       this.defaultDetailsContent = this.detailsTarget.innerHTML
     }
 
-    try {
-      this.diagram = new RackDiagram(this.containerTarget, {
-        rackHeight: this.rackHeightValue,
-        descUnits: this.descUnitsValue,
-        nodes: this.nodesValue,
-        readonly: this.readonlyValue,
-        onSelect: this.handleSelect.bind(this),
-        onChange: this.handleChange.bind(this)
-      })
-      console.log("[RackDiagram] Diagram initialized successfully")
-    } catch (error) {
-      console.error("[RackDiagram] Failed to initialize diagram:", error)
-    }
+    this.diagram = new RackDiagram(this.containerTarget, {
+      rackHeight: this.rackHeightValue,
+      descUnits: this.descUnitsValue,
+      nodes: this.nodesValue,
+      readonly: this.readonlyValue,
+      onSelect: this.handleSelect.bind(this),
+      onChange: this.handleChange.bind(this)
+    })
 
     this.setupSaveButton()
     this.setupBeforeUnload()

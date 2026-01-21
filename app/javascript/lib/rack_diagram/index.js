@@ -187,8 +187,6 @@ export class RackDiagram {
     const minY = 2
     const maxY = (this.options.rackHeight - height) * this.ruHeight + 2
 
-    console.log("[RackDiagram] Setting up draggable for node:", nodeId, "height:", height, "maxY:", maxY)
-
     const interactable = interact(nodeEl).draggable({
       inertia: false,
       autoScroll: false,
@@ -203,7 +201,6 @@ export class RackDiagram {
 
       listeners: {
         start: (event) => {
-          console.log("[RackDiagram] Drag start:", nodeId)
           nodeEl.style.cursor = "grabbing"
           nodeEl.style.zIndex = "100"
           nodeEl.setAttribute("data-start-top", nodeEl.style.top)
@@ -219,7 +216,6 @@ export class RackDiagram {
           nodeEl.style.top = `${newTop}px`
         },
         end: (event) => {
-          console.log("[RackDiagram] Drag end:", nodeId)
           nodeEl.style.cursor = "grab"
           nodeEl.style.zIndex = ""
 
@@ -235,7 +231,6 @@ export class RackDiagram {
     })
 
     this.interactables.set(nodeId, interactable)
-    console.log("[RackDiagram] Draggable setup complete for node:", nodeId)
   }
 
   generateSnapTargets(nodeHeight) {
