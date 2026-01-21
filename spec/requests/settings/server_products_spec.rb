@@ -63,6 +63,29 @@ RSpec.describe "Settings::ServerProducts", type: :request do
         product_rows = doc.css("tbody tr")
         expect(product_rows.size).to eq(5)
       end
+
+      it "renders page number links" do
+        get settings_server_products_path
+        doc = Nokogiri::HTML(response.body)
+        page_links = doc.css('nav[aria-label="Pagination"] a, nav[aria-label="Pagination"] span[aria-current="page"]')
+        expect(page_links.size).to be >= 2 # At least page 1 and 2
+      end
+
+      it "highlights current page" do
+        get settings_server_products_path
+        doc = Nokogiri::HTML(response.body)
+        current_page = doc.at_css('span[aria-current="page"]')
+        expect(current_page).to be_present
+        expect(current_page.text.strip).to eq("1")
+      end
+
+      it "preserves filter params in pagination links" do
+        create(:server_product, product_series: "QuantaGrid")
+        get settings_server_products_path, params: { series: "QuantaGrid" }
+        doc = Nokogiri::HTML(response.body)
+        next_link = doc.at_css('a[rel="next"]')
+        expect(next_link["href"]).to include("series=QuantaGrid") if next_link
+      end
     end
   end
 

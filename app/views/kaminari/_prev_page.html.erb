@@ -1,6 +1,2 @@
 <%# app/views/kaminari/_prev_page.html.erb %>
-<% if current_page.first? %>
-  <span class="btn-secondary text-sm px-3 py-1.5 opacity-50 cursor-not-allowed" aria-disabled="true">Previous</span>
-<% else %>
-  <%= link_to "Previous", url, class: "btn-secondary text-sm px-3 py-1.5", rel: "prev" %>
-<% end %>
+<%= link_to "Previous", url, class: "btn-secondary text-sm px-3 py-1.5", rel: "prev" %>
