@@ -119,13 +119,37 @@ export default class extends Controller {
         this.hasChanges = false
         this.hideSaveButton()
         this.showNotification("Layout saved successfully", "success")
-        // Reload page after short delay to show updated positions in table
-        setTimeout(() => window.location.reload(), 1000)
+        this.updateMountedNodesTable(positions)
       } else {
         this.showNotification(data.errors.join(", "), "error")
       }
     } catch (error) {
       this.showNotification("Failed to save layout", "error")
+    }
+  }
+
+  updateMountedNodesTable(positions) {
+    // Update position cells in the Mounted Nodes table
+    positions.forEach(pos => {
+      const row = document.querySelector(`tr[data-node-id="${pos.node_id}"]`)
+      if (row) {
+        const positionCell = row.querySelector("td[data-position]")
+        if (positionCell) {
+          positionCell.textContent = `U${pos.rack_position}`
+        }
+      }
+    })
+
+    // Re-sort table rows by position
+    const tbody = document.querySelector("table tbody")
+    if (tbody) {
+      const rows = Array.from(tbody.querySelectorAll("tr[data-node-id]"))
+      rows.sort((a, b) => {
+        const posA = parseInt(a.querySelector("td[data-position]")?.textContent.replace("U", "") || 0)
+        const posB = parseInt(b.querySelector("td[data-position]")?.textContent.replace("U", "") || 0)
+        return posA - posB
+      })
+      rows.forEach(row => tbody.appendChild(row))
     }
   }
 

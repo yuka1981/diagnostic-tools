@@ -188,8 +188,8 @@
         </thead>
         <tbody class="divide-y divide-slate-200 bg-white">
           <% @server_rack.nodes.order(:rack_position).each do |node| %>
-            <tr class="hover:bg-slate-50 transition-colors">
-              <td class="whitespace-nowrap px-3 py-2 text-sm text-slate-700 font-mono">
+            <tr class="hover:bg-slate-50 transition-colors" data-node-id="<%= node.id %>">
+              <td class="whitespace-nowrap px-3 py-2 text-sm text-slate-700 font-mono" data-position>
                 U<%= node.rack_position %>
               </td>
               <td class="whitespace-nowrap px-3 py-2">
