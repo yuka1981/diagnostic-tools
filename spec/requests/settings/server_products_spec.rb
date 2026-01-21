@@ -43,6 +43,27 @@ RSpec.describe "Settings::ServerProducts", type: :request do
         expect(response).to redirect_to(new_user_session_path)
       end
     end
+
+    describe "pagination" do
+      before do
+        sign_in approver
+        create_list(:server_product, 15)
+      end
+
+      it "paginates results to 10 per page" do
+        get settings_server_products_path
+        doc = Nokogiri::HTML(response.body)
+        product_rows = doc.css("tbody tr")
+        expect(product_rows.size).to eq(10)
+      end
+
+      it "shows second page when requested" do
+        get settings_server_products_path, params: { page: 2 }
+        doc = Nokogiri::HTML(response.body)
+        product_rows = doc.css("tbody tr")
+        expect(product_rows.size).to eq(5)
+      end
+    end
   end
 
   describe "GET /settings/server_products/new" do

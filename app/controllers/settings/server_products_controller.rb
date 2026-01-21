@@ -12,7 +12,7 @@ module Settings
       @server_products = @server_products.by_series(params[:series]) if params[:series].present?
       @server_products = @server_products.by_form_factor(params[:form_factor]) if params[:form_factor].present?
       @server_products = @server_products.search_by_name(params[:q]) if params[:q].present?
-      @server_products = @server_products.order(:name)
+      @server_products = @server_products.with_attached_images.order(:name).page(params[:page]).per(10)
       @last_sync = SyncLog.for_source("qct").latest.first
     end
 
