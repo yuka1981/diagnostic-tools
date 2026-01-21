@@ -1,7 +1,7 @@
-import * as fabric from "fabric"
+import interact from "interactjs"
 
 export class RackDiagram {
-  constructor(canvasElement, options) {
+  constructor(containerElement, options) {
     this.options = {
       rackHeight: 42,
       descUnits: false,
@@ -12,7 +12,9 @@ export class RackDiagram {
       ...options
     }
 
-    this.nodeObjects = new Map()
+    this.container = containerElement
+    this.nodeElements = new Map()
+    this.interactables = new Map()
     this.positions = new Map()
     this.selectedNode = null
 
@@ -25,245 +27,288 @@ export class RackDiagram {
       })
     })
 
-    this.initCanvas(canvasElement)
+    this.initDimensions()
     this.render()
   }
 
-  initCanvas(element) {
-    const containerWidth = element.parentElement.clientWidth
-    const ruHeight = 20
-    const labelWidth = 40
-    const rackWidth = containerWidth - labelWidth - 20
-    const canvasHeight = this.options.rackHeight * ruHeight + 40
-
-    this.ruHeight = ruHeight
-    this.labelWidth = labelWidth
-    this.rackWidth = rackWidth
-    this.rackX = labelWidth + 10
+  initDimensions() {
+    const containerWidth = this.container.clientWidth || 400
+    this.ruHeight = 20
+    this.labelWidth = 40
+    this.rackWidth = containerWidth - this.labelWidth - 20
+    this.rackX = this.labelWidth + 10
     this.rackY = 20
-
-    element.width = containerWidth
-    element.height = canvasHeight
-
-    this.canvas = new fabric.Canvas(element, {
-      selection: false,
-      backgroundColor: "#f8fafc"
-    })
-
-    this.canvas.on("mouse:down", this.handleMouseDown.bind(this))
+    this.containerHeight = this.options.rackHeight * this.ruHeight + 40
   }
 
   render() {
-    this.canvas.clear()
-    this.drawRackFrame()
-    this.drawRULabels()
-    this.drawNodes()
-    this.canvas.renderAll()
+    // Clear container
+    this.container.innerHTML = ""
+    this.nodeElements.clear()
+
+    // Setup container styles
+    this.container.style.position = "relative"
+    this.container.style.height = `${this.containerHeight}px`
+    this.container.style.backgroundColor = "#f8fafc"
+    this.container.style.userSelect = "none"
+
+    this.createRackFrame()
+    this.createRULabels()
+    this.createNodes()
   }
 
-  drawRackFrame() {
+  createRackFrame() {
     const height = this.options.rackHeight * this.ruHeight
 
-    const frame = new fabric.Rect({
-      left: this.rackX,
-      top: this.rackY,
-      width: this.rackWidth,
-      height: height,
-      fill: "#e2e8f0",
-      stroke: "#94a3b8",
-      strokeWidth: 2,
-      selectable: false,
-      evented: false
+    // Rack frame container
+    const frame = document.createElement("div")
+    frame.style.position = "absolute"
+    frame.style.left = `${this.rackX}px`
+    frame.style.top = `${this.rackY}px`
+    frame.style.width = `${this.rackWidth}px`
+    frame.style.height = `${height}px`
+    frame.style.backgroundColor = "#e2e8f0"
+    frame.style.border = "2px solid #94a3b8"
+    frame.style.boxSizing = "border-box"
+
+    // Add click handler to deselect when clicking on empty rack space
+    frame.addEventListener("click", (e) => {
+      if (e.target === frame) {
+        this.selectNode(null)
+      }
     })
-    this.canvas.add(frame)
+
+    this.rackFrame = frame
+    this.container.appendChild(frame)
 
     // RU grid lines
     for (let i = 1; i < this.options.rackHeight; i++) {
-      const y = this.rackY + i * this.ruHeight
-      const line = new fabric.Line(
-        [this.rackX, y, this.rackX + this.rackWidth, y],
-        {
-          stroke: "#cbd5e1",
-          strokeWidth: 1,
-          selectable: false,
-          evented: false
-        }
-      )
-      this.canvas.add(line)
+      const line = document.createElement("div")
+      line.style.position = "absolute"
+      line.style.left = "0"
+      line.style.top = `${i * this.ruHeight}px`
+      line.style.width = "100%"
+      line.style.height = "1px"
+      line.style.backgroundColor = "#cbd5e1"
+      line.style.pointerEvents = "none"
+      frame.appendChild(line)
     }
   }
 
-  drawRULabels() {
+  createRULabels() {
     for (let i = 1; i <= this.options.rackHeight; i++) {
       const ruNumber = this.options.descUnits ? i : this.options.rackHeight - i + 1
       const y = this.rackY + (i - 1) * this.ruHeight + this.ruHeight / 2
 
-      const label = new fabric.FabricText(ruNumber.toString(), {
-        left: this.labelWidth / 2,
-        top: y,
-        fontSize: 10,
-        fontFamily: "system-ui",
-        fill: "#64748b",
-        originX: "center",
-        originY: "center",
-        selectable: false,
-        evented: false
-      })
-      this.canvas.add(label)
+      const label = document.createElement("div")
+      label.textContent = ruNumber.toString()
+      label.style.position = "absolute"
+      label.style.left = `${this.labelWidth / 2}px`
+      label.style.top = `${y}px`
+      label.style.transform = "translate(-50%, -50%)"
+      label.style.fontSize = "10px"
+      label.style.fontFamily = "system-ui, sans-serif"
+      label.style.color = "#64748b"
+      label.style.pointerEvents = "none"
+
+      this.container.appendChild(label)
     }
   }
 
-  drawNodes() {
-    this.nodeObjects.clear()
-
+  createNodes() {
     this.options.nodes.forEach(node => {
       const pos = this.positions.get(node.id)
       if (!pos || !pos.rack_position) return
 
-      const ruFromTop = this.options.descUnits
-        ? pos.rack_position - 1
-        : this.options.rackHeight - pos.rack_position - pos.rack_height + 1
-
-      const y = this.rackY + ruFromTop * this.ruHeight
-      const height = pos.rack_height * this.ruHeight
-
-      // Determine color based on status
-      const fillColor = node.status === "Online" ? "#14b8a6" : "#94a3b8"
-      const strokeColor = node.status === "Online" ? "#0d9488" : "#64748b"
-
-      const rect = new fabric.Rect({
-        left: this.rackX + 4,
-        top: y + 2,
-        width: this.rackWidth - 8,
-        height: height - 4,
-        fill: fillColor,
-        stroke: strokeColor,
-        strokeWidth: 1,
-        rx: 4,
-        ry: 4,
-        selectable: !this.options.readonly,
-        hasControls: false,
-        hasBorders: false,
-        lockMovementX: true,
-        lockScalingX: true,
-        lockScalingY: true,
-        lockRotation: true,
-        data: { ...node, ...pos }
-      })
-
-      const text = new fabric.FabricText(node.hostname, {
-        left: this.rackX + this.rackWidth / 2,
-        top: y + height / 2,
-        fontSize: 12,
-        fontFamily: "system-ui",
-        fontWeight: "bold",
-        fill: "#ffffff",
-        originX: "center",
-        originY: "center",
-        selectable: false,
-        evented: false
-      })
-
-      const group = new fabric.Group([rect, text], {
-        left: this.rackX + 4,
-        top: y + 2,
-        selectable: !this.options.readonly,
-        hasControls: false,
-        hasBorders: true,
-        borderColor: "#0f766e",
-        lockMovementX: true,
-        lockScalingX: true,
-        lockScalingY: true,
-        lockRotation: true,
-        data: { ...node, ...pos }
-      })
-
-      if (!this.options.readonly) {
-        group.on("moving", this.handleNodeMove.bind(this, node.id))
-        group.on("modified", this.handleNodeMoveEnd.bind(this, node.id))
-      }
-
-      this.canvas.add(group)
-      this.nodeObjects.set(node.id, group)
+      this.createNodeElement(node, pos)
     })
   }
 
-  handleMouseDown(event) {
-    const target = event.target
+  createNodeElement(node, pos) {
+    const ruFromTop = this.options.descUnits
+      ? pos.rack_position - 1
+      : this.options.rackHeight - pos.rack_position - pos.rack_height + 1
 
-    if (target && target.data) {
-      this.selectNode(target.data)
-    } else {
-      this.selectNode(null)
+    const y = ruFromTop * this.ruHeight
+    const height = pos.rack_height * this.ruHeight
+
+    // Determine color based on status
+    const fillColor = node.status === "Online" ? "#14b8a6" : "#94a3b8"
+    const borderColor = node.status === "Online" ? "#0d9488" : "#64748b"
+
+    const nodeEl = document.createElement("div")
+    nodeEl.className = "rack-node"
+    nodeEl.dataset.nodeId = node.id
+    nodeEl.style.position = "absolute"
+    nodeEl.style.left = "4px"
+    nodeEl.style.top = `${y + 2}px`
+    nodeEl.style.width = `${this.rackWidth - 8}px`
+    nodeEl.style.height = `${height - 4}px`
+    nodeEl.style.backgroundColor = fillColor
+    nodeEl.style.border = `1px solid ${borderColor}`
+    nodeEl.style.borderRadius = "4px"
+    nodeEl.style.display = "flex"
+    nodeEl.style.alignItems = "center"
+    nodeEl.style.justifyContent = "center"
+    nodeEl.style.boxSizing = "border-box"
+    nodeEl.style.cursor = this.options.readonly ? "default" : "grab"
+    nodeEl.style.touchAction = "none" // Required for interact.js
+
+    // Store node data
+    nodeEl._nodeData = { ...node, ...pos }
+
+    // Node label
+    const label = document.createElement("span")
+    label.textContent = node.hostname
+    label.style.fontSize = "12px"
+    label.style.fontFamily = "system-ui, sans-serif"
+    label.style.fontWeight = "bold"
+    label.style.color = "#ffffff"
+    label.style.pointerEvents = "none"
+    nodeEl.appendChild(label)
+
+    // Click handler for selection
+    nodeEl.addEventListener("click", (e) => {
+      e.stopPropagation()
+      this.selectNode(nodeEl._nodeData)
+    })
+
+    this.rackFrame.appendChild(nodeEl)
+    this.nodeElements.set(node.id, nodeEl)
+
+    // Setup draggable if not readonly
+    if (!this.options.readonly) {
+      this.setupDraggable(node.id, nodeEl, pos)
     }
   }
 
+  setupDraggable(nodeId, nodeEl, pos) {
+    const height = pos.rack_height
+    const maxY = (this.options.rackHeight - height) * this.ruHeight + 2
+
+    const interactable = interact(nodeEl).draggable({
+      // Only allow vertical movement
+      startAxis: "y",
+      lockAxis: "y",
+
+      modifiers: [
+        // Restrict to rack bounds
+        interact.modifiers.restrict({
+          restriction: {
+            x: 4,
+            y: 2,
+            width: this.rackWidth - 8,
+            height: maxY + (height * this.ruHeight) - 4
+          },
+          elementRect: { top: 0, left: 0, bottom: 1, right: 1 }
+        }),
+        // Snap to RU grid
+        interact.modifiers.snap({
+          targets: this.generateSnapTargets(height),
+          relativePoints: [{ x: 0, y: 0 }],
+          offset: "self"
+        })
+      ],
+
+      listeners: {
+        start: () => {
+          nodeEl.style.cursor = "grabbing"
+          nodeEl.style.zIndex = "100"
+        },
+        move: (event) => {
+          const target = event.target
+          const y = (parseFloat(target.getAttribute("data-y")) || 0) + event.dy
+
+          target.style.top = `${parseFloat(target.style.top) + event.dy}px`
+          target.setAttribute("data-y", y)
+        },
+        end: (event) => {
+          nodeEl.style.cursor = "grab"
+          nodeEl.style.zIndex = ""
+          nodeEl.removeAttribute("data-y")
+
+          this.handleNodeMoveEnd(nodeId, nodeEl)
+        }
+      }
+    })
+
+    this.interactables.set(nodeId, interactable)
+  }
+
+  generateSnapTargets(nodeHeight) {
+    const targets = []
+    const maxRU = this.options.rackHeight - nodeHeight
+
+    for (let i = 0; i <= maxRU; i++) {
+      targets.push({ y: i * this.ruHeight + 2 })
+    }
+
+    return targets
+  }
+
   selectNode(nodeData) {
-    this.nodeObjects.forEach(obj => {
-      obj.set({ borderColor: "#0f766e" })
+    // Remove selection from all nodes
+    this.nodeElements.forEach(el => {
+      el.style.outline = "none"
+      el.style.outlineOffset = "0"
     })
 
     if (nodeData) {
-      const obj = this.nodeObjects.get(nodeData.id)
-      if (obj) {
-        obj.set({ borderColor: "#f59e0b" })
+      const el = this.nodeElements.get(nodeData.id)
+      if (el) {
+        el.style.outline = "2px solid #f59e0b"
+        el.style.outlineOffset = "1px"
       }
       this.selectedNode = nodeData
     } else {
       this.selectedNode = null
     }
 
-    this.canvas.renderAll()
     this.options.onSelect(this.selectedNode)
   }
 
-  handleNodeMove(nodeId) {
-    const obj = this.nodeObjects.get(nodeId)
-    if (!obj) return
-
+  handleNodeMoveEnd(nodeId, nodeEl) {
     const pos = this.positions.get(nodeId)
     const height = pos.rack_height
 
-    let y = obj.top
-    y = Math.max(this.rackY + 2, y)
-    y = Math.min(this.rackY + (this.options.rackHeight - height) * this.ruHeight + 2, y)
+    // Calculate RU from top based on current position
+    const currentTop = parseFloat(nodeEl.style.top) - 2 // Subtract the 2px offset
+    const ruFromTop = Math.round(currentTop / this.ruHeight)
 
-    const ruFromTop = Math.round((y - this.rackY - 2) / this.ruHeight)
-    y = this.rackY + ruFromTop * this.ruHeight + 2
-
-    obj.set({ top: y, left: this.rackX + 4 })
-  }
-
-  handleNodeMoveEnd(nodeId) {
-    const obj = this.nodeObjects.get(nodeId)
-    if (!obj) return
-
-    const pos = this.positions.get(nodeId)
-    const height = pos.rack_height
-
-    const ruFromTop = Math.round((obj.top - this.rackY - 2) / this.ruHeight)
+    // Convert to rack position
     const newPosition = this.options.descUnits
       ? ruFromTop + 1
       : this.options.rackHeight - ruFromTop - height + 1
 
+    // Check for overlap
     if (this.wouldOverlap(nodeId, newPosition, height)) {
-      this.render()
+      // Revert to original position
+      const originalRuFromTop = this.options.descUnits
+        ? pos.rack_position - 1
+        : this.options.rackHeight - pos.rack_position - height + 1
+      nodeEl.style.top = `${originalRuFromTop * this.ruHeight + 2}px`
       return
     }
 
+    // Update position
     this.positions.set(nodeId, {
       node_id: nodeId,
       rack_position: newPosition,
       rack_height: height
     })
 
+    // Update node data
+    nodeEl._nodeData.rack_position = newPosition
+    nodeEl._nodeData.position = newPosition
+
+    // Update selected node if this is the one selected
     if (this.selectedNode && this.selectedNode.id === nodeId) {
       this.selectedNode.position = newPosition
+      this.selectedNode.rack_position = newPosition
       this.options.onSelect(this.selectedNode)
     }
 
     this.options.onChange()
-    this.render()
   }
 
   wouldOverlap(nodeId, position, height) {
@@ -286,6 +331,14 @@ export class RackDiagram {
   }
 
   dispose() {
-    this.canvas.dispose()
+    // Clean up interact.js instances
+    this.interactables.forEach(interactable => {
+      interactable.unset()
+    })
+    this.interactables.clear()
+    this.nodeElements.clear()
+
+    // Clear container
+    this.container.innerHTML = ""
   }
 }

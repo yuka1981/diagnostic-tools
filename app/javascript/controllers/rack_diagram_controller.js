@@ -2,7 +2,7 @@ import { Controller } from "@hotwired/stimulus"
 import { RackDiagram } from "lib/rack_diagram"
 
 export default class extends Controller {
-  static targets = ["canvas", "details"]
+  static targets = ["container", "details"]
   static values = {
     rackId: Number,
     rackHeight: Number,
@@ -13,7 +13,7 @@ export default class extends Controller {
 
   connect() {
     this.hasChanges = false
-    this.diagram = new RackDiagram(this.canvasTarget, {
+    this.diagram = new RackDiagram(this.containerTarget, {
       rackHeight: this.rackHeightValue,
       descUnits: this.descUnitsValue,
       nodes: this.nodesValue,
