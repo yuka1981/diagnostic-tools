@@ -21,17 +21,19 @@ module Seeds
       data = JSON.parse(json_path.read)
       seeded_count = 0
 
-      data["products"].each do |attrs|
-        attrs = attrs.dup
-        image_filename = attrs.delete("image_filename")
+      ServerProduct.transaction do
+        data["products"].each do |attrs|
+          attrs = attrs.dup
+          image_filename = attrs.delete("image_filename")
 
-        product = ServerProduct.find_or_initialize_by(name: attrs["name"])
-        product.assign_attributes(attrs)
-        product.save!
+          product = ServerProduct.find_or_initialize_by(name: attrs["name"])
+          product.assign_attributes(attrs)
+          product.save!
 
-        attach_image(product, image_filename) if image_filename.present?
+          attach_image(product, image_filename) if image_filename.present?
 
-        seeded_count += 1
+          seeded_count += 1
+        end
       end
 
       Result.new(success: true, seeded_count: seeded_count)
@@ -45,13 +47,13 @@ module Seeds
       image_path = images_dir.join(image_filename)
       return unless image_path.exist?
 
-      File.open(image_path, "rb") do |file|
-        product.images.attach(
-          io: file,
-          filename: image_filename,
-          content_type: Marcel::MimeType.for(image_path)
-        )
-      end
+      # Read file into memory to avoid closed stream issues within transaction
+      content = File.binread(image_path)
+      product.images.attach(
+        io: StringIO.new(content),
+        filename: image_filename,
+        content_type: Marcel::MimeType.for(image_path)
+      )
     end
   end
 end

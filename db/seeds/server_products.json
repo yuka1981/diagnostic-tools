@@ -1127,8 +1127,8 @@
     {
       "name": "QuantaGrid D54U-3U",
       "product_series": "QuantaGrid",
-      "form_factor": "54U",
-      "rack_height": 54,
+      "form_factor": "3U",
+      "rack_height": 3,
       "qct_product_url": "https://www.qct.io/product/index/Server/rackmount-server/GPGPU-Xeon-Phi/QuantaGrid-D54U-3U",
       "socket_count": 2,
       "max_memory_gb": 8192,

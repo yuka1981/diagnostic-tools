@@ -55,43 +55,39 @@ Each product in `server_products.json`:
 
 ## Seeding Logic
 
-Update `db/seeds.rb`:
+The seeding logic is implemented as a service class for better testability.
+
+**Service class** (`app/services/seeds/server_products_seeder.rb`):
 
 ```ruby
-# Load server products
-server_products_path = Rails.root.join("db/seeds/server_products.json")
-if server_products_path.exist?
-  data = JSON.parse(server_products_path.read)
-  images_dir = Rails.root.join("db/seeds/images/server_products")
-
-  data["products"].each do |attrs|
-    image_filename = attrs.delete("image_filename")
-
-    product = ServerProduct.find_or_initialize_by(name: attrs["name"])
-    product.assign_attributes(attrs)
-    product.save!
-
-    # Attach image if file exists and not already attached
-    if image_filename
-      image_path = images_dir.join(image_filename)
-      if image_path.exist? && product.images.none?
-        product.images.attach(
-          io: File.open(image_path),
-          filename: image_filename,
-          content_type: Marcel::MimeType.for(image_path)
-        )
-      end
+module Seeds
+  class ServerProductsSeeder
+    def call
+      # Reads from db/seeds/server_products.json
+      # Wraps operations in a transaction for atomicity
+      # Uses find_or_initialize_by(name:) for idempotent upserts
+      # Attaches images only if product has none
+      # Returns Result struct with success status and seeded count
     end
   end
+end
+```
 
-  puts "Seeded #{data['products'].size} server products"
+**Entry point** (`db/seeds.rb`):
+
+```ruby
+result = Seeds::ServerProductsSeeder.new.call
+if result.seeded_count.positive?
+  puts "Seeded #{result.seeded_count} server products"
 end
 ```
 
 **Behavior:**
-- Finds existing product by `name`, updates attributes if found
+- Atomic: All products seeded in a single transaction (rollback on failure)
+- Idempotent: Finds existing product by `name`, updates attributes if found
 - Only attaches image if product has no images (avoids duplicates)
 - Silent skip if JSON file missing (allows partial seeding)
+- Uses Marcel for content type detection
 
 ## Export Rake Task
 
