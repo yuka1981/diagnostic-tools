@@ -7,7 +7,7 @@ namespace :db do
       images_dir = Rails.root.join("db/seeds/images/server_products")
       FileUtils.mkdir_p(images_dir)
 
-      products = ServerProduct.all.map do |product|
+      products = ServerProduct.order(:name).map do |product|
         # Generate slug for image filename
         slug = product.name.parameterize
         image_filename = nil
