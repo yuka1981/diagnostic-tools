@@ -5,14 +5,11 @@ class NotificationsController < ApplicationController
   before_action :set_notification, only: [ :mark_read ]
 
   def index
-    @notifications = current_user.notifications
-                                 .order(created_at: :desc)
-                                 .page(params[:page])
-                                 .per(20)
-
+    @notifications = current_user.notifications.order(created_at: :desc)
     @notifications = @notifications.where(archived: false) unless params[:show_archived] == "true"
-    @notifications = @notifications.by_status(params[:status])
-    @notifications = @notifications.by_type(params[:type])
+    @notifications = @notifications.by_status(params[:status]) if params[:status].present?
+    @notifications = @notifications.by_type(params[:type]) if params[:type].present?
+    @notifications = @notifications.page(params[:page]).per(20)
 
     @unread_count = current_user.notifications.unread.count
   end

@@ -7,9 +7,9 @@
     </div>
   </div>
 
-  <div class="bg-white shadow rounded-lg">
+  <div class="bg-white shadow rounded-lg" id="notifications-main-content">
     <% if @notifications.any? %>
-      <ul class="divide-y divide-gray-200">
+      <ul class="divide-y divide-gray-200" id="notifications-main-list">
         <% @notifications.each do |notification| %>
           <%= render partial: "notifications/notification", locals: { notification: notification } %>
         <% end %>

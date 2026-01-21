@@ -61,8 +61,11 @@ RSpec.describe "Notifications", type: :request do
 
         it "filters by status" do
           get notifications_path(status: "completed")
-          expect(response.body).to include("Completed Notification")
-          expect(response.body).not_to include("Pending Notification")
+          # Parse response and check the main content area (specific ID avoids navbar dropdown)
+          doc = Nokogiri::HTML(response.body)
+          main_list = doc.css("#notifications-main-list").first
+          expect(main_list.to_s).to include("Completed Notification")
+          expect(main_list.to_s).not_to include("Pending Notification")
         end
       end
 
@@ -74,8 +77,11 @@ RSpec.describe "Notifications", type: :request do
 
         it "filters by type" do
           get notifications_path(type: "benchmark")
-          expect(response.body).to include("Benchmark Notification")
-          expect(response.body).not_to include("Install Notification")
+          # Parse response and check the main content area (specific ID avoids navbar dropdown)
+          doc = Nokogiri::HTML(response.body)
+          main_list = doc.css("#notifications-main-list").first
+          expect(main_list.to_s).to include("Benchmark Notification")
+          expect(main_list.to_s).not_to include("Install Notification")
         end
       end
 
