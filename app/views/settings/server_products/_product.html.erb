@@ -1,7 +1,10 @@
 <tr class="hover:bg-slate-50 transition-colors">
   <td class="whitespace-nowrap px-3 py-2">
     <% if product.images.attached? %>
-      <%= image_tag product.images.first.variant(resize_to_limit: [48, 48]), class: "h-10 w-10 object-contain rounded" %>
+      <%= image_tag product.thumbnail_variant,
+            loading: "lazy",
+            decoding: "async",
+            class: "h-10 w-10 object-contain rounded bg-slate-100" %>
     <% else %>
       <div class="h-10 w-10 bg-slate-100 rounded flex items-center justify-center">
         <svg class="h-5 w-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
