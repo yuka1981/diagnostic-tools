@@ -282,4 +282,117 @@ RSpec.describe Node, type: :model do
       end
     end
   end
+
+  describe "rack associations and validations" do
+    it { is_expected.to belong_to(:server_rack).optional }
+
+    describe "rack_position validation" do
+      let(:site) { create(:site) }
+      let(:room) { create(:room, site: site) }
+      let(:server_rack) { create(:server_rack, room: room, u_height: 42) }
+
+      context "when rack_id is present" do
+        it "requires rack_position" do
+          node = build(:node, server_rack: server_rack, rack_position: nil)
+          expect(node).not_to be_valid
+          expect(node.errors[:rack_position]).to include("can't be blank when rack is assigned")
+        end
+      end
+
+      context "when rack_id is nil" do
+        it "allows nil rack_position" do
+          node = build(:node, server_rack: nil, rack_position: nil)
+          expect(node).to be_valid
+        end
+      end
+
+      context "position bounds" do
+        it "rejects position less than 1" do
+          node = build(:node, server_rack: server_rack, rack_position: 0, rack_height: 1)
+          expect(node).not_to be_valid
+          expect(node.errors[:rack_position]).to include("must be greater than or equal to 1")
+        end
+
+        it "rejects position exceeding rack height" do
+          node = build(:node, server_rack: server_rack, rack_position: 43, rack_height: 1)
+          expect(node).not_to be_valid
+          expect(node.errors[:rack_position]).to include("must be less than or equal to 42")
+        end
+
+        it "rejects when node extends beyond rack height" do
+          node = build(:node, server_rack: server_rack, rack_position: 41, rack_height: 3)
+          expect(node).not_to be_valid
+          expect(node.errors[:base]).to include(/extends beyond rack height/)
+        end
+
+        it "accepts valid position" do
+          node = build(:node, server_rack: server_rack, rack_position: 40, rack_height: 3)
+          expect(node).to be_valid
+        end
+      end
+    end
+
+    describe "rack_height validation" do
+      it { is_expected.to validate_numericality_of(:rack_height).only_integer.is_greater_than(0).allow_nil }
+
+      it "defaults to 1" do
+        node = Node.new
+        expect(node.rack_height).to eq(1)
+      end
+    end
+
+    describe "overlap validation" do
+      let(:site) { create(:site) }
+      let(:room) { create(:room, site: site) }
+      let(:server_rack) { create(:server_rack, room: room, u_height: 42) }
+      let!(:existing_node) { create(:node, server_rack: server_rack, rack_position: 10, rack_height: 2) }
+
+      it "rejects overlapping positions" do
+        node = build(:node, server_rack: server_rack, rack_position: 11, rack_height: 1)
+        expect(node).not_to be_valid
+        expect(node.errors[:base]).to include(/overlaps with existing node/)
+      end
+
+      it "allows adjacent positions" do
+        node = build(:node, server_rack: server_rack, rack_position: 12, rack_height: 1)
+        expect(node).to be_valid
+      end
+
+      it "allows position below existing node" do
+        node = build(:node, server_rack: server_rack, rack_position: 8, rack_height: 2)
+        expect(node).to be_valid
+      end
+
+      it "ignores self when updating" do
+        existing_node.rack_position = 10
+        expect(existing_node).to be_valid
+      end
+    end
+  end
+
+  describe "scopes" do
+    describe ".unracked" do
+      let(:site) { create(:site) }
+      let(:room) { create(:room, site: site) }
+      let(:server_rack) { create(:server_rack, room: room) }
+      let!(:racked_node) { create(:node, server_rack: server_rack, rack_position: 1, rack_height: 1) }
+      let!(:unracked_node) { create(:node, server_rack: nil) }
+
+      it "returns only nodes without rack assignment" do
+        expect(Node.unracked).to eq([ unracked_node ])
+      end
+    end
+
+    describe ".racked" do
+      let(:site) { create(:site) }
+      let(:room) { create(:room, site: site) }
+      let(:server_rack) { create(:server_rack, room: room) }
+      let!(:racked_node) { create(:node, server_rack: server_rack, rack_position: 1, rack_height: 1) }
+      let!(:unracked_node) { create(:node, server_rack: nil) }
+
+      it "returns only nodes with rack assignment" do
+        expect(Node.racked).to eq([ racked_node ])
+      end
+    end
+  end
 end

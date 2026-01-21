@@ -1,0 +1,109 @@
+<% content_for(:page_title) { "Rooms" } %>
+
+<div class="flex items-center justify-between mb-6">
+  <div>
+    <h1 class="text-2xl font-bold text-slate-900">Rooms</h1>
+    <p class="text-sm text-slate-500 mt-1">Manage data center rooms across your sites</p>
+  </div>
+  <% if current_user.approver? %>
+    <%= link_to new_room_path, class: "btn-primary" do %>
+      <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+      </svg>
+      Add Room
+    <% end %>
+  <% end %>
+</div>
+
+<%# Site Filter %>
+<div class="mb-4">
+  <%= form_with url: rooms_path, method: :get, data: { turbo_frame: "_top" }, class: "flex items-center gap-4" do |f| %>
+    <div class="flex items-center gap-2">
+      <%= f.label :site_id, "Filter by Site:", class: "text-sm font-medium text-slate-700" %>
+      <%= f.select :site_id,
+          options_from_collection_for_select(@sites, :id, :name, params[:site_id]),
+          { include_blank: "All Sites" },
+          class: "rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm",
+          onchange: "this.form.submit()" %>
+    </div>
+    <% if params[:site_id].present? %>
+      <%= link_to "Clear Filter", rooms_path, class: "text-sm text-teal-600 hover:text-teal-700" %>
+    <% end %>
+  <% end %>
+</div>
+
+<div class="card-netbox">
+  <% if @rooms.any? %>
+    <div class="overflow-x-auto">
+      <table class="min-w-full divide-y divide-slate-200 text-sm">
+        <thead class="bg-slate-50">
+          <tr>
+            <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Name</th>
+            <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Site</th>
+            <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Floor</th>
+            <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Wing</th>
+            <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Racks</th>
+            <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Utilization</th>
+            <th scope="col" class="relative px-3 py-2 border-b">
+              <span class="sr-only">Actions</span>
+            </th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-200 bg-white">
+          <% @rooms.each do |room| %>
+            <tr class="hover:bg-slate-50 transition-colors">
+              <td class="whitespace-nowrap px-3 py-2">
+                <%= link_to room_path(room), class: "group" do %>
+                  <p class="text-sm font-bold text-slate-900 group-hover:text-teal-600"><%= room.name %></p>
+                <% end %>
+              </td>
+              <td class="whitespace-nowrap px-3 py-2 text-sm text-slate-600">
+                <%= link_to room.site.name, site_path(room.site), class: "hover:text-teal-600" %>
+              </td>
+              <td class="whitespace-nowrap px-3 py-2 text-sm text-slate-500">
+                <%= room.floor_number.present? ? "Floor #{room.floor_number}" : "-" %>
+              </td>
+              <td class="whitespace-nowrap px-3 py-2 text-sm text-slate-500">
+                <%= room.building_wing.presence || "-" %>
+              </td>
+              <td class="whitespace-nowrap px-3 py-2 text-sm text-slate-500">
+                <%= room.rack_count %><%= room.max_rack_count.present? ? " / #{room.max_rack_count}" : "" %>
+              </td>
+              <td class="whitespace-nowrap px-3 py-2">
+                <div class="flex items-center gap-2">
+                  <div class="w-24 h-2 bg-slate-200 rounded-full overflow-hidden">
+                    <div class="h-full bg-teal-500 rounded-full" style="width: <%= room.utilization_percentage %>%"></div>
+                  </div>
+                  <span class="text-xs text-slate-500"><%= room.utilization_percentage %>%</span>
+                </div>
+              </td>
+              <td class="whitespace-nowrap px-3 py-2 text-right text-sm">
+                <%= link_to "View", room_path(room), class: "text-teal-600 hover:text-teal-700 font-medium" %>
+                <% if current_user.approver? %>
+                  <span class="text-slate-300 mx-1">|</span>
+                  <%= link_to "Edit", edit_room_path(room), class: "text-slate-600 hover:text-slate-700 font-medium" %>
+                <% end %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% else %>
+    <div class="flex flex-col items-center justify-center py-12 text-center">
+      <div class="h-12 w-12 rounded-full bg-slate-100 flex items-center justify-center mb-4">
+        <svg class="h-6 w-6 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+        </svg>
+      </div>
+      <p class="text-sm font-medium text-slate-900">No rooms yet</p>
+      <p class="mt-1 text-xs text-slate-500">Create a room to organize your rack infrastructure</p>
+      <% if current_user.approver? %>
+        <%= link_to new_room_path, class: "mt-4 btn-primary" do %>
+          Add Room
+        <% end %>
+      <% end %>
+    </div>
+  <% end %>
+</div>

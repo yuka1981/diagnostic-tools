@@ -57,5 +57,19 @@ FactoryBot.define do
       jump_user { "bastion_user" }
       jump_port { 22 }
     end
+
+    trait :racked do
+      server_rack
+      rack_position { 1 }
+      rack_height { 1 }
+    end
+
+    trait :two_u do
+      rack_height { 2 }
+    end
+
+    trait :four_u do
+      rack_height { 4 }
+    end
   end
 end

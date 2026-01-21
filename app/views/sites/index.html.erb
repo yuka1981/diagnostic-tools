@@ -1,0 +1,83 @@
+<% content_for(:page_title) { "Sites" } %>
+
+<div class="flex items-center justify-between mb-6">
+  <div>
+    <h1 class="text-2xl font-bold text-slate-900">Sites</h1>
+    <p class="text-sm text-slate-500 mt-1">Manage data center locations and rooms</p>
+  </div>
+  <% if current_user.approver? %>
+    <%= link_to new_site_path, class: "btn-primary" do %>
+      <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+      </svg>
+      Add Site
+    <% end %>
+  <% end %>
+</div>
+
+<div class="card-netbox">
+  <% if @sites.any? %>
+    <div class="overflow-x-auto">
+      <table class="min-w-full divide-y divide-slate-200 text-sm">
+        <thead class="bg-slate-50">
+          <tr>
+            <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Name</th>
+            <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Description</th>
+            <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Rooms</th>
+            <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Racks</th>
+            <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Nodes</th>
+            <th scope="col" class="relative px-3 py-2 border-b">
+              <span class="sr-only">Actions</span>
+            </th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-200 bg-white">
+          <% @sites.each do |site| %>
+            <tr class="hover:bg-slate-50 transition-colors">
+              <td class="whitespace-nowrap px-3 py-2">
+                <%= link_to site_path(site), class: "group" do %>
+                  <p class="text-sm font-bold text-slate-900 group-hover:text-teal-600"><%= site.name %></p>
+                <% end %>
+              </td>
+              <td class="px-3 py-2 text-sm text-slate-600">
+                <%= site.description.presence || "—" %>
+              </td>
+              <td class="whitespace-nowrap px-3 py-2 text-sm text-slate-500">
+                <%= site.rooms.count %>
+              </td>
+              <td class="whitespace-nowrap px-3 py-2 text-sm text-slate-500">
+                <%= site.server_racks.count %>
+              </td>
+              <td class="whitespace-nowrap px-3 py-2 text-sm text-slate-500">
+                <%= site.server_racks.sum { |r| r.nodes.count } %>
+              </td>
+              <td class="whitespace-nowrap px-3 py-2 text-right text-sm">
+                <%= link_to "View", site_path(site), class: "text-teal-600 hover:text-teal-700 font-medium" %>
+                <% if current_user.approver? %>
+                  <span class="text-slate-300 mx-1">|</span>
+                  <%= link_to "Edit", edit_site_path(site), class: "text-slate-600 hover:text-slate-700 font-medium" %>
+                <% end %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% else %>
+    <div class="flex flex-col items-center justify-center py-12 text-center">
+      <div class="h-12 w-12 rounded-full bg-slate-100 flex items-center justify-center mb-4">
+        <svg class="h-6 w-6 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+        </svg>
+      </div>
+      <p class="text-sm font-medium text-slate-900">No sites yet</p>
+      <p class="mt-1 text-xs text-slate-500">Create a site to organize your rack infrastructure</p>
+      <% if current_user.approver? %>
+        <%= link_to new_site_path, class: "mt-4 btn-primary" do %>
+          Add Site
+        <% end %>
+      <% end %>
+    </div>
+  <% end %>
+</div>

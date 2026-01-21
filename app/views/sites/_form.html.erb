@@ -1,0 +1,41 @@
+<%= form_with(model: @site, class: "space-y-6") do |f| %>
+  <% if @site.errors.any? %>
+    <div class="rounded-lg bg-red-50 p-4 text-sm text-red-700 border border-red-200">
+      <h2 class="font-bold mb-2"><%= pluralize(@site.errors.count, "error") %> prohibited this site from being saved:</h2>
+      <ul class="list-disc list-inside">
+        <% @site.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <%# Basic Information %>
+  <div class="card-netbox">
+    <div class="card-header">
+      <h3 class="card-title">Site Information</h3>
+    </div>
+    <div class="p-4 grid grid-cols-1 gap-6">
+      <div>
+        <%= f.label :name, class: "block text-sm font-bold text-slate-700 mb-1" %>
+        <%= f.text_field :name, required: true,
+            placeholder: "Data Center A",
+            class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" %>
+        <p class="mt-1 text-xs text-slate-500">Display name for the site.</p>
+      </div>
+
+      <div>
+        <%= f.label :description, class: "block text-sm font-bold text-slate-700 mb-1" %>
+        <%= f.text_area :description, rows: 3,
+            placeholder: "Primary data center located in Building A...",
+            class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" %>
+        <p class="mt-1 text-xs text-slate-500">Optional description of this site.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="flex items-center justify-end gap-3 pt-4">
+    <%= link_to "Cancel", sites_path, class: "btn-secondary" %>
+    <%= f.submit @site.new_record? ? "Create Site" : "Update Site", class: "btn-primary" %>
+  </div>
+<% end %>
