@@ -8,8 +8,15 @@ class ServerRacksController < ApplicationController
 
   def index
     @server_racks = ServerRack.includes(room: :site).includes(:nodes).order(:name)
+    @server_racks = @server_racks.where(room_id: params[:room_id]) if params[:room_id].present?
     @server_racks = @server_racks.joins(:room).where(rooms: { site_id: params[:site_id] }) if params[:site_id].present?
+
     @sites = Site.order(:name)
+    @rooms = if params[:site_id].present?
+      Room.includes(:site).where(site_id: params[:site_id]).order(:name)
+    else
+      Room.includes(:site).order(:name)
+    end
   end
 
   def show

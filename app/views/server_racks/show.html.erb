@@ -2,7 +2,9 @@
 
 <div class="mb-6">
   <nav class="text-sm text-slate-500 mb-2">
-    <%= link_to "Racks", server_racks_path, class: "hover:text-teal-600" %> /
+    <%= link_to "Sites", sites_path, class: "hover:text-teal-600" %> /
+    <%= link_to @server_rack.site.name, site_path(@server_rack.site), class: "hover:text-teal-600" %> /
+    <%= link_to @server_rack.room.name, room_path(@server_rack.room), class: "hover:text-teal-600" %> /
     <span class="text-slate-700"><%= @server_rack.name %></span>
   </nav>
   <div class="flex items-center justify-between">
@@ -53,6 +55,12 @@
             <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">Site</th>
             <td class="px-4 py-2 text-slate-700">
               <%= link_to @server_rack.site.name, site_path(@server_rack.site), class: "text-teal-600 hover:text-teal-700" %>
+            </td>
+          </tr>
+          <tr class="hover:bg-slate-50">
+            <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">Room</th>
+            <td class="px-4 py-2 text-slate-700">
+              <%= link_to @server_rack.room.name, room_path(@server_rack.room), class: "text-teal-600 hover:text-teal-700" %>
             </td>
           </tr>
           <tr class="hover:bg-slate-50">

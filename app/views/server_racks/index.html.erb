@@ -15,19 +15,27 @@
   <% end %>
 </div>
 
-<%# Site Filter %>
+<%# Filters %>
 <div class="mb-4">
-  <%= form_with url: server_racks_path, method: :get, data: { turbo_frame: "_top" }, class: "flex items-center gap-4" do |f| %>
+  <%= form_with url: server_racks_path, method: :get, data: { turbo_frame: "_top" }, class: "flex items-center gap-4 flex-wrap" do |f| %>
     <div class="flex items-center gap-2">
-      <%= f.label :site_id, "Filter by Site:", class: "text-sm font-medium text-slate-700" %>
+      <%= f.label :site_id, "Site:", class: "text-sm font-medium text-slate-700" %>
       <%= f.select :site_id,
           options_from_collection_for_select(@sites, :id, :name, params[:site_id]),
           { include_blank: "All Sites" },
           class: "rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm",
           onchange: "this.form.submit()" %>
     </div>
-    <% if params[:site_id].present? %>
-      <%= link_to "Clear Filter", server_racks_path, class: "text-sm text-teal-600 hover:text-teal-700" %>
+    <div class="flex items-center gap-2">
+      <%= f.label :room_id, "Room:", class: "text-sm font-medium text-slate-700" %>
+      <%= f.select :room_id,
+          options_from_collection_for_select(@rooms, :id, proc { |r| "#{r.site.name} / #{r.name}" }, params[:room_id]),
+          { include_blank: "All Rooms" },
+          class: "rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm",
+          onchange: "this.form.submit()" %>
+    </div>
+    <% if params[:site_id].present? || params[:room_id].present? %>
+      <%= link_to "Clear Filters", server_racks_path, class: "text-sm text-teal-600 hover:text-teal-700" %>
     <% end %>
   <% end %>
 </div>
@@ -40,6 +48,7 @@
           <tr>
             <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Name</th>
             <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Site</th>
+            <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Room</th>
             <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Height</th>
             <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Utilization</th>
             <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Status</th>
@@ -61,6 +70,9 @@
               </td>
               <td class="whitespace-nowrap px-3 py-2 text-sm text-slate-600">
                 <%= link_to rack.site.name, site_path(rack.site), class: "hover:text-teal-600" %>
+              </td>
+              <td class="whitespace-nowrap px-3 py-2 text-sm text-slate-600">
+                <%= link_to rack.room.name, room_path(rack.room), class: "hover:text-teal-600" %>
               </td>
               <td class="whitespace-nowrap px-3 py-2 text-sm text-slate-500">
                 <%= rack.u_height %>U
