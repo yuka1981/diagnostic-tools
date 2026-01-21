@@ -7,7 +7,7 @@ class SitesController < ApplicationController
   before_action :authorize_approver!, only: %i[new create edit update destroy]
 
   def index
-    @sites = Site.order(:name)
+    @sites = Site.includes(:rooms, :server_racks).order(:name)
   end
 
   def show
@@ -46,7 +46,7 @@ class SitesController < ApplicationController
   private
 
   def set_site
-    @site = Site.find(params[:id])
+    @site = Site.includes(rooms: :server_racks).find(params[:id])
   end
 
   def site_params

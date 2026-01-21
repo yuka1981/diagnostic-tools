@@ -34,13 +34,19 @@ RSpec.describe "Sites", type: :request do
       expect(response.body).to include(site.name)
     end
 
-    context "with server racks" do
+    context "with rooms" do
       let!(:room) { create(:room, site: site) }
       let!(:server_rack) { create(:server_rack, room: room) }
 
-      it "displays racks list" do
+      it "displays rooms list" do
         get site_path(site)
-        expect(response.body).to include(server_rack.name)
+        expect(response.body).to include(room.name)
+      end
+
+      it "shows rack count for the room" do
+        get site_path(site)
+        # Room has 1 rack
+        expect(response.body).to include("Total Racks")
       end
     end
   end
