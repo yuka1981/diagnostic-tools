@@ -119,6 +119,8 @@ export default class extends Controller {
         this.hasChanges = false
         this.hideSaveButton()
         this.showNotification("Layout saved successfully", "success")
+        // Reload page after short delay to show updated positions in table
+        setTimeout(() => window.location.reload(), 1000)
       } else {
         this.showNotification(data.errors.join(", "), "error")
       }
