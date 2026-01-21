@@ -60,13 +60,25 @@ module Settings
     end
 
     def server_product_params
-      params.require(:server_product).permit(
+      permitted = params.require(:server_product).permit(
         :name, :product_series, :form_factor, :rack_height, :qct_product_url,
         :socket_count, :max_tdp_watts, :max_memory_gb, :dimm_slots, :max_memory_speed_mhz,
-        :gpu_support, :last_synced_at,
-        cpu_generations: [], memory_types: [], drive_bays: [], pcie_slots: [],
-        power_supply_options: [], network_options: [], images: []
+        :gpu_support, :last_synced_at, :cpu_generations, :memory_types,
+        drive_bays: [], pcie_slots: [], power_supply_options: [], network_options: [], images: []
       )
+
+      # Convert comma-separated strings to arrays for array fields
+      permitted[:cpu_generations] = parse_comma_separated(permitted[:cpu_generations])
+      permitted[:memory_types] = parse_comma_separated(permitted[:memory_types])
+
+      permitted
+    end
+
+    def parse_comma_separated(value)
+      return [] if value.blank?
+      return value if value.is_a?(Array)
+
+      value.to_s.split(",").map(&:strip).reject(&:blank?)
     end
 
     def authorize_approver!

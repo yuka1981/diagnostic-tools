@@ -1,0 +1,260 @@
+<% content_for(:page_title) { @server_product.name } %>
+
+<div class="mb-6">
+  <nav class="text-sm text-slate-500 mb-2">
+    <%= link_to "Server Products", settings_server_products_path, class: "hover:text-teal-600" %> /
+    <span class="text-slate-700"><%= @server_product.name %></span>
+  </nav>
+  <div class="flex items-center justify-between">
+    <div class="flex items-center gap-4">
+      <h1 class="text-2xl font-bold text-slate-900"><%= @server_product.name %></h1>
+      <% if @server_product.product_series.present? %>
+        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-teal-100 text-teal-800">
+          <%= @server_product.product_series %>
+        </span>
+      <% end %>
+    </div>
+    <div class="flex items-center gap-2">
+      <%= link_to edit_settings_server_product_path(@server_product), class: "btn-secondary" do %>
+        <svg class="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+        </svg>
+        Edit
+      <% end %>
+      <%= button_to settings_server_product_path(@server_product),
+          method: :delete,
+          class: "btn-danger",
+          data: { turbo_confirm: "Are you sure you want to delete this server product? This action cannot be undone." } do %>
+        <svg class="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+        </svg>
+        Delete
+      <% end %>
+    </div>
+  </div>
+</div>
+
+<div class="grid gap-6 lg:grid-cols-3">
+  <%# Images Column %>
+  <div class="lg:col-span-1">
+    <div class="card-netbox">
+      <div class="card-header">
+        <h3 class="card-title">Product Images</h3>
+      </div>
+      <div class="p-4">
+        <% if @server_product.images.attached? %>
+          <div class="space-y-4">
+            <% @server_product.images.each do |image| %>
+              <%= image_tag image, class: "w-full rounded border border-slate-200" %>
+            <% end %>
+          </div>
+        <% else %>
+          <div class="flex flex-col items-center justify-center py-8 text-center">
+            <div class="h-12 w-12 rounded-full bg-slate-100 flex items-center justify-center mb-4">
+              <svg class="h-6 w-6 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+            </div>
+            <p class="text-sm text-slate-500">No images available</p>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <%# Specs Column %>
+  <div class="lg:col-span-2 space-y-6">
+    <%# Overview Card %>
+    <div class="card-netbox">
+      <div class="card-header">
+        <h3 class="card-title">Overview</h3>
+      </div>
+      <div class="p-0">
+        <table class="w-full text-sm text-left">
+          <tbody class="divide-y divide-slate-100">
+            <tr class="hover:bg-slate-50">
+              <th class="px-4 py-2 font-bold text-slate-700 w-1/3 border-r border-slate-200">Model Name</th>
+              <td class="px-4 py-2 text-slate-700 font-bold"><%= @server_product.name %></td>
+            </tr>
+            <tr class="hover:bg-slate-50">
+              <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">Product Series</th>
+              <td class="px-4 py-2 text-slate-700"><%= @server_product.product_series.presence || "-" %></td>
+            </tr>
+            <tr class="hover:bg-slate-50">
+              <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">Form Factor</th>
+              <td class="px-4 py-2 text-slate-700"><%= @server_product.form_factor.presence || "-" %></td>
+            </tr>
+            <tr class="hover:bg-slate-50">
+              <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">Rack Height</th>
+              <td class="px-4 py-2 text-slate-700"><%= @server_product.rack_height.present? ? "#{@server_product.rack_height}U" : "-" %></td>
+            </tr>
+            <tr class="hover:bg-slate-50">
+              <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">QCT Product URL</th>
+              <td class="px-4 py-2 text-slate-700">
+                <% if @server_product.qct_product_url.present? %>
+                  <%= link_to @server_product.qct_product_url, @server_product.qct_product_url, target: "_blank", class: "text-teal-600 hover:text-teal-700 hover:underline" %>
+                <% else %>
+                  -
+                <% end %>
+              </td>
+            </tr>
+            <tr class="hover:bg-slate-50">
+              <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">Last Synced</th>
+              <td class="px-4 py-2 text-slate-700"><%= @server_product.last_synced_at.present? ? time_ago_in_words(@server_product.last_synced_at) + " ago" : "Never" %></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <%# CPU & GPU Card %>
+    <div class="card-netbox">
+      <div class="card-header">
+        <h3 class="card-title">CPU & GPU</h3>
+      </div>
+      <div class="p-0">
+        <table class="w-full text-sm text-left">
+          <tbody class="divide-y divide-slate-100">
+            <tr class="hover:bg-slate-50">
+              <th class="px-4 py-2 font-bold text-slate-700 w-1/3 border-r border-slate-200">CPU Generations</th>
+              <td class="px-4 py-2 text-slate-700">
+                <% if @server_product.cpu_generations.present? && @server_product.cpu_generations.any? %>
+                  <div class="flex flex-wrap gap-1">
+                    <% @server_product.cpu_generations.each do |gen| %>
+                      <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-100 text-slate-700"><%= gen %></span>
+                    <% end %>
+                  </div>
+                <% else %>
+                  -
+                <% end %>
+              </td>
+            </tr>
+            <tr class="hover:bg-slate-50">
+              <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">Socket Count</th>
+              <td class="px-4 py-2 text-slate-700"><%= @server_product.socket_count.present? ? "#{@server_product.socket_count} Socket(s)" : "-" %></td>
+            </tr>
+            <tr class="hover:bg-slate-50">
+              <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">Max TDP</th>
+              <td class="px-4 py-2 text-slate-700"><%= @server_product.max_tdp_watts.present? ? "#{@server_product.max_tdp_watts}W" : "-" %></td>
+            </tr>
+            <tr class="hover:bg-slate-50">
+              <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">GPU Support</th>
+              <td class="px-4 py-2 text-slate-700">
+                <% if @server_product.gpu_support %>
+                  <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">Yes</span>
+                <% else %>
+                  <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-100 text-slate-600">No</span>
+                <% end %>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <%# Memory Card %>
+    <div class="card-netbox">
+      <div class="card-header">
+        <h3 class="card-title">Memory</h3>
+      </div>
+      <div class="p-0">
+        <table class="w-full text-sm text-left">
+          <tbody class="divide-y divide-slate-100">
+            <tr class="hover:bg-slate-50">
+              <th class="px-4 py-2 font-bold text-slate-700 w-1/3 border-r border-slate-200">Max Memory</th>
+              <td class="px-4 py-2 text-slate-700"><%= @server_product.max_memory_gb.present? ? "#{@server_product.max_memory_gb} GB" : "-" %></td>
+            </tr>
+            <tr class="hover:bg-slate-50">
+              <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">DIMM Slots</th>
+              <td class="px-4 py-2 text-slate-700"><%= @server_product.dimm_slots.presence || "-" %></td>
+            </tr>
+            <tr class="hover:bg-slate-50">
+              <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">Memory Types</th>
+              <td class="px-4 py-2 text-slate-700">
+                <% if @server_product.memory_types.present? && @server_product.memory_types.any? %>
+                  <div class="flex flex-wrap gap-1">
+                    <% @server_product.memory_types.each do |type| %>
+                      <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-100 text-slate-700"><%= type %></span>
+                    <% end %>
+                  </div>
+                <% else %>
+                  -
+                <% end %>
+              </td>
+            </tr>
+            <tr class="hover:bg-slate-50">
+              <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">Max Memory Speed</th>
+              <td class="px-4 py-2 text-slate-700"><%= @server_product.max_memory_speed_mhz.present? ? "#{@server_product.max_memory_speed_mhz} MHz" : "-" %></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <%# Storage Card %>
+    <div class="card-netbox">
+      <div class="card-header">
+        <h3 class="card-title">Storage</h3>
+      </div>
+      <div class="p-0">
+        <% if @server_product.drive_bays.present? && @server_product.drive_bays.any? %>
+          <table class="w-full text-sm text-left">
+            <thead class="bg-slate-50">
+              <tr>
+                <th class="px-4 py-2 text-xs font-bold uppercase text-slate-500 border-b">Count</th>
+                <th class="px-4 py-2 text-xs font-bold uppercase text-slate-500 border-b">Type</th>
+                <th class="px-4 py-2 text-xs font-bold uppercase text-slate-500 border-b">Form Factor</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+              <% @server_product.drive_bays.each do |bay| %>
+                <tr class="hover:bg-slate-50">
+                  <td class="px-4 py-2 text-slate-700"><%= bay["count"] %></td>
+                  <td class="px-4 py-2 text-slate-700"><%= bay["type"] %></td>
+                  <td class="px-4 py-2 text-slate-700"><%= bay["form_factor"].present? ? "#{bay["form_factor"]}\"" : "-" %></td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        <% else %>
+          <div class="flex flex-col items-center justify-center py-8 text-center">
+            <p class="text-sm text-slate-500">No storage configuration specified</p>
+          </div>
+        <% end %>
+      </div>
+    </div>
+
+    <%# PCIe Card %>
+    <div class="card-netbox">
+      <div class="card-header">
+        <h3 class="card-title">PCIe</h3>
+      </div>
+      <div class="p-0">
+        <% if @server_product.pcie_slots.present? && @server_product.pcie_slots.any? %>
+          <table class="w-full text-sm text-left">
+            <thead class="bg-slate-50">
+              <tr>
+                <th class="px-4 py-2 text-xs font-bold uppercase text-slate-500 border-b">Count</th>
+                <th class="px-4 py-2 text-xs font-bold uppercase text-slate-500 border-b">Generation</th>
+                <th class="px-4 py-2 text-xs font-bold uppercase text-slate-500 border-b">Lanes</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+              <% @server_product.pcie_slots.each do |slot| %>
+                <tr class="hover:bg-slate-50">
+                  <td class="px-4 py-2 text-slate-700"><%= slot["count"] %></td>
+                  <td class="px-4 py-2 text-slate-700"><%= slot["generation"].present? ? "PCIe #{slot["generation"]}" : "-" %></td>
+                  <td class="px-4 py-2 text-slate-700"><%= slot["lanes"].present? ? "x#{slot["lanes"]}" : "-" %></td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        <% else %>
+          <div class="flex flex-col items-center justify-center py-8 text-center">
+            <p class="text-sm text-slate-500">No PCIe configuration specified</p>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>
