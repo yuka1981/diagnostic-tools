@@ -28,17 +28,23 @@ application.register("file-drop", FileDropController)
 import HeatmapController from "./heatmap_controller"
 application.register("heatmap", HeatmapController)
 
-import ImageViewerController from "./image_viewer_controller"
-application.register("image-viewer", ImageViewerController)
-
 import HostnameValidationController from "./hostname_validation_controller"
 application.register("hostname-validation", HostnameValidationController)
+
+import ImageViewerController from "./image_viewer_controller"
+application.register("image-viewer", ImageViewerController)
 
 import LogStreamController from "./log_stream_controller"
 application.register("log-stream", LogStreamController)
 
 import ModalController from "./modal_controller"
 application.register("modal", ModalController)
+
+import NotificationItemController from "./notification_item_controller"
+application.register("notification-item", NotificationItemController)
+
+import NotificationsController from "./notifications_controller"
+application.register("notifications", NotificationsController)
 
 import RackDiagramController from "./rack_diagram_controller"
 application.register("rack-diagram", RackDiagramController)
