@@ -29,7 +29,8 @@ module Nodes
         target_host: uninstall_params[:hostname],
         bastion_host: uninstall_params[:bastion_host],
         bastion_user: uninstall_params[:bastion_user],
-        credentials_cache_key: cache_key
+        credentials_cache_key: cache_key,
+        user_id: current_user.id
       )
 
       respond_to do |format|

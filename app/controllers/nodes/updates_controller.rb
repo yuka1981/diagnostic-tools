@@ -33,7 +33,8 @@ module Nodes
         node: @node,
         agent_release: @agent_release,
         force: params[:force] == "true",
-        credentials_cache_key: credentials.any? ? credentials_cache_key : nil
+        credentials_cache_key: credentials.any? ? credentials_cache_key : nil,
+        user_id: current_user.id
       )
 
       # Respond with turbo_stream to show progress UI

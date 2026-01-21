@@ -20,8 +20,9 @@ module Agent
       /reload|daemon/i => :reload_daemon
     }.freeze
 
-    def perform(target_host:, bastion_host: nil, bastion_user:, credentials_cache_key:)
+    def perform(target_host:, bastion_host: nil, bastion_user:, credentials_cache_key:, user_id: nil)
       Rails.logger.debug "[Agent::UninstallJob] Starting uninstall for #{target_host}"
+      notification = nil
 
       # Retrieve sensitive credentials from cache
       credentials = Rails.cache.read("install_creds_#{credentials_cache_key}")
@@ -48,6 +49,20 @@ module Agent
         raise "Uninstallation failed: Node not found."
       end
 
+      # Create notification if user_id is provided
+      if user_id.present?
+        user = User.find_by(id: user_id)
+        if user
+          notification = NotificationService.create(
+            user: user,
+            type: "agent_uninstall",
+            title: "Uninstalling agent from #{node.hostname}",
+            resource: node
+          )
+          NotificationService.start(notification)
+        end
+      end
+
       # Small delay to allow the browser to establish ActionCable connection
       sleep 1 if Rails.env.development?
 
@@ -70,14 +85,17 @@ module Agent
       # Success Broadcast
       Rails.logger.debug "[Agent::UninstallJob] Uninstallation Successful"
       broadcast_status(target_host, "success", "Agent uninstalled successfully", :done)
+      NotificationService.complete(notification, success: true, message: "Agent uninstalled successfully") if notification
     rescue Agent::Errors::LifecycleError => e
       Rails.logger.error "[Agent::UninstallJob] Error: #{e.message}"
       Rails.logger.error e.backtrace.first(10).join("\n")
       broadcast_status(target_host, "error", e.message, nil)
+      NotificationService.complete(notification, success: false, message: e.message) if notification
     rescue => e
       Rails.logger.error "[Agent::UninstallJob] Error: #{e.message}"
       Rails.logger.error e.backtrace.first(10).join("\n")
       broadcast_status(target_host, "error", e.message, nil)
+      NotificationService.complete(notification, success: false, message: e.message) if notification
     end
 
     private

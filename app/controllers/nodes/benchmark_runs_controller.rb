@@ -51,7 +51,8 @@ module Nodes
           run,
           request.base_url,
           agent_token,
-          argument_overrides
+          argument_overrides,
+          user_id: current_user.id
         )
 
         redirect_to node_path(@node), notice: "Benchmark triggered successfully."

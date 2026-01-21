@@ -6,9 +6,24 @@ module Agent
   class InstallJob < ApplicationJob
     queue_as :default
 
-    def perform(node:, target_host:, arch:, bastion_host: nil, bastion_user:, credentials_cache_key:, server_url:, api_key_id: nil)
+    def perform(node:, target_host:, arch:, bastion_host: nil, bastion_user:, credentials_cache_key:, server_url:, api_key_id: nil, user_id: nil)
       Rails.logger.debug "[Agent::InstallJob] Starting install for #{target_host} (arch: #{arch})"
       local_binary_path = nil
+      notification = nil
+
+      # Create notification if user_id is provided
+      if user_id.present?
+        user = User.find_by(id: user_id)
+        if user
+          notification = NotificationService.create(
+            user: user,
+            type: "agent_install",
+            title: "Installing agent on #{target_host}",
+            resource: node
+          )
+          NotificationService.start(notification)
+        end
+      end
 
       # Retrieve sensitive credentials from cache
       credentials = Rails.cache.read("install_creds_#{credentials_cache_key}")
@@ -65,6 +80,7 @@ module Agent
       # 3. Success Broadcast
       Rails.logger.debug "[Agent::InstallJob] Installation Successful"
       broadcast_status(target_host, "success", "Agent installed successfully")
+      NotificationService.complete(notification, success: true, message: "Agent installed successfully") if notification
     rescue Agent::Errors::LifecycleError => e
       Rails.logger.error "[Agent::InstallJob] Error: #{e.message}"
       Rails.logger.error e.backtrace.first(10).join("\n")
@@ -76,6 +92,7 @@ module Agent
       end
 
       broadcast_status(target_host, "error", e.message)
+      NotificationService.complete(notification, success: false, message: e.message) if notification
     rescue => e
       Rails.logger.error "[Agent::InstallJob] Error: #{e.message}"
       Rails.logger.error e.backtrace.first(10).join("\n")
@@ -87,6 +104,7 @@ module Agent
       end
 
       broadcast_status(target_host, "error", e.message)
+      NotificationService.complete(notification, success: false, message: e.message) if notification
     ensure
       # Cleanup local binary if it was created
       if local_binary_path && File.exist?(local_binary_path)
