@@ -38,7 +38,7 @@
     <div class="w-48">
       <%= f.select :series,
             options_for_select(
-              ServerProduct.distinct.pluck(:product_series).compact.sort.map { |s| [s, s] },
+              ServerProduct.series_options.map { |s| [s, s] },
               params[:series]
             ),
             { include_blank: "All Series" },
@@ -47,7 +47,7 @@
     <div class="w-48">
       <%= f.select :form_factor,
             options_for_select(
-              ServerProduct.distinct.pluck(:form_factor).compact.sort.map { |ff| [ff, ff] },
+              ServerProduct.form_factor_options.map { |ff| [ff, ff] },
               params[:form_factor]
             ),
             { include_blank: "All Form Factors" },
