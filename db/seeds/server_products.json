@@ -1,0 +1,2339 @@
+{
+  "products": [
+    {
+      "name": "EGT23D-DT",
+      "rack_height": 1,
+      "qct_product_url": "https://www.qct.io/product/index/Server/rackmount-server/uCPE/EGT23D-DT",
+      "socket_count": 2,
+      "max_memory_gb": 32,
+      "dimm_slots": 1,
+      "memory_types": [
+        "DDR4"
+      ],
+      "drive_bays": [
+        {
+          "type": "SATA",
+          "count": 1,
+          "form_factor": "3"
+        }
+      ],
+      "pcie_slots": [],
+      "power_supply_options": [],
+      "gpu_support": false,
+      "network_options": [],
+      "cpu_generations": [],
+      "image_filename": "egt23d-dt.png"
+    },
+    {
+      "name": "QuantaEdge EGX63IS-1U",
+      "product_series": "QuantaEdge",
+      "form_factor": "1U",
+      "rack_height": 1,
+      "qct_product_url": "https://www.qct.io/product/index/Server/rackmount-server/Edge-Server/QuantaEdge-EGX63IS-1U",
+      "socket_count": 1,
+      "max_memory_gb": 512,
+      "dimm_slots": 8,
+      "memory_types": [
+        "DDR4"
+      ],
+      "drive_bays": [
+        {
+          "type": "NVME",
+          "count": 2,
+          "form_factor": "2.5"
+        },
+        {
+          "type": "SATA",
+          "count": 2,
+          "form_factor": "2.5"
+        },
+        {
+          "type": "HDD",
+          "count": 2,
+          "form_factor": "2.5"
+        }
+      ],
+      "pcie_slots": [
+        {
+          "count": 1,
+          "lanes": 16,
+          "generation": "4"
+        },
+        {
+          "count": 2,
+          "lanes": 16,
+          "generation": "4"
+        }
+      ],
+      "power_supply_options": [],
+      "gpu_support": false,
+      "network_options": [],
+      "cpu_generations": [
+        "Xeon Scalable"
+      ],
+      "image_filename": "quantaedge-egx63is-1u.png"
+    },
+    {
+      "name": "QuantaEdge EGX66Y-2U",
+      "product_series": "QuantaEdge",
+      "form_factor": "2U",
+      "rack_height": 2,
+      "qct_product_url": "https://www.qct.io/product/index/Server/rackmount-server/Edge-Server/QuantaEdge-EGX66Y-2U",
+      "socket_count": 2,
+      "max_memory_gb": 2048,
+      "dimm_slots": 16,
+      "memory_types": [
+        "DDR4"
+      ],
+      "drive_bays": [
+        {
+          "type": "NVME",
+          "count": 2,
+          "form_factor": "2.5"
+        },
+        {
+          "type": "SSD",
+          "count": 4,
+          "form_factor": "2.5"
+        },
+        {
+          "type": "SSD",
+          "count": 2,
+          "form_factor": "2.5"
+        },
+        {
+          "type": "HDD",
+          "count": 4,
+          "form_factor": "2.5"
+        }
+      ],
+      "pcie_slots": [
+        {
+          "count": 4,
+          "lanes": 16,
+          "generation": "4"
+        },
+        {
+          "count": 2,
+          "lanes": 16,
+          "generation": "4"
+        }
+      ],
+      "power_supply_options": [],
+      "gpu_support": true,
+      "network_options": [],
+      "cpu_generations": [
+        "3rd Gen Xeon"
+      ],
+      "image_filename": "quantaedge-egx66y-2u.png"
+    },
+    {
+      "name": "QuantaEdge EGX74I-1U",
+      "product_series": "QuantaEdge",
+      "form_factor": "1U",
+      "rack_height": 1,
+      "qct_product_url": "https://www.qct.io/product/index/Server/rackmount-server/Edge-Server/QuantaEdge-EGX74I-1U",
+      "socket_count": 1,
+      "max_memory_gb": 512,
+      "dimm_slots": 8,
+      "memory_types": [
+        "DDR5"
+      ],
+      "drive_bays": [
+        {
+          "type": "NVME",
+          "count": 2,
+          "form_factor": "2.5"
+        },
+        {
+          "type": "SSD",
+          "count": 2,
+          "form_factor": "2.5"
+        },
+        {
+          "type": "HDD",
+          "count": 1,
+          "form_factor": "2.5"
+        }
+      ],
+      "pcie_slots": [
+        {
+          "count": 1,
+          "lanes": 16,
+          "generation": "5"
+        },
+        {
+          "count": 2,
+          "lanes": 16,
+          "generation": "5"
+        }
+      ],
+      "power_supply_options": [],
+      "gpu_support": false,
+      "network_options": [],
+      "cpu_generations": [
+        "5th Gen Xeon",
+        "4th Gen Xeon"
+      ],
+      "image_filename": "quantaedge-egx74i-1u.png"
+    },
+    {
+      "name": "QuantaEdge EGX77B-1U",
+      "product_series": "QuantaEdge",
+      "form_factor": "1U",
+      "rack_height": 1,
+      "qct_product_url": "https://www.qct.io/product/index/Server/rackmount-server/Edge-Server/QuantaEdge-EGX77B-1U",
+      "socket_count": 1,
+      "max_memory_gb": 512,
+      "dimm_slots": 8,
+      "memory_types": [
+        "DDR5"
+      ],
+      "drive_bays": [
+        {
+          "type": "NVME",
+          "count": 2,
+          "form_factor": "2.5"
+        }
+      ],
+      "pcie_slots": [
+        {
+          "count": 1,
+          "lanes": 16,
+          "generation": "5"
+        }
+      ],
+      "power_supply_options": [],
+      "gpu_support": false,
+      "network_options": [],
+      "cpu_generations": [
+        "5th Gen Xeon",
+        "4th Gen Xeon"
+      ],
+      "image_filename": "quantaedge-egx77b-1u.png"
+    },
+    {
+      "name": "QuantaEdge EGX77I-1U2N",
+      "product_series": "QuantaEdge",
+      "form_factor": "1U",
+      "rack_height": 1,
+      "qct_product_url": "https://www.qct.io/product/index/Server/rackmount-server/Edge-Server/QuantaEdge-EGX77I-1U2N",
+      "max_memory_gb": 512,
+      "memory_types": [
+        "DDR5"
+      ],
+      "drive_bays": [
+        {
+          "type": "NVME",
+          "count": 2,
+          "form_factor": "2.5"
+        }
+      ],
+      "pcie_slots": [
+        {
+          "count": 1,
+          "lanes": 16,
+          "generation": "5"
+        }
+      ],
+      "power_supply_options": [],
+      "gpu_support": false,
+      "network_options": [],
+      "cpu_generations": [
+        "5th Gen Xeon",
+        "4th Gen Xeon"
+      ],
+      "image_filename": "quantaedge-egx77i-1u2n.png"
+    },
+    {
+      "name": "QuantaGrid D43K-1U",
+      "product_series": "QuantaGrid",
+      "form_factor": "1U",
+      "rack_height": 1,
+      "qct_product_url": "https://www.qct.io/product/index/Server/rackmount-server/1U-Rackmount-Server/QuantaGrid-D43K-1U",
+      "socket_count": 2,
+      "max_memory_gb": 4096,
+      "dimm_slots": 32,
+      "memory_types": [
+        "DDR4"
+      ],
+      "drive_bays": [
+        {
+          "type": "SATA",
+          "count": 12,
+          "form_factor": "2.5"
+        },
+        {
+          "type": "SATA",
+          "count": 4,
+          "form_factor": "2.5"
+        },
+        {
+          "type": "NVME",
+          "count": 8,
+          "form_factor": "2.5"
+        },
+        {
+          "type": "NVME",
+          "count": 4,
+          "form_factor": "2.5"
+        },
+        {
+          "type": "SAS",
+          "count": 1,
+          "form_factor": "2.5"
+        },
+        {
+          "type": "SATA",
+          "count": 2,
+          "form_factor": "2.5"
+        }
+      ],
+      "pcie_slots": [
+        {
+          "count": 1,
+          "lanes": 8,
+          "generation": "4"
+        },
+        {
+          "count": 2,
+          "lanes": 16,
+          "generation": "4"
+        },
+        {
+          "count": 3,
+          "lanes": 16,
+          "generation": "4"
+        }
+      ],
+      "power_supply_options": [],
+      "gpu_support": false,
+      "network_options": [],
+      "cpu_generations": []
+    },
+    {
+      "name": "QuantaGrid D43KQ-2U",
+      "product_series": "QuantaGrid",
+      "form_factor": "2U",
+      "rack_height": 2,
+      "qct_product_url": "https://www.qct.io/product/index/Server/rackmount-server/2U-Rackmount-Server/QuantaGrid-D43KQ-2U",
+      "socket_count": 2,
+      "max_memory_gb": 4096,
+      "dimm_slots": 32,
+      "memory_types": [
+        "DDR4"
+      ],
+      "drive_bays": [
+        {
+          "type": "SATA",
+          "count": 12,
+          "form_factor": "2.5"
+        },
+        {
+          "type": "NVME",
+          "count": 2,
+          "form_factor": "2.5"
+        },
+        {
+          "type": "SATA",
+          "count": 4,
+          "form_factor": "2.5"
+        },
+        {
+          "type": "NVME",
+          "count": 8,
+          "form_factor": "2.5"
+        },
+        {
+          "type": "SATA",
+          "count": 16,
+          "form_factor": "2.5"
+        },
+        {
+          "type": "SATA",
+          "count": 24,
+          "form_factor": "2.5"
+        },
+        {
+          "type": "SATA",
+          "count": 2,
+          "form_factor": "2.5"
+        },
+        {
+          "type": "SATA",
+          "count": 8,
+          "form_factor": "2.5"
+        },
+        {
+          "type": "SAS",
+          "count": 1,
+          "form_factor": "2.5"
+        }
+      ],
+      "pcie_slots": [
+        {
+          "count": 1,
+          "lanes": 8,
+          "generation": "4"
+        },
+        {
+          "count": 1,
+          "lanes": 16,
+          "generation": "4"
+        },
+        {
+          "count": 2,
+          "lanes": 8,
+          "generation": "4"
+        },
+        {
+          "count": 3,
+          "lanes": 8,
+          "generation": "4"
+        },
+        {
+          "count": 2,
+          "lanes": 16,
+          "generation": "4"
+        }
+      ],
+      "power_supply_options": [],
+      "gpu_support": true,
+      "network_options": [],
+      "cpu_generations": [],
+      "image_filename": "quantagrid-d43kq-2u.png"
+    },
+    {
+      "name": "QuantaGrid D44N-1U",
+      "product_series": "QuantaGrid",
+      "form_factor": "1U",
+      "rack_height": 1,
+      "qct_product_url": "https://www.qct.io/product/index/Server/rackmount-server/1U-Rackmount-Server/QuantaGrid-D44N-1U",
+      "socket_count": 2,
+      "max_memory_gb": 6144,
+      "dimm_slots": 24,
+      "memory_types": [
+        "DDR5"
+      ],
+      "drive_bays": [
+        {
+          "type": "NVME",
+          "count": 12,
+          "form_factor": "2.5"
+        },
+        {
+          "type": "NVME",
+          "count": 16,
+          "form_factor": "2.5"
+        }
+      ],
+      "pcie_slots": [
+        {
+          "count": 3,
+          "lanes": 16,
+          "generation": "5"
+        },
+        {
+          "count": 2,
+          "lanes": 16,
+          "generation": "5"
+        }
+      ],
+      "power_supply_options": [],
+      "gpu_support": false,
+      "network_options": [],
+      "cpu_generations": [],
+      "image_filename": "quantagrid-d44n-1u.png"
+    },
+    {
+      "name": "QuantaGrid D52B-1U",
+      "product_series": "QuantaGrid",
+      "form_factor": "1U",
+      "rack_height": 1,
+      "qct_product_url": "https://www.qct.io/product/index/Server/rackmount-server/1U-Rackmount-Server/QuantaGrid-D52B-1U",
+      "socket_count": 2,
+      "max_memory_gb": 3072,
+      "dimm_slots": 24,
+      "memory_types": [
+        "DDR4"
+      ],
+      "drive_bays": [
+        {
+          "type": "SATA",
+          "count": 12,
+          "form_factor": "2.5"
+        },
+        {
+          "type": "SATA",
+          "count": 8,
+          "form_factor": "2.5"
+        },
+        {
+          "type": "NVME",
+          "count": 4,
+          "form_factor": "2.5"
+        },
+        {
+          "type": "SATA",
+          "count": 4,
+          "form_factor": "2.5"
+        },
+        {
+          "type": "SAS",
+          "count": 1,
+          "form_factor": "2.5"
+        },
+        {
+          "type": "SATA",
+          "count": 2,
+          "form_factor": "2.5"
+        }
+      ],
+      "pcie_slots": [
+        {
+          "count": 1,
+          "lanes": 16,
+          "generation": "3"
+        },
+        {
+          "count": 1,
+          "lanes": 8,
+          "generation": "3"
+        }
+      ],
+      "power_supply_options": [],
+      "gpu_support": false,
+      "network_options": [],
+      "cpu_generations": [
+        "Xeon Scalable"
+      ],
+      "image_filename": "quantagrid-d52b-1u.png"
+    },
+    {
+      "name": "QuantaGrid D52BM-2U",
+      "product_series": "QuantaGrid",
+      "form_factor": "2U",
+      "rack_height": 2,
+      "qct_product_url": "https://www.qct.io/product/index/Server/rackmount-server/2U-Rackmount-Server/QuantaGrid-D52BM-2U",
+      "socket_count": 2,
+      "max_memory_gb": 3072,
+      "dimm_slots": 24,
+      "memory_types": [
+        "DDR4"
+      ],
+      "drive_bays": [
+        {
+          "type": "SATA",
+          "count": 12,
+          "form_factor": "2.5"
+        },
+        {
+          "type": "SATA",
+          "count": 4,
+          "form_factor": "2.5"
+        },
+        {
+          "type": "SATA",
+          "count": 2,
+          "form_factor": "2.5"
+        },
+        {
+          "type": "SATA",
+          "count": 8,
+          "form_factor": "2.5"
+        },
+        {
+          "type": "NVME",
+          "count": 4,
+          "form_factor": "2.5"
+        },
+        {
+          "type": "SAS",
+          "count": 1,
+          "form_factor": "2.5"
+        }
+      ],
+      "pcie_slots": [
+        {
+          "count": 1,
+          "lanes": 16,
+          "generation": "3"
+        },
+        {
+          "count": 2,
+          "lanes": 16,
+          "generation": "3"
+        }
+      ],
+      "power_supply_options": [],
+      "gpu_support": false,
+      "network_options": [],
+      "cpu_generations": [
+        "Xeon Scalable"
+      ],
+      "image_filename": "quantagrid-d52bm-2u.png"
+    },
+    {
+      "name": "QuantaGrid D52BQ-2U",
+      "product_series": "QuantaGrid",
+      "form_factor": "2U",
+      "rack_height": 2,
+      "qct_product_url": "https://www.qct.io/product/index/Server/rackmount-server/2U-Rackmount-Server/QuantaGrid-D52BQ-2U",
+      "socket_count": 2,
+      "max_memory_gb": 3072,
+      "dimm_slots": 24,
+      "memory_types": [
+        "DDR4"
+      ],
+      "drive_bays": [
+        {
+          "type": "SATA",
+          "count": 12,
+          "form_factor": "2.5"
+        },
+        {
+          "type": "NVME",
+          "count": 2,
+          "form_factor": "2.5"
+        },
+        {
+          "type": "SATA",
+          "count": 8,
+          "form_factor": "2.5"
+        },
+        {
+          "type": "NVME",
+          "count": 4,
+          "form_factor": "2.5"
+        },
+        {
+          "type": "SATA",
+          "count": 2,
+          "form_factor": "2.5"
+        },
+        {
+          "type": "SATA",
+          "count": 16,
+          "form_factor": "2.5"
+        },
+        {
+          "type": "NVME",
+          "count": 8,
+          "form_factor": "2.5"
+        },
+        {
+          "type": "SATA",
+          "count": 24,
+          "form_factor": "2.5"
+        },
+        {
+          "type": "SAS",
+          "count": 1,
+          "form_factor": "2.5"
+        }
+      ],
+      "pcie_slots": [
+        {
+          "count": 1,
+          "lanes": 16,
+          "generation": "3"
+        }
+      ],
+      "power_supply_options": [],
+      "gpu_support": false,
+      "network_options": [],
+      "cpu_generations": [
+        "Xeon Scalable"
+      ],
+      "image_filename": "quantagrid-d52bq-2u.png"
+    },
+    {
+      "name": "QuantaGrid D52BQ-2U 3UPI",
+      "product_series": "QuantaGrid",
+      "form_factor": "2U",
+      "rack_height": 2,
+      "qct_product_url": "https://www.qct.io/product/index/Server/rackmount-server/2U-Rackmount-Server/QuantaGrid-D52BQ-2U-3UPI",
+      "socket_count": 2,
+      "max_memory_gb": 3072,
+      "dimm_slots": 24,
+      "memory_types": [
+        "DDR4"
+      ],
+      "drive_bays": [
+        {
+          "type": "SATA",
+          "count": 24,
+          "form_factor": "2.5"
+        },
+        {
+          "type": "SATA",
+          "count": 2,
+          "form_factor": "2.5"
+        },
+        {
+          "type": "SAS",
+          "count": 1,
+          "form_factor": "2.5"
+        }
+      ],
+      "pcie_slots": [
+        {
+          "count": 1,
+          "lanes": 16,
+          "generation": "3"
+        },
+        {
+          "count": 2,
+          "lanes": 16,
+          "generation": "3"
+        }
+      ],
+      "power_supply_options": [],
+      "gpu_support": false,
+      "network_options": [],
+      "cpu_generations": [
+        "Xeon Scalable"
+      ],
+      "image_filename": "quantagrid-d52bq-2u-3upi.png"
+    },
+    {
+      "name": "QuantaGrid D52BV-2U",
+      "product_series": "QuantaGrid",
+      "form_factor": "2U",
+      "rack_height": 2,
+      "qct_product_url": "https://www.qct.io/product/index/Server/rackmount-server/GPGPU-Xeon-Phi/QuantaGrid-D52BV-2U",
+      "socket_count": 2,
+      "max_memory_gb": 3072,
+      "dimm_slots": 24,
+      "memory_types": [
+        "DDR4"
+      ],
+      "drive_bays": [
+        {
+          "type": "SATA",
+          "count": 1,
+          "form_factor": "2.5"
+        },
+        {
+          "type": "SAS",
+          "count": 1,
+          "form_factor": "2.5"
+        },
+        {
+          "type": "SATA",
+          "count": 2,
+          "form_factor": "2.5"
+        }
+      ],
+      "pcie_slots": [
+        {
+          "count": 4,
+          "lanes": 16,
+          "generation": "3"
+        },
+        {
+          "count": 1,
+          "lanes": 16,
+          "generation": "3"
+        }
+      ],
+      "power_supply_options": [],
+      "gpu_support": true,
+      "network_options": [],
+      "cpu_generations": [
+        "Xeon Scalable"
+      ],
+      "image_filename": "quantagrid-d52bv-2u.png"
+    },
+    {
+      "name": "QuantaGrid D52G-4U",
+      "product_series": "QuantaGrid",
+      "form_factor": "4U",
+      "rack_height": 4,
+      "qct_product_url": "https://www.qct.io/product/index/Server/rackmount-server/GPGPU-Xeon-Phi/QuantaGrid-D52G-4U",
+      "socket_count": 2,
+      "max_memory_gb": 3072,
+      "dimm_slots": 24,
+      "memory_types": [
+        "DDR4"
+      ],
+      "drive_bays": [
+        {
+          "type": "SATA",
+          "count": 24,
+          "form_factor": "2.5"
+        },
+        {
+          "type": "SATA",
+          "count": 20,
+          "form_factor": "2.5"
+        },
+        {
+          "type": "NVME",
+          "count": 4,
+          "form_factor": "2.5"
+        },
+        {
+          "type": "NVME",
+          "count": 8,
+          "form_factor": "2.5"
+        },
+        {
+          "type": "SAS",
+          "count": 1,
+          "form_factor": "2.5"
+        },
+        {
+          "type": "SATA",
+          "count": 2,
+          "form_factor": "2.5"
+        }
+      ],
+      "pcie_slots": [
+        {
+          "count": 1,
+          "lanes": 16,
+          "generation": "3"
+        },
+        {
+          "count": 4,
+          "lanes": 16,
+          "generation": "3"
+        },
+        {
+          "count": 8,
+          "lanes": 16,
+          "generation": "3"
+        },
+        {
+          "count": 2,
+          "lanes": 16,
+          "generation": "3"
+        },
+        {
+          "count": 10,
+          "lanes": 16,
+          "generation": "3"
+        },
+        {
+          "count": 20,
+          "lanes": 16,
+          "generation": "3"
+        },
+        {
+          "count": 16,
+          "lanes": 16,
+          "generation": "3"
+        }
+      ],
+      "power_supply_options": [],
+      "gpu_support": true,
+      "network_options": [],
+      "cpu_generations": [
+        "Xeon Scalable"
+      ],
+      "image_filename": "quantagrid-d52g-4u.png"
+    },
+    {
+      "name": "QuantaGrid D52Y-2U",
+      "product_series": "QuantaGrid",
+      "form_factor": "2U",
+      "rack_height": 2,
+      "qct_product_url": "https://www.qct.io/product/index/Server/rackmount-server/2U-Rackmount-Server/QuantaGrid-D52Y-2U",
+      "socket_count": 2,
+      "max_memory_gb": 2048,
+      "dimm_slots": 16,
+      "memory_types": [
+        "DDR4"
+      ],
+      "drive_bays": [
+        {
+          "type": "SAS",
+          "count": 1,
+          "form_factor": "2.5"
+        }
+      ],
+      "pcie_slots": [
+        {
+          "count": 1,
+          "lanes": 16,
+          "generation": "3"
+        },
+        {
+          "count": 2,
+          "lanes": 8,
+          "generation": "3"
+        }
+      ],
+      "power_supply_options": [],
+      "gpu_support": false,
+      "network_options": [],
+      "cpu_generations": [
+        "Xeon Scalable"
+      ],
+      "image_filename": "quantagrid-d52y-2u.png"
+    },
+    {
+      "name": "QuantaGrid D53X-1U",
+      "product_series": "QuantaGrid",
+      "form_factor": "1U",
+      "rack_height": 1,
+      "qct_product_url": "https://www.qct.io/product/index/Server/rackmount-server/1U-Rackmount-Server/QuantaGrid-D53X-1U",
+      "max_memory_gb": 8192,
+      "dimm_slots": 32,
+      "memory_types": [
+        "DDR4"
+      ],
+      "drive_bays": [
+        {
+          "type": "SATA",
+          "count": 12,
+          "form_factor": "2.5"
+        },
+        {
+          "type": "SATA",
+          "count": 4,
+          "form_factor": "2.5"
+        },
+        {
+          "type": "NVME",
+          "count": 8,
+          "form_factor": "2.5"
+        },
+        {
+          "type": "NVME",
+          "count": 4,
+          "form_factor": "2.5"
+        },
+        {
+          "type": "SAS",
+          "count": 1,
+          "form_factor": "2.5"
+        },
+        {
+          "type": "SATA",
+          "count": 1,
+          "form_factor": "2.5"
+        }
+      ],
+      "pcie_slots": [
+        {
+          "count": 1,
+          "lanes": 8,
+          "generation": "4"
+        },
+        {
+          "count": 2,
+          "lanes": 16,
+          "generation": "4"
+        },
+        {
+          "count": 3,
+          "lanes": 16,
+          "generation": "4"
+        }
+      ],
+      "power_supply_options": [],
+      "gpu_support": false,
+      "network_options": [],
+      "cpu_generations": [
+        "3rd Gen Xeon"
+      ],
+      "image_filename": "quantagrid-d53x-1u.png"
+    },
+    {
+      "name": "QuantaGrid D53XQ-2U",
+      "product_series": "QuantaGrid",
+      "form_factor": "2U",
+      "rack_height": 2,
+      "qct_product_url": "https://www.qct.io/product/index/Server/rackmount-server/2U-Rackmount-Server/QuantaGrid-D53XQ-2U",
+      "max_memory_gb": 8192,
+      "dimm_slots": 32,
+      "memory_types": [
+        "DDR4"
+      ],
+      "drive_bays": [
+        {
+          "type": "SATA",
+          "count": 12,
+          "form_factor": "2.5"
+        },
+        {
+          "type": "NVME",
+          "count": 2,
+          "form_factor": "2.5"
+        },
+        {
+          "type": "SATA",
+          "count": 4,
+          "form_factor": "2.5"
+        },
+        {
+          "type": "NVME",
+          "count": 8,
+          "form_factor": "2.5"
+        },
+        {
+          "type": "SATA",
+          "count": 16,
+          "form_factor": "2.5"
+        },
+        {
+          "type": "SATA",
+          "count": 24,
+          "form_factor": "2.5"
+        },
+        {
+          "type": "SATA",
+          "count": 2,
+          "form_factor": "2.5"
+        },
+        {
+          "type": "SATA",
+          "count": 8,
+          "form_factor": "2.5"
+        },
+        {
+          "type": "NVME",
+          "count": 24,
+          "form_factor": "2.5"
+        },
+        {
+          "type": "SAS",
+          "count": 1,
+          "form_factor": "2.5"
+        }
+      ],
+      "pcie_slots": [
+        {
+          "count": 1,
+          "lanes": 8,
+          "generation": "4"
+        },
+        {
+          "count": 2,
+          "lanes": 16,
+          "generation": "4"
+        },
+        {
+          "count": 4,
+          "lanes": 8,
+          "generation": "4"
+        },
+        {
+          "count": 4,
+          "lanes": 16,
+          "generation": "4"
+        }
+      ],
+      "power_supply_options": [],
+      "gpu_support": true,
+      "network_options": [],
+      "cpu_generations": [
+        "3rd Gen Xeon"
+      ],
+      "image_filename": "quantagrid-d53xq-2u.png"
+    },
+    {
+      "name": "QuantaGrid D54Q-2U",
+      "product_series": "QuantaGrid",
+      "form_factor": "2U",
+      "rack_height": 2,
+      "qct_product_url": "https://www.qct.io/product/index/Server/rackmount-server/2U-Rackmount-Server/QuantaGrid-D54Q-2U",
+      "socket_count": 2,
+      "max_memory_gb": 8192,
+      "dimm_slots": 32,
+      "memory_types": [
+        "DDR5"
+      ],
+      "drive_bays": [
+        {
+          "type": "SATA",
+          "count": 12,
+          "form_factor": "2.5"
+        },
+        {
+          "type": "NVME",
+          "count": 2,
+          "form_factor": "2.5"
+        },
+        {
+          "type": "SATA",
+          "count": 16,
+          "form_factor": "2.5"
+        },
+        {
+          "type": "NVME",
+          "count": 8,
+          "form_factor": "2.5"
+        },
+        {
+          "type": "SATA",
+          "count": 24,
+          "form_factor": "2.5"
+        },
+        {
+          "type": "NVME",
+          "count": 24,
+          "form_factor": "2.5"
+        },
+        {
+          "type": "SATA",
+          "count": 1,
+          "form_factor": "2.5"
+        }
+      ],
+      "pcie_slots": [
+        {
+          "count": 2,
+          "lanes": 16,
+          "generation": "5"
+        },
+        {
+          "count": 4,
+          "lanes": 8,
+          "generation": "5"
+        },
+        {
+          "count": 2,
+          "lanes": 16,
+          "generation": "4"
+        },
+        {
+          "count": 4,
+          "lanes": 16,
+          "generation": "5"
+        },
+        {
+          "count": 1,
+          "lanes": 16,
+          "generation": "5"
+        },
+        {
+          "count": 2,
+          "lanes": 8,
+          "generation": "5"
+        }
+      ],
+      "power_supply_options": [],
+      "gpu_support": true,
+      "network_options": [],
+      "cpu_generations": [
+        "5th Gen Xeon",
+        "4th Gen Xeon"
+      ],
+      "image_filename": "quantagrid-d54q-2u.png"
+    },
+    {
+      "name": "QuantaGrid D54U-3U",
+      "product_series": "QuantaGrid",
+      "form_factor": "3U",
+      "rack_height": 3,
+      "qct_product_url": "https://www.qct.io/product/index/Server/rackmount-server/GPGPU-Xeon-Phi/QuantaGrid-D54U-3U",
+      "socket_count": 2,
+      "max_memory_gb": 8192,
+      "dimm_slots": 32,
+      "memory_types": [
+        "DDR5"
+      ],
+      "drive_bays": [
+        {
+          "type": "SATA",
+          "count": 10,
+          "form_factor": "2.5"
+        },
+        {
+          "type": "SATA",
+          "count": 1,
+          "form_factor": "2.5"
+        }
+      ],
+      "pcie_slots": [
+        {
+          "count": 4,
+          "lanes": 16,
+          "generation": "5"
+        },
+        {
+          "count": 2,
+          "lanes": 16,
+          "generation": "5"
+        },
+        {
+          "count": 1,
+          "lanes": 16,
+          "generation": "5"
+        },
+        {
+          "count": 1,
+          "lanes": 8,
+          "generation": "5"
+        },
+        {
+          "count": 8,
+          "lanes": 8,
+          "generation": "5"
+        }
+      ],
+      "power_supply_options": [],
+      "gpu_support": true,
+      "network_options": [],
+      "cpu_generations": [
+        "5th Gen Xeon",
+        "4th Gen Xeon"
+      ],
+      "image_filename": "quantagrid-d54u-3u.png"
+    },
+    {
+      "name": "QuantaGrid D54X-1U",
+      "product_series": "QuantaGrid",
+      "form_factor": "1U",
+      "rack_height": 1,
+      "qct_product_url": "https://www.qct.io/product/index/Server/rackmount-server/1U-Rackmount-Server/QuantaGrid-D54X-1U",
+      "socket_count": 2,
+      "max_memory_gb": 8192,
+      "dimm_slots": 32,
+      "memory_types": [
+        "DDR5"
+      ],
+      "drive_bays": [
+        {
+          "type": "NVME",
+          "count": 12,
+          "form_factor": "2.5"
+        },
+        {
+          "type": "NVME",
+          "count": 16,
+          "form_factor": "2.5"
+        },
+        {
+          "type": "SATA",
+          "count": 1,
+          "form_factor": "2.5"
+        }
+      ],
+      "pcie_slots": [
+        {
+          "count": 2,
+          "lanes": 16,
+          "generation": "5"
+        },
+        {
+          "count": 3,
+          "lanes": 16,
+          "generation": "5"
+        }
+      ],
+      "power_supply_options": [],
+      "gpu_support": false,
+      "network_options": [],
+      "cpu_generations": [
+        "5th Gen Xeon",
+        "4th Gen Xeon"
+      ],
+      "image_filename": "quantagrid-d54x-1u.png"
+    },
+    {
+      "name": "QuantaGrid D55Q-2U",
+      "product_series": "QuantaGrid",
+      "form_factor": "2U",
+      "rack_height": 2,
+      "qct_product_url": "https://www.qct.io/product/index/Server/rackmount-server/2U-Rackmount-Server/QuantaGridD55Q-2U",
+      "socket_count": 2,
+      "dimm_slots": 32,
+      "memory_types": [],
+      "drive_bays": [
+        {
+          "type": "SATA",
+          "count": 12,
+          "form_factor": "2.5"
+        },
+        {
+          "type": "NVME",
+          "count": 12,
+          "form_factor": "2.5"
+        },
+        {
+          "type": "NVME",
+          "count": 24,
+          "form_factor": "2.5"
+        },
+        {
+          "type": "NVME",
+          "count": 2,
+          "form_factor": "2.5"
+        }
+      ],
+      "pcie_slots": [
+        {
+          "count": 4,
+          "lanes": 8,
+          "generation": "5"
+        },
+        {
+          "count": 2,
+          "lanes": 16,
+          "generation": "5"
+        },
+        {
+          "count": 1,
+          "lanes": 8,
+          "generation": "5"
+        },
+        {
+          "count": 1,
+          "lanes": 16,
+          "generation": "5"
+        }
+      ],
+      "power_supply_options": [],
+      "gpu_support": true,
+      "network_options": [],
+      "cpu_generations": [],
+      "image_filename": "quantagrid-d55q-2u.png"
+    },
+    {
+      "name": "QuantaGrid D55X-1U",
+      "product_series": "QuantaGrid",
+      "form_factor": "1U",
+      "rack_height": 1,
+      "qct_product_url": "https://www.qct.io/product/index/Server/rackmount-server/1U-Rackmount-Server/QuantaGrid-D55X-1U-Hyperscale-Products",
+      "socket_count": 6,
+      "dimm_slots": 32,
+      "memory_types": [],
+      "drive_bays": [
+        {
+          "type": "NVME",
+          "count": 12,
+          "form_factor": "2.5"
+        },
+        {
+          "type": "NVME",
+          "count": 2,
+          "form_factor": "2.5"
+        }
+      ],
+      "pcie_slots": [
+        {
+          "count": 2,
+          "lanes": 16,
+          "generation": "5"
+        },
+        {
+          "count": 3,
+          "lanes": 16,
+          "generation": "5"
+        }
+      ],
+      "power_supply_options": [],
+      "gpu_support": false,
+      "network_options": [],
+      "cpu_generations": [],
+      "image_filename": "quantagrid-d55x-1u.png"
+    },
+    {
+      "name": "QuantaGrid D74A-7U",
+      "product_series": "QuantaGrid",
+      "form_factor": "7U",
+      "rack_height": 7,
+      "qct_product_url": "https://www.qct.io/product/index/Server/rackmount-server/GPGPU-Xeon-Phi/QuantaGrid-D74A-7U",
+      "socket_count": 2,
+      "max_memory_gb": 6144,
+      "dimm_slots": 24,
+      "memory_types": [
+        "DDR5"
+      ],
+      "drive_bays": [
+        {
+          "type": "NVME",
+          "count": 18,
+          "form_factor": "2.5"
+        }
+      ],
+      "pcie_slots": [
+        {
+          "count": 2,
+          "lanes": 16,
+          "generation": "5"
+        },
+        {
+          "count": 10,
+          "lanes": 16,
+          "generation": "5"
+        }
+      ],
+      "power_supply_options": [],
+      "gpu_support": true,
+      "network_options": [],
+      "cpu_generations": [],
+      "image_filename": "quantagrid-d74a-7u.png"
+    },
+    {
+      "name": "QuantaGrid D74F-7U",
+      "product_series": "QuantaGrid",
+      "form_factor": "7U",
+      "rack_height": 7,
+      "qct_product_url": "https://www.qct.io/product/index/Server/rackmount-server/GPGPU-Xeon-Phi/QuantaGrid-D74F-7U",
+      "socket_count": 2,
+      "max_memory_gb": 8192,
+      "dimm_slots": 32,
+      "memory_types": [
+        "DDR5"
+      ],
+      "drive_bays": [
+        {
+          "type": "NVME",
+          "count": 18,
+          "form_factor": "2.5"
+        }
+      ],
+      "pcie_slots": [
+        {
+          "count": 1,
+          "lanes": 16,
+          "generation": "5"
+        },
+        {
+          "count": 10,
+          "lanes": 16,
+          "generation": "5"
+        }
+      ],
+      "power_supply_options": [],
+      "gpu_support": false,
+      "network_options": [],
+      "cpu_generations": [
+        "5th Gen Xeon",
+        "4th Gen Xeon"
+      ],
+      "image_filename": "quantagrid-d74f-7u.png"
+    },
+    {
+      "name": "QuantaGrid D74H-7U",
+      "product_series": "QuantaGrid",
+      "form_factor": "7U",
+      "rack_height": 7,
+      "qct_product_url": "https://www.qct.io/product/index/Server/rackmount-server/GPGPU-Xeon-Phi/QuantaGrid-D74H-7U",
+      "socket_count": 2,
+      "max_memory_gb": 8192,
+      "dimm_slots": 32,
+      "memory_types": [
+        "DDR5"
+      ],
+      "drive_bays": [
+        {
+          "type": "NVME",
+          "count": 18,
+          "form_factor": "2.5"
+        }
+      ],
+      "pcie_slots": [
+        {
+          "count": 2,
+          "lanes": 16,
+          "generation": "5"
+        },
+        {
+          "count": 10,
+          "lanes": 16,
+          "generation": "5"
+        }
+      ],
+      "power_supply_options": [],
+      "gpu_support": false,
+      "network_options": [],
+      "cpu_generations": [
+        "5th Gen Xeon",
+        "4th Gen Xeon"
+      ],
+      "image_filename": "quantagrid-d74h-7u.png"
+    },
+    {
+      "name": "QuantaGrid D75E-4U",
+      "product_series": "QuantaGrid",
+      "form_factor": "4U",
+      "rack_height": 4,
+      "qct_product_url": "https://www.qct.io/product/index/Server/rackmount-server/GPGPU-Xeon-Phi/QuantaGrid-D75E-4U",
+      "socket_count": 2,
+      "memory_types": [
+        "DDR5"
+      ],
+      "drive_bays": [
+        {
+          "type": "SSD",
+          "count": 12,
+          "form_factor": "2.5"
+        },
+        {
+          "type": "SSD",
+          "count": 24,
+          "form_factor": "2.5"
+        }
+      ],
+      "pcie_slots": [],
+      "power_supply_options": [],
+      "gpu_support": true,
+      "network_options": [],
+      "cpu_generations": [],
+      "image_filename": "quantagrid-d75e-4u.png"
+    },
+    {
+      "name": "QuantaGrid D75F-7U",
+      "product_series": "QuantaGrid",
+      "form_factor": "7U",
+      "rack_height": 7,
+      "qct_product_url": "https://www.qct.io/product/index/Server/rackmount-server/GPGPU-Xeon-Phi/QuantaGrid-D75F-7U",
+      "socket_count": 2,
+      "max_memory_gb": 8192,
+      "dimm_slots": 32,
+      "memory_types": [
+        "DDR5"
+      ],
+      "drive_bays": [
+        {
+          "type": "NVME",
+          "count": 18,
+          "form_factor": "2.5"
+        }
+      ],
+      "pcie_slots": [
+        {
+          "count": 2,
+          "lanes": 16,
+          "generation": "5"
+        },
+        {
+          "count": 8,
+          "lanes": 16,
+          "generation": "5"
+        }
+      ],
+      "power_supply_options": [],
+      "gpu_support": true,
+      "network_options": [],
+      "cpu_generations": [
+        "5th Gen Xeon",
+        "4th Gen Xeon"
+      ],
+      "image_filename": "quantagrid-d75f-7u.png"
+    },
+    {
+      "name": "QuantaGrid D75H-10U",
+      "product_series": "QuantaGrid",
+      "form_factor": "10U",
+      "rack_height": 10,
+      "qct_product_url": "https://www.qct.io/product/index/Server/rackmount-server/GPGPU-Xeon-Phi/QuantaGrid-D75H-10U",
+      "socket_count": 2,
+      "max_memory_gb": 8192,
+      "dimm_slots": 32,
+      "memory_types": [
+        "DDR5"
+      ],
+      "drive_bays": [
+        {
+          "type": "SSD",
+          "count": 8,
+          "form_factor": "2.5"
+        }
+      ],
+      "pcie_slots": [
+        {
+          "count": 2,
+          "lanes": 16,
+          "generation": "5"
+        },
+        {
+          "count": 1,
+          "lanes": 8,
+          "generation": "5"
+        }
+      ],
+      "power_supply_options": [],
+      "gpu_support": false,
+      "network_options": [],
+      "cpu_generations": [],
+      "image_filename": "quantagrid-d75h-10u.png"
+    },
+    {
+      "name": "QuantaGrid D75T-7U",
+      "product_series": "QuantaGrid",
+      "form_factor": "7U",
+      "rack_height": 7,
+      "qct_product_url": "https://www.qct.io/product/index/Server/rackmount-server/GPGPU-Xeon-Phi/QuantaGrid-D75T-7U",
+      "socket_count": 2,
+      "max_memory_gb": 3072,
+      "dimm_slots": 24,
+      "memory_types": [
+        "DDR5"
+      ],
+      "drive_bays": [
+        {
+          "type": "NVME",
+          "count": 18,
+          "form_factor": "2.5"
+        }
+      ],
+      "pcie_slots": [
+        {
+          "count": 2,
+          "lanes": 16,
+          "generation": "5"
+        },
+        {
+          "count": 8,
+          "lanes": 16,
+          "generation": "5"
+        }
+      ],
+      "power_supply_options": [],
+      "gpu_support": true,
+      "network_options": [],
+      "cpu_generations": [],
+      "image_filename": "quantagrid-d75t-7u.png"
+    },
+    {
+      "name": "QuantaGrid Q72D-2U",
+      "product_series": "QuantaGrid",
+      "form_factor": "2U",
+      "rack_height": 2,
+      "qct_product_url": "https://www.qct.io/product/index/Server/rackmount-server/2U-Rackmount-Server/QuantaGrid-Q72D-2U",
+      "socket_count": 4,
+      "max_memory_gb": 3072,
+      "dimm_slots": 48,
+      "memory_types": [
+        "DDR4"
+      ],
+      "drive_bays": [
+        {
+          "type": "NVME",
+          "count": 16,
+          "form_factor": "2.5"
+        },
+        {
+          "type": "SAS",
+          "count": 16,
+          "form_factor": "2.5"
+        },
+        {
+          "type": "SAS",
+          "count": 1,
+          "form_factor": "2.5"
+        },
+        {
+          "type": "SATA",
+          "count": 2,
+          "form_factor": "2.5"
+        }
+      ],
+      "pcie_slots": [
+        {
+          "count": 1,
+          "lanes": 16,
+          "generation": "3"
+        },
+        {
+          "count": 2,
+          "lanes": 24,
+          "generation": "3"
+        },
+        {
+          "count": 2,
+          "lanes": 8,
+          "generation": "3"
+        },
+        {
+          "count": 2,
+          "lanes": 16,
+          "generation": "3"
+        },
+        {
+          "count": 1,
+          "lanes": 32,
+          "generation": "3"
+        }
+      ],
+      "power_supply_options": [],
+      "gpu_support": true,
+      "network_options": [],
+      "cpu_generations": [
+        "Xeon Scalable"
+      ],
+      "image_filename": "quantagrid-q72d-2u.png"
+    },
+    {
+      "name": "QuantaGrid S43KL-1U",
+      "product_series": "QuantaGrid",
+      "form_factor": "1U",
+      "rack_height": 1,
+      "qct_product_url": "https://www.qct.io/product/index/Server/rackmount-server/1U-Rackmount-Server/QuantaGrid-S43KL-1U",
+      "socket_count": 1,
+      "max_memory_gb": 2048,
+      "dimm_slots": 16,
+      "memory_types": [
+        "DDR4"
+      ],
+      "drive_bays": [
+        {
+          "type": "SATA",
+          "count": 12,
+          "form_factor": "2.5"
+        },
+        {
+          "type": "SATA",
+          "count": 4,
+          "form_factor": "2.5"
+        },
+        {
+          "type": "NVME",
+          "count": 4,
+          "form_factor": "2.5"
+        },
+        {
+          "type": "SATA",
+          "count": 8,
+          "form_factor": "2.5"
+        },
+        {
+          "type": "SAS",
+          "count": 1,
+          "form_factor": "2.5"
+        },
+        {
+          "type": "SATA",
+          "count": 2,
+          "form_factor": "2.5"
+        }
+      ],
+      "pcie_slots": [
+        {
+          "count": 1,
+          "lanes": 8,
+          "generation": "4"
+        },
+        {
+          "count": 2,
+          "lanes": 16,
+          "generation": "4"
+        }
+      ],
+      "power_supply_options": [],
+      "gpu_support": false,
+      "network_options": [],
+      "cpu_generations": [],
+      "image_filename": "quantagrid-s43kl-1u.png"
+    },
+    {
+      "name": "QuantaGrid S44NL-1U",
+      "product_series": "QuantaGrid",
+      "form_factor": "1U",
+      "rack_height": 1,
+      "qct_product_url": "https://www.qct.io/product/index/Server/rackmount-server/1U-Rackmount-Server/QuantaGrid_S44NL-1U",
+      "socket_count": 1,
+      "max_memory_gb": 6144,
+      "dimm_slots": 24,
+      "memory_types": [
+        "DDR5"
+      ],
+      "drive_bays": [
+        {
+          "type": "NVME",
+          "count": 12,
+          "form_factor": "2.5"
+        },
+        {
+          "type": "NVME",
+          "count": 16,
+          "form_factor": "2.5"
+        }
+      ],
+      "pcie_slots": [
+        {
+          "count": 3,
+          "lanes": 16,
+          "generation": "5"
+        },
+        {
+          "count": 2,
+          "lanes": 16,
+          "generation": "5"
+        }
+      ],
+      "power_supply_options": [],
+      "gpu_support": false,
+      "network_options": [],
+      "cpu_generations": [],
+      "image_filename": "quantagrid-s44nl-1u.png"
+    },
+    {
+      "name": "QuantaGrid S55R-1U",
+      "product_series": "QuantaGrid",
+      "form_factor": "1U",
+      "rack_height": 1,
+      "qct_product_url": "https://www.qct.io/product/index/Server/rackmount-server/1U-Rackmount-Server/QuantaGrid-S55R-1U",
+      "socket_count": 1,
+      "dimm_slots": 16,
+      "memory_types": [],
+      "drive_bays": [
+        {
+          "type": "NVME",
+          "count": 12,
+          "form_factor": "2.5"
+        }
+      ],
+      "pcie_slots": [
+        {
+          "count": 2,
+          "lanes": 16,
+          "generation": "5"
+        }
+      ],
+      "power_supply_options": [],
+      "gpu_support": false,
+      "network_options": [],
+      "cpu_generations": [
+        "Xeon Scalable"
+      ],
+      "image_filename": "quantagrid-s55r-1u.png"
+    },
+    {
+      "name": "QuantaGrid S74G-2U",
+      "product_series": "QuantaGrid",
+      "form_factor": "2U",
+      "rack_height": 2,
+      "qct_product_url": "https://www.qct.io/product/index/Server/rackmount-server/GPGPU-Xeon-Phi/QuantaGrid-S74G-2U",
+      "socket_count": 1,
+      "max_memory_gb": 480,
+      "memory_types": [],
+      "drive_bays": [
+        {
+          "type": "NVME",
+          "count": 4,
+          "form_factor": "2.5"
+        }
+      ],
+      "pcie_slots": [
+        {
+          "count": 3,
+          "lanes": 16,
+          "generation": "5"
+        }
+      ],
+      "power_supply_options": [],
+      "gpu_support": true,
+      "network_options": [],
+      "cpu_generations": []
+    },
+    {
+      "name": "QuantaGrid SD2H-1U",
+      "product_series": "QuantaGrid",
+      "form_factor": "1U",
+      "rack_height": 1,
+      "qct_product_url": "https://www.qct.io/product/index/Server/rackmount-server/1U-Rackmount-Server/QuantaGrid-SD2H-1U",
+      "socket_count": 1,
+      "max_memory_gb": 512,
+      "dimm_slots": 8,
+      "memory_types": [
+        "DDR4"
+      ],
+      "drive_bays": [
+        {
+          "type": "SSD",
+          "count": 2,
+          "form_factor": "2.5"
+        },
+        {
+          "type": "NVME",
+          "count": 2,
+          "form_factor": "2.5"
+        }
+      ],
+      "pcie_slots": [
+        {
+          "count": 1,
+          "lanes": 16,
+          "generation": "3"
+        }
+      ],
+      "power_supply_options": [],
+      "gpu_support": false,
+      "network_options": [],
+      "cpu_generations": [],
+      "image_filename": "quantagrid-sd2h-1u.png"
+    },
+    {
+      "name": "QuantaGrid-D43N-3U",
+      "product_series": "QuantaGrid",
+      "form_factor": "3U",
+      "rack_height": 3,
+      "qct_product_url": "https://www.qct.io/product/index/Server/rackmount-server/GPGPU-Xeon-Phi/QuantaGrid-D43N-3U",
+      "socket_count": 2,
+      "max_memory_gb": 8192,
+      "dimm_slots": 32,
+      "memory_types": [
+        "DDR4"
+      ],
+      "drive_bays": [
+        {
+          "type": "SATA",
+          "count": 8,
+          "form_factor": "2.5"
+        },
+        {
+          "type": "SATA",
+          "count": 2,
+          "form_factor": "2.5"
+        },
+        {
+          "type": "SATA",
+          "count": 6,
+          "form_factor": "2.5"
+        },
+        {
+          "type": "SATA",
+          "count": 4,
+          "form_factor": "2.5"
+        },
+        {
+          "type": "SAS",
+          "count": 1,
+          "form_factor": "2.5"
+        },
+        {
+          "type": "SATA",
+          "count": 1,
+          "form_factor": "2.5"
+        }
+      ],
+      "pcie_slots": [],
+      "power_supply_options": [],
+      "gpu_support": false,
+      "network_options": [],
+      "cpu_generations": [],
+      "image_filename": "quantagrid-d43n-3u.png"
+    },
+    {
+      "name": "QuantaGrid-D52L-1U",
+      "product_series": "QuantaGrid",
+      "form_factor": "1U",
+      "rack_height": 1,
+      "qct_product_url": "https://www.qct.io/product/index/Server/rackmount-server/1U-Rackmount-Server/QuantaGrid-D52L-1U",
+      "socket_count": 2,
+      "max_memory_gb": 768,
+      "dimm_slots": 12,
+      "memory_types": [
+        "DDR4"
+      ],
+      "drive_bays": [
+        {
+          "type": "SAS",
+          "count": 8,
+          "form_factor": "2.5"
+        },
+        {
+          "type": "SATA",
+          "count": 2,
+          "form_factor": "2.5"
+        },
+        {
+          "type": "SATA",
+          "count": 4,
+          "form_factor": "2.5"
+        },
+        {
+          "type": "SAS",
+          "count": 1,
+          "form_factor": "2.5"
+        },
+        {
+          "type": "HDD",
+          "count": 1,
+          "form_factor": "2.5"
+        }
+      ],
+      "pcie_slots": [
+        {
+          "count": 1,
+          "lanes": 16,
+          "generation": "3"
+        },
+        {
+          "count": 2,
+          "lanes": 1,
+          "generation": "3"
+        }
+      ],
+      "power_supply_options": [],
+      "gpu_support": false,
+      "network_options": [],
+      "cpu_generations": [
+        "Xeon Scalable"
+      ],
+      "image_filename": "quantagrid-d52l-1u.png"
+    },
+    {
+      "name": "QuantaPlex S25Z-2U",
+      "product_series": "QuantaPlex",
+      "form_factor": "2U",
+      "rack_height": 2,
+      "qct_product_url": "https://www.qct.io/product/index/Server/rackmount-server/Multi-node-Server/QuantaPlex-S25Z-2U",
+      "socket_count": 6,
+      "memory_types": [],
+      "drive_bays": [
+        {
+          "type": "NVME",
+          "count": 2,
+          "form_factor": "2.5"
+        }
+      ],
+      "pcie_slots": [
+        {
+          "count": 2,
+          "lanes": 16,
+          "generation": "5"
+        },
+        {
+          "count": 1,
+          "lanes": 8,
+          "generation": "5"
+        },
+        {
+          "count": 1,
+          "lanes": 16,
+          "generation": "5"
+        }
+      ],
+      "power_supply_options": [],
+      "gpu_support": false,
+      "network_options": [],
+      "cpu_generations": [],
+      "image_filename": "quantaplex-s25z-2u.png"
+    },
+    {
+      "name": "QuantaPlex S43CA-2U",
+      "product_series": "QuantaPlex",
+      "form_factor": "2U",
+      "rack_height": 2,
+      "qct_product_url": "https://www.qct.io/product/index/Server/rackmount-server/Multi-node-Server/QuantaPlex-S43CA-2U",
+      "socket_count": 1,
+      "memory_types": [
+        "DDR4"
+      ],
+      "drive_bays": [
+        {
+          "type": "SATA",
+          "count": 2,
+          "form_factor": "2.5"
+        },
+        {
+          "type": "SATA",
+          "count": 5,
+          "form_factor": "2.5"
+        }
+      ],
+      "pcie_slots": [
+        {
+          "count": 1,
+          "lanes": 16,
+          "generation": "4"
+        },
+        {
+          "count": 2,
+          "lanes": 4,
+          "generation": "4"
+        }
+      ],
+      "power_supply_options": [],
+      "gpu_support": false,
+      "network_options": [],
+      "cpu_generations": [],
+      "image_filename": "quantaplex-s43ca-2u.png"
+    },
+    {
+      "name": "QuantaPlex S45Z-2U",
+      "product_series": "QuantaPlex",
+      "form_factor": "2U",
+      "rack_height": 2,
+      "qct_product_url": "https://www.qct.io/product/index/Server/rackmount-server/Multi-node-Server/QuantaPlex-S45Z-2U",
+      "socket_count": 6,
+      "memory_types": [],
+      "drive_bays": [
+        {
+          "type": "NVME",
+          "count": 2,
+          "form_factor": "2.5"
+        },
+        {
+          "type": "NVME",
+          "count": 3,
+          "form_factor": "2.5"
+        }
+      ],
+      "pcie_slots": [
+        {
+          "count": 1,
+          "lanes": 16,
+          "generation": "5"
+        }
+      ],
+      "power_supply_options": [],
+      "gpu_support": false,
+      "network_options": [],
+      "cpu_generations": [],
+      "image_filename": "quantaplex-s45z-2u.png"
+    },
+    {
+      "name": "QuantaPlex T42D-2U (4-Node)",
+      "product_series": "QuantaPlex",
+      "form_factor": "2U",
+      "rack_height": 2,
+      "qct_product_url": "https://www.qct.io/product/index/Server/rackmount-server/Multi-node-Server/QuantaPlex-T42D-2U",
+      "socket_count": 2,
+      "max_memory_gb": 6144,
+      "memory_types": [
+        "DDR4"
+      ],
+      "drive_bays": [
+        {
+          "type": "NVME",
+          "count": 16,
+          "form_factor": "2.5"
+        },
+        {
+          "type": "SAS",
+          "count": 16,
+          "form_factor": "2.5"
+        },
+        {
+          "type": "SATA",
+          "count": 2,
+          "form_factor": "2.5"
+        }
+      ],
+      "pcie_slots": [
+        {
+          "count": 2,
+          "lanes": 16,
+          "generation": "3"
+        },
+        {
+          "count": 1,
+          "lanes": 16,
+          "generation": "3"
+        }
+      ],
+      "power_supply_options": [],
+      "gpu_support": false,
+      "network_options": [],
+      "cpu_generations": [
+        "Xeon Scalable"
+      ],
+      "image_filename": "quantaplex-t42d-2u-4-node.png"
+    },
+    {
+      "name": "QuantaPlex T42E-2U (4-Node)",
+      "product_series": "QuantaPlex",
+      "form_factor": "2U",
+      "rack_height": 2,
+      "qct_product_url": "https://www.qct.io/product/index/Server/rackmount-server/Multi-node-Server/QuantaPlex-T42E-2U-4Node",
+      "socket_count": 2,
+      "max_memory_gb": 768,
+      "memory_types": [
+        "DDR4"
+      ],
+      "drive_bays": [
+        {
+          "type": "SATA",
+          "count": 24,
+          "form_factor": "2.5"
+        },
+        {
+          "type": "SATA",
+          "count": 12,
+          "form_factor": "2.5"
+        },
+        {
+          "type": "SATA",
+          "count": 6,
+          "form_factor": "2.5"
+        },
+        {
+          "type": "SATA",
+          "count": 1,
+          "form_factor": "2.5"
+        }
+      ],
+      "pcie_slots": [
+        {
+          "count": 1,
+          "lanes": 16,
+          "generation": "3"
+        },
+        {
+          "count": 1,
+          "lanes": 2,
+          "generation": "3"
+        }
+      ],
+      "power_supply_options": [],
+      "gpu_support": false,
+      "network_options": [],
+      "cpu_generations": [
+        "Xeon Scalable"
+      ],
+      "image_filename": "quantaplex-t42e-2u-4-node.png"
+    },
+    {
+      "name": "QuantaPlex T42S-2U (4-Node)",
+      "product_series": "QuantaPlex",
+      "form_factor": "2U",
+      "rack_height": 2,
+      "qct_product_url": "https://www.qct.io/product/index/Server/rackmount-server/Multi-node-Server/QuantaPlex-T42S-2U-4Node",
+      "socket_count": 2,
+      "max_memory_gb": 2048,
+      "memory_types": [
+        "DDR4"
+      ],
+      "drive_bays": [
+        {
+          "type": "SATA",
+          "count": 24,
+          "form_factor": "2.5"
+        },
+        {
+          "type": "SATA",
+          "count": 12,
+          "form_factor": "2.5"
+        },
+        {
+          "type": "SAS",
+          "count": 1,
+          "form_factor": "2.5"
+        },
+        {
+          "type": "SATA",
+          "count": 1,
+          "form_factor": "2.5"
+        }
+      ],
+      "pcie_slots": [
+        {
+          "count": 1,
+          "lanes": 16,
+          "generation": "3"
+        },
+        {
+          "count": 1,
+          "lanes": 8,
+          "generation": "3"
+        }
+      ],
+      "power_supply_options": [],
+      "gpu_support": false,
+      "network_options": [],
+      "cpu_generations": [
+        "Xeon Scalable"
+      ],
+      "image_filename": "quantaplex-t42s-2u-4-node.png"
+    },
+    {
+      "name": "QuantaPlex T42SP-2U (4-Node)",
+      "product_series": "QuantaPlex",
+      "form_factor": "2U",
+      "rack_height": 2,
+      "qct_product_url": "https://www.qct.io/product/index/Server/rackmount-server/Multi-node-Server/QuantaPlex-T42SP-2U-4-Node",
+      "socket_count": 2,
+      "max_memory_gb": 512,
+      "memory_types": [
+        "DDR4"
+      ],
+      "drive_bays": [
+        {
+          "type": "SATA",
+          "count": 16,
+          "form_factor": "2.5"
+        },
+        {
+          "type": "HDD",
+          "count": 8,
+          "form_factor": "2.5"
+        },
+        {
+          "type": "SAS",
+          "count": 1,
+          "form_factor": "2.5"
+        },
+        {
+          "type": "SATA",
+          "count": 1,
+          "form_factor": "2.5"
+        }
+      ],
+      "pcie_slots": [
+        {
+          "count": 1,
+          "lanes": 16,
+          "generation": "3"
+        },
+        {
+          "count": 1,
+          "lanes": 8,
+          "generation": "3"
+        }
+      ],
+      "power_supply_options": [],
+      "gpu_support": false,
+      "network_options": [],
+      "cpu_generations": [
+        "Xeon Scalable"
+      ],
+      "image_filename": "quantaplex-t42sp-2u-4-node.png"
+    },
+    {
+      "name": "QuantaPlex T43Z-2U",
+      "product_series": "QuantaPlex",
+      "form_factor": "2U",
+      "rack_height": 2,
+      "qct_product_url": "https://www.qct.io/product/index/Server/rackmount-server/Multi-node-Server/QuantaPlex-T43Z-2U",
+      "memory_types": [
+        "DDR4"
+      ],
+      "drive_bays": [
+        {
+          "type": "SATA",
+          "count": 16,
+          "form_factor": "2.5"
+        },
+        {
+          "type": "SATA",
+          "count": 2,
+          "form_factor": "2.5"
+        }
+      ],
+      "pcie_slots": [
+        {
+          "count": 2,
+          "lanes": 16,
+          "generation": "4"
+        },
+        {
+          "count": 1,
+          "lanes": 16,
+          "generation": "4"
+        },
+        {
+          "count": 2,
+          "lanes": 4,
+          "generation": "4"
+        }
+      ],
+      "power_supply_options": [],
+      "gpu_support": false,
+      "network_options": [],
+      "cpu_generations": [
+        "3rd Gen Xeon"
+      ],
+      "image_filename": "quantaplex-t43z-2u.png"
+    }
+  ]
+}
