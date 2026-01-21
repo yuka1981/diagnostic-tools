@@ -10,7 +10,7 @@ class ServerRack < ApplicationRecord
   enum :status, { active: 0, planned: 1, decommissioned: 2 }, default: :active
 
   validates :name, presence: true, length: { maximum: 255 }, uniqueness: { scope: :room_id }
-  validates :facility_id, uniqueness: { scope: :room_id }, allow_nil: true
+  validates :facility_id, uniqueness: { scope: :room_id }, allow_blank: true
   validates :u_height, presence: true, numericality: { only_integer: true, greater_than: 0, less_than_or_equal_to: 100 }
   validates :width_mm, numericality: { only_integer: true, greater_than: 0 }, allow_nil: true
   validates :depth_mm, numericality: { only_integer: true, greater_than: 0 }, allow_nil: true
