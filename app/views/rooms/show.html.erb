@@ -1,0 +1,232 @@
+<% content_for(:page_title) { @room.name } %>
+
+<div class="mb-6">
+  <nav class="text-sm text-slate-500 mb-2">
+    <%= link_to "Sites", sites_path, class: "hover:text-teal-600" %> /
+    <%= link_to @room.site.name, site_path(@room.site), class: "hover:text-teal-600" %> /
+    <span class="text-slate-700"><%= @room.name %></span>
+  </nav>
+  <div class="flex items-center justify-between">
+    <div class="flex items-center gap-4">
+      <h1 class="text-2xl font-bold text-slate-900"><%= @room.name %></h1>
+      <% if @room.at_capacity? %>
+        <span class="inline-flex items-center rounded-sm px-2 py-0.5 text-xs font-medium bg-amber-100 text-amber-800 border border-amber-200">
+          At Capacity
+        </span>
+      <% end %>
+    </div>
+    <% if current_user.approver? %>
+      <div class="flex items-center gap-2">
+        <%= link_to edit_room_path(@room), class: "btn-secondary" do %>
+          <svg class="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+          </svg>
+          Edit
+        <% end %>
+        <%= link_to new_server_rack_path(room_id: @room.id), class: "btn-primary" do %>
+          <svg class="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+          </svg>
+          Add Rack
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+</div>
+
+<div class="grid gap-6 lg:grid-cols-2">
+  <%# Overview Card %>
+  <div class="card-netbox">
+    <div class="card-header">
+      <h3 class="card-title">Overview</h3>
+    </div>
+    <div class="p-0">
+      <table class="w-full text-sm text-left">
+        <tbody class="divide-y divide-slate-100">
+          <tr class="hover:bg-slate-50">
+            <th class="px-4 py-2 font-bold text-slate-700 w-1/3 border-r border-slate-200">Name</th>
+            <td class="px-4 py-2 text-slate-700 font-bold"><%= @room.name %></td>
+          </tr>
+          <tr class="hover:bg-slate-50">
+            <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">Site</th>
+            <td class="px-4 py-2 text-slate-700">
+              <%= link_to @room.site.name, site_path(@room.site), class: "text-teal-600 hover:text-teal-700" %>
+            </td>
+          </tr>
+          <tr class="hover:bg-slate-50">
+            <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">Description</th>
+            <td class="px-4 py-2 text-slate-700"><%= @room.description.presence || "-" %></td>
+          </tr>
+          <tr class="hover:bg-slate-50">
+            <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">Floor</th>
+            <td class="px-4 py-2 text-slate-700"><%= @room.floor_number.present? ? "Floor #{@room.floor_number}" : "-" %></td>
+          </tr>
+          <tr class="hover:bg-slate-50">
+            <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">Building Wing</th>
+            <td class="px-4 py-2 text-slate-700"><%= @room.building_wing.presence || "-" %></td>
+          </tr>
+          <tr class="hover:bg-slate-50">
+            <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">Grid Coordinates</th>
+            <td class="px-4 py-2 text-slate-700 font-mono"><%= @room.grid_coordinates.presence || "-" %></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <%# Capacity Card %>
+  <div class="card-netbox">
+    <div class="card-header">
+      <h3 class="card-title">Capacity</h3>
+    </div>
+    <div class="p-0">
+      <table class="w-full text-sm text-left">
+        <tbody class="divide-y divide-slate-100">
+          <tr class="hover:bg-slate-50">
+            <th class="px-4 py-2 font-bold text-slate-700 w-1/3 border-r border-slate-200">Racks</th>
+            <td class="px-4 py-2 text-slate-700">
+              <%= @room.rack_count %><%= @room.max_rack_count.present? ? " / #{@room.max_rack_count}" : "" %>
+            </td>
+          </tr>
+          <tr class="hover:bg-slate-50">
+            <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">Total U Capacity</th>
+            <td class="px-4 py-2 text-slate-700"><%= @room.total_u_capacity %>U</td>
+          </tr>
+          <tr class="hover:bg-slate-50">
+            <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">Total U Used</th>
+            <td class="px-4 py-2 text-slate-700"><%= @room.total_u_used %>U</td>
+          </tr>
+          <tr class="hover:bg-slate-50">
+            <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">Utilization</th>
+            <td class="px-4 py-2">
+              <div class="flex items-center gap-2">
+                <div class="w-32 h-3 bg-slate-200 rounded-full overflow-hidden">
+                  <div class="h-full bg-teal-500 rounded-full" style="width: <%= @room.utilization_percentage %>%"></div>
+                </div>
+                <span class="text-sm font-medium text-slate-700"><%= @room.utilization_percentage %>%</span>
+              </div>
+            </td>
+          </tr>
+          <tr class="hover:bg-slate-50">
+            <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">Floor Area</th>
+            <td class="px-4 py-2 text-slate-700"><%= @room.floor_area_sqm.present? ? "#{@room.floor_area_sqm} m²" : "-" %></td>
+          </tr>
+          <tr class="hover:bg-slate-50">
+            <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">Power Capacity</th>
+            <td class="px-4 py-2 text-slate-700"><%= @room.power_capacity_kw.present? ? "#{@room.power_capacity_kw} kW" : "-" %></td>
+          </tr>
+          <tr class="hover:bg-slate-50">
+            <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">Cooling Capacity</th>
+            <td class="px-4 py-2 text-slate-700"><%= @room.cooling_capacity_kw.present? ? "#{@room.cooling_capacity_kw} kW" : "-" %></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<%# Racks List %>
+<div class="card-netbox mt-6">
+  <div class="card-header flex items-center justify-between">
+    <h3 class="card-title">Racks</h3>
+  </div>
+  <% if @server_racks.any? %>
+    <div class="overflow-x-auto">
+      <table class="min-w-full divide-y divide-slate-200 text-sm">
+        <thead class="bg-slate-50">
+          <tr>
+            <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Name</th>
+            <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Facility ID</th>
+            <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Status</th>
+            <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Height</th>
+            <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Utilization</th>
+            <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Nodes</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-200 bg-white">
+          <% @server_racks.each do |rack| %>
+            <tr class="hover:bg-slate-50 transition-colors">
+              <td class="whitespace-nowrap px-3 py-2">
+                <%= link_to server_rack_path(rack), class: "group" do %>
+                  <p class="text-sm font-bold text-slate-900 group-hover:text-teal-600"><%= rack.name %></p>
+                <% end %>
+              </td>
+              <td class="whitespace-nowrap px-3 py-2 text-sm text-slate-600 font-mono">
+                <%= rack.facility_id.presence || "-" %>
+              </td>
+              <td class="whitespace-nowrap px-3 py-2">
+                <% case rack.status %>
+                <% when "active" %>
+                  <span class="inline-flex items-center rounded-sm px-2 py-0.5 text-xs font-medium bg-emerald-100 text-emerald-800 border border-emerald-200">
+                    Active
+                  </span>
+                <% when "planned" %>
+                  <span class="inline-flex items-center rounded-sm px-2 py-0.5 text-xs font-medium bg-blue-100 text-blue-800 border border-blue-200">
+                    Planned
+                  </span>
+                <% when "decommissioned" %>
+                  <span class="inline-flex items-center rounded-sm px-2 py-0.5 text-xs font-medium bg-slate-100 text-slate-600 border border-slate-200">
+                    Decommissioned
+                  </span>
+                <% end %>
+              </td>
+              <td class="whitespace-nowrap px-3 py-2 text-sm text-slate-500">
+                <%= rack.u_height %>U
+              </td>
+              <td class="whitespace-nowrap px-3 py-2">
+                <div class="flex items-center gap-2">
+                  <div class="w-24 h-2 bg-slate-200 rounded-full overflow-hidden">
+                    <div class="h-full bg-teal-500 rounded-full" style="width: <%= rack.utilization_percentage %>%"></div>
+                  </div>
+                  <span class="text-xs text-slate-500"><%= rack.utilization_percentage %>%</span>
+                </div>
+              </td>
+              <td class="whitespace-nowrap px-3 py-2 text-sm text-slate-500">
+                <%= rack.nodes.count %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% else %>
+    <div class="flex flex-col items-center justify-center py-12 text-center">
+      <div class="h-12 w-12 rounded-full bg-slate-100 flex items-center justify-center mb-4">
+        <svg class="h-6 w-6 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01" />
+        </svg>
+      </div>
+      <p class="text-sm font-medium text-slate-900">No racks in this room</p>
+      <p class="mt-1 text-xs text-slate-500">Add racks to organize your servers</p>
+      <% if current_user.approver? %>
+        <%= link_to new_server_rack_path(room_id: @room.id), class: "mt-4 btn-primary" do %>
+          Add Rack
+        <% end %>
+      <% end %>
+    </div>
+  <% end %>
+</div>
+
+<%# Danger Zone %>
+<% if current_user.approver? && @server_racks.empty? %>
+  <div class="card-netbox mt-6 border-red-200">
+    <div class="card-header bg-red-50 border-red-200">
+      <h3 class="card-title text-red-800">Danger Zone</h3>
+    </div>
+    <div class="p-4">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm font-medium text-slate-900">Delete this room</p>
+          <p class="text-xs text-slate-500">Once deleted, this room cannot be recovered.</p>
+        </div>
+        <%= button_to room_path(@room),
+            method: :delete,
+            class: "btn-danger",
+            data: { turbo_confirm: "Are you sure you want to delete this room? This action cannot be undone." } do %>
+          Delete Room
+        <% end %>
+      </div>
+    </div>
+  </div>
+<% end %>
