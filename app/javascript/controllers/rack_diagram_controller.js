@@ -12,15 +12,31 @@ export default class extends Controller {
   }
 
   connect() {
+    console.log("[RackDiagram] Connecting controller...")
+    console.log("[RackDiagram] Container:", this.containerTarget)
+    console.log("[RackDiagram] Container dimensions:", this.containerTarget.clientWidth, "x", this.containerTarget.clientHeight)
+    console.log("[RackDiagram] Nodes:", this.nodesValue)
+
     this.hasChanges = false
-    this.diagram = new RackDiagram(this.containerTarget, {
-      rackHeight: this.rackHeightValue,
-      descUnits: this.descUnitsValue,
-      nodes: this.nodesValue,
-      readonly: this.readonlyValue,
-      onSelect: this.handleSelect.bind(this),
-      onChange: this.handleChange.bind(this)
-    })
+
+    // Store initial details content for restoration when deselecting
+    if (this.hasDetailsTarget) {
+      this.defaultDetailsContent = this.detailsTarget.innerHTML
+    }
+
+    try {
+      this.diagram = new RackDiagram(this.containerTarget, {
+        rackHeight: this.rackHeightValue,
+        descUnits: this.descUnitsValue,
+        nodes: this.nodesValue,
+        readonly: this.readonlyValue,
+        onSelect: this.handleSelect.bind(this),
+        onChange: this.handleChange.bind(this)
+      })
+      console.log("[RackDiagram] Diagram initialized successfully")
+    } catch (error) {
+      console.error("[RackDiagram] Failed to initialize diagram:", error)
+    }
 
     this.setupSaveButton()
     this.setupBeforeUnload()
@@ -37,10 +53,12 @@ export default class extends Controller {
   }
 
   handleSelect(node) {
+    if (!this.hasDetailsTarget) return
+
     if (node) {
       this.detailsTarget.innerHTML = this.nodeDetailsHTML(node)
     } else {
-      this.detailsTarget.innerHTML = this.detailsTarget.dataset.defaultContent || ""
+      this.detailsTarget.innerHTML = this.defaultDetailsContent || ""
     }
   }
 
