@@ -3,6 +3,12 @@ Rails.application.routes.draw do
 
   # API routes
   namespace :api do
+    resources :server_products, only: [ :index ] do
+      collection do
+        get :search
+      end
+    end
+
     namespace :v1 do
       get "health", to: "health#show"
       post "inventory/push", to: "inventory#push"
