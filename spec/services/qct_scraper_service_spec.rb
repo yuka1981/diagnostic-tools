@@ -387,6 +387,67 @@ RSpec.describe QctScraperService do
         expect(attrs[:pcie_slots].any? { |s| s["lanes"] == 16 }).to be true
       end
     end
+
+    context "when specifications are in TABLE format (no #specifications div)" do
+      # This tests the table-based extraction strategy for real QCT pages
+      # where specs are in tables without a dedicated #specifications container
+      let(:table_based_specs_html) do
+        <<~HTML
+          <html>
+          <body>
+            <h1>QuantaGrid D54Q-2U</h1>
+            <nav>
+              <a href="#overview">Overview</a>
+              <a href="#specifications">Specifications</a>
+            </nav>
+            <table class="product-specs">
+              <tr>
+                <td>Processor Type</td>
+                <td>5th/4th Gen Intel® Xeon® Scalable Processors</td>
+              </tr>
+              <tr>
+                <td>Number of Processors</td>
+                <td>2 Processors</td>
+              </tr>
+              <tr>
+                <td>Memory</td>
+                <td>Total Slots: 32, Up to 8TB DDR5</td>
+              </tr>
+              <tr>
+                <td>Storage</td>
+                <td>(24) 2.5" hot-plug NVMe SSD, (4) 3.5" SATA</td>
+              </tr>
+              <tr>
+                <td>Expansion Slot</td>
+                <td>(2) PCIe Gen5 x16, (4) PCIe Gen4 x8</td>
+              </tr>
+              <tr>
+                <td>Form Factor</td>
+                <td>2U Rackmount</td>
+              </tr>
+            </table>
+          </body>
+          </html>
+        HTML
+      end
+
+      it "extracts specifications from TABLE elements when no #specifications div exists" do
+        attrs = service.send(:parse_product_page, table_based_specs_html, "https://example.com")
+
+        expect(attrs[:socket_count]).to eq(2)
+        expect(attrs[:dimm_slots]).to eq(32)
+        expect(attrs[:max_memory_gb]).to eq(8192) # 8TB
+        expect(attrs[:memory_types]).to include("DDR5")
+        expect(attrs[:drive_bays]).to be_present
+        expect(attrs[:pcie_slots]).to be_present
+      end
+
+      it "extracts CPU generation from table-based specs" do
+        attrs = service.send(:parse_product_page, table_based_specs_html, "https://example.com")
+        expect(attrs[:cpu_generations]).to include("5th Gen Xeon")
+        expect(attrs[:cpu_generations]).to include("4th Gen Xeon")
+      end
+    end
   end
 
   describe "#fetch_product_listing" do

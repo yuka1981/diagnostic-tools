@@ -241,13 +241,44 @@ class QctScraperService
   end
 
   def extract_specifications_text(doc)
-    # Try multiple selectors for the specifications section
-    specs_section = doc.at_css("#specifications") ||
-                    doc.at_css("[id*='spec']") ||
-                    doc.at_css(".specifications") ||
-                    doc.at_css("[class*='spec']")
+    # Strategy 1: Look for section/div with specifications ID or class
+    specs_section = doc.at_css("section#specifications, div#specifications, #specifications") ||
+                    doc.at_css("[id*='spec']:not(a)") ||
+                    doc.at_css(".specifications, [class*='spec']")
+    return specs_section.text if specs_section&.text.present?
 
-    specs_section&.text || ""
+    # Strategy 2: Find tables containing specification keywords (Processor, Memory, Storage)
+    # QCT pages typically have specs in table format
+    spec_keywords = /Processor|Memory|Storage|Form Factor|Expansion Slot/i
+    doc.css("table").each do |table|
+      table_text = table.text
+      # Look for tables that contain multiple spec-related keywords
+      keyword_matches = table_text.scan(spec_keywords).size
+      return table_text if keyword_matches >= 2
+    end
+
+    # Strategy 3: Find definition lists with spec data
+    doc.css("dl").each do |dl|
+      dl_text = dl.text
+      keyword_matches = dl_text.scan(spec_keywords).size
+      return dl_text if keyword_matches >= 2
+    end
+
+    # Strategy 4: Look for a section after "Specifications" heading
+    specs_heading = doc.at_xpath("//h2[contains(text(), 'Specifications')] | //h3[contains(text(), 'Specifications')]")
+    if specs_heading
+      # Get the next sibling elements until next heading
+      content = []
+      sibling = specs_heading.next_element
+      while sibling && !sibling.name.match?(/^h[1-3]$/i)
+        content << sibling.text
+        sibling = sibling.next_element
+      end
+      return content.join(" ") if content.any?
+    end
+
+    # Fallback: return empty string (let full_text fallback handle it)
+    ""
   end
 
   def extract_model_name(doc)
@@ -276,9 +307,10 @@ class QctScraperService
     text = specs_text.presence || full_text
 
     generations = []
-    generations << "5th Gen Xeon" if text =~ /5th\s*Gen.*Xeon|Emerald\s*Rapids/i
-    generations << "4th Gen Xeon" if text =~ /4th\s*Gen.*Xeon|Sapphire\s*Rapids/i
-    generations << "3rd Gen Xeon" if text =~ /3rd\s*Gen.*Xeon|Ice\s*Lake/i
+    # Handle combined formats like "5th/4th Gen Intel Xeon" as well as "5th Gen Xeon"
+    generations << "5th Gen Xeon" if text =~ /5th[\/\w\s]*Gen.*Xeon|Emerald\s*Rapids/i
+    generations << "4th Gen Xeon" if text =~ /4th[\/\w\s]*Gen.*Xeon|Sapphire\s*Rapids/i
+    generations << "3rd Gen Xeon" if text =~ /3rd[\/\w\s]*Gen.*Xeon|Ice\s*Lake/i
     # Also match "Intel Xeon Scalable" without generation (older models)
     generations << "Xeon Scalable" if generations.empty? && text =~ /Xeon.*Scalable/i
     generations
