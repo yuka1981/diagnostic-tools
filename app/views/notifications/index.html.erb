@@ -1,0 +1,26 @@
+<div class="container mx-auto px-4 py-6">
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-2xl font-semibold text-gray-900">Notifications</h1>
+    <div class="flex space-x-2">
+      <%= button_to "Mark All Read", mark_all_read_notifications_path, method: :post, class: "btn btn-secondary" %>
+      <%= button_to "Archive Read", archive_read_notifications_path, method: :post, class: "btn btn-secondary" %>
+    </div>
+  </div>
+
+  <div class="bg-white shadow rounded-lg">
+    <% if @notifications.any? %>
+      <ul class="divide-y divide-gray-200">
+        <% @notifications.each do |notification| %>
+          <%= render partial: "notifications/notification", locals: { notification: notification } %>
+        <% end %>
+      </ul>
+      <div class="px-4 py-3 border-t">
+        <%== pagy_nav(@pagy) if defined?(@pagy) && @pagy.pages > 1 %>
+      </div>
+    <% else %>
+      <div class="p-6 text-center text-gray-500">
+        No notifications found.
+      </div>
+    <% end %>
+  </div>
+</div>

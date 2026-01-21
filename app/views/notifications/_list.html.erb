@@ -1,0 +1,15 @@
+<%= turbo_frame_tag "notifications_list" do %>
+  <div id="notifications_list">
+    <% if notifications.any? %>
+      <ul class="divide-y divide-gray-200">
+        <% notifications.each do |notification| %>
+          <%= render partial: "notifications/notification", locals: { notification: notification } %>
+        <% end %>
+      </ul>
+    <% else %>
+      <div class="p-4 text-center text-gray-500 text-sm">
+        No notifications
+      </div>
+    <% end %>
+  </div>
+<% end %>
