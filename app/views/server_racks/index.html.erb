@@ -17,14 +17,14 @@
 
 <%# Filters %>
 <div class="mb-4">
-  <%= form_with url: server_racks_path, method: :get, data: { turbo_frame: "_top" }, class: "flex items-center gap-4 flex-wrap" do |f| %>
+  <%= form_with url: server_racks_path, method: :get, data: { turbo_frame: "_top", controller: "cascading-select" }, class: "flex items-center gap-4 flex-wrap" do |f| %>
     <div class="flex items-center gap-2">
       <%= f.label :site_id, "Site:", class: "text-sm font-medium text-slate-700" %>
       <%= f.select :site_id,
           options_from_collection_for_select(@sites, :id, :name, params[:site_id]),
           { include_blank: "All Sites" },
           class: "rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm",
-          onchange: "this.form.submit()" %>
+          data: { cascading_select_target: "parent", action: "change->cascading-select#parentChanged" } %>
     </div>
     <div class="flex items-center gap-2">
       <%= f.label :room_id, "Room:", class: "text-sm font-medium text-slate-700" %>
@@ -32,6 +32,7 @@
           options_from_collection_for_select(@rooms, :id, proc { |r| "#{r.site.name} / #{r.name}" }, params[:room_id]),
           { include_blank: "All Rooms" },
           class: "rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm",
+          data: { cascading_select_target: "child" },
           onchange: "this.form.submit()" %>
     </div>
     <% if params[:site_id].present? || params[:room_id].present? %>
