@@ -1,0 +1,59 @@
+<tr id="<%= task.dom_id %>"
+    class="hover:bg-slate-50 transition-colors cursor-pointer"
+    data-accordion-target="row"
+    data-action="click->accordion#toggle">
+  <td class="px-3 py-2">
+    <%= lucide_icon("chevron-right", class: "h-4 w-4 text-slate-400 transition-transform", data: { accordion_target: "chevron" }) %>
+  </td>
+  <td class="whitespace-nowrap px-3 py-2">
+    <% if task.benchmark? %>
+      <span class="inline-flex items-center rounded-sm px-2 py-0.5 text-xs font-medium bg-blue-100 text-blue-800">
+        Benchmark
+      </span>
+    <% else %>
+      <span class="inline-flex items-center rounded-sm px-2 py-0.5 text-xs font-medium bg-purple-100 text-purple-800">
+        Profiling
+      </span>
+    <% end %>
+  </td>
+  <td class="whitespace-nowrap px-3 py-2 text-sm text-slate-600">
+    <%= link_to task.node.hostname, node_path(task.node), class: "hover:text-teal-600", data: { no_toggle: true } %>
+  </td>
+  <td class="whitespace-nowrap px-3 py-2">
+    <p class="text-sm font-medium text-slate-900"><%= task.recipe_name %></p>
+  </td>
+  <td class="whitespace-nowrap px-3 py-2">
+    <span class="inline-flex items-center rounded-sm px-2 py-0.5 text-xs font-medium <%= task_status_badge_class(task.status) %>">
+      <% if task.running? %>
+        <%= lucide_icon("loader-2", class: "h-3 w-3 mr-1 animate-spin") %>
+      <% end %>
+      <%= task.status.humanize %>
+    </span>
+  </td>
+  <td class="whitespace-nowrap px-3 py-2 text-sm text-slate-500" title="<%= task.started_at&.strftime('%Y-%m-%d %H:%M:%S') %>">
+    <%= task.started_at ? time_ago_in_words(task.started_at) + " ago" : "Pending" %>
+  </td>
+  <td class="whitespace-nowrap px-3 py-2 text-sm text-slate-500">
+    <%= task.duration ? distance_of_time_in_words(task.duration) : "-" %>
+  </td>
+  <td class="whitespace-nowrap px-3 py-2 text-right text-sm" data-no-toggle>
+    <div class="flex items-center justify-end gap-1">
+      <% if task.pending? || task.running? %>
+        <%= button_to cancel_task_path(task.to_param),
+            method: :post,
+            data: { turbo_confirm: "Are you sure you want to cancel this task?", no_toggle: true },
+            title: "Cancel",
+            class: "p-1.5 text-red-500 hover:text-red-700 hover:bg-red-50 rounded transition-colors" do %>
+          <%= lucide_icon("x", class: "h-4 w-4") %>
+        <% end %>
+      <% end %>
+      <%= button_to task_path(task.to_param),
+          method: :delete,
+          data: { turbo_confirm: "Are you sure you want to delete this task?", no_toggle: true },
+          title: "Delete",
+          class: "p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors" do %>
+        <%= lucide_icon("trash-2", class: "h-4 w-4") %>
+      <% end %>
+    </div>
+  </td>
+</tr>

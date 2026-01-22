@@ -29,14 +29,16 @@ RSpec.describe "Tasks", type: :request do
     context "with type filter" do
       it "filters benchmark only" do
         get tasks_path(type: "benchmark")
-        expect(response.body).to include(benchmark_recipe.name)
-        expect(response.body).not_to include(profiling_recipe.name)
+        # Check for task type badge, not just recipe name (which appears in filter dropdown)
+        expect(response.body).to include("task_benchmark_#{benchmark_run.id}")
+        expect(response.body).not_to include("task_profiling_#{profiling_run.id}")
       end
 
       it "filters profiling only" do
         get tasks_path(type: "profiling")
-        expect(response.body).to include(profiling_recipe.name)
-        expect(response.body).not_to include(benchmark_recipe.name)
+        # Check for task type badge, not just recipe name (which appears in filter dropdown)
+        expect(response.body).to include("task_profiling_#{profiling_run.id}")
+        expect(response.body).not_to include("task_benchmark_#{benchmark_run.id}")
       end
     end
 
