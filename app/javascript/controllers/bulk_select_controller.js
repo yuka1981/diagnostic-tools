@@ -84,18 +84,47 @@ export default class extends Controller {
   updateActionBar() {
     if (!this.hasActionBarTarget) return
 
+    // Handle class-based animation
     const expandedClasses = (this.actionBarTarget.dataset.expandedClass || "").split(" ").filter(Boolean)
     const collapsedClasses = (this.actionBarTarget.dataset.collapsedClass || "").split(" ").filter(Boolean)
 
+    // Handle style-based animation (for grid-template-rows)
+    const expandedStyle = this.actionBarTarget.dataset.expandedStyle
+    const collapsedStyle = this.actionBarTarget.dataset.collapsedStyle
+
     if (this.selectedIds.size > 0) {
-      // Expand: remove collapsed classes, add expanded classes
-      this.actionBarTarget.classList.remove(...collapsedClasses)
-      this.actionBarTarget.classList.add(...expandedClasses)
+      // Expand
+      if (expandedClasses.length) {
+        this.actionBarTarget.classList.remove(...collapsedClasses)
+        this.actionBarTarget.classList.add(...expandedClasses)
+      }
+      if (expandedStyle) {
+        this.applyStyle(expandedStyle)
+      }
     } else {
-      // Collapse: remove expanded classes, add collapsed classes
-      this.actionBarTarget.classList.remove(...expandedClasses)
-      this.actionBarTarget.classList.add(...collapsedClasses)
+      // Collapse
+      if (collapsedClasses.length) {
+        this.actionBarTarget.classList.remove(...expandedClasses)
+        this.actionBarTarget.classList.add(...collapsedClasses)
+      }
+      if (collapsedStyle) {
+        this.applyStyle(collapsedStyle)
+      }
     }
+  }
+
+  applyStyle(styleString) {
+    // Parse "property: value;" format and apply to element
+    styleString.split(";").forEach(rule => {
+      const [property, value] = rule.split(":").map(s => s.trim())
+      if (property && value) {
+        this.actionBarTarget.style[this.camelCase(property)] = value
+      }
+    })
+  }
+
+  camelCase(str) {
+    return str.replace(/-([a-z])/g, (g) => g[1].toUpperCase())
   }
 
   updateCount() {

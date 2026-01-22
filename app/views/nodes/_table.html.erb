@@ -1,32 +1,37 @@
-<div class="card-netbox relative" data-controller="bulk-select">
-  <%# Action bar for bulk operations (approvers only) - positioned absolutely %>
+<div class="card-netbox" data-controller="bulk-select">
+  <%# Action bar for bulk operations (approvers only) - uses grid for smooth height animation %>
   <% if current_user.approver? %>
     <div data-bulk-select-target="actionBar"
-         class="absolute left-0 right-0 top-0 z-10 bg-slate-100 border-b border-slate-200 px-4 py-3 flex items-center justify-between transition-all duration-300 ease-in-out opacity-0 -translate-y-full pointer-events-none"
-         data-expanded-class="opacity-100 translate-y-0 pointer-events-auto"
-         data-collapsed-class="opacity-0 -translate-y-full pointer-events-none">
-      <span class="text-sm text-slate-700 font-bold" data-bulk-select-target="count">0 node(s) selected</span>
-      <div class="flex items-center gap-3">
-        <button type="button"
-                data-action="click->bulk-select#clearAll"
-                class="text-sm text-slate-600 hover:text-slate-900">
-          Clear
-        </button>
-        <%= form_with url: bulk_destroy_nodes_path,
-                      method: :delete,
-                      data: {
-                        bulk_select_target: "form",
-                        turbo_confirm: "Are you sure you want to delete the selected nodes?"
-                      },
-                      class: "inline" do |f| %>
-          <div data-bulk-select-target="hiddenInputs"></div>
-          <button type="submit" class="btn-danger text-sm">
-            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h14" />
-            </svg>
-            Delete Selected
-          </button>
-        <% end %>
+         class="grid transition-[grid-template-rows] duration-300 ease-in-out"
+         style="grid-template-rows: 0fr;"
+         data-expanded-style="grid-template-rows: 1fr;"
+         data-collapsed-style="grid-template-rows: 0fr;">
+      <div class="overflow-hidden min-h-0">
+        <div class="bg-slate-100 border-b border-slate-200 px-4 py-3 flex items-center justify-between">
+          <span class="text-sm text-slate-700 font-bold" data-bulk-select-target="count">0 node(s) selected</span>
+          <div class="flex items-center gap-3">
+            <button type="button"
+                    data-action="click->bulk-select#clearAll"
+                    class="text-sm text-slate-600 hover:text-slate-900">
+              Clear
+            </button>
+            <%= form_with url: bulk_destroy_nodes_path,
+                          method: :delete,
+                          data: {
+                            bulk_select_target: "form",
+                            turbo_confirm: "Are you sure you want to delete the selected nodes?"
+                          },
+                          class: "inline" do |f| %>
+              <div data-bulk-select-target="hiddenInputs"></div>
+              <button type="submit" class="btn-danger text-sm">
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h14" />
+                </svg>
+                Delete Selected
+              </button>
+            <% end %>
+          </div>
+        </div>
       </div>
     </div>
   <% end %>
