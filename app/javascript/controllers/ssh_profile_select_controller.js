@@ -19,17 +19,14 @@ export default class extends Controller {
       const section = this.sshConfigSectionTarget
 
       if (hasProfile) {
-        // Profile selected - start collapsed
-        section.style.maxHeight = "0"
-        section.style.opacity = "0"
-        section.style.overflow = "hidden"
-        section.classList.add("invisible")
+        // Profile selected - start fully hidden (takes no space)
+        section.classList.add("hidden")
       } else {
         // Custom settings - start expanded
+        section.classList.remove("hidden")
         section.style.maxHeight = "none"
         section.style.opacity = "1"
         section.style.overflow = "visible"
-        section.classList.remove("invisible")
       }
     }
   }
@@ -49,27 +46,24 @@ export default class extends Controller {
   expand() {
     const section = this.sshConfigSectionTarget
 
-    // Remove invisible and set up for animation
-    section.classList.remove("invisible")
+    // Remove hidden class and prepare for animation
+    section.classList.remove("hidden")
     section.style.overflow = "hidden"
-
-    // Get the full height
-    section.style.maxHeight = "none"
-    const fullHeight = section.scrollHeight
-
-    // Reset to 0 for animation start
     section.style.maxHeight = "0"
     section.style.opacity = "0"
 
-    // Force reflow
+    // Force reflow to ensure the initial state is applied
     section.offsetHeight
+
+    // Get the full height
+    const fullHeight = section.scrollHeight
 
     // Add transition and animate to full height
     section.style.transition = "max-height 0.3s ease-out, opacity 0.3s ease-out"
     section.style.maxHeight = fullHeight + "px"
     section.style.opacity = "1"
 
-    // After animation, remove max-height constraint
+    // After animation, remove constraints
     setTimeout(() => {
       section.style.maxHeight = "none"
       section.style.overflow = "visible"
@@ -84,6 +78,7 @@ export default class extends Controller {
     const currentHeight = section.scrollHeight
     section.style.maxHeight = currentHeight + "px"
     section.style.overflow = "hidden"
+    section.style.opacity = "1"
 
     // Force reflow
     section.offsetHeight
@@ -93,9 +88,12 @@ export default class extends Controller {
     section.style.maxHeight = "0"
     section.style.opacity = "0"
 
-    // After animation, hide completely
+    // After animation, fully hide the element
     setTimeout(() => {
-      section.classList.add("invisible")
+      section.classList.add("hidden")
+      section.style.maxHeight = ""
+      section.style.opacity = ""
+      section.style.overflow = ""
       section.style.transition = ""
     }, 300)
   }
