@@ -43,7 +43,16 @@ module Api
     #   { valid: true/false, errors: { hostname: [...], base: [...] } }
     def validate
       node_params = validate_node_params
-      node = build_or_find_node(node_params)
+
+      if node_params[:id].present?
+        node = Node.find_by(id: node_params[:id])
+        if node.nil?
+          render json: { valid: false, errors: { base: [ "Node not found" ] } }
+          return
+        end
+      else
+        node = Node.new
+      end
 
       assign_validation_attributes(node, node_params)
 
@@ -191,15 +200,6 @@ module Api
     # Permitted parameters for node validation
     def validate_node_params
       params.require(:node).permit(:id, :hostname, :rack_id, :rack_position, :rack_height)
-    end
-
-    # Builds a new node or finds existing one for edit mode
-    def build_or_find_node(node_params)
-      if node_params[:id].present?
-        Node.find_by(id: node_params[:id]) || Node.new
-      else
-        Node.new
-      end
     end
 
     # Assigns only the attributes we want to validate

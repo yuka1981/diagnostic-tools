@@ -234,6 +234,17 @@ RSpec.describe "Api::Nodes", type: :request do
         end
       end
 
+      context "when id is provided but node does not exist" do
+        it "returns valid: false with node not found error" do
+          post validate_api_nodes_path, params: { node: { id: 999999, hostname: "new-node" } }, as: :json
+
+          expect(response).to have_http_status(:success)
+          json = response.parsed_body
+          expect(json["valid"]).to be false
+          expect(json["errors"]["base"]).to include("Node not found")
+        end
+      end
+
       context "when hostname is localhost" do
         it "returns valid: false with hostname error" do
           post validate_api_nodes_path, params: { node: { hostname: "localhost" } }, as: :json
