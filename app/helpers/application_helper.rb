@@ -92,7 +92,7 @@ module ApplicationHelper
   end
 
   # CSS classes for notification status badges
-  def status_badge_class(status)
+  def notification_status_badge_class(status)
     case status.to_s
     when "completed"
       "bg-green-100 text-green-800"
