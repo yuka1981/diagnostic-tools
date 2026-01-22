@@ -12,6 +12,6 @@ class CreateProfilingArtifacts < ActiveRecord::Migration[7.2]
       t.timestamps
     end
 
-    add_index :profiling_artifacts, [:profiling_run_id, :filename], unique: true
+    add_index :profiling_artifacts, [ :profiling_run_id, :filename ], unique: true
   end
 end

@@ -22,6 +22,6 @@ class CreateProfilingRuns < ActiveRecord::Migration[7.2]
 
     add_index :profiling_runs, :uuid, unique: true
     add_index :profiling_runs, :status
-    add_index :profiling_runs, [:node_id, :created_at], order: { created_at: :desc }
+    add_index :profiling_runs, [ :node_id, :created_at ], order: { created_at: :desc }
   end
 end
