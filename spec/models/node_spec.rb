@@ -288,6 +288,10 @@ RSpec.describe Node, type: :model do
     it { is_expected.to belong_to(:server_product).optional }
   end
 
+  describe "profiling associations" do
+    it { is_expected.to have_many(:profiling_runs).dependent(:destroy) }
+  end
+
   describe "rack associations and validations" do
     describe "rack_position validation" do
       let(:site) { create(:site) }
