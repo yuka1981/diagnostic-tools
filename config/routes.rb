@@ -14,6 +14,12 @@ Rails.application.routes.draw do
       post "inventory/push", to: "inventory#push"
       resources :benchmark_runs, only: [ :create, :update ]
       post "nodes/:id/heartbeat", to: "heartbeats#create"
+      resources :profiling_runs, param: :uuid, only: [] do
+        member do
+          post :status
+          post :complete
+        end
+      end
     end
   end
 
