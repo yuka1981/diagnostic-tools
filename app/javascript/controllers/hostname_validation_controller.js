@@ -23,6 +23,7 @@ export default class extends Controller {
 
   connect() {
     this.debounceTimer = null
+    this.abortController = null
     this.validate()
   }
 
@@ -88,8 +89,18 @@ export default class extends Controller {
       return
     }
 
+    // Cancel any pending request
+    if (this.abortController) {
+      this.abortController.abort()
+    }
+    this.abortController = new AbortController()
+
     try {
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content
+      if (!csrfToken) {
+        console.warn("CSRF token not found, skipping server validation")
+        return
+      }
       const body = {
         node: {
           hostname: hostnameValue
@@ -107,7 +118,8 @@ export default class extends Controller {
           "Content-Type": "application/json",
           "X-CSRF-Token": csrfToken
         },
-        body: JSON.stringify(body)
+        body: JSON.stringify(body),
+        signal: this.abortController.signal
       })
 
       if (!response.ok) {
@@ -130,7 +142,9 @@ export default class extends Controller {
         }
       }
     } catch (error) {
-      console.error("Hostname validation failed:", error)
+      if (error.name !== 'AbortError') {
+        console.error("Server-side hostname validation failed:", error)
+      }
     }
   }
 
