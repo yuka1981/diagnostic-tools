@@ -1,10 +1,9 @@
-<% content_for(:page_title) { "Add Server Product" } %>
+<% breadcrumb_trail([
+  { title: "Server Products", path: settings_server_products_path },
+  { title: "New" }
+]) %>
 
 <div class="mb-6">
-  <nav class="text-sm text-slate-500 mb-2">
-    <%= link_to "Server Products", settings_server_products_path, class: "hover:text-teal-600" %> /
-    <span class="text-slate-700">New</span>
-  </nav>
   <h1 class="text-2xl font-bold text-slate-900">Add Server Product</h1>
 </div>
 
