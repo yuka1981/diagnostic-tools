@@ -1,0 +1,128 @@
+<%= form_with(model: [:settings, @ssh_profile], class: "space-y-6", data: { controller: "ssh-profile-form" }) do |f| %>
+  <% if @ssh_profile.errors.any? %>
+    <div class="rounded-lg bg-red-50 p-4 text-sm text-red-700 border border-red-200">
+      <h2 class="font-bold mb-2"><%= pluralize(@ssh_profile.errors.count, "error") %> prohibited this SSH profile from being saved:</h2>
+      <ul class="list-disc list-inside">
+        <% @ssh_profile.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <%# Basic Information %>
+  <div class="card-netbox">
+    <div class="card-header">
+      <h3 class="card-title">Profile Settings</h3>
+    </div>
+    <div class="p-4 grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div class="md:col-span-2">
+        <%= f.label :name, class: "block text-sm font-bold text-slate-700 mb-1" %>
+        <%= f.text_field :name, required: true,
+            placeholder: "e.g., Production Cluster SSH",
+            class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" %>
+        <p class="mt-1 text-xs text-slate-500">A unique name to identify this SSH profile.</p>
+      </div>
+
+      <div>
+        <%= f.label :ssh_connect_method, "Connection Method", class: "block text-sm font-bold text-slate-700 mb-1" %>
+        <%= f.select :ssh_connect_method,
+            options_for_select([
+              ["Global Bastion", "global_bastion"],
+              ["Custom Bastion", "custom_bastion"],
+              ["Direct", "direct"]
+            ], @ssh_profile.ssh_connect_method || "global_bastion"),
+            {},
+            class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm",
+            data: { action: "change->ssh-profile-form#toggleBastion", ssh_profile_form_target: "connectionMethod" } %>
+        <p class="mt-1 text-xs text-slate-500">How to connect to nodes using this profile.</p>
+      </div>
+    </div>
+  </div>
+
+  <%# SSH Connection %>
+  <div class="card-netbox">
+    <div class="card-header">
+      <h3 class="card-title">SSH Connection</h3>
+    </div>
+    <div class="p-4 grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div>
+        <%= f.label :ssh_user, "SSH User", class: "block text-sm font-bold text-slate-700 mb-1" %>
+        <%= f.text_field :ssh_user,
+            placeholder: "e.g., deploy",
+            class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" %>
+        <p class="mt-1 text-xs text-slate-500">SSH username for connecting to nodes.</p>
+      </div>
+
+      <div>
+        <%= f.label :ssh_port, "SSH Port", class: "block text-sm font-bold text-slate-700 mb-1" %>
+        <%= f.number_field :ssh_port, min: 1, max: 65535,
+            class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" %>
+        <p class="mt-1 text-xs text-slate-500">SSH port (default: 22).</p>
+      </div>
+
+      <div class="md:col-span-2">
+        <%= f.label :ssh_password, "SSH Password", class: "block text-sm font-bold text-slate-700 mb-1" %>
+        <%= f.password_field :ssh_password,
+            placeholder: "Leave blank to keep current password",
+            autocomplete: "new-password",
+            class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" %>
+        <p class="mt-1 text-xs text-slate-500">Password for SSH authentication (if not using key-based auth).</p>
+      </div>
+
+      <div class="md:col-span-2">
+        <%= f.label :ssh_key, "SSH Private Key", class: "block text-sm font-bold text-slate-700 mb-1" %>
+        <%= f.text_area :ssh_key, rows: 4,
+            placeholder: "-----BEGIN OPENSSH PRIVATE KEY-----\n...",
+            class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm font-mono text-xs" %>
+        <p class="mt-1 text-xs text-slate-500">SSH private key for key-based authentication. Paste the full key content.</p>
+      </div>
+
+      <div class="md:col-span-2">
+        <%= f.label :sudo_credential, "Sudo Password", class: "block text-sm font-bold text-slate-700 mb-1" %>
+        <%= f.password_field :sudo_credential,
+            placeholder: "Leave blank if not required",
+            autocomplete: "new-password",
+            class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" %>
+        <p class="mt-1 text-xs text-slate-500">Password for sudo commands (if required).</p>
+      </div>
+    </div>
+  </div>
+
+  <%# Bastion (Jump Host) Settings %>
+  <div class="card-netbox" data-ssh-profile-form-target="bastionSection" style="<%= 'display: none;' unless @ssh_profile.custom_bastion? %>">
+    <div class="card-header">
+      <h3 class="card-title">Custom Bastion (Jump Host)</h3>
+    </div>
+    <div class="p-4 grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div class="md:col-span-2">
+        <%= f.label :jump_host, "Bastion Host", class: "block text-sm font-bold text-slate-700 mb-1" %>
+        <%= f.text_field :jump_host,
+            placeholder: "e.g., bastion.example.com",
+            class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" %>
+        <p class="mt-1 text-xs text-slate-500">Hostname or IP address of the bastion/jump host.</p>
+      </div>
+
+      <div>
+        <%= f.label :jump_user, "Bastion User", class: "block text-sm font-bold text-slate-700 mb-1" %>
+        <%= f.text_field :jump_user,
+            placeholder: "e.g., bastion_user",
+            class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" %>
+        <p class="mt-1 text-xs text-slate-500">SSH username for the bastion host.</p>
+      </div>
+
+      <div>
+        <%= f.label :jump_port, "Bastion Port", class: "block text-sm font-bold text-slate-700 mb-1" %>
+        <%= f.number_field :jump_port, min: 1, max: 65535,
+            placeholder: "22",
+            class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" %>
+        <p class="mt-1 text-xs text-slate-500">SSH port for the bastion host.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="flex items-center justify-end gap-3 pt-4">
+    <%= link_to "Cancel", settings_ssh_profiles_path, class: "btn-secondary" %>
+    <%= f.submit @ssh_profile.new_record? ? "Create SSH Profile" : "Update SSH Profile", class: "btn-primary" %>
+  </div>
+<% end %>

@@ -8,6 +8,19 @@ export default class extends Controller {
 
   connect() {
     this.debounceTimer = null
+    this.initializePreview()
+  }
+
+  initializePreview() {
+    // Show preview if there's an existing selection (editing an existing node)
+    if (this.hasHiddenFieldTarget && this.hiddenFieldTarget.value && this.hasInputTarget && this.inputTarget.value) {
+      const previewData = {
+        name: this.inputTarget.value,
+        formFactor: "",
+        rackHeight: ""
+      }
+      this.showPreview(previewData)
+    }
   }
 
   search() {

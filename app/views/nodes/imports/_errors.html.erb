@@ -1,10 +1,7 @@
 <% if message.present? %>
   <div class="mb-4 rounded-lg bg-red-50 p-4 dark:bg-red-500/10">
     <div class="flex items-start gap-3">
-      <svg class="h-5 w-5 flex-shrink-0 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-          d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-      </svg>
+      <%= lucide_icon("alert-circle", class: "h-5 w-5 flex-shrink-0 text-red-500") %>
       <div>
         <p class="text-sm font-medium text-red-800 dark:text-red-300">Import failed</p>
         <p class="mt-1 text-sm text-red-700 dark:text-red-400"><%= message %></p>

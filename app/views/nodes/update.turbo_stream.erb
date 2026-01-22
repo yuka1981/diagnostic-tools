@@ -1,6 +1,11 @@
 <%# Replace node row in index table (if present) - turbo_stream handles missing targets gracefully %>
 <%= turbo_stream.replace @node %>
 
+<%# Update overview section on show page (if present) %>
+<%= turbo_stream.update "node_overview" do %>
+  <%= render "nodes/overview", node: @node %>
+<% end %>
+
 <%# Close the modal by replacing with empty frame %>
 <%= turbo_stream.replace "node_modal" do %>
   <%= turbo_frame_tag "node_modal" %>

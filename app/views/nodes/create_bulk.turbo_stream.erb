@@ -1,0 +1,16 @@
+<%# Close the modal %>
+<%= turbo_stream.replace "node_modal" do %>
+  <%= turbo_frame_tag "node_modal" %>
+<% end %>
+
+<%# Show success flash message %>
+<%= turbo_stream.update "flash_messages" do %>
+  <%= render "shared/flash", notice: "#{@nodes.count} nodes were successfully created." %>
+<% end %>
+
+<%# Append each created node to the table %>
+<% @nodes.each do |node| %>
+  <%= turbo_stream.append "nodes_tbody" do %>
+    <%= render "node", node: node %>
+  <% end %>
+<% end %>

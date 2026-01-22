@@ -1,0 +1,323 @@
+<div data-controller="wizard" data-wizard-total-value="3" data-wizard-current-value="1">
+  <%# Progress Indicators %>
+  <div class="mb-6">
+    <div class="flex items-center justify-between">
+      <% ["Basic Info", "Server & Location", "Connection"].each_with_index do |label, index| %>
+        <div class="flex items-center <%= 'flex-1' unless index == 2 %>">
+          <button type="button"
+                  data-wizard-target="indicator"
+                  data-step="<%= index + 1 %>"
+                  data-action="click->wizard#goToStep"
+                  class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors <%= index == 0 ? 'bg-teal-600 text-white' : 'bg-slate-300 text-slate-600' %>">
+            <%= index + 1 %>
+          </button>
+          <span class="ml-2 text-sm font-medium text-slate-700 hidden sm:inline"><%= label %></span>
+          <% unless index == 2 %>
+            <div class="flex-1 mx-4 h-0.5 bg-slate-200"></div>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <%# Error display section %>
+  <% if node.errors.any? %>
+    <div id="error_explanation" class="mb-6 rounded-lg bg-red-50 p-4 text-sm text-red-700 border border-red-200">
+      <h2 class="font-bold mb-2"><%= pluralize(node.errors.count, "error") %> prohibited this node from being saved:</h2>
+      <ul class="list-disc list-inside">
+        <% node.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <%= form_with(model: node, url: form_url, method: form_method, class: "space-y-6", data: form_data) do |f| %>
+    <%# Step 1: Basic Info %>
+    <div data-wizard-target="step" class="space-y-6">
+      <div class="card-netbox">
+        <div class="card-header">
+          <h3 class="card-title">Basic Information</h3>
+        </div>
+        <div class="p-4 grid grid-cols-1 gap-6 sm:grid-cols-2">
+          <div>
+            <%= f.label :hostname, class: "block text-sm font-bold text-slate-700 mb-1" %>
+            <%= f.text_field :hostname, required: true,
+                placeholder: "node-001",
+                class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm",
+                data: {
+                  hostname_validation_target: "input",
+                  action: "input->hostname-validation#validate blur->hostname-validation#validateHostnameOnBlur"
+                } %>
+            <p class="mt-1 text-xs text-slate-500">Unique hostname for the node.</p>
+            <p class="mt-1 text-xs text-red-600 font-medium hidden" data-hostname-validation-target="error"></p>
+          </div>
+
+          <div>
+            <%= f.label :ip, "IP Address", class: "block text-sm font-bold text-slate-700 mb-1" %>
+            <%= f.text_field :ip,
+                placeholder: "10.0.0.1",
+                class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm font-mono",
+                data: {
+                  hostname_validation_target: "ipInput",
+                  action: "input->hostname-validation#validate"
+                } %>
+            <p class="mt-1 text-xs text-slate-500">IPv4 or IPv6 address. Localhost addresses not allowed.</p>
+            <p class="mt-1 text-xs text-red-600 font-medium hidden" data-hostname-validation-target="ipError"></p>
+          </div>
+
+          <div>
+            <%= f.label :role, class: "block text-sm font-bold text-slate-700 mb-1" %>
+            <%= f.select :role, roles_for_select, {},
+                class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" %>
+          </div>
+
+          <div>
+            <%= f.label :arch, "Architecture", class: "block text-sm font-bold text-slate-700 mb-1" %>
+            <%= f.select :arch, architectures_for_select, { include_blank: "Select Architecture" },
+                class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" %>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <%# Step 2: Server & Location %>
+    <div data-wizard-target="step" class="hidden space-y-6">
+      <div class="card-netbox !overflow-visible">
+        <div class="card-header">
+          <h3 class="card-title">Server Model</h3>
+        </div>
+        <div class="p-4" data-controller="server-product-search">
+          <div>
+            <%= f.label :server_product_id, "Model", class: "block text-sm font-bold text-slate-700 mb-1" %>
+            <div class="relative">
+              <input type="text"
+                     placeholder="Search by model name (e.g., QuantaGrid D54Q)"
+                     value="<%= node.server_product&.name %>"
+                     class="block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm"
+                     data-server-product-search-target="input"
+                     data-action="input->server-product-search#search" />
+              <%= f.hidden_field :server_product_id, data: { server_product_search_target: "hiddenField" } %>
+              <div data-server-product-search-target="results"
+                   class="absolute z-50 hidden mt-1 w-full bg-white rounded-md shadow-lg border border-slate-200 max-h-60 overflow-auto">
+              </div>
+            </div>
+          </div>
+          <p class="mt-2 text-xs text-slate-500">
+            Optional: Select a server model to auto-fill rack height and view specifications.
+          </p>
+          <div data-server-product-search-target="preview" class="mt-4 hidden"></div>
+        </div>
+      </div>
+
+      <div class="card-netbox" data-controller="rack-validation" data-rack-validation-node-id-value="<%= node.persisted? ? node.id : '' %>">
+        <div class="card-header">
+          <h3 class="card-title">Rack Assignment</h3>
+        </div>
+        <div class="p-4 grid grid-cols-1 gap-6 sm:grid-cols-3">
+          <div>
+            <%= f.label :rack_id, "Rack", class: "block text-sm font-bold text-slate-700 mb-1" %>
+            <%= f.select :rack_id, racks_for_select, { include_blank: "Not assigned" },
+                class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm",
+                data: {
+                  rack_validation_target: "rackSelect",
+                  action: "change->rack-validation#validateOnBlur"
+                } %>
+          </div>
+          <div>
+            <%= f.label :rack_position, "Position (RU)", class: "block text-sm font-bold text-slate-700 mb-1" %>
+            <%= f.number_field :rack_position, min: 1,
+                class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm",
+                data: {
+                  rack_validation_target: "positionInput",
+                  action: "blur->rack-validation#validateOnBlur"
+                } %>
+            <p class="mt-1 text-xs text-red-600 font-medium hidden" data-rack-validation-target="error"></p>
+          </div>
+          <div>
+            <%= f.label :rack_height, "Height (U)", class: "block text-sm font-bold text-slate-700 mb-1" %>
+            <%= f.number_field :rack_height, min: 1, value: f.object.rack_height || 1,
+                class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm",
+                data: {
+                  rack_validation_target: "heightInput",
+                  action: "blur->rack-validation#validateOnBlur"
+                } %>
+          </div>
+          <div class="sm:col-span-3">
+            <p class="text-xs text-slate-500">
+              Optional: Assign this node to a rack position. Position is the starting RU (bottom of device).
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <%# Step 3: Connection %>
+    <div data-wizard-target="step" class="hidden space-y-6" data-controller="ssh-profile-select">
+      <div class="card-netbox">
+        <div class="card-header">
+          <h3 class="card-title">SSH Profile</h3>
+        </div>
+        <div class="p-4">
+          <div>
+            <%= f.label :ssh_profile_id, "SSH Profile", class: "block text-sm font-bold text-slate-700 mb-1" %>
+            <%= f.select :ssh_profile_id,
+                options_for_select([["-- Custom SSH Settings --", ""]] + ssh_profiles_for_select, node.ssh_profile_id),
+                {},
+                class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm",
+                data: {
+                  ssh_profile_select_target: "select",
+                  action: "change->ssh-profile-select#toggleSshConfig"
+                } %>
+            <p class="mt-1 text-xs text-slate-500">
+              Select an SSH profile to use its settings, or choose "Custom SSH Settings" to configure manually.
+              <%= link_to "Manage Profiles", settings_ssh_profiles_path, class: "text-teal-600 hover:text-teal-800", data: { turbo_frame: "_top" } %>
+            </p>
+            <%# Always set ssh_profile_override to false - the dropdown selection determines behavior %>
+            <%= f.hidden_field :ssh_profile_override, value: false %>
+          </div>
+        </div>
+      </div>
+
+      <div class="card-netbox" data-controller="ssh-settings" data-ssh-profile-select-target="sshConfigSection">
+        <div class="card-header">
+          <h3 class="card-title">SSH Configuration</h3>
+        </div>
+        <div class="p-4 space-y-6">
+          <div>
+            <%= f.label :ssh_connect_method, "Connection Method", class: "block text-sm font-bold text-slate-700 mb-1" %>
+            <%= f.select :ssh_connect_method,
+                ssh_connect_methods_for_select,
+                {},
+                class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm",
+                data: { action: "change->ssh-settings#toggle" } %>
+            <p class="mt-1 text-xs text-slate-500">How the system connects to this node.</p>
+          </div>
+
+          <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 border-t border-slate-100 pt-6" data-ssh-settings-target="fields">
+            <div>
+              <%= f.label :ssh_port, "SSH Port", class: "block text-sm font-bold text-slate-700 mb-1" %>
+              <%= f.number_field :ssh_port, min: 1, max: 65535,
+                  class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" %>
+            </div>
+
+            <div>
+              <%= f.label :ssh_user, "SSH User", class: "block text-sm font-bold text-slate-700 mb-1" %>
+              <%= f.text_field :ssh_user,
+                  placeholder: "root",
+                  class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" %>
+            </div>
+
+            <div>
+              <%= f.label :ssh_password, "SSH Password", class: "block text-sm font-bold text-slate-700 mb-1" %>
+              <%= f.password_field :ssh_password,
+                  placeholder: node.ssh_password.present? ? "••••••••" : "Leave blank for key auth",
+                  class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" %>
+              <p class="mt-1 text-xs text-slate-500">For password-based SSH authentication.</p>
+            </div>
+
+            <div>
+              <%= f.label :sudo_credential, "Sudo Password", class: "block text-sm font-bold text-slate-700 mb-1" %>
+              <%= f.password_field :sudo_credential,
+                  placeholder: node.sudo_credential.present? ? "••••••••" : "For privileged commands",
+                  class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" %>
+              <p class="mt-1 text-xs text-slate-500">For systemctl and other privileged commands.</p>
+            </div>
+
+            <div class="sm:col-span-2">
+              <%= f.label :ssh_key, "SSH Key (optional)", class: "block text-sm font-bold text-slate-700 mb-1" %>
+              <%= f.text_area :ssh_key, rows: 2,
+                  placeholder: "ssh-rsa AAAAB3Nza...",
+                  class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" %>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 border-t border-slate-100 pt-6" data-ssh-settings-target="bastionFields">
+            <div class="col-span-2">
+              <h5 class="text-xs font-bold uppercase tracking-wider text-slate-500">Custom Bastion Settings</h5>
+            </div>
+            <div>
+              <%= f.label :jump_host, "Jump Host", class: "block text-sm font-bold text-slate-700 mb-1" %>
+              <%= f.text_field :jump_host,
+                  placeholder: "bastion.example.com",
+                  class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" %>
+            </div>
+            <div>
+              <%= f.label :jump_user, "Jump User", class: "block text-sm font-bold text-slate-700 mb-1" %>
+              <%= f.text_field :jump_user,
+                  placeholder: "root",
+                  class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" %>
+            </div>
+            <div>
+              <%= f.label :jump_port, "Jump Port", class: "block text-sm font-bold text-slate-700 mb-1" %>
+              <%= f.number_field :jump_port, min: 1, max: 65535,
+                  class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" %>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card-netbox">
+        <div class="card-header">
+          <h3 class="card-title">Agent & Benchmark Configuration</h3>
+        </div>
+        <div class="p-4 grid grid-cols-1 gap-6 sm:grid-cols-2">
+          <div>
+            <%= f.label :agent_path, "Agent Path", class: "block text-sm font-bold text-slate-700 mb-1" %>
+            <%= f.text_field :agent_path,
+                placeholder: default_agent_path,
+                class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm font-mono" %>
+            <p class="mt-1 text-xs text-slate-500">Path to the hpc-agent binary on this node. Leave blank to use default.</p>
+          </div>
+
+          <div>
+            <%= f.label :benchmark_work_dir, "Benchmark Working Directory", class: "block text-sm font-bold text-slate-700 mb-1" %>
+            <%= f.text_field :benchmark_work_dir,
+                placeholder: default_benchmark_work_dir,
+                class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm font-mono" %>
+            <p class="mt-1 text-xs text-slate-500">
+              Directory where benchmark source code is located.
+              Defaults to <code class="bg-slate-100 px-1 rounded"><%= default_benchmark_work_dir %></code>
+            </p>
+          </div>
+
+          <div class="sm:col-span-2 border-t border-slate-100 pt-4">
+            <%= f.label :api_key_id, "API Token", class: "block text-sm font-bold text-slate-700 mb-1" %>
+            <%= f.select :api_key_id,
+                options_for_select([["-- Select API Key --", ""]] + api_keys_for_select, node.api_key_id),
+                {},
+                class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" %>
+            <p class="mt-1 text-xs text-slate-500">
+              Select an API key for agent benchmark result uploads. Manage keys in
+              <%= link_to "API Keys", api_keys_path, class: "text-teal-600 hover:text-teal-800", data: { turbo_frame: "_top" } %>.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <%# Navigation Buttons %>
+    <div class="flex items-center justify-between pt-4 border-t border-slate-200">
+      <button type="button"
+              data-wizard-target="backButton"
+              data-action="click->wizard#back"
+              class="hidden btn-secondary">
+        Back
+      </button>
+      <div class="flex items-center gap-3 ml-auto">
+        <%= link_to "Cancel", nodes_path,
+            class: "btn-secondary",
+            data: { turbo_frame: "node_modal" } %>
+        <button type="button"
+                data-wizard-target="nextButton"
+                data-action="click->wizard#next"
+                class="btn-primary">
+          Next
+        </button>
+        <%= f.submit "Save Node",
+            class: "hidden btn-primary",
+            data: { wizard_target: "submitButton", hostname_validation_target: "submit" } %>
+      </div>
+    </div>
+  <% end %>
+</div>

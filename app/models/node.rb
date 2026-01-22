@@ -10,6 +10,7 @@ class Node < ApplicationRecord
   belongs_to :api_key, optional: true
   belongs_to :server_rack, foreign_key: :rack_id, optional: true
   belongs_to :server_product, optional: true
+  belongs_to :ssh_profile, optional: true
 
   # Enums
   enum :role, { compute: 0, login: 1, admin: 2 }, default: :compute
@@ -88,6 +89,51 @@ class Node < ApplicationRecord
     online? ? :online : :offline
   end
 
+  # Returns effective SSH user (from profile or node override)
+  def effective_ssh_user
+    use_profile_settings? ? ssh_profile.ssh_user : ssh_user
+  end
+
+  # Returns effective SSH port (from profile or node override)
+  def effective_ssh_port
+    use_profile_settings? ? ssh_profile.ssh_port : ssh_port
+  end
+
+  # Returns effective SSH connect method (from profile or node override)
+  def effective_ssh_connect_method
+    use_profile_settings? ? ssh_profile.ssh_connect_method : ssh_connect_method
+  end
+
+  # Returns effective SSH key (from profile or node override)
+  def effective_ssh_key
+    use_profile_settings? ? ssh_profile.ssh_key : ssh_key
+  end
+
+  # Returns effective SSH password (from profile or node override)
+  def effective_ssh_password
+    use_profile_settings? ? ssh_profile.ssh_password : ssh_password
+  end
+
+  # Returns effective sudo credential (from profile or node override)
+  def effective_sudo_credential
+    use_profile_settings? ? ssh_profile.sudo_credential : sudo_credential
+  end
+
+  # Returns effective jump host (from profile or node override)
+  def effective_jump_host
+    use_profile_settings? ? ssh_profile.jump_host : jump_host
+  end
+
+  # Returns effective jump user (from profile or node override)
+  def effective_jump_user
+    use_profile_settings? ? ssh_profile.jump_user : jump_user
+  end
+
+  # Returns effective jump port (from profile or node override)
+  def effective_jump_port
+    use_profile_settings? ? ssh_profile.jump_port : jump_port
+  end
+
   # Returns true if the node has any pending or running benchmark runs
   # Used to prevent agent updates while benchmarks are in progress
   def busy?
@@ -104,6 +150,10 @@ class Node < ApplicationRecord
   end
 
   private
+
+  def use_profile_settings?
+    ssh_profile.present? && !ssh_profile_override
+  end
 
   def generate_uuid
     self.uuid ||= SecureRandom.uuid

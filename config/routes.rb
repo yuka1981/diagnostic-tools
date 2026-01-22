@@ -3,6 +3,13 @@ Rails.application.routes.draw do
 
   # API routes
   namespace :api do
+    resources :nodes, only: [] do
+      collection do
+        get :hostname_suggestions
+        post :validate
+      end
+    end
+
     resources :server_products, only: [ :index ] do
       collection do
         get :search
@@ -36,6 +43,7 @@ Rails.application.routes.draw do
   namespace :settings do
     resource :ssh, only: [ :show, :update ], controller: :ssh
     resource :agent, only: [ :show, :update ], controller: :agents
+    resources :ssh_profiles
     resources :agent_releases do
       member do
         patch :deprecate
@@ -78,6 +86,7 @@ Rails.application.routes.draw do
     end
     resource :update, only: %i[new create], controller: "nodes/updates"
     collection do
+      delete :bulk_destroy
       resources :imports, only: %i[new create], controller: "nodes/imports", as: :node_import
       resources :installs, only: %i[new create], controller: "nodes/installs", as: :node_install
       resources :uninstalls, only: %i[new create], controller: "nodes/uninstalls", as: :node_uninstall
