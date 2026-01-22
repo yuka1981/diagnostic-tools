@@ -3,6 +3,12 @@ Rails.application.routes.draw do
 
   # API routes
   namespace :api do
+    resources :nodes, only: [] do
+      collection do
+        get :hostname_suggestions
+      end
+    end
+
     resources :server_products, only: [ :index ] do
       collection do
         get :search
