@@ -1,4 +1,7 @@
-<% content_for(:page_title) { "Generate New API Key" } %>
+<% breadcrumb_trail([
+  { title: "API Keys", path: api_keys_path },
+  { title: "Generate API Key" }
+]) %>
 
 <div class="space-y-6">
   <div class="card-netbox max-w-2xl">
