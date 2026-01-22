@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_01_22_052338) do
+ActiveRecord::Schema[7.2].define(version: 2026_01_22_052408) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -246,6 +246,30 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_22_052338) do
     t.index ["tool"], name: "index_profiling_recipes_on_tool"
   end
 
+  create_table "profiling_runs", force: :cascade do |t|
+    t.uuid "uuid", default: -> { "gen_random_uuid()" }, null: false
+    t.bigint "node_id", null: false
+    t.bigint "profiling_recipe_id"
+    t.bigint "user_id"
+    t.integer "status", default: 0, null: false
+    t.string "subcommand", null: false
+    t.jsonb "options", default: {}
+    t.jsonb "metrics", default: {}
+    t.datetime "started_at"
+    t.datetime "finished_at"
+    t.text "log_content"
+    t.text "error_message"
+    t.string "artifact_path"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["node_id", "created_at"], name: "index_profiling_runs_on_node_id_and_created_at", order: { created_at: :desc }
+    t.index ["node_id"], name: "index_profiling_runs_on_node_id"
+    t.index ["profiling_recipe_id"], name: "index_profiling_runs_on_profiling_recipe_id"
+    t.index ["status"], name: "index_profiling_runs_on_status"
+    t.index ["user_id"], name: "index_profiling_runs_on_user_id"
+    t.index ["uuid"], name: "index_profiling_runs_on_uuid", unique: true
+  end
+
   create_table "racks", force: :cascade do |t|
     t.string "name", limit: 255, null: false
     t.string "facility_id", limit: 255
@@ -385,6 +409,9 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_22_052338) do
   add_foreign_key "nodes", "server_products"
   add_foreign_key "nodes", "ssh_profiles"
   add_foreign_key "notifications", "users"
+  add_foreign_key "profiling_runs", "nodes"
+  add_foreign_key "profiling_runs", "profiling_recipes"
+  add_foreign_key "profiling_runs", "users"
   add_foreign_key "racks", "rooms"
   add_foreign_key "rooms", "sites"
 end
