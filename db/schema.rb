@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_01_21_152752) do
+ActiveRecord::Schema[7.2].define(version: 2026_01_22_052338) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -195,6 +195,8 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_21_152752) do
     t.integer "rack_height", default: 1
     t.integer "rack_face", default: 0
     t.bigint "server_product_id"
+    t.bigint "ssh_profile_id"
+    t.boolean "ssh_profile_override", default: false, null: false
     t.index ["api_key_id"], name: "index_nodes_on_api_key_id"
     t.index ["hostname"], name: "index_nodes_on_hostname", unique: true
     t.index ["rack_id", "rack_face", "rack_position"], name: "index_nodes_on_rack_id_and_rack_face_and_rack_position"
@@ -202,6 +204,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_21_152752) do
     t.index ["role"], name: "index_nodes_on_role"
     t.index ["server_product_id"], name: "index_nodes_on_server_product_id"
     t.index ["source"], name: "index_nodes_on_source"
+    t.index ["ssh_profile_id"], name: "index_nodes_on_ssh_profile_id"
     t.index ["uuid"], name: "index_nodes_on_uuid"
   end
 
@@ -224,6 +227,23 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_21_152752) do
     t.index ["user_id", "archived", "read"], name: "index_notifications_on_user_id_and_archived_and_read"
     t.index ["user_id", "created_at"], name: "index_notifications_on_user_id_and_created_at"
     t.index ["user_id"], name: "index_notifications_on_user_id"
+  end
+
+  create_table "profiling_recipes", force: :cascade do |t|
+    t.string "name", limit: 100, null: false
+    t.string "slug", null: false
+    t.text "description"
+    t.string "tool", default: "perfspect", null: false
+    t.string "subcommand", null: false
+    t.string "module_name", default: "perfspect/3.13.0", null: false
+    t.jsonb "default_options", default: {}
+    t.integer "timeout_seconds", default: 300
+    t.integer "status", default: 0, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["slug"], name: "index_profiling_recipes_on_slug", unique: true
+    t.index ["status"], name: "index_profiling_recipes_on_status"
+    t.index ["tool"], name: "index_profiling_recipes_on_tool"
   end
 
   create_table "racks", force: :cascade do |t|
@@ -297,6 +317,22 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_21_152752) do
     t.index ["name"], name: "index_sites_on_name", unique: true
   end
 
+  create_table "ssh_profiles", force: :cascade do |t|
+    t.string "name", limit: 255, null: false
+    t.integer "ssh_connect_method", default: 0, null: false
+    t.integer "ssh_port", default: 22, null: false
+    t.string "ssh_user", limit: 255
+    t.string "ssh_password"
+    t.text "ssh_key"
+    t.string "sudo_credential"
+    t.string "jump_host", limit: 255
+    t.string "jump_user", limit: 255
+    t.integer "jump_port"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["name"], name: "index_ssh_profiles_on_name", unique: true
+  end
+
   create_table "ssh_settings", force: :cascade do |t|
     t.string "bastion_host"
     t.string "bastion_user"
@@ -305,6 +341,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_21_152752) do
     t.datetime "updated_at", null: false
     t.string "server_url"
     t.string "benchmark_work_dir"
+    t.string "default_agent_path", default: "/usr/local/bin/hpc-agent"
   end
 
   create_table "sync_logs", force: :cascade do |t|
@@ -346,6 +383,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_21_152752) do
   add_foreign_key "nodes", "api_keys"
   add_foreign_key "nodes", "racks"
   add_foreign_key "nodes", "server_products"
+  add_foreign_key "nodes", "ssh_profiles"
   add_foreign_key "notifications", "users"
   add_foreign_key "racks", "rooms"
   add_foreign_key "rooms", "sites"
