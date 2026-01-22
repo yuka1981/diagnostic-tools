@@ -1,0 +1,48 @@
+---
+- name: Find generated artifacts
+  ansible.builtin.find:
+    paths: "{{ perfspect_output_dir }}"
+    patterns:
+      - "*.html"
+      - "*.json"
+      - "*.svg"
+      - "*.txt"
+  register: artifact_files
+
+- name: Copy artifacts to shared filesystem
+  ansible.builtin.copy:
+    src: "{{ item.path }}"
+    dest: "{{ shared_artifacts_path }}/{{ run_uuid }}/{{ item.path | basename }}"
+    remote_src: true
+    mode: "0644"
+  loop: "{{ artifact_files.files }}"
+  when: shared_artifacts_path is defined
+
+- name: Build artifacts list for API
+  ansible.builtin.set_fact:
+    artifacts_payload: >-
+      {{ artifact_files.files | map(attribute='path') | map('basename') | map('community.general.dict_kv', 'filename') | list }}
+
+- name: Send completion status to API
+  ansible.builtin.uri:
+    url: "{{ api_server }}/api/v1/profiling_runs/{{ run_uuid }}/complete"
+    method: POST
+    body_format: json
+    body:
+      status: "{{ 'success' if perfspect_success else 'failed' }}"
+      log_content: "{{ perfspect_stdout }}\n{{ perfspect_stderr }}"
+      error_message: "{{ perfspect_stderr if not perfspect_success else omit }}"
+      artifacts: >-
+        {{ artifact_files.files | map('combine', {'file_path': shared_artifacts_path ~ '/' ~ run_uuid ~ '/' ~ item.path | basename}) | list }}
+    headers:
+      Authorization: "Bearer {{ api_token }}"
+      Content-Type: "application/json"
+    status_code: [200, 201, 204]
+  when: api_server | length > 0
+  ignore_errors: true
+
+- name: Cleanup temporary output directory
+  ansible.builtin.file:
+    path: "{{ perfspect_output_dir }}"
+    state: absent
+  when: perfspect_cleanup | default(true) | bool
