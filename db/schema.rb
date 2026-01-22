@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_01_22_024144) do
+ActiveRecord::Schema[7.2].define(version: 2026_01_22_025219) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -195,6 +195,8 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_22_024144) do
     t.integer "rack_height", default: 1
     t.integer "rack_face", default: 0
     t.bigint "server_product_id"
+    t.bigint "ssh_profile_id"
+    t.boolean "ssh_profile_override", default: false, null: false
     t.index ["api_key_id"], name: "index_nodes_on_api_key_id"
     t.index ["hostname"], name: "index_nodes_on_hostname", unique: true
     t.index ["rack_id", "rack_face", "rack_position"], name: "index_nodes_on_rack_id_and_rack_face_and_rack_position"
@@ -202,6 +204,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_22_024144) do
     t.index ["role"], name: "index_nodes_on_role"
     t.index ["server_product_id"], name: "index_nodes_on_server_product_id"
     t.index ["source"], name: "index_nodes_on_source"
+    t.index ["ssh_profile_id"], name: "index_nodes_on_ssh_profile_id"
     t.index ["uuid"], name: "index_nodes_on_uuid"
   end
 
@@ -362,6 +365,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_22_024144) do
   add_foreign_key "nodes", "api_keys"
   add_foreign_key "nodes", "racks"
   add_foreign_key "nodes", "server_products"
+  add_foreign_key "nodes", "ssh_profiles"
   add_foreign_key "notifications", "users"
   add_foreign_key "racks", "rooms"
   add_foreign_key "rooms", "sites"

@@ -286,6 +286,7 @@ RSpec.describe Node, type: :model do
   describe "associations" do
     it { is_expected.to belong_to(:server_rack).optional }
     it { is_expected.to belong_to(:server_product).optional }
+    it { is_expected.to belong_to(:ssh_profile).optional }
   end
 
   describe "rack associations and validations" do
