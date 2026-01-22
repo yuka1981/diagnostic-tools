@@ -1,0 +1,121 @@
+# Lucide icon SVG data
+# Source: https://lucide.dev
+# Each icon contains paths, rects, lines, and/or circles arrays
+
+server:
+  rects:
+    - { width: 20, height: 8, x: 2, y: 2, rx: 2, ry: 2 }
+    - { width: 20, height: 8, x: 2, y: 14, rx: 2, ry: 2 }
+  lines:
+    - { x1: 6, x2: 6.01, y1: 6, y2: 6 }
+    - { x1: 6, x2: 6.01, y1: 18, y2: 18 }
+
+layout-dashboard:
+  rects:
+    - { width: 7, height: 9, x: 3, y: 3, rx: 1 }
+    - { width: 7, height: 5, x: 14, y: 3, rx: 1 }
+    - { width: 7, height: 9, x: 14, y: 12, rx: 1 }
+    - { width: 7, height: 5, x: 3, y: 16, rx: 1 }
+
+building-2:
+  paths:
+    - "M6 21V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16"
+    - "M6 10H4a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2"
+    - "M14 21v-3a2 2 0 0 0-4 0v3"
+    - "M10 12h4"
+    - "M10 8h4"
+
+warehouse:
+  paths:
+    - "M22 8a2 2 0 0 0-1.133-1.803l-7.948-3.974a2 2 0 0 0-1.837 0l-7.95 3.974A2 2 0 0 0 2 8v11a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2z"
+    - "M18 21V10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1v11"
+    - "M6 13h12"
+    - "M6 17h12"
+
+hard-drive:
+  paths:
+    - "M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"
+  lines:
+    - { x1: 2, x2: 22, y1: 12, y2: 12 }
+    - { x1: 6, x2: 6.01, y1: 16, y2: 16 }
+    - { x1: 10, x2: 10.01, y1: 16, y2: 16 }
+
+bar-chart-3:
+  paths:
+    - "M3 3v16a2 2 0 0 0 2 2h16"
+  rects:
+    - { width: 4, height: 7, x: 7, y: 10, rx: 1 }
+    - { width: 4, height: 12, x: 15, y: 5, rx: 1 }
+
+flask-conical:
+  paths:
+    - "M14 2v6a2 2 0 0 0 .245.96l5.51 10.08A2 2 0 0 1 18 22H6a2 2 0 0 1-1.755-2.96l5.51-10.08A2 2 0 0 0 10 8V2"
+    - "M6.453 15h11.094"
+    - "M8.5 2h7"
+
+key:
+  paths:
+    - "m15.5 7.5 2.3 2.3a1 1 0 0 0 1.4 0l2.1-2.1a1 1 0 0 0 0-1.4L19 4"
+    - "m21 2-9.6 9.6"
+  circles:
+    - { cx: 7.5, cy: 15.5, r: 5.5 }
+
+lock:
+  paths:
+    - "M7 11V7a5 5 0 0 1 10 0v4"
+  rects:
+    - { width: 18, height: 11, x: 3, y: 11, rx: 2, ry: 2 }
+
+key-round:
+  paths:
+    - "M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172a2 2 0 0 0 1.414-.586l.814-.814a6.5 6.5 0 1 0-4-4z"
+  circles:
+    - { cx: 16.5, cy: 7.5, r: 0.5, fill: "currentColor" }
+
+settings:
+  paths:
+    - "M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915"
+  circles:
+    - { cx: 12, cy: 12, r: 3 }
+
+log-out:
+  paths:
+    - "M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"
+    - "m16 17 5-5-5-5"
+    - "M21 12H9"
+
+log-in:
+  paths:
+    - "M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"
+    - "m10 17 5-5-5-5"
+    - "M15 12H3"
+
+circle-check:
+  paths:
+    - "m9 12 2 2 4-4"
+  circles:
+    - { cx: 12, cy: 12, r: 10 }
+
+circle-x:
+  paths:
+    - "m15 9-6 6"
+    - "m9 9 6 6"
+  circles:
+    - { cx: 12, cy: 12, r: 10 }
+
+loader-2:
+  paths:
+    - "M21 12a9 9 0 1 1-6.219-8.56"
+
+clock:
+  paths:
+    - "M12 6v6l4 2"
+  circles:
+    - { cx: 12, cy: 12, r: 10 }
+
+help-circle:
+  paths:
+    - "M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"
+    - "M12 17h.01"
+  circles:
+    - { cx: 12, cy: 12, r: 10 }

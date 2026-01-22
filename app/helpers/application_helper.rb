@@ -1,6 +1,7 @@
 module ApplicationHelper
   include DashboardHelper
   include BreadcrumbHelper
+  include LucideHelper
 
   def format_bytes(bytes)
     return "—" if bytes.blank? || bytes.to_i.zero?
