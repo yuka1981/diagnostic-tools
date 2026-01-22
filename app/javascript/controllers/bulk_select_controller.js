@@ -84,10 +84,17 @@ export default class extends Controller {
   updateActionBar() {
     if (!this.hasActionBarTarget) return
 
+    const expandedClasses = (this.actionBarTarget.dataset.expandedClass || "").split(" ").filter(Boolean)
+    const collapsedClasses = (this.actionBarTarget.dataset.collapsedClass || "").split(" ").filter(Boolean)
+
     if (this.selectedIds.size > 0) {
-      this.actionBarTarget.classList.remove("hidden")
+      // Expand: remove collapsed classes, add expanded classes
+      this.actionBarTarget.classList.remove(...collapsedClasses)
+      this.actionBarTarget.classList.add(...expandedClasses)
     } else {
-      this.actionBarTarget.classList.add("hidden")
+      // Collapse: remove expanded classes, add collapsed classes
+      this.actionBarTarget.classList.remove(...expandedClasses)
+      this.actionBarTarget.classList.add(...collapsedClasses)
     }
   }
 
