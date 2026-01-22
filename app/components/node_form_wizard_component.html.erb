@@ -32,7 +32,7 @@
     </div>
   <% end %>
 
-  <%= form_with(model: node, url: form_url, method: form_method, class: "space-y-6", data: { controller: "hostname-validation" }) do |f| %>
+  <%= form_with(model: node, url: form_url, method: form_method, class: "space-y-6", data: { controller: "hostname-validation", hostname_validation_node_id_value: node.persisted? ? node.id : nil }) do |f| %>
     <%# Step 1: Basic Info %>
     <div data-wizard-target="step" class="space-y-6">
       <div class="card-netbox">
@@ -47,7 +47,7 @@
                 class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm",
                 data: {
                   hostname_validation_target: "input",
-                  action: "input->hostname-validation#validate"
+                  action: "input->hostname-validation#validate blur->hostname-validation#validateHostnameOnBlur"
                 } %>
             <p class="mt-1 text-xs text-slate-500">Unique hostname for the node.</p>
             <p class="mt-1 text-xs text-red-600 font-medium hidden" data-hostname-validation-target="error"></p>
