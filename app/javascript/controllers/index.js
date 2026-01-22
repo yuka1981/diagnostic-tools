@@ -28,6 +28,9 @@ application.register("file-drop", FileDropController)
 import HeatmapController from "./heatmap_controller"
 application.register("heatmap", HeatmapController)
 
+import HostnameAutocompleteController from "./hostname_autocomplete_controller"
+application.register("hostname-autocomplete", HostnameAutocompleteController)
+
 import HostnameValidationController from "./hostname_validation_controller"
 application.register("hostname-validation", HostnameValidationController)
 
