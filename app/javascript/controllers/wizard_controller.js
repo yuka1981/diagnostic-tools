@@ -80,13 +80,43 @@ export default class extends Controller {
     let valid = true
 
     requiredFields.forEach(field => {
+      // Find or create error message element
+      let errorEl = field.parentElement.querySelector(".wizard-field-error")
+
       if (!field.value.trim()) {
-        field.classList.add("border-red-500")
+        // Show error state
+        field.classList.remove("border-slate-300")
+        field.classList.add("border-red-500", "ring-1", "ring-red-500")
+
+        // Show error message
+        if (!errorEl) {
+          errorEl = document.createElement("p")
+          errorEl.className = "wizard-field-error mt-1 text-xs text-red-600 font-medium"
+          field.parentElement.appendChild(errorEl)
+        }
+        errorEl.textContent = "This field is required"
+        errorEl.classList.remove("hidden")
+
         valid = false
       } else {
-        field.classList.remove("border-red-500")
+        // Clear error state
+        field.classList.remove("border-red-500", "ring-1", "ring-red-500")
+        field.classList.add("border-slate-300")
+
+        // Hide error message
+        if (errorEl) {
+          errorEl.classList.add("hidden")
+        }
       }
     })
+
+    // Focus first invalid field
+    if (!valid) {
+      const firstInvalid = currentStep.querySelector(".border-red-500")
+      if (firstInvalid) {
+        firstInvalid.focus()
+      }
+    }
 
     return valid
   }
