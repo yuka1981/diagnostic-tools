@@ -28,6 +28,32 @@ module Api
       end
     end
 
+    # POST /api/nodes/validate
+    # Validates node form data and returns validation errors in real-time.
+    #
+    # Checks:
+    # - Hostname uniqueness (excluding self when editing)
+    # - Rack position overlap (excluding self when editing)
+    # - Rack position within bounds
+    #
+    # Request body:
+    #   { node: { id: 123, hostname: "...", rack_id: 5, rack_position: 10, rack_height: 2 } }
+    #
+    # Response:
+    #   { valid: true/false, errors: { hostname: [...], base: [...] } }
+    def validate
+      node_params = validate_node_params
+      node = build_or_find_node(node_params)
+
+      assign_validation_attributes(node, node_params)
+
+      if node.valid?
+        render json: { valid: true, errors: {} }
+      else
+        render json: { valid: false, errors: format_errors(node.errors) }
+      end
+    end
+
     private
 
     # Maximum number of hostnames to expand from a bulk pattern
@@ -160,6 +186,33 @@ module Api
     # Escapes SQL LIKE wildcards in a string
     def sanitize_like(str)
       str.gsub(/[%_\\]/) { |m| "\\#{m}" }
+    end
+
+    # Permitted parameters for node validation
+    def validate_node_params
+      params.require(:node).permit(:id, :hostname, :rack_id, :rack_position, :rack_height)
+    end
+
+    # Builds a new node or finds existing one for edit mode
+    def build_or_find_node(node_params)
+      if node_params[:id].present?
+        Node.find_by(id: node_params[:id]) || Node.new
+      else
+        Node.new
+      end
+    end
+
+    # Assigns only the attributes we want to validate
+    def assign_validation_attributes(node, node_params)
+      node.hostname = node_params[:hostname] if node_params.key?(:hostname)
+      node.rack_id = node_params[:rack_id] if node_params.key?(:rack_id)
+      node.rack_position = node_params[:rack_position] if node_params.key?(:rack_position)
+      node.rack_height = node_params[:rack_height] if node_params.key?(:rack_height)
+    end
+
+    # Formats ActiveModel errors as a hash with arrays of messages
+    def format_errors(errors)
+      errors.group_by_attribute.transform_values { |errs| errs.map(&:message) }
     end
   end
 end

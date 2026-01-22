@@ -6,6 +6,7 @@ Rails.application.routes.draw do
     resources :nodes, only: [] do
       collection do
         get :hostname_suggestions
+        post :validate
       end
     end
 
