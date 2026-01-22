@@ -1,0 +1,11 @@
+---
+- name: Run PerfSPECT Flame Graph
+  hosts: "{{ target_host }}"
+  gather_facts: false
+  vars:
+    perfspect_subcommand: flame
+    perfspect_output_dir: "/tmp/perfspect_{{ run_uuid }}"
+
+  roles:
+    - role: perfspect
+      perfspect_options: "{{ options | default({'duration': 30}) }}"
