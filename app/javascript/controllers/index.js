@@ -10,6 +10,9 @@ application.register("autosubmit", AutosubmitController)
 import BenchmarkRecipeController from "./benchmark_recipe_controller"
 application.register("benchmark-recipe", BenchmarkRecipeController)
 
+import BulkReviewController from "./bulk_review_controller"
+application.register("bulk-review", BulkReviewController)
+
 import CascadingSelectController from "./cascading_select_controller"
 application.register("cascading-select", CascadingSelectController)
 
