@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_01_22_052408) do
+ActiveRecord::Schema[7.2].define(version: 2026_01_22_052447) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -229,6 +229,18 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_22_052408) do
     t.index ["user_id"], name: "index_notifications_on_user_id"
   end
 
+  create_table "profiling_artifacts", force: :cascade do |t|
+    t.bigint "profiling_run_id", null: false
+    t.string "filename", null: false
+    t.string "file_type"
+    t.string "file_path"
+    t.bigint "file_size"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["profiling_run_id", "filename"], name: "index_profiling_artifacts_on_profiling_run_id_and_filename", unique: true
+    t.index ["profiling_run_id"], name: "index_profiling_artifacts_on_profiling_run_id"
+  end
+
   create_table "profiling_recipes", force: :cascade do |t|
     t.string "name", limit: 100, null: false
     t.string "slug", null: false
@@ -409,6 +421,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_22_052408) do
   add_foreign_key "nodes", "server_products"
   add_foreign_key "nodes", "ssh_profiles"
   add_foreign_key "notifications", "users"
+  add_foreign_key "profiling_artifacts", "profiling_runs"
   add_foreign_key "profiling_runs", "nodes"
   add_foreign_key "profiling_runs", "profiling_recipes"
   add_foreign_key "profiling_runs", "users"
