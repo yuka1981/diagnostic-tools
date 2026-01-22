@@ -69,3 +69,6 @@ application.register("tabs", TabsController)
 
 import ThemeController from "./theme_controller"
 application.register("theme", ThemeController)
+
+import WizardController from "./wizard_controller"
+application.register("wizard", WizardController)
