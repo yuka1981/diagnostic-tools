@@ -92,6 +92,7 @@ class NodesController < ApplicationController
   def new
     @node = Node.new
     @api_keys = ApiKey.active.order(:name)
+    @ssh_profiles = SshProfile.order(:name)
   end
 
   def create
@@ -105,12 +106,15 @@ class NodesController < ApplicationController
         format.turbo_stream
       end
     else
+      @api_keys = ApiKey.active.order(:name)
+      @ssh_profiles = SshProfile.order(:name)
       render :new, status: :unprocessable_entity
     end
   end
 
   def edit
     @api_keys = ApiKey.active.order(:name)
+    @ssh_profiles = SshProfile.order(:name)
   end
 
   def update
@@ -124,6 +128,7 @@ class NodesController < ApplicationController
       end
     else
       @api_keys = ApiKey.active.order(:name)
+      @ssh_profiles = SshProfile.order(:name)
       render :edit, status: :unprocessable_entity
     end
   end
@@ -143,7 +148,12 @@ class NodesController < ApplicationController
   end
 
   def node_params
-    params.require(:node).permit(:hostname, :ip, :arch, :ssh_port, :ssh_user, :ssh_key, :ssh_password, :sudo_credential, :ssh_connect_method, :jump_host, :jump_user, :jump_port, :agent_path, :benchmark_work_dir, :api_key_id, :rack_id, :rack_position, :rack_height, :server_product_id)
+    params.require(:node).permit(
+      :hostname, :ip, :arch, :ssh_port, :ssh_user, :ssh_key, :ssh_password,
+      :sudo_credential, :ssh_connect_method, :jump_host, :jump_user, :jump_port,
+      :agent_path, :benchmark_work_dir, :api_key_id, :rack_id, :rack_position,
+      :rack_height, :server_product_id, :ssh_profile_id, :ssh_profile_override
+    )
   end
 
   def set_sensitive_params
