@@ -16,7 +16,7 @@ class ServerProduct < ApplicationRecord
 
   def self.form_factor_options
     Rails.cache.fetch("server_product_form_factor_options", expires_in: 1.hour) do
-      distinct.pluck(:form_factor).compact.sort
+      distinct.pluck(:form_factor).compact.sort_by { |ff| ff.to_i }
     end
   end
 
