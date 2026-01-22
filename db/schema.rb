@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_01_21_152752) do
+ActiveRecord::Schema[7.2].define(version: 2026_01_22_024144) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -295,6 +295,22 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_21_152752) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["name"], name: "index_sites_on_name", unique: true
+  end
+
+  create_table "ssh_profiles", force: :cascade do |t|
+    t.string "name", limit: 255, null: false
+    t.integer "ssh_connect_method", default: 0, null: false
+    t.integer "ssh_port", default: 22, null: false
+    t.string "ssh_user", limit: 255
+    t.string "ssh_password"
+    t.text "ssh_key"
+    t.string "sudo_credential"
+    t.string "jump_host", limit: 255
+    t.string "jump_user", limit: 255
+    t.integer "jump_port"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["name"], name: "index_ssh_profiles_on_name", unique: true
   end
 
   create_table "ssh_settings", force: :cascade do |t|
