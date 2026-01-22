@@ -14,6 +14,7 @@ class ProfilingArtifact < ApplicationRecord
     when "html" then "text/html"
     when "json" then "application/json"
     when "svg" then "image/svg+xml"
+    when "txt" then "text/plain"
     else "application/octet-stream"
     end
   end

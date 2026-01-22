@@ -18,11 +18,6 @@
   loop: "{{ artifact_files.files }}"
   when: shared_artifacts_path is defined
 
-- name: Build artifacts list for API
-  ansible.builtin.set_fact:
-    artifacts_payload: >-
-      {{ artifact_files.files | map(attribute='path') | map('basename') | map('community.general.dict_kv', 'filename') | list }}
-
 - name: Send completion status to API
   ansible.builtin.uri:
     url: "{{ api_server }}/api/v1/profiling_runs/{{ run_uuid }}/complete"

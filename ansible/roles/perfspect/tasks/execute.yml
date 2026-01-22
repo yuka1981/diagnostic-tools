@@ -5,10 +5,7 @@
       source /etc/profile.d/lmod.sh 2>/dev/null || source /etc/profile.d/modules.sh 2>/dev/null || true &&
       module load {{ perfspect_module }} &&
       perfspect {{ perfspect_subcommand }}
-      {% if perfspect_subcommand == 'telemetry' and perfspect_options.duration is defined %}
-      --duration {{ perfspect_options.duration }}
-      {% endif %}
-      {% if perfspect_subcommand == 'flame' and perfspect_options.duration is defined %}
+      {% if perfspect_subcommand in ['telemetry', 'flame'] and perfspect_options.duration is defined %}
       --duration {{ perfspect_options.duration }}
       {% endif %}
       --output {{ perfspect_output_dir }}

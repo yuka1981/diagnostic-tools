@@ -20,10 +20,12 @@ RSpec.describe Ansible::ExecutorService do
   end
 
   describe "#call" do
+    let(:ssh_result_class) { Ansible::ExecutorService::SshAdminExecutor::SshResult }
+
     context "when SSH execution succeeds" do
       before do
-        allow_any_instance_of(SshExecutionService).to receive(:execute_ssh_command)
-          .and_return(SshExecutionService::Result.new(success: true, output: "ok", exit_code: 0))
+        allow_any_instance_of(Ansible::ExecutorService::SshAdminExecutor).to receive(:execute)
+          .and_return(ssh_result_class.new(success: true, output: "ok", exit_code: 0))
       end
 
       it "returns success result" do
@@ -39,8 +41,8 @@ RSpec.describe Ansible::ExecutorService do
 
     context "when SSH execution fails" do
       before do
-        allow_any_instance_of(SshExecutionService).to receive(:execute_ssh_command)
-          .and_return(SshExecutionService::Result.new(success: false, error: "Connection refused", exit_code: 1))
+        allow_any_instance_of(Ansible::ExecutorService::SshAdminExecutor).to receive(:execute)
+          .and_return(ssh_result_class.new(success: false, error: "Connection refused", exit_code: 1))
       end
 
       it "returns failure result" do
@@ -52,7 +54,7 @@ RSpec.describe Ansible::ExecutorService do
 
     context "when an exception is raised" do
       before do
-        allow_any_instance_of(SshExecutionService).to receive(:execute_ssh_command)
+        allow_any_instance_of(Ansible::ExecutorService::SshAdminExecutor).to receive(:execute)
           .and_raise(StandardError.new("Unexpected error"))
       end
 
@@ -97,19 +99,19 @@ RSpec.describe Ansible::ExecutorService do
   end
 
   describe "#build_admin_node" do
-    it "creates admin node with correct hostname" do
+    it "creates admin node with correct host" do
       admin_node = service.send(:build_admin_node)
-      expect(admin_node.hostname).to eq("admin.example.com")
+      expect(admin_node.host).to eq("admin.example.com")
     end
 
     it "creates admin node with correct user" do
       admin_node = service.send(:build_admin_node)
-      expect(admin_node.ssh_user).to eq("ansible")
+      expect(admin_node.user).to eq("ansible")
     end
 
     it "uses default port 22 when not specified" do
       admin_node = service.send(:build_admin_node)
-      expect(admin_node.ssh_port).to eq(22)
+      expect(admin_node.port).to eq(22)
     end
 
     it "uses custom port when specified" do
@@ -120,7 +122,7 @@ RSpec.describe Ansible::ExecutorService do
         extra_vars: {}
       )
       admin_node = service_with_port.send(:build_admin_node)
-      expect(admin_node.ssh_port).to eq(2222)
+      expect(admin_node.port).to eq(2222)
     end
   end
 end

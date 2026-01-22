@@ -8,6 +8,14 @@ RSpec.describe "Api::V1::ProfilingRuns", type: :request do
   let(:node) { create(:node) }
   let!(:run) { create(:profiling_run, node: node, status: :running) }
 
+  around do |example|
+    original = ENV["ARTIFACTS_BASE_PATH"]
+    ENV["ARTIFACTS_BASE_PATH"] = "/shared"
+    example.run
+  ensure
+    ENV["ARTIFACTS_BASE_PATH"] = original
+  end
+
   describe "POST /api/v1/profiling_runs/:uuid/status" do
     it "updates run status" do
       post "/api/v1/profiling_runs/#{run.uuid}/status",

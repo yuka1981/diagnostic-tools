@@ -23,8 +23,15 @@ module Nodes
       @run = @node.profiling_runs.find(params[:id])
       artifact = @run.profiling_artifacts.find(params[:artifact_id])
 
+      validated_path = validate_artifact_path(artifact.file_path)
+
+      if validated_path.nil?
+        redirect_to node_profiling_run_path(@node, @run), alert: "Artifact path is not allowed."
+        return
+      end
+
       if artifact.downloadable?
-        send_file artifact.file_path,
+        send_file validated_path,
                   filename: artifact.filename,
                   type: artifact.content_type,
                   disposition: "attachment"
@@ -39,12 +46,19 @@ module Nodes
     end
 
     def create
-      run_params = profiling_run_params
+      form = Profiling::RunForm.new(profiling_run_params)
+
+      unless form.valid?
+        @form = form
+        @profiling_recipes = ProfilingRecipe.active.order(:name)
+        render :new, status: :unprocessable_entity
+        return
+      end
 
       run = @node.profiling_runs.create!(
-        subcommand: run_params[:subcommand],
-        options: run_params[:options] || {},
-        profiling_recipe_id: run_params[:profiling_recipe_id],
+        subcommand: form.subcommand,
+        options: form.options,
+        profiling_recipe_id: form.profiling_recipe_id,
         user: current_user,
         status: :pending
       )
@@ -72,7 +86,25 @@ module Nodes
     end
 
     def profiling_run_params
-      params.require(:profiling_run).permit(:subcommand, :profiling_recipe_id, options: {})
+      params.require(:profiling_run).permit(:subcommand, :profiling_recipe_id, :duration, options: [ :duration ])
+    end
+
+    def validate_artifact_path(file_path)
+      return nil if file_path.blank?
+
+      base_directory = profiling_artifacts_base_directory
+      expanded_path = File.expand_path(file_path)
+
+      return nil unless expanded_path.start_with?("#{base_directory}#{File::SEPARATOR}")
+
+      expanded_path
+    end
+
+    def profiling_artifacts_base_directory
+      @profiling_artifacts_base_directory ||= begin
+        base_path = ENV.fetch("PROFILING_ARTIFACTS_PATH") { "/shared/profiling_artifacts" }
+        File.expand_path(base_path)
+      end
     end
 
     def agent_token
