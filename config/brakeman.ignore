@@ -15,8 +15,12 @@
     {
       "fingerprint": "1f99b59e268a901ee207c47bb426994a1647c13f0d82a716796e6ba75ecd3a18",
       "note": "URL is validated at runtime with start_with?('https://') before being used in link_to. Non-HTTPS URLs are displayed as plain text. This prevents javascript: and other malicious protocol injection."
+    },
+    {
+      "fingerprint": "016428120fe035d9169ba8c5f0055648f5a12ca4081410e4ff0accce3b8dee06",
+      "note": "Node :role refers to HPC node type (admin/compute/login), not user authorization. Access to this controller is already protected by authorize_approver! before_action. Only approvers can create/edit nodes."
     }
   ],
-  "updated": "2026-01-21",
+  "updated": "2026-01-22",
   "brakeman_version": "7.1.2"
 }
