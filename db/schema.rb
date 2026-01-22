@@ -135,6 +135,8 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_21_152752) do
     t.datetime "updated_at", null: false
     t.string "log_path"
     t.uuid "uuid", default: -> { "gen_random_uuid()" }, null: false
+    t.datetime "last_heartbeat_at"
+    t.string "current_phase"
     t.text "log_content"
     t.jsonb "arguments", default: {}
     t.index ["benchmark_recipe_id"], name: "index_benchmark_runs_on_benchmark_recipe_id"

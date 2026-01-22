@@ -86,12 +86,7 @@ module Agent
       Rails.logger.debug "[Agent::UninstallJob] Uninstallation Successful"
       broadcast_status(target_host, "success", "Agent uninstalled successfully", :done)
       NotificationService.complete(notification, success: true, message: "Agent uninstalled successfully") if notification
-    rescue Agent::Errors::LifecycleError => e
-      Rails.logger.error "[Agent::UninstallJob] Error: #{e.message}"
-      Rails.logger.error e.backtrace.first(10).join("\n")
-      broadcast_status(target_host, "error", e.message, nil)
-      NotificationService.complete(notification, success: false, message: e.message) if notification
-    rescue => e
+    rescue Agent::Errors::LifecycleError, StandardError => e
       Rails.logger.error "[Agent::UninstallJob] Error: #{e.message}"
       Rails.logger.error e.backtrace.first(10).join("\n")
       broadcast_status(target_host, "error", e.message, nil)

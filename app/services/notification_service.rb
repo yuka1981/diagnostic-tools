@@ -21,11 +21,10 @@ class NotificationService
 
     # Mark as running with optional progress
     def start(notification, progress: nil)
-      notification.update!(status: "running", started_at: Time.current)
-      if progress
-        notification.metadata["progress_percent"] = progress
-        notification.save!
-      end
+      notification.status = "running"
+      notification.started_at = Time.current
+      notification.metadata["progress_percent"] = progress if progress
+      notification.save!
       broadcast_notification(notification)
     end
 

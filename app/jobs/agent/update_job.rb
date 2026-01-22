@@ -71,10 +71,11 @@ module Agent
       broadcast_status(node, "error", e.message)
       NotificationService.complete(notification, success: false, message: e.message) if notification
     rescue => e
-      Rails.logger.error "[Agent::UpdateJob] Unexpected error: #{e.message}"
+      error_message = "Unexpected error: #{e.message}"
+      Rails.logger.error "[Agent::UpdateJob] #{error_message}"
       Rails.logger.error e.backtrace.first(10).join("\n")
-      broadcast_status(node, "error", "Unexpected error: #{e.message}")
-      NotificationService.complete(notification, success: false, message: e.message) if notification
+      broadcast_status(node, "error", error_message)
+      NotificationService.complete(notification, success: false, message: error_message) if notification
     end
 
     private
