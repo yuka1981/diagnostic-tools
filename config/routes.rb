@@ -105,6 +105,13 @@ Rails.application.routes.draw do
     end
   end
 
+  resources :tasks, only: [ :index, :destroy ] do
+    member do
+      post :cancel
+      post :rerun
+    end
+  end
+
   resources :notifications, only: [ :index ] do
     member do
       post :mark_read

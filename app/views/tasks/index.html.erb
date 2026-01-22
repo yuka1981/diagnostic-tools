@@ -1,0 +1,200 @@
+<% content_for(:page_title) { "Tasks" } %>
+
+<div class="flex items-center justify-between mb-6">
+  <h1 class="text-2xl font-bold text-slate-900">Tasks</h1>
+</div>
+
+<%# Filter Controls %>
+<div class="card-netbox mb-6">
+  <div class="card-header">
+    <h3 class="card-title">Filters</h3>
+  </div>
+  <div class="p-4">
+    <%= form_with url: tasks_path, method: :get, data: { controller: "autosubmit", turbo_frame: "tasks_list", turbo_action: "advance" }, class: "flex flex-wrap items-end gap-4" do |f| %>
+      <%# Search Field %>
+      <div class="flex-1 min-w-[200px]">
+        <label for="q" class="block text-xs font-bold text-slate-500 uppercase mb-1">Search</label>
+        <%= f.text_field :q,
+            value: @filter.search_query,
+            placeholder: "Search by node, recipe, or UUID...",
+            class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" %>
+      </div>
+
+      <%# Type Filter %>
+      <div class="w-36">
+        <label for="type" class="block text-xs font-bold text-slate-500 uppercase mb-1">Type</label>
+        <%= f.select :type,
+            options_for_select([["All Types", ""], ["Benchmark", "benchmark"], ["Profiling", "profiling"]], @filter.type_filter),
+            {},
+            class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm",
+            data: { action: "change->autosubmit#submit" } %>
+      </div>
+
+      <%# Status Filter %>
+      <div class="w-40">
+        <label for="status" class="block text-xs font-bold text-slate-500 uppercase mb-1">Status</label>
+        <%= f.select :status,
+            options_for_select([["All Statuses", ""]] + BenchmarkRun.statuses.keys.map { |s| [s.humanize, s] }, @filter.status),
+            {},
+            class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm",
+            data: { action: "change->autosubmit#submit" } %>
+      </div>
+
+      <%# Node Filter %>
+      <div class="w-44">
+        <label for="node_id" class="block text-xs font-bold text-slate-500 uppercase mb-1">Node</label>
+        <%= f.select :node_id,
+            options_for_select([["All Nodes", ""]] + @nodes.map { |n| [n.hostname, n.id] }, @filter.node_id),
+            {},
+            class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm",
+            data: { action: "change->autosubmit#submit" } %>
+      </div>
+
+      <%# Actions %>
+      <div class="flex items-center gap-2">
+        <%= f.submit "Search", class: "btn-primary cursor-pointer" %>
+
+        <% if @filter.filtered? %>
+          <%= link_to "Clear", tasks_path,
+              data: { turbo_frame: "tasks_list" },
+              class: "btn-secondary" %>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+</div>
+
+<%# Tasks List (Turbo Frame) %>
+<%= turbo_frame_tag "tasks_list", data: { turbo_action: "advance" } do %>
+  <div class="card-netbox">
+    <% if @tasks.any? %>
+      <%# Filter Summary %>
+      <% if @filter.filtered? %>
+        <div class="border-b border-slate-200 bg-slate-50 px-6 py-3">
+          <p class="text-sm text-slate-600">
+            Showing <%= pluralize(@tasks.total_count, "result") %>
+            <% if @filter.search_query.present? %>
+              matching <strong class="font-medium text-slate-900">"<%= h(@filter.search_query) %>"</strong>
+            <% end %>
+          </p>
+        </div>
+      <% end %>
+
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-slate-200 text-sm">
+          <thead class="bg-slate-50">
+            <tr>
+              <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Type</th>
+              <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Recipe</th>
+              <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Hostname</th>
+              <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Status</th>
+              <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Duration</th>
+              <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Created At</th>
+              <th scope="col" class="relative px-3 py-2 border-b">
+                <span class="sr-only">Actions</span>
+              </th>
+            </tr>
+          </thead>
+          <tbody id="tasks_tbody" class="divide-y divide-slate-200 bg-white">
+            <% @tasks.each do |task| %>
+              <tr id="<%= task.dom_id %>">
+                <td class="px-3 py-3 whitespace-nowrap">
+                  <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium <%= task.benchmark? ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800' %>">
+                    <%= task.type.to_s.titleize %>
+                  </span>
+                </td>
+                <td class="px-3 py-3 whitespace-nowrap font-medium text-slate-900">
+                  <%= task.recipe_name %>
+                </td>
+                <td class="px-3 py-3 whitespace-nowrap text-slate-600">
+                  <%= task.node.hostname %>
+                </td>
+                <td class="px-3 py-3 whitespace-nowrap">
+                  <span class="inline-flex items-center rounded-sm px-2 py-0.5 text-xs font-medium <%= status_badge_class(task.status) %>">
+                    <%= task.status.humanize %>
+                  </span>
+                </td>
+                <td class="px-3 py-3 whitespace-nowrap text-slate-600">
+                  <% if task.duration %>
+                    <%= distance_of_time_in_words(task.duration) %>
+                  <% else %>
+                    -
+                  <% end %>
+                </td>
+                <td class="px-3 py-3 whitespace-nowrap text-slate-500">
+                  <%= task.created_at.strftime("%Y-%m-%d %H:%M") %>
+                </td>
+                <td class="px-3 py-3 whitespace-nowrap text-right text-sm font-medium">
+                  <div class="flex items-center justify-end gap-2">
+                    <% if task.pending? || task.running? %>
+                      <%= button_to cancel_task_path(task.to_param), method: :post, class: "text-amber-600 hover:text-amber-900", data: { turbo_confirm: "Are you sure you want to cancel this task?" } do %>
+                        Cancel
+                      <% end %>
+                    <% end %>
+                    <%= button_to rerun_task_path(task.to_param), method: :post, class: "text-teal-600 hover:text-teal-900" do %>
+                      Rerun
+                    <% end %>
+                    <%= button_to task_path(task.to_param), method: :delete, class: "text-red-600 hover:text-red-900", data: { turbo_confirm: "Are you sure you want to delete this task?" } do %>
+                      Delete
+                    <% end %>
+                  </div>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+
+      <%# Pagination %>
+      <% if @tasks.total_pages > 1 %>
+        <div class="border-t border-slate-200 bg-slate-50 px-6 py-4">
+          <nav class="flex items-center justify-between" aria-label="Pagination">
+            <div class="hidden sm:block">
+              <p class="text-xs font-bold text-slate-500 uppercase">
+                Showing
+                <span class="text-slate-700"><%= @tasks.offset_value + 1 %></span>
+                to
+                <span class="text-slate-700"><%= [@tasks.offset_value + @tasks.limit_value, @tasks.total_count].min %></span>
+                of
+                <span class="text-slate-700"><%= @tasks.total_count %></span>
+                results
+              </p>
+            </div>
+            <div class="flex flex-1 justify-between sm:justify-end gap-2">
+              <% if @tasks.prev_page %>
+                <%= link_to "Previous",
+                    tasks_path(filter_params.merge(page: @tasks.prev_page)),
+                    data: { turbo_frame: "tasks_list" },
+                    class: "btn-secondary" %>
+              <% end %>
+              <% if @tasks.next_page %>
+                <%= link_to "Next",
+                    tasks_path(filter_params.merge(page: @tasks.next_page)),
+                    data: { turbo_frame: "tasks_list" },
+                    class: "btn-secondary" %>
+              <% end %>
+            </div>
+          </nav>
+        </div>
+      <% end %>
+    <% else %>
+      <div class="flex flex-col items-center justify-center py-12 text-center">
+        <div class="h-12 w-12 rounded-full bg-slate-100 flex items-center justify-center mb-4">
+          <%= lucide_icon("list-todo", class: "h-6 w-6 text-slate-400") %>
+        </div>
+        <p class="text-sm font-medium text-slate-900">
+          <% if @filter.filtered? %>
+            No tasks match your filters
+          <% else %>
+            No tasks yet
+          <% end %>
+        </p>
+        <% if @filter.filtered? %>
+          <%= link_to "Clear all filters", tasks_path,
+              data: { turbo_frame: "tasks_list" },
+              class: "mt-4 btn-secondary" %>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+<% end %>
