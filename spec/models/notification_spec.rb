@@ -242,7 +242,8 @@ RSpec.describe Notification, type: :model do
         "agent_uninstall",
         "benchmark",
         "inventory_collect",
-        "product_sync"
+        "product_sync",
+        "profiling"
       )
     end
 
