@@ -75,6 +75,7 @@ Rails.application.routes.draw do
     end
     resource :update, only: %i[new create], controller: "nodes/updates"
     collection do
+      delete :bulk_destroy
       resources :imports, only: %i[new create], controller: "nodes/imports", as: :node_import
       resources :installs, only: %i[new create], controller: "nodes/installs", as: :node_install
       resources :uninstalls, only: %i[new create], controller: "nodes/uninstalls", as: :node_uninstall

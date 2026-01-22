@@ -1,9 +1,46 @@
-<div class="card-netbox">
+<div class="card-netbox" data-controller="bulk-select">
+  <%# Action bar for bulk operations (approvers only) %>
+  <% if current_user.approver? %>
+    <div data-bulk-select-target="actionBar" class="hidden bg-slate-100 border-b border-slate-200 px-4 py-3 flex items-center justify-between">
+      <span class="text-sm text-slate-700 font-bold" data-bulk-select-target="count">0 node(s) selected</span>
+      <div class="flex items-center gap-3">
+        <button type="button"
+                data-action="click->bulk-select#clearAll"
+                class="text-sm text-slate-600 hover:text-slate-900">
+          Clear
+        </button>
+        <%= form_with url: bulk_destroy_nodes_path,
+                      method: :delete,
+                      data: {
+                        bulk_select_target: "form",
+                        turbo_confirm: "Are you sure you want to delete the selected nodes?"
+                      },
+                      class: "inline" do |f| %>
+          <div data-bulk-select-target="hiddenInputs"></div>
+          <button type="submit" class="btn-danger text-sm">
+            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h14" />
+            </svg>
+            Delete Selected
+          </button>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+
   <div class="overflow-x-auto">
     <% if nodes.any? %>
       <table class="min-w-full divide-y divide-slate-200 text-sm">
         <thead class="bg-slate-50">
           <tr>
+            <% if current_user.approver? %>
+              <th scope="col" class="w-10 px-3 py-2 border-b">
+                <input type="checkbox"
+                       data-bulk-select-target="selectAll"
+                       data-action="change->bulk-select#toggleAll"
+                       class="rounded border-slate-300 text-teal-600 focus:ring-teal-500">
+              </th>
+            <% end %>
             <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Hostname</th>
             <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Role</th>
             <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Architecture</th>
@@ -22,13 +59,13 @@
       <div class="flex flex-col items-center justify-center py-12 text-center">
         <div class="h-12 w-12 rounded-full bg-slate-100 flex items-center justify-center mb-4">
           <svg class="h-6 w-6 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
               d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01" />
           </svg>
         </div>
         <h3 class="text-sm font-semibold text-slate-900">No nodes found</h3>
         <p class="mt-1 text-sm text-slate-500">Get started by creating a new node.</p>
-        
+
         <div class="mt-6 flex gap-3">
           <% if current_user.approver? %>
             <%= link_to new_node_path,

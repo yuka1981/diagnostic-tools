@@ -1,0 +1,9 @@
+<%# Remove each deleted node row from table %>
+<% @deleted_nodes.each do |node| %>
+  <%= turbo_stream.remove node %>
+<% end %>
+
+<%# Update flash messages %>
+<%= turbo_stream.update "flash_messages" do %>
+  <%= render "shared/flash" %>
+<% end %>

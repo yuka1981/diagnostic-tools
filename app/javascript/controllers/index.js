@@ -13,6 +13,9 @@ application.register("benchmark-recipe", BenchmarkRecipeController)
 import BulkReviewController from "./bulk_review_controller"
 application.register("bulk-review", BulkReviewController)
 
+import BulkSelectController from "./bulk_select_controller"
+application.register("bulk-select", BulkSelectController)
+
 import CascadingSelectController from "./cascading_select_controller"
 application.register("cascading-select", CascadingSelectController)
 

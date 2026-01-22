@@ -4,7 +4,7 @@ class NodesController < ApplicationController
   layout "dashboard"
   before_action :authenticate_user!
   before_action :set_node, only: %i[show edit update destroy test_connection collect run_benchmark]
-  before_action :authorize_approver!, only: %i[new create edit update destroy test_connection collect run_benchmark]
+  before_action :authorize_approver!, only: %i[new create edit update destroy bulk_destroy test_connection collect run_benchmark]
 
   def index
     @nodes = Node.order(:hostname)
@@ -134,6 +134,21 @@ class NodesController < ApplicationController
     respond_to do |format|
       format.html { redirect_to nodes_path, notice: "Node was successfully deleted." }
       format.turbo_stream
+    end
+  end
+
+  def bulk_destroy
+    node_ids = params[:node_ids] || []
+    @deleted_nodes = Node.where(id: node_ids).to_a
+    deleted_count = @deleted_nodes.each(&:destroy).count
+
+    respond_to do |format|
+      format.turbo_stream {
+        flash.now[:notice] = "#{deleted_count} nodes deleted."
+      }
+      format.html {
+        redirect_to nodes_path, notice: "#{deleted_count} nodes deleted."
+      }
     end
   end
 

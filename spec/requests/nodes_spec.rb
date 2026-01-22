@@ -239,6 +239,78 @@ RSpec.describe "Nodes", type: :request do
     end
   end
 
+  describe "DELETE /nodes/bulk_destroy" do
+    let!(:node1) { create(:node, hostname: "bulk-node-1") }
+    let!(:node2) { create(:node, hostname: "bulk-node-2") }
+    let!(:node3) { create(:node, hostname: "bulk-node-3") }
+
+    it "deletes multiple nodes" do
+      expect {
+        delete bulk_destroy_nodes_path, params: { node_ids: [node1.id, node2.id] }
+      }.to change(Node, :count).by(-2)
+    end
+
+    it "redirects to nodes index with success message" do
+      delete bulk_destroy_nodes_path, params: { node_ids: [node1.id, node2.id] }
+      expect(response).to redirect_to(nodes_path)
+      follow_redirect!
+      expect(response.body).to include("2 nodes deleted")
+    end
+
+    it "returns turbo stream when requested" do
+      delete bulk_destroy_nodes_path,
+             params: { node_ids: [node1.id, node2.id] },
+             headers: { "Accept" => "text/vnd.turbo-stream.html" }
+      expect(response.media_type).to eq("text/vnd.turbo-stream.html")
+    end
+
+    it "removes each deleted node via turbo stream" do
+      delete bulk_destroy_nodes_path,
+             params: { node_ids: [node1.id, node2.id] },
+             headers: { "Accept" => "text/vnd.turbo-stream.html" }
+      expect(response.body).to include("turbo-stream action=\"remove\" target=\"node_#{node1.id}\"")
+      expect(response.body).to include("turbo-stream action=\"remove\" target=\"node_#{node2.id}\"")
+    end
+
+    it "updates flash messages via turbo stream" do
+      delete bulk_destroy_nodes_path,
+             params: { node_ids: [node1.id] },
+             headers: { "Accept" => "text/vnd.turbo-stream.html" }
+      expect(response.body).to include("flash_messages")
+    end
+
+    it "handles empty node_ids gracefully" do
+      expect {
+        delete bulk_destroy_nodes_path, params: { node_ids: [] }
+      }.not_to change(Node, :count)
+      expect(response).to redirect_to(nodes_path)
+    end
+
+    it "ignores invalid node IDs" do
+      expect {
+        delete bulk_destroy_nodes_path, params: { node_ids: [node1.id, 999999] }
+      }.to change(Node, :count).by(-1)
+    end
+
+    context "as non-approver" do
+      let(:regular_user) { create(:user, :viewer) }
+
+      before { sign_in regular_user }
+
+      it "denies access to bulk destroy" do
+        delete bulk_destroy_nodes_path, params: { node_ids: [node1.id] }
+        expect(response).to redirect_to(nodes_path)
+        expect(flash[:alert]).to be_present
+      end
+
+      it "does not delete any nodes" do
+        expect {
+          delete bulk_destroy_nodes_path, params: { node_ids: [node1.id] }
+        }.not_to change(Node, :count)
+      end
+    end
+  end
+
   describe "authentication" do
     before { sign_out user }
 
