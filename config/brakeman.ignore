@@ -1,6 +1,10 @@
 {
   "ignored_warnings": [
     {
+      "fingerprint": "b92fb09f34234843b9aacd7f3729a65479bd54a001cf676e72652d301a6e543c",
+      "note": "Path is validated by validate_artifact_path method which uses File.expand_path and verifies the path starts with PROFILING_ARTIFACTS_PATH base directory. Path traversal attacks are prevented."
+    },
+    {
       "fingerprint": "eba7d6cf0d3b34f49314cd8aad4fce6b207dfa09550918a33e90b441712878b4",
       "note": "Path is validated by validated_artifact_path method which ensures the path is within allowed storage/artifacts or artifacts_base_path directories. Path traversal attacks are prevented by Pathname#cleanpath and prefix check."
     },
@@ -17,6 +21,6 @@
       "note": "URL is validated at runtime with start_with?('https://') before being used in link_to. Non-HTTPS URLs are displayed as plain text. This prevents javascript: and other malicious protocol injection."
     }
   ],
-  "updated": "2026-01-21",
+  "updated": "2026-01-22",
   "brakeman_version": "7.1.2"
 }
