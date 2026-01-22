@@ -1,0 +1,29 @@
+---
+- name: Create output directory
+  ansible.builtin.file:
+    path: "{{ perfspect_output_dir }}"
+    state: directory
+    mode: "0755"
+
+- name: Verify module is available
+  ansible.builtin.shell: |
+    source /etc/profile.d/lmod.sh 2>/dev/null || source /etc/profile.d/modules.sh 2>/dev/null || true
+    module avail {{ perfspect_module }} 2>&1
+  register: module_check
+  changed_when: false
+  failed_when: perfspect_module not in module_check.stderr
+
+- name: Send RUNNING status to API
+  ansible.builtin.uri:
+    url: "{{ api_server }}/api/v1/profiling_runs/{{ run_uuid }}/status"
+    method: POST
+    body_format: json
+    body:
+      status: "running"
+      message: "Setting up PerfSPECT environment"
+    headers:
+      Authorization: "Bearer {{ api_token }}"
+      Content-Type: "application/json"
+    status_code: [200, 201, 204]
+  when: api_server | length > 0
+  ignore_errors: true
