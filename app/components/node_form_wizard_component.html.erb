@@ -171,11 +171,16 @@
             </p>
           </div>
 
-          <div class="flex items-center gap-2">
-            <%= f.check_box :ssh_profile_override,
-                class: "rounded border-slate-300 text-teal-600 focus:ring-teal-500",
-                data: { action: "change->wizard#toggleOverride" } %>
-            <%= f.label :ssh_profile_override, "Override profile settings", class: "text-sm text-slate-700" %>
+          <div>
+            <div class="flex items-center gap-2">
+              <%= f.check_box :ssh_profile_override,
+                  class: "rounded border-slate-300 text-teal-600 focus:ring-teal-500",
+                  data: { action: "change->wizard#toggleOverride" } %>
+              <%= f.label :ssh_profile_override, "Override profile settings", class: "text-sm text-slate-700" %>
+            </div>
+            <p class="mt-1 text-xs text-slate-500 ml-6">
+              When checked, this node will use the SSH settings below instead of inheriting from the selected profile.
+            </p>
           </div>
         </div>
       </div>
