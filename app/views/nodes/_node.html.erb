@@ -1,6 +1,6 @@
 <tr id="<%= dom_id(node) %>" class="bg-white hover:bg-teal-50 border-b border-slate-200 transition-colors group">
   <% if current_user.approver? %>
-    <td class="whitespace-nowrap px-3 py-2">
+    <td class="whitespace-nowrap px-3 py-2 text-center align-middle">
       <input type="checkbox"
              value="<%= node.id %>"
              data-bulk-select-target="checkbox"
