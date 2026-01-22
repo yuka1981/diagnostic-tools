@@ -1,41 +1,27 @@
 import { Controller } from "@hotwired/stimulus"
 
 // Connects to data-controller="ssh-profile-select"
-// Manages SSH profile selection with override functionality
-// Shows/hides manual SSH configuration fields based on profile selection and override checkbox
+// Shows/hides SSH configuration section based on profile selection
+// When a profile is selected, SSH config is hidden (profile settings are used)
+// When "Custom SSH Settings" is selected, SSH config is shown for manual entry
 export default class extends Controller {
-  static targets = ["select", "overrideSection", "overrideCheckbox", "manualFields"]
+  static targets = ["select", "sshConfigSection"]
 
   connect() {
-    // Initialize state based on current values
-    this.profileChanged()
+    this.toggleSshConfig()
   }
 
-  profileChanged() {
-    const hasProfile = this.selectTarget.value !== ""
+  toggleSshConfig() {
+    const hasProfile = this.hasSelectTarget && this.selectTarget.value !== ""
 
-    if (this.hasOverrideSectionTarget) {
-      this.overrideSectionTarget.classList.toggle("hidden", !hasProfile)
-    }
-
-    if (hasProfile && this.hasOverrideCheckboxTarget) {
-      // When profile selected, hide manual fields unless override is checked
-      const showManual = this.overrideCheckboxTarget.checked
-      if (this.hasManualFieldsTarget) {
-        this.manualFieldsTarget.classList.toggle("hidden", !showManual)
+    if (this.hasSshConfigSectionTarget) {
+      if (hasProfile) {
+        // Profile selected - hide SSH config section
+        this.sshConfigSectionTarget.classList.add("hidden")
+      } else {
+        // Custom SSH Settings selected - show SSH config section
+        this.sshConfigSectionTarget.classList.remove("hidden")
       }
-    } else {
-      // No profile - always show manual fields
-      if (this.hasManualFieldsTarget) {
-        this.manualFieldsTarget.classList.remove("hidden")
-      }
-    }
-  }
-
-  toggleOverride() {
-    if (this.hasManualFieldsTarget && this.hasOverrideCheckboxTarget) {
-      const showManual = this.overrideCheckboxTarget.checked || this.selectTarget.value === ""
-      this.manualFieldsTarget.classList.toggle("hidden", !showManual)
     }
   }
 }
