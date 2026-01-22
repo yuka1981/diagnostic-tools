@@ -20,6 +20,7 @@ module Seeds
 
       data = JSON.parse(json_path.read)
       seeded_count = 0
+      products_with_images = []
 
       ServerProduct.transaction do
         data["products"].each do |attrs|
@@ -30,11 +31,14 @@ module Seeds
           product.assign_attributes(attrs)
           product.save!
 
-          attach_image(product, image_filename) if image_filename.present?
+          products_with_images << product if attach_image(product, image_filename)
 
           seeded_count += 1
         end
       end
+
+      # Pre-generate variants after transaction commits (files must be on disk)
+      products_with_images.each(&:preprocess_image_variants!)
 
       Result.new(success: true, seeded_count: seeded_count)
     end
@@ -42,10 +46,11 @@ module Seeds
     private
 
     def attach_image(product, image_filename)
-      return if product.images.any?
+      return false if image_filename.blank?
+      return false if product.images.any?
 
       image_path = images_dir.join(image_filename)
-      return unless image_path.exist?
+      return false unless image_path.exist?
 
       # Read file into memory to avoid closed stream issues within transaction
       content = File.binread(image_path)
@@ -54,6 +59,7 @@ module Seeds
         filename: image_filename,
         content_type: Marcel::MimeType.for(image_path)
       )
+      true
     end
   end
 end

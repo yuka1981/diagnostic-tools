@@ -48,4 +48,101 @@ RSpec.describe ServerProduct, type: :model do
       expect(product.rack_height).to eq(2)
     end
   end
+
+  describe "#thumbnail_variant" do
+    let(:product) { create(:server_product) }
+
+    context "with attached image" do
+      before do
+        product.images.attach(
+          io: File.open(Rails.root.join("spec/fixtures/files/test_server.png")),
+          filename: "test_server.png",
+          content_type: "image/png"
+        )
+      end
+
+      it "returns a variant with resize_to_fill transformation" do
+        variant = product.thumbnail_variant
+        expect(variant).to be_a(ActiveStorage::VariantWithRecord)
+        expect(variant.variation.transformations).to include(resize_to_fill: [ 48, 48 ])
+      end
+    end
+
+    context "without attached image" do
+      it "returns nil" do
+        expect(product.thumbnail_variant).to be_nil
+      end
+    end
+  end
+
+  describe "#preprocess_image_variants!" do
+    let(:product) { create(:server_product) }
+
+    before do
+      product.images.attach(
+        io: File.open(Rails.root.join("spec/fixtures/files/test_server.png")),
+        filename: "test_server.png",
+        content_type: "image/png"
+      )
+    end
+
+    it "processes all image variants" do
+      expect { product.preprocess_image_variants! }.not_to raise_error
+      # Verify variant was processed by checking the variant record exists
+      variant = product.images.first.variant(resize_to_fill: [ 48, 48 ]).processed
+      expect(variant.key).to be_present
+    end
+  end
+
+  describe ".series_options" do
+    before do
+      create(:server_product, product_series: "QuantaGrid")
+      create(:server_product, product_series: "QuantaPlex")
+      create(:server_product, product_series: nil)
+      Rails.cache.clear
+    end
+
+    it "returns sorted unique series values" do
+      expect(ServerProduct.series_options).to eq([ "QuantaGrid", "QuantaPlex" ])
+    end
+
+    it "caches the result" do
+      ServerProduct.series_options
+      expect(Rails.cache.exist?("server_product_series_options")).to be true
+    end
+  end
+
+  describe ".form_factor_options" do
+    before do
+      create(:server_product, form_factor: "2U")
+      create(:server_product, form_factor: "1U")
+      create(:server_product, form_factor: nil)
+      Rails.cache.clear
+    end
+
+    it "returns sorted unique form factor values" do
+      expect(ServerProduct.form_factor_options).to eq([ "1U", "2U" ])
+    end
+
+    it "caches the result" do
+      ServerProduct.form_factor_options
+      expect(Rails.cache.exist?("server_product_form_factor_options")).to be true
+    end
+  end
+
+  describe "cache invalidation" do
+    before { Rails.cache.clear }
+
+    it "clears series cache when product is saved" do
+      Rails.cache.write("server_product_series_options", [ "old" ])
+      create(:server_product)
+      expect(Rails.cache.exist?("server_product_series_options")).to be false
+    end
+
+    it "clears form_factor cache when product is saved" do
+      Rails.cache.write("server_product_form_factor_options", [ "old" ])
+      create(:server_product)
+      expect(Rails.cache.exist?("server_product_form_factor_options")).to be false
+    end
+  end
 end

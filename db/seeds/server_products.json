@@ -309,7 +309,8 @@
       "power_supply_options": [],
       "gpu_support": false,
       "network_options": [],
-      "cpu_generations": []
+      "cpu_generations": [],
+      "image_filename": "quantagrid-d43k-1u.png"
     },
     {
       "name": "QuantaGrid D43KQ-2U",
@@ -1181,8 +1182,7 @@
       "cpu_generations": [
         "5th Gen Xeon",
         "4th Gen Xeon"
-      ],
-      "image_filename": "quantagrid-d54u-3u.png"
+      ]
     },
     {
       "name": "QuantaGrid D54X-1U",

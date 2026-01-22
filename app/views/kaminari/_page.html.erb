@@ -1,0 +1,6 @@
+<%# app/views/kaminari/_page.html.erb %>
+<% if page.current? %>
+  <span class="btn-primary text-sm px-3 py-1.5" aria-current="page"><%= page %></span>
+<% else %>
+  <%= link_to page, url, class: "btn-secondary text-sm px-3 py-1.5", rel: page.rel %>
+<% end %>

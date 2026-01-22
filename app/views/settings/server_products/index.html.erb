@@ -38,7 +38,7 @@
     <div class="w-48">
       <%= f.select :series,
             options_for_select(
-              ServerProduct.distinct.pluck(:product_series).compact.sort.map { |s| [s, s] },
+              ServerProduct.series_options.map { |s| [s, s] },
               params[:series]
             ),
             { include_blank: "All Series" },
@@ -47,7 +47,7 @@
     <div class="w-48">
       <%= f.select :form_factor,
             options_for_select(
-              ServerProduct.distinct.pluck(:form_factor).compact.sort.map { |ff| [ff, ff] },
+              ServerProduct.form_factor_options.map { |ff| [ff, ff] },
               params[:form_factor]
             ),
             { include_blank: "All Form Factors" },
@@ -78,13 +78,28 @@
             </th>
           </tr>
         </thead>
-        <tbody class="divide-y divide-slate-200 bg-white">
-          <% @server_products.each do |product| %>
-            <%= render partial: "product", locals: { product: product } %>
-          <% end %>
-        </tbody>
+        <turbo-frame id="products-table-body">
+          <%= render "products_table" %>
+        </turbo-frame>
       </table>
     </div>
+
+    <% if @server_products.total_pages > 1 %>
+      <div class="border-t border-slate-200 bg-slate-50 px-6 py-4">
+        <div class="flex items-center justify-between">
+          <div class="text-sm text-slate-700">
+            Showing
+            <span class="font-medium"><%= @server_products.offset_value + 1 %></span>
+            to
+            <span class="font-medium"><%= [@server_products.offset_value + @server_products.size, @server_products.total_count].min %></span>
+            of
+            <span class="font-medium"><%= @server_products.total_count %></span>
+            results
+          </div>
+          <%= paginate @server_products, params: params.permit(:series, :form_factor, :q).to_h, window: 2, outer_window: 1 %>
+        </div>
+      </div>
+    <% end %>
   <% else %>
     <div class="flex flex-col items-center justify-center py-12 text-center">
       <div class="h-12 w-12 rounded-full bg-slate-100 flex items-center justify-center mb-4">
