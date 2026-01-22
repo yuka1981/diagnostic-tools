@@ -9,9 +9,7 @@
       <%= link_to new_node_path,
           class: "btn-primary",
           data: { turbo_frame: "node_modal" } do %>
-        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-        </svg>
+<%= lucide_icon("plus", class: "h-4 w-4") %>
         Add Node
       <% end %>
     <% end %>
@@ -19,9 +17,7 @@
     <%= link_to new_node_import_path,
         class: "btn-secondary",
         data: { turbo_frame: "import_modal" } do %>
-      <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-      </svg>
+<%= lucide_icon("upload", class: "h-4 w-4") %>
       Import CSV
     <% end %>
   </div>

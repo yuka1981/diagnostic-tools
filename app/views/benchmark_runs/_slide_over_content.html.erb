@@ -18,9 +18,7 @@
                   method: :post,
                   data: { turbo_confirm: "Are you sure you want to cancel this benchmark run?" },
                   class: "inline-flex items-center gap-1 px-2 py-1 text-xs font-bold text-red-600 bg-white border border-red-300 rounded hover:bg-red-50 hover:border-red-400 transition-colors" do %>
-                <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                </svg>
+<%= lucide_icon("x", class: "h-3 w-3") %>
                 Cancel
               <% end %>
             <% end %>
@@ -131,9 +129,7 @@
           <%= link_to benchmark_run_path(benchmark_run),
               data: { turbo_frame: "_top" },
               class: "btn-primary w-full justify-center" do %>
-            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-            </svg>
+<%= lucide_icon("external-link", class: "h-4 w-4") %>
             View Full Details
           <% end %>
         </div>
@@ -222,18 +218,14 @@
                     </td>
                     <td class="px-3 py-2 text-right">
                       <% if artifact.downloadable? %>
-                        <%= link_to download_artifact_benchmark_run_path(benchmark_run, artifact_id: artifact.id),
+<%= link_to download_artifact_benchmark_run_path(benchmark_run, artifact_id: artifact.id),
                             class: "inline-flex items-center gap-1 text-teal-600 hover:text-teal-800 text-xs font-bold" do %>
-                          <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                          </svg>
+                          <%= lucide_icon("download", class: "h-4 w-4") %>
                           Download
                         <% end %>
                       <% else %>
-                        <span class="inline-flex items-center gap-1 text-slate-400 text-xs font-bold cursor-not-allowed" title="File not found on server">
-                          <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                          </svg>
+<span class="inline-flex items-center gap-1 text-slate-400 text-xs font-bold cursor-not-allowed" title="File not found on server">
+                          <%= lucide_icon("download", class: "h-4 w-4") %>
                           Unavailable
                         </span>
                       <% end %>
