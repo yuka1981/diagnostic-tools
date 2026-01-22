@@ -68,6 +68,11 @@ Rails.application.routes.draw do
       post :collect
     end
     resources :benchmark_runs, only: %i[index new create], controller: "nodes/benchmark_runs"
+    resources :profiling_runs, only: %i[index show new create], controller: "nodes/profiling_runs" do
+      member do
+        get "artifacts/:artifact_id/download", action: :download_artifact, as: :download_artifact
+      end
+    end
     resource :network, only: [], controller: "nodes/network" do
       get :ib_details
     end
