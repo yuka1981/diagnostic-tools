@@ -57,7 +57,7 @@
   </div>
 
   <%# Section: Server Model %>
-  <div class="card-netbox">
+  <div class="card-netbox !overflow-visible">
     <div class="card-header">
       <h3 class="card-title">Server Model</h3>
     </div>
@@ -73,7 +73,7 @@
                  data-action="input->server-product-search#search" />
           <%= f.hidden_field :server_product_id, data: { server_product_search_target: "hiddenField" } %>
           <div data-server-product-search-target="results"
-               class="absolute z-10 hidden mt-1 w-full bg-white rounded-md shadow-lg border border-slate-200 max-h-60 overflow-auto">
+               class="absolute z-50 hidden mt-1 w-full bg-white rounded-md shadow-lg border border-slate-200 max-h-60 overflow-auto">
           </div>
         </div>
       </div>

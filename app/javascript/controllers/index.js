@@ -52,6 +52,9 @@ application.register("notification-item", NotificationItemController)
 import NotificationsController from "./notifications_controller"
 application.register("notifications", NotificationsController)
 
+import PageRefreshController from "./page_refresh_controller"
+application.register("page-refresh", PageRefreshController)
+
 import RackDiagramController from "./rack_diagram_controller"
 application.register("rack-diagram", RackDiagramController)
 

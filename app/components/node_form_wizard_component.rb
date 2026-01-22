@@ -36,6 +36,16 @@ class NodeFormWizardComponent < ViewComponent::Base
     node.persisted? ? :patch : :post
   end
 
+  def form_data
+    base_data = {
+      controller: "hostname-validation",
+      hostname_validation_node_id_value: node.persisted? ? node.id : nil
+    }
+    # For edit forms, break out of Turbo Frame to ensure full page refresh
+    base_data[:turbo_frame] = "_top" if node.persisted?
+    base_data
+  end
+
   def default_agent_path
     agent_config&.default_agent_path.presence || SshSetting::DEFAULT_AGENT_PATH
   end

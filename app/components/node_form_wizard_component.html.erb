@@ -32,7 +32,7 @@
     </div>
   <% end %>
 
-  <%= form_with(model: node, url: form_url, method: form_method, class: "space-y-6", data: { controller: "hostname-validation", hostname_validation_node_id_value: node.persisted? ? node.id : nil }) do |f| %>
+  <%= form_with(model: node, url: form_url, method: form_method, class: "space-y-6", data: form_data) do |f| %>
     <%# Step 1: Basic Info %>
     <div data-wizard-target="step" class="space-y-6">
       <div class="card-netbox">
@@ -83,7 +83,7 @@
 
     <%# Step 2: Server & Location %>
     <div data-wizard-target="step" class="hidden space-y-6">
-      <div class="card-netbox">
+      <div class="card-netbox !overflow-visible">
         <div class="card-header">
           <h3 class="card-title">Server Model</h3>
         </div>
@@ -99,7 +99,7 @@
                      data-action="input->server-product-search#search" />
               <%= f.hidden_field :server_product_id, data: { server_product_search_target: "hiddenField" } %>
               <div data-server-product-search-target="results"
-                   class="absolute z-10 hidden mt-1 w-full bg-white rounded-md shadow-lg border border-slate-200 max-h-60 overflow-auto">
+                   class="absolute z-50 hidden mt-1 w-full bg-white rounded-md shadow-lg border border-slate-200 max-h-60 overflow-auto">
               </div>
             </div>
           </div>

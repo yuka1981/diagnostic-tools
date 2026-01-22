@@ -111,7 +111,13 @@ class NodesController < ApplicationController
   def update
     if @node.update(node_params)
       respond_to do |format|
-        format.html { redirect_to nodes_path, notice: "Node was successfully updated." }
+        format.html {
+          if from_show_page?
+            redirect_to @node, notice: "Node was successfully updated."
+          else
+            redirect_to nodes_path, notice: "Node was successfully updated."
+          end
+        }
         format.turbo_stream {
           flash.now[:notice] = "Node was successfully updated."
         }
@@ -197,5 +203,9 @@ class NodesController < ApplicationController
 
   def bulk_pattern?(hostname)
     hostname.to_s.match?(/\[(\d+)-(\d+)\]/)
+  end
+
+  def from_show_page?
+    request.referer&.match?(%r{/nodes/\d+(?:\?|$)})
   end
 end
