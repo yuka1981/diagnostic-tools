@@ -66,6 +66,10 @@ RSpec.configure do |config|
   # Include FactoryBot methods
   config.include FactoryBot::Syntax::Methods
 
+  # Include ViewComponent test helpers for component specs
+  config.include ViewComponent::TestHelpers, type: :component
+  config.include Capybara::RSpecMatchers, type: :component
+
   # DatabaseCleaner configuration (only if database is available)
   if DATABASE_AVAILABLE
     config.before(:suite) do
