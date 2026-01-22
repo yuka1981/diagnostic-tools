@@ -1,0 +1,11 @@
+---
+- name: Run PerfSPECT Telemetry Collection
+  hosts: "{{ target_host }}"
+  gather_facts: false
+  vars:
+    perfspect_subcommand: telemetry
+    perfspect_output_dir: "/tmp/perfspect_{{ run_uuid }}"
+
+  roles:
+    - role: perfspect
+      perfspect_options: "{{ options | default({'duration': 60}) }}"
