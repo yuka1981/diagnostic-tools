@@ -1,0 +1,33 @@
+<%= turbo_frame_tag dom_id(notification) do %>
+  <li id="<%= dom_id(notification) %>" class="px-4 py-4 hover:bg-gray-50 <%= notification.read? ? 'bg-gray-50' : 'bg-white' %>">
+    <div class="flex items-start justify-between">
+      <div class="flex-1 min-w-0">
+        <div class="flex items-center space-x-2">
+          <% unless notification.read? %>
+            <span class="inline-block w-2 h-2 bg-teal-500 rounded-full"></span>
+          <% end %>
+          <p class="text-sm font-medium text-gray-900 truncate">
+            <%= notification.title %>
+          </p>
+          <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium <%= notification_status_badge_class(notification.status) %>">
+            <%= render_status_icon(notification.status) %>
+            <%= notification.status.capitalize %>
+          </span>
+        </div>
+        <% if notification.message.present? %>
+          <p class="mt-1 text-sm text-gray-500">
+            <%= notification.message %>
+          </p>
+        <% end %>
+        <p class="mt-1 text-xs text-gray-400">
+          <%= time_ago_in_words(notification.created_at) %> ago
+        </p>
+      </div>
+      <div class="ml-4 flex-shrink-0 flex space-x-2">
+        <% unless notification.read? %>
+          <%= button_to "Mark Read", mark_read_notification_path(notification), method: :post, class: "text-sm text-teal-600 hover:text-teal-800", data: { turbo_stream: true } %>
+        <% end %>
+      </div>
+    </div>
+  </li>
+<% end %>

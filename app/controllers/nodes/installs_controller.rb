@@ -66,7 +66,8 @@ module Nodes
         bastion_user: install_params[:bastion_user],
         credentials_cache_key: cache_key,
         server_url: install_params[:server_url].presence || request.base_url,
-        api_key_id: install_params[:api_key_id]
+        api_key_id: install_params[:api_key_id],
+        user_id: current_user.id
       )
 
       respond_to do |format|

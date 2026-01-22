@@ -49,7 +49,7 @@ module Settings
     end
 
     def sync
-      QctSyncJob.perform_later
+      QctSyncJob.perform_later(user_id: current_user.id)
       redirect_to settings_server_products_path, notice: "Sync started. You'll be notified when complete."
     end
 

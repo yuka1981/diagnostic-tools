@@ -4,8 +4,23 @@ module Agent
   class UpdateJob < ApplicationJob
     queue_as :default
 
-    def perform(node:, agent_release:, force: false, credentials_cache_key: nil)
+    def perform(node:, agent_release:, force: false, credentials_cache_key: nil, user_id: nil)
       Rails.logger.debug "[Agent::UpdateJob] Starting update for #{node.hostname} to #{agent_release.version}"
+      notification = nil
+
+      # Create notification if user_id is provided
+      if user_id.present?
+        user = User.find_by(id: user_id)
+        if user
+          notification = NotificationService.create(
+            user: user,
+            type: "agent_update",
+            title: "Updating agent on #{node.hostname}",
+            resource: node
+          )
+          NotificationService.start(notification)
+        end
+      end
 
       # Prepare lifecycle credentials cache key
       lifecycle_cache_key = nil
@@ -45,17 +60,22 @@ module Agent
 
       Rails.logger.info "[Agent::UpdateJob] Update successful for #{node.hostname}"
       broadcast_status(node, "success", result.message)
+      NotificationService.complete(notification, success: true, message: result.message) if notification
     rescue Agent::Errors::NodeBusyError => e
       Rails.logger.warn "[Agent::UpdateJob] Node busy: #{node.hostname}"
       broadcast_status(node, "error", "Node is busy with pending/running tasks. Use force option to override.")
+      NotificationService.complete(notification, success: false, message: "Node is busy with pending/running tasks") if notification
     rescue Agent::Errors::LifecycleError => e
       Rails.logger.error "[Agent::UpdateJob] Update failed: #{e.message}"
       Rails.logger.error e.backtrace.first(10).join("\n")
       broadcast_status(node, "error", e.message)
+      NotificationService.complete(notification, success: false, message: e.message) if notification
     rescue => e
-      Rails.logger.error "[Agent::UpdateJob] Unexpected error: #{e.message}"
+      error_message = "Unexpected error: #{e.message}"
+      Rails.logger.error "[Agent::UpdateJob] #{error_message}"
       Rails.logger.error e.backtrace.first(10).join("\n")
-      broadcast_status(node, "error", "Unexpected error: #{e.message}")
+      broadcast_status(node, "error", error_message)
+      NotificationService.complete(notification, success: false, message: error_message) if notification
     end
 
     private

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_01_21_070141) do
+ActiveRecord::Schema[7.2].define(version: 2026_01_21_152752) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -205,6 +205,27 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_21_070141) do
     t.index ["uuid"], name: "index_nodes_on_uuid"
   end
 
+  create_table "notifications", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.string "notification_type", null: false
+    t.string "status", default: "pending", null: false
+    t.string "title", null: false
+    t.string "message"
+    t.string "resource_type"
+    t.bigint "resource_id"
+    t.jsonb "metadata", default: {}
+    t.boolean "read", default: false
+    t.boolean "archived", default: false
+    t.datetime "started_at"
+    t.datetime "completed_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["resource_type", "resource_id"], name: "index_notifications_on_resource_type_and_resource_id"
+    t.index ["user_id", "archived", "read"], name: "index_notifications_on_user_id_and_archived_and_read"
+    t.index ["user_id", "created_at"], name: "index_notifications_on_user_id_and_created_at"
+    t.index ["user_id"], name: "index_notifications_on_user_id"
+  end
+
   create_table "racks", force: :cascade do |t|
     t.string "name", limit: 255, null: false
     t.string "facility_id", limit: 255
@@ -325,6 +346,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_21_070141) do
   add_foreign_key "nodes", "api_keys"
   add_foreign_key "nodes", "racks"
   add_foreign_key "nodes", "server_products"
+  add_foreign_key "notifications", "users"
   add_foreign_key "racks", "rooms"
   add_foreign_key "rooms", "sites"
 end

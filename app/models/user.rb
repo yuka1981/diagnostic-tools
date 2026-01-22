@@ -9,6 +9,9 @@ class User < ApplicationRecord
   # Roles: viewer (read-only), requester (can create runs), approver (can approve - V2)
   enum :role, { viewer: 0, requester: 1, approver: 2 }, default: :viewer
 
+  # Associations
+  has_many :notifications, dependent: :destroy
+
   # Validations
   validates :name, presence: true, length: { maximum: 100 }
   validates :role, presence: true

@@ -1,5 +1,6 @@
 module ApplicationHelper
   include DashboardHelper
+  include BreadcrumbHelper
 
   def format_bytes(bytes)
     return "—" if bytes.blank? || bytes.to_i.zero?
@@ -88,6 +89,41 @@ module ApplicationHelper
       .gsub(/\bGpu\b/, "GPU")
       .gsub(/\bMpi\b/, "MPI")
       .gsub(/\bOmp\b/, "OpenMP")
+  end
+
+  # CSS classes for notification status badges
+  def notification_status_badge_class(status)
+    case status.to_s
+    when "completed"
+      "bg-green-100 text-green-800"
+    when "failed"
+      "bg-red-100 text-red-800"
+    when "running"
+      "bg-blue-100 text-blue-800"
+    when "pending"
+      "bg-yellow-100 text-yellow-800"
+    else
+      "bg-gray-100 text-gray-800"
+    end
+  end
+
+  # Render status icon partial for notifications
+  def render_status_icon(status, css_class: "w-4 h-4 mr-1")
+    icon_name = case status.to_s
+    when "pending"
+      "clock"
+    when "running"
+      "spinner"
+    when "completed"
+      "check_circle"
+    when "failed"
+      "x_circle"
+    else
+      "clock"
+    end
+
+    animation_class = status.to_s == "running" ? "#{css_class} animate-spin" : css_class
+    render partial: "notifications/icons/#{icon_name}", locals: { class: animation_class }
   end
 
   # Icon for benchmark run status

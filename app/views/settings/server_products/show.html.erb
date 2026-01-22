@@ -1,10 +1,9 @@
-<% content_for(:page_title) { @server_product.name } %>
+<% breadcrumb_trail([
+  { title: "Server Products", path: settings_server_products_path },
+  { title: @server_product.name }
+]) %>
 
 <div class="mb-6">
-  <nav class="text-sm text-slate-500 mb-2">
-    <%= link_to "Server Products", settings_server_products_path, class: "hover:text-teal-600" %> /
-    <span class="text-slate-700"><%= @server_product.name %></span>
-  </nav>
   <div class="flex items-center justify-between">
     <div class="flex items-center gap-4">
       <h1 class="text-2xl font-bold text-slate-900"><%= @server_product.name %></h1>

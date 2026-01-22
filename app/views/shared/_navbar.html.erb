@@ -26,12 +26,44 @@
 
   <%# Header Actions %>
   <div class="flex items-center gap-3">
-    <%# Notifications %>
-    <button type="button" class="relative text-slate-400 hover:text-slate-600">
-      <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-      </svg>
-    </button>
+    <%# Notifications Dropdown %>
+    <div data-controller="notifications"
+         data-notifications-user-id-value="<%= current_user&.id %>"
+         class="relative">
+      <button type="button"
+              data-action="click->notifications#toggle"
+              class="relative text-slate-400 hover:text-slate-600 p-2 rounded-lg hover:bg-slate-100">
+        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+        </svg>
+        <%= render "notifications/badge", count: current_user&.notifications&.unread&.count || 0 %>
+      </button>
+
+      <div data-notifications-target="dropdown"
+           class="hidden absolute right-0 mt-2 w-96 bg-white dark:bg-slate-800
+                  rounded-lg shadow-lg border border-slate-200 dark:border-slate-700 z-50">
+        <div class="p-3 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center">
+          <span class="font-semibold text-slate-900 dark:text-slate-100">Notifications</span>
+          <button data-action="click->notifications#markAllRead"
+                  class="text-sm text-teal-600 hover:text-teal-700 dark:text-teal-400">
+            Mark all read
+          </button>
+        </div>
+
+        <div id="notifications_list" class="max-h-96 overflow-y-auto">
+          <% if current_user %>
+            <%= turbo_stream_from "notifications_user_#{current_user.id}" %>
+            <%= render "notifications/list", notifications: current_user.notifications.for_dropdown %>
+          <% end %>
+        </div>
+
+        <div class="p-3 border-t border-slate-200 dark:border-slate-700 text-center">
+          <%= link_to "View all notifications", notifications_path,
+              class: "text-sm text-teal-600 hover:text-teal-700 dark:text-teal-400" %>
+        </div>
+      </div>
+    </div>
     
     <div class="h-6 w-px bg-slate-200"></div>
 

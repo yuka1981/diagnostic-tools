@@ -1,10 +1,9 @@
-<% content_for(:page_title) { @benchmark_recipe.display_name } %>
+<% breadcrumb_trail([
+  { title: "Benchmark Recipes", path: benchmark_recipes_path },
+  { title: @benchmark_recipe.name }
+]) %>
 
 <div class="mb-6">
-  <nav class="text-sm text-slate-500 mb-2">
-    <%= link_to "Benchmark Recipes", benchmark_recipes_path, class: "hover:text-teal-600" %> /
-    <span class="text-slate-700"><%= @benchmark_recipe.name %></span>
-  </nav>
   <div class="flex items-center justify-between">
     <div class="flex items-center gap-4">
       <h1 class="text-2xl font-bold text-slate-900"><%= @benchmark_recipe.display_name %></h1>
