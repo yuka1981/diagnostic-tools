@@ -25,12 +25,10 @@
                   <% end %>
                   
                   <% if iface["type"] == "infiniband" %>
-                    <%= link_to ib_details_node_network_path(node_id: state.node_id, interface_name: iface["name"], state_id: state.id), 
+                    <%= link_to ib_details_node_network_path(node_id: state.node_id, interface_name: iface["name"], state_id: state.id),
                                 class: "text-blue-600 hover:underline flex items-center gap-1",
                                 data: { turbo_frame: "slide_over_content", action: "click->slide-over#open" } do %>
-                      <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
+                      <%= lucide_icon("info", class: "w-3 h-3") %>
                       <%= iface["name"] %>
                     <% end %>
                   <% else %>
@@ -116,9 +114,7 @@
                 data-slide-over-target="closeButton"
                 data-action="click->slide-over#close"
                 class="rounded-lg p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-500 transition-colors">
-          <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-          </svg>
+          <%= lucide_icon("x", class: "h-5 w-5") %>
         </button>
       </div>
 
