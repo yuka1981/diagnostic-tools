@@ -30,6 +30,7 @@ Rails.application.routes.draw do
   namespace :settings do
     resource :ssh, only: [ :show, :update ], controller: :ssh
     resource :agent, only: [ :show, :update ], controller: :agents
+    resources :ssh_profiles
     resources :agent_releases do
       member do
         patch :deprecate
