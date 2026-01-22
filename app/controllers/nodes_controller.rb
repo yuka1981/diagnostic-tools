@@ -109,7 +109,6 @@ class NodesController < ApplicationController
   end
 
   def update
-    set_sensitive_params
     if @node.update(node_params)
       respond_to do |format|
         format.html { redirect_to nodes_path, notice: "Node was successfully updated." }
@@ -140,15 +139,11 @@ class NodesController < ApplicationController
 
   def node_params
     params.require(:node).permit(
-      :hostname, :ip, :arch, :ssh_port, :ssh_user, :ssh_key, :ssh_password,
+      :hostname, :ip, :role, :arch, :ssh_port, :ssh_user, :ssh_key, :ssh_password,
       :sudo_credential, :ssh_connect_method, :jump_host, :jump_user, :jump_port,
       :agent_path, :benchmark_work_dir, :api_key_id, :rack_id, :rack_position,
       :rack_height, :server_product_id, :ssh_profile_id, :ssh_profile_override
     )
-  end
-
-  def set_sensitive_params
-    @node.role = params[:node][:role] if params[:node][:role].present?
   end
 
   def authorize_approver!
@@ -159,7 +154,6 @@ class NodesController < ApplicationController
 
   def create_single
     @node = Node.new(node_params)
-    set_sensitive_params
     @node.source = :manual
 
     if @node.save
