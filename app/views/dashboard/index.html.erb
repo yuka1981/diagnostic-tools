@@ -7,10 +7,7 @@
     <div class="card-header border-emerald-100 bg-emerald-50/50">
       <h3 class="card-title text-emerald-700">Node Availability</h3>
       <div class="flex h-6 w-6 items-center justify-center rounded bg-emerald-500 text-white shadow-sm">
-        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-            d="M5.636 18.364a9 9 0 010-12.728m12.728 0a9 9 0 010 12.728m-9.9-2.829a5 5 0 010-7.07m7.072 0a5 5 0 010 7.07M13 12a1 1 0 11-2 0 1 1 0 012 0z" />
-        </svg>
+        <%= lucide_icon("wifi", class: "h-4 w-4") %>
       </div>
     </div>
     <div class="p-4">
@@ -31,10 +28,7 @@
     <div class="card-header border-violet-100 bg-violet-50/50">
       <h3 class="card-title text-violet-700">Benchmark Health</h3>
       <div class="flex h-6 w-6 items-center justify-center rounded bg-violet-500 text-white shadow-sm">
-        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
+        <%= lucide_icon("circle-check", class: "h-4 w-4") %>
       </div>
     </div>
     <div class="p-4">
@@ -53,9 +47,7 @@
     <div class="card-header border-blue-100 bg-blue-50/50">
       <h3 class="card-title text-blue-700">Queue Status</h3>
       <div class="flex h-6 w-6 items-center justify-center rounded bg-blue-500 text-white shadow-sm">
-        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
+        <%= lucide_icon("clock", class: "h-4 w-4") %>
       </div>
     </div>
     <div class="p-4">
@@ -79,10 +71,7 @@
     <div class="card-header border-amber-100 bg-amber-50/50">
       <h3 class="card-title text-amber-700">Cluster Storage</h3>
       <div class="flex h-6 w-6 items-center justify-center rounded bg-amber-500 text-white shadow-sm">
-        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-            d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0a2 2 0 01-2 2H6a2 2 0 01-2-2m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
-        </svg>
+        <%= lucide_icon("inbox", class: "h-4 w-4") %>
       </div>
     </div>
     <div class="p-4">
@@ -120,10 +109,7 @@
         <%= link_to nodes_path,
             class: "group flex flex-col items-center gap-2 rounded border border-slate-200 bg-slate-50 p-4 text-center transition-all hover:bg-white hover:border-blue-300 hover:shadow-sm" do %>
           <div class="flex h-10 w-10 items-center justify-center rounded bg-blue-100 text-blue-600 transition-transform group-hover:scale-110 shadow-sm border border-blue-200">
-            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2" />
-            </svg>
+            <%= lucide_icon("server", class: "h-5 w-5") %>
           </div>
           <span class="text-xs font-bold text-slate-700 uppercase tracking-tight">View Nodes</span>
         <% end %>
@@ -131,10 +117,7 @@
         <%= link_to benchmark_runs_path,
             class: "group flex flex-col items-center gap-2 rounded border border-slate-200 bg-slate-50 p-4 text-center transition-all hover:bg-white hover:border-purple-300 hover:shadow-sm" do %>
           <div class="flex h-10 w-10 items-center justify-center rounded bg-purple-100 text-purple-600 transition-transform group-hover:scale-110 shadow-sm border border-purple-200">
-            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-            </svg>
+            <%= lucide_icon("bar-chart-3", class: "h-5 w-5") %>
           </div>
           <span class="text-xs font-bold text-slate-700 uppercase tracking-tight">View Runs</span>
         <% end %>
@@ -142,10 +125,7 @@
         <%= link_to benchmark_recipes_path,
             class: "group flex flex-col items-center gap-2 rounded border border-slate-200 bg-slate-50 p-4 text-center transition-all hover:bg-white hover:border-amber-300 hover:shadow-sm" do %>
           <div class="flex h-10 w-10 items-center justify-center rounded bg-amber-100 text-amber-600 transition-transform group-hover:scale-110 shadow-sm border border-amber-200">
-            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
-            </svg>
+            <%= lucide_icon("flask-conical", class: "h-5 w-5") %>
           </div>
           <span class="text-xs font-bold text-slate-700 uppercase tracking-tight">Recipes</span>
         <% end %>
@@ -154,10 +134,7 @@
                 class="group flex flex-col items-center gap-2 rounded border border-slate-100 bg-slate-50/50 p-4 text-center opacity-50 cursor-not-allowed"
                 disabled>
           <div class="flex h-10 w-10 items-center justify-center rounded bg-emerald-50 text-emerald-600 shadow-none border border-emerald-100">
-            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-            </svg>
+            <%= lucide_icon("upload", class: "h-5 w-5") %>
           </div>
           <span class="text-xs font-bold text-slate-400 uppercase tracking-tight">Import CSV</span>
         </button>

@@ -39,9 +39,7 @@
           %>
             <li class="flex items-center gap-3 p-3 text-xs font-bold <%= is_current ? 'text-red-600 bg-red-50' : 'text-slate-500' %>">
               <% if passed %>
-                <svg class="h-4 w-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                </svg>
+<%= lucide_icon("check", class: "h-4 w-4 text-emerald-500") %>
               <% elsif is_current %>
 <%= lucide_icon("x", class: "h-4 w-4 text-red-500") %>
               <% else %>
@@ -79,9 +77,7 @@
           %>
             <li class="flex items-center gap-3 p-3 text-xs font-bold <%= is_current ? 'text-teal-600 bg-teal-50' : 'text-slate-500' %>">
               <% if passed %>
-                <svg class="h-4 w-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                </svg>
+<%= lucide_icon("check", class: "h-4 w-4 text-emerald-500") %>
               <% elsif is_current %>
                 <div class="h-4 w-4 rounded-full border-2 border-teal-500 border-t-transparent animate-spin"></div>
               <% else %>
