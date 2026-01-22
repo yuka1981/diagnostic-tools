@@ -55,6 +55,9 @@ application.register("notifications", NotificationsController)
 import RackDiagramController from "./rack_diagram_controller"
 application.register("rack-diagram", RackDiagramController)
 
+import RackValidationController from "./rack_validation_controller"
+application.register("rack-validation", RackValidationController)
+
 import ReleaseModeController from "./release_mode_controller"
 application.register("release-mode", ReleaseModeController)
 
