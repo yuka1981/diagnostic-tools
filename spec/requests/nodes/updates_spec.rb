@@ -72,7 +72,8 @@ RSpec.describe "Nodes::Updates", type: :request do
           node: node,
           agent_release: agent_release,
           force: false,
-          credentials_cache_key: nil
+          credentials_cache_key: nil,
+          user_id: approver.id
         )
       end
 
