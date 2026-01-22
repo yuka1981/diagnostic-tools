@@ -1,14 +1,37 @@
 import { Controller } from "@hotwired/stimulus"
 
 // Connects to data-controller="ssh-profile-select"
-// Shows/hides SSH configuration section based on profile selection
-// When a profile is selected, SSH config is hidden (profile settings are used)
-// When "Custom SSH Settings" is selected, SSH config is shown for manual entry
+// Shows/hides SSH configuration section based on profile selection with smooth animation
+// When a profile is selected, SSH config collapses (profile settings are used)
+// When "Custom SSH Settings" is selected, SSH config expands for manual entry
 export default class extends Controller {
   static targets = ["select", "sshConfigSection"]
 
   connect() {
-    this.toggleSshConfig()
+    // Set initial state without animation
+    this.initializeState()
+  }
+
+  initializeState() {
+    const hasProfile = this.hasSelectTarget && this.selectTarget.value !== ""
+
+    if (this.hasSshConfigSectionTarget) {
+      const section = this.sshConfigSectionTarget
+
+      if (hasProfile) {
+        // Profile selected - start collapsed
+        section.style.maxHeight = "0"
+        section.style.opacity = "0"
+        section.style.overflow = "hidden"
+        section.classList.add("invisible")
+      } else {
+        // Custom settings - start expanded
+        section.style.maxHeight = "none"
+        section.style.opacity = "1"
+        section.style.overflow = "visible"
+        section.classList.remove("invisible")
+      }
+    }
   }
 
   toggleSshConfig() {
@@ -16,12 +39,64 @@ export default class extends Controller {
 
     if (this.hasSshConfigSectionTarget) {
       if (hasProfile) {
-        // Profile selected - hide SSH config section
-        this.sshConfigSectionTarget.classList.add("hidden")
+        this.collapse()
       } else {
-        // Custom SSH Settings selected - show SSH config section
-        this.sshConfigSectionTarget.classList.remove("hidden")
+        this.expand()
       }
     }
+  }
+
+  expand() {
+    const section = this.sshConfigSectionTarget
+
+    // Remove invisible and set up for animation
+    section.classList.remove("invisible")
+    section.style.overflow = "hidden"
+
+    // Get the full height
+    section.style.maxHeight = "none"
+    const fullHeight = section.scrollHeight
+
+    // Reset to 0 for animation start
+    section.style.maxHeight = "0"
+    section.style.opacity = "0"
+
+    // Force reflow
+    section.offsetHeight
+
+    // Add transition and animate to full height
+    section.style.transition = "max-height 0.3s ease-out, opacity 0.3s ease-out"
+    section.style.maxHeight = fullHeight + "px"
+    section.style.opacity = "1"
+
+    // After animation, remove max-height constraint
+    setTimeout(() => {
+      section.style.maxHeight = "none"
+      section.style.overflow = "visible"
+      section.style.transition = ""
+    }, 300)
+  }
+
+  collapse() {
+    const section = this.sshConfigSectionTarget
+
+    // Set current height explicitly for animation
+    const currentHeight = section.scrollHeight
+    section.style.maxHeight = currentHeight + "px"
+    section.style.overflow = "hidden"
+
+    // Force reflow
+    section.offsetHeight
+
+    // Add transition and animate to 0
+    section.style.transition = "max-height 0.3s ease-out, opacity 0.3s ease-out"
+    section.style.maxHeight = "0"
+    section.style.opacity = "0"
+
+    // After animation, hide completely
+    setTimeout(() => {
+      section.classList.add("invisible")
+      section.style.transition = ""
+    }, 300)
   }
 }
