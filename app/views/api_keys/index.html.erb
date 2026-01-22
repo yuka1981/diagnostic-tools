@@ -5,7 +5,7 @@
     <h1 class="text-2xl font-bold text-slate-900">API Key Management</h1>
   </div>
   <%= link_to new_api_key_path, class: "btn-primary" do %>
-<%= lucide_icon("plus", class: "h-4 w-4") %>
+    <%= lucide_icon("plus", class: "h-4 w-4") %>
     Generate New Key
   <% end %>
 </div>
@@ -60,20 +60,20 @@
             <td class="whitespace-nowrap px-3 py-2 text-right text-sm">
               <div class="flex items-center justify-end gap-2">
                 <% if key.active? %>
-                  <%= button_to revoke_api_key_path(key), 
+                  <%= button_to revoke_api_key_path(key),
                       method: :patch,
                       data: { confirm: "Are you sure you want to revoke this API key?" },
                       class: "text-slate-400 hover:text-red-600 transition-colors",
                       title: "Revoke" do %>
-<%= lucide_icon("ban", class: "h-4 w-4") %>
+                    <%= lucide_icon("ban", class: "h-4 w-4") %>
                   <% end %>
                 <% else %>
-                  <%= button_to api_key_path(key), 
+                  <%= button_to api_key_path(key),
                       method: :delete,
                       data: { confirm: "Are you sure you want to delete this API key?" },
                       class: "text-slate-400 hover:text-red-600 transition-colors",
                       title: "Delete" do %>
-<%= lucide_icon("trash-2", class: "h-4 w-4") %>
+                    <%= lucide_icon("trash-2", class: "h-4 w-4") %>
                   <% end %>
                 <% end %>
               </div>

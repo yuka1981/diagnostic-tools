@@ -29,7 +29,7 @@
           method: :post,
           data: { turbo_confirm: "Are you sure you want to cancel this benchmark run?", turbo_stream: false },
           class: "inline-flex items-center gap-1 px-3 py-1.5 text-sm font-bold text-red-600 bg-white border border-red-300 rounded hover:bg-red-50 hover:border-red-400 transition-colors" do %>
-<%= lucide_icon("x", class: "h-4 w-4") %>
+        <%= lucide_icon("x", class: "h-4 w-4") %>
         Cancel Run
       <% end %>
     <% end %>
@@ -108,7 +108,7 @@
       <div class="card-header cursor-pointer" data-action="click->collapsible#toggle">
         <div class="flex items-center justify-between w-full">
           <h3 class="card-title">Logs</h3>
-<%= lucide_icon("chevron-down", class: "h-5 w-5 text-slate-400 transform transition-transform", data: { collapsible_target: "icon" }) %>
+          <%= lucide_icon("chevron-down", class: "h-5 w-5 text-slate-400 transform transition-transform", data: { collapsible_target: "icon" }) %>
         </div>
       </div>
       <div data-collapsible-target="content" class="hidden">
@@ -151,12 +151,12 @@
                   <% if artifact.downloadable? %>
                     <%= link_to download_artifact_benchmark_run_path(@benchmark_run, artifact_id: artifact.id),
                         class: "inline-flex items-center gap-1 text-teal-600 hover:text-teal-800 text-xs font-bold" do %>
-<%= lucide_icon("download", class: "h-4 w-4") %>
+                      <%= lucide_icon("download", class: "h-4 w-4") %>
                       Download
                     <% end %>
                   <% else %>
                     <span class="inline-flex items-center gap-1 text-slate-400 text-xs font-bold cursor-not-allowed" title="File not found on server">
-<%= lucide_icon("download", class: "h-4 w-4") %>
+                      <%= lucide_icon("download", class: "h-4 w-4") %>
                       Unavailable
                     </span>
                   <% end %>

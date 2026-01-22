@@ -3,14 +3,14 @@
   <button type="button"
           data-action="click->sidebar#toggle"
           class="lg:hidden -ml-2 rounded p-2 text-slate-500 hover:bg-slate-100">
-<%= lucide_icon("menu", class: "h-6 w-6") %>
+    <%= lucide_icon("menu", class: "h-6 w-6") %>
   </button>
 
   <%# Search Bar %>
   <div class="flex-1">
     <div class="relative max-w-sm">
       <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-2">
-<%= lucide_icon("search", class: "h-4 w-4 text-slate-400") %>
+        <%= lucide_icon("search", class: "h-4 w-4 text-slate-400") %>
       </div>
       <input type="text" 
              name="search" 
@@ -29,7 +29,7 @@
       <button type="button"
               data-action="click->notifications#toggle"
               class="relative text-slate-400 hover:text-slate-600 p-2 rounded-lg hover:bg-slate-100">
-<%= lucide_icon("bell", class: "h-5 w-5") %>
+        <%= lucide_icon("bell", class: "h-5 w-5") %>
         <%= render "notifications/badge", count: current_user&.notifications&.unread&.count || 0 %>
       </button>
 

@@ -2,7 +2,7 @@
   <div class="flex flex-col items-center justify-center">
     <% if status == "success" %>
       <div class="h-12 w-12 rounded bg-emerald-100 flex items-center justify-center mb-4 border border-emerald-200 shadow-sm">
-<%= lucide_icon("check", class: "h-6 w-6 text-emerald-600") %>
+        <%= lucide_icon("check", class: "h-6 w-6 text-emerald-600") %>
       </div>
       <h4 class="text-sm font-black text-slate-800 uppercase tracking-tight">Installation Successful</h4>
       <p class="text-[10px] text-slate-500 font-medium mt-2 italic"><%= message %></p>
@@ -11,7 +11,7 @@
       </div>
     <% elsif status == "error" %>
       <div class="h-12 w-12 rounded bg-red-100 flex items-center justify-center mb-4 border border-red-200 shadow-sm">
-<%= lucide_icon("x", class: "h-6 w-6 text-red-600") %>
+        <%= lucide_icon("x", class: "h-6 w-6 text-red-600") %>
       </div>
       <h4 class="text-sm font-black text-slate-800 uppercase tracking-tight">Installation Failed</h4>
       <div class="mt-4 text-xs text-red-700 bg-red-50 p-3 rounded border border-red-100 text-left font-medium w-full max-w-lg break-words overflow-auto max-h-48">

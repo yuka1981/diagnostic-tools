@@ -18,7 +18,7 @@
                   method: :post,
                   data: { turbo_confirm: "Are you sure you want to cancel this benchmark run?" },
                   class: "inline-flex items-center gap-1 px-2 py-1 text-xs font-bold text-red-600 bg-white border border-red-300 rounded hover:bg-red-50 hover:border-red-400 transition-colors" do %>
-<%= lucide_icon("x", class: "h-3 w-3") %>
+                <%= lucide_icon("x", class: "h-3 w-3") %>
                 Cancel
               <% end %>
             <% end %>
@@ -129,7 +129,7 @@
           <%= link_to benchmark_run_path(benchmark_run),
               data: { turbo_frame: "_top" },
               class: "btn-primary w-full justify-center" do %>
-<%= lucide_icon("external-link", class: "h-4 w-4") %>
+            <%= lucide_icon("external-link", class: "h-4 w-4") %>
             View Full Details
           <% end %>
         </div>

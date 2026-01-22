@@ -185,16 +185,16 @@
   </div>
 <% else %>
   <div class="mt-6 card-netbox bg-slate-50 border-dashed border-2 p-12 text-center">
-<%= lucide_icon("info", class: "mx-auto h-12 w-12 text-slate-300") %>
+    <%= lucide_icon("info", class: "mx-auto h-12 w-12 text-slate-300") %>
     <h3 class="mt-2 text-xs font-black text-slate-500 uppercase tracking-widest">No data collected</h3>
     <p class="mt-1 text-[10px] text-slate-400 italic">Trigger a collection to see detailed system information.</p>
     <% if current_user&.approver? %>
       <div class="mt-6">
-        <%= button_to collect_node_path(node), 
+        <%= button_to collect_node_path(node),
             method: :post,
             class: "btn-primary",
             data: { turbo_submits_with: "Collecting..." } do %>
-<%= lucide_icon("zap", class: "h-4 w-4") %>
+          <%= lucide_icon("zap", class: "h-4 w-4") %>
           Collect Now
         <% end %>
       </div>
