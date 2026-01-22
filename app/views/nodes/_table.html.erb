@@ -42,11 +42,13 @@
         <thead class="bg-slate-50">
           <tr>
             <% if current_user.approver? %>
-              <th scope="col" class="w-10 px-3 py-2 border-b text-center align-middle">
-                <input type="checkbox"
-                       data-bulk-select-target="selectAll"
-                       data-action="change->bulk-select#toggleAll"
-                       class="rounded border-slate-300 text-teal-600 focus:ring-teal-500">
+              <th scope="col" class="w-10 border-b">
+                <div class="flex items-center justify-center h-full py-2">
+                  <input type="checkbox"
+                         data-bulk-select-target="selectAll"
+                         data-action="change->bulk-select#toggleAll"
+                         class="rounded border-slate-300 text-teal-600 focus:ring-teal-500">
+                </div>
               </th>
             <% end %>
             <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Hostname</th>

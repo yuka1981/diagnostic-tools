@@ -1,11 +1,13 @@
 <tr id="<%= dom_id(node) %>" class="bg-white hover:bg-teal-50 border-b border-slate-200 transition-colors group">
   <% if current_user.approver? %>
-    <td class="whitespace-nowrap px-3 py-2 text-center align-middle">
-      <input type="checkbox"
-             value="<%= node.id %>"
-             data-bulk-select-target="checkbox"
-             data-action="change->bulk-select#toggle"
-             class="rounded border-slate-300 text-teal-600 focus:ring-teal-500">
+    <td class="whitespace-nowrap">
+      <div class="flex items-center justify-center h-full py-2">
+        <input type="checkbox"
+               value="<%= node.id %>"
+               data-bulk-select-target="checkbox"
+               data-action="change->bulk-select#toggle"
+               class="rounded border-slate-300 text-teal-600 focus:ring-teal-500">
+      </div>
     </td>
   <% end %>
   <td class="whitespace-nowrap px-3 py-2">
