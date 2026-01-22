@@ -4,7 +4,7 @@ class NodesController < ApplicationController
   layout "dashboard"
   before_action :authenticate_user!
   before_action :set_node, only: %i[show edit update destroy test_connection collect run_benchmark]
-  before_action :authorize_approver!, only: %i[new create edit update destroy test_connection collect run_benchmark]
+  before_action :authorize_approver!, only: %i[new create edit update destroy bulk_destroy test_connection collect run_benchmark]
 
   def index
     @nodes = Node.order(:hostname)
@@ -92,38 +92,39 @@ class NodesController < ApplicationController
   def new
     @node = Node.new
     @api_keys = ApiKey.active.order(:name)
+    @ssh_profiles = SshProfile.order(:name)
   end
 
   def create
-    @node = Node.new(node_params)
-    set_sensitive_params
-    @node.source = :manual
-
-    if @node.save
-      respond_to do |format|
-        format.html { redirect_to nodes_path, notice: "Node was successfully created." }
-        format.turbo_stream
-      end
+    if bulk_pattern?(params[:node][:hostname])
+      create_bulk
     else
-      render :new, status: :unprocessable_entity
+      create_single
     end
   end
 
   def edit
     @api_keys = ApiKey.active.order(:name)
+    @ssh_profiles = SshProfile.order(:name)
   end
 
   def update
-    set_sensitive_params
     if @node.update(node_params)
       respond_to do |format|
-        format.html { redirect_to nodes_path, notice: "Node was successfully updated." }
+        format.html {
+          if from_show_page?
+            redirect_to @node, notice: "Node was successfully updated."
+          else
+            redirect_to nodes_path, notice: "Node was successfully updated."
+          end
+        }
         format.turbo_stream {
           flash.now[:notice] = "Node was successfully updated."
         }
       end
     else
       @api_keys = ApiKey.active.order(:name)
+      @ssh_profiles = SshProfile.order(:name)
       render :edit, status: :unprocessable_entity
     end
   end
@@ -136,6 +137,21 @@ class NodesController < ApplicationController
     end
   end
 
+  def bulk_destroy
+    node_ids = params[:node_ids] || []
+    @deleted_nodes = Node.where(id: node_ids).to_a
+    deleted_count = @deleted_nodes.each(&:destroy).count
+
+    respond_to do |format|
+      format.turbo_stream {
+        flash.now[:notice] = "#{deleted_count} nodes deleted."
+      }
+      format.html {
+        redirect_to nodes_path, notice: "#{deleted_count} nodes deleted."
+      }
+    end
+  end
+
   private
 
   def set_node
@@ -143,16 +159,68 @@ class NodesController < ApplicationController
   end
 
   def node_params
-    params.require(:node).permit(:hostname, :ip, :arch, :ssh_port, :ssh_user, :ssh_key, :ssh_password, :sudo_credential, :ssh_connect_method, :jump_host, :jump_user, :jump_port, :agent_path, :benchmark_work_dir, :api_key_id, :rack_id, :rack_position, :rack_height, :server_product_id)
-  end
-
-  def set_sensitive_params
-    @node.role = params[:node][:role] if params[:node][:role].present?
+    params.require(:node).permit(
+      :hostname, :ip, :role, :arch, :ssh_port, :ssh_user, :ssh_key, :ssh_password,
+      :sudo_credential, :ssh_connect_method, :jump_host, :jump_user, :jump_port,
+      :agent_path, :benchmark_work_dir, :api_key_id, :rack_id, :rack_position,
+      :rack_height, :server_product_id, :ssh_profile_id, :ssh_profile_override
+    )
   end
 
   def authorize_approver!
     return if current_user.approver?
 
     redirect_to nodes_path, alert: "You are not authorized to manage nodes."
+  end
+
+  def create_single
+    @node = Node.new(node_params)
+    @node.source = :manual
+
+    if @node.save
+      respond_to do |format|
+        format.html { redirect_to nodes_path, notice: "Node was successfully created." }
+        format.turbo_stream
+      end
+    else
+      @api_keys = ApiKey.active.order(:name)
+      @ssh_profiles = SshProfile.order(:name)
+      render :new, status: :unprocessable_entity
+    end
+  end
+
+  def create_bulk
+    service = Nodes::BulkCreateService.new(
+      params[:node][:hostname],
+      node_params.except(:hostname),
+      params[:node_overrides] || {}
+    )
+    result = service.call
+
+    if result.success?
+      @nodes = result.nodes
+      respond_to do |format|
+        format.html { redirect_to nodes_path, notice: "#{@nodes.count} nodes were successfully created." }
+        format.turbo_stream { render :create_bulk }
+      end
+    else
+      @node = Node.new(node_params)
+      if result.conflicts.any?
+        @node.errors.add(:hostname, "has conflicts: #{result.conflicts.join(', ')}")
+      else
+        @node.errors.add(:hostname, result.error)
+      end
+      @api_keys = ApiKey.active.order(:name)
+      @ssh_profiles = SshProfile.order(:name)
+      render :new, status: :unprocessable_entity
+    end
+  end
+
+  def bulk_pattern?(hostname)
+    hostname.to_s.match?(/\[(\d+)-(\d+)\]/)
+  end
+
+  def from_show_page?
+    request.referer&.match?(%r{/nodes/\d+(?:\?|$)})
   end
 end

@@ -286,6 +286,61 @@ RSpec.describe Node, type: :model do
   describe "associations" do
     it { is_expected.to belong_to(:server_rack).optional }
     it { is_expected.to belong_to(:server_product).optional }
+    it { is_expected.to belong_to(:ssh_profile).optional }
+  end
+
+  describe "#effective_ssh_user" do
+    let(:ssh_profile) { create(:ssh_profile, ssh_user: "profile_user") }
+
+    context "when ssh_profile_override is true" do
+      it "returns node's ssh_user" do
+        node = build(:node, ssh_profile: ssh_profile, ssh_user: "node_user", ssh_profile_override: true)
+        expect(node.effective_ssh_user).to eq("node_user")
+      end
+    end
+
+    context "when ssh_profile_override is false and profile exists" do
+      it "returns profile's ssh_user" do
+        node = build(:node, ssh_profile: ssh_profile, ssh_user: "node_user", ssh_profile_override: false)
+        expect(node.effective_ssh_user).to eq("profile_user")
+      end
+    end
+
+    context "when no profile exists" do
+      it "returns node's ssh_user" do
+        node = build(:node, ssh_profile: nil, ssh_user: "node_user")
+        expect(node.effective_ssh_user).to eq("node_user")
+      end
+    end
+  end
+
+  describe "#effective_ssh_port" do
+    let(:ssh_profile) { create(:ssh_profile, ssh_port: 2222) }
+
+    context "when using profile settings" do
+      it "returns profile's ssh_port" do
+        node = build(:node, ssh_profile: ssh_profile, ssh_port: 22, ssh_profile_override: false)
+        expect(node.effective_ssh_port).to eq(2222)
+      end
+    end
+
+    context "when using node override" do
+      it "returns node's ssh_port" do
+        node = build(:node, ssh_profile: ssh_profile, ssh_port: 3333, ssh_profile_override: true)
+        expect(node.effective_ssh_port).to eq(3333)
+      end
+    end
+  end
+
+  describe "#effective_ssh_connect_method" do
+    let(:ssh_profile) { create(:ssh_profile, :custom_bastion) }
+
+    context "when using profile settings" do
+      it "returns profile's connect method" do
+        node = build(:node, ssh_profile: ssh_profile, ssh_connect_method: :direct, ssh_profile_override: false)
+        expect(node.effective_ssh_connect_method).to eq("custom_bastion")
+      end
+    end
   end
 
   describe "rack associations and validations" do

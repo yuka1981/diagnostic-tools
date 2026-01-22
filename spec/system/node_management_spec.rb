@@ -17,11 +17,17 @@ RSpec.describe "Node Management", type: :system, js: true do
     click_link "Add Node"
 
     within "turbo-frame#node_modal" do
+      # Step 1: Basic Information
       fill_in "Hostname", with: "compute-001"
       fill_in "IP Address", with: "192.168.1.100"
       select "Compute", from: "Role"
       select "x86_64", from: "Architecture"
+      click_button "Next"
 
+      # Step 2: Server & Location (skip through)
+      click_button "Next"
+
+      # Step 3: Connection - SSH Configuration
       expect(page).to have_content(/SSH Configuration/i)
       fill_in "SSH Port", with: "22"
       fill_in "SSH User", with: "deploy"

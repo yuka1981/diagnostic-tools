@@ -30,7 +30,7 @@ module Settings
     end
 
     def agent_params
-      params.require(:ssh_setting).permit(:server_url, :benchmark_work_dir)
+      params.require(:ssh_setting).permit(:server_url, :benchmark_work_dir, :default_agent_path)
     end
   end
 end

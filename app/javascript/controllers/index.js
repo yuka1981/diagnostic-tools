@@ -10,6 +10,12 @@ application.register("autosubmit", AutosubmitController)
 import BenchmarkRecipeController from "./benchmark_recipe_controller"
 application.register("benchmark-recipe", BenchmarkRecipeController)
 
+import BulkReviewController from "./bulk_review_controller"
+application.register("bulk-review", BulkReviewController)
+
+import BulkSelectController from "./bulk_select_controller"
+application.register("bulk-select", BulkSelectController)
+
 import CascadingSelectController from "./cascading_select_controller"
 application.register("cascading-select", CascadingSelectController)
 
@@ -27,6 +33,9 @@ application.register("file-drop", FileDropController)
 
 import HeatmapController from "./heatmap_controller"
 application.register("heatmap", HeatmapController)
+
+import HostnameAutocompleteController from "./hostname_autocomplete_controller"
+application.register("hostname-autocomplete", HostnameAutocompleteController)
 
 import HostnameValidationController from "./hostname_validation_controller"
 application.register("hostname-validation", HostnameValidationController)
@@ -46,8 +55,14 @@ application.register("notification-item", NotificationItemController)
 import NotificationsController from "./notifications_controller"
 application.register("notifications", NotificationsController)
 
+import PageRefreshController from "./page_refresh_controller"
+application.register("page-refresh", PageRefreshController)
+
 import RackDiagramController from "./rack_diagram_controller"
 application.register("rack-diagram", RackDiagramController)
+
+import RackValidationController from "./rack_validation_controller"
+application.register("rack-validation", RackValidationController)
 
 import ReleaseModeController from "./release_mode_controller"
 application.register("release-mode", ReleaseModeController)
@@ -61,6 +76,9 @@ application.register("sidebar", SidebarController)
 import SlideOverController from "./slide_over_controller"
 application.register("slide-over", SlideOverController)
 
+import SshProfileSelectController from "./ssh_profile_select_controller"
+application.register("ssh-profile-select", SshProfileSelectController)
+
 import SshSettingsController from "./ssh_settings_controller"
 application.register("ssh-settings", SshSettingsController)
 
@@ -69,3 +87,6 @@ application.register("tabs", TabsController)
 
 import ThemeController from "./theme_controller"
 application.register("theme", ThemeController)
+
+import WizardController from "./wizard_controller"
+application.register("wizard", WizardController)

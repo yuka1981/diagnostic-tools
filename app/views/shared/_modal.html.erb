@@ -9,12 +9,10 @@
       <%# Header %>
       <div class="card-header">
         <h3 class="card-title"><%= title %></h3>
-        <button type="button" 
-                class="text-slate-400 hover:text-slate-600 transition-colors" 
+        <button type="button"
+                class="text-slate-400 hover:text-slate-600 transition-colors"
                 data-action="modal#close">
-          <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-          </svg>
+          <%= lucide_icon("x", class: "h-5 w-5") %>
         </button>
       </div>
 

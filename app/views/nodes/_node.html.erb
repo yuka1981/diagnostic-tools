@@ -1,4 +1,15 @@
 <tr id="<%= dom_id(node) %>" class="bg-white hover:bg-teal-50 border-b border-slate-200 transition-colors group">
+  <% if current_user.approver? %>
+    <td class="whitespace-nowrap">
+      <div class="flex items-center justify-center h-full py-2">
+        <input type="checkbox"
+               value="<%= node.id %>"
+               data-bulk-select-target="checkbox"
+               data-action="change->bulk-select#toggle"
+               class="rounded border-slate-300 text-teal-600 focus:ring-teal-500">
+      </div>
+    </td>
+  <% end %>
   <td class="whitespace-nowrap px-3 py-2">
     <div class="flex items-center gap-3">
       <div>
@@ -29,18 +40,14 @@
         <%# Install Action %>
         <% if node.agent_push? %>
            <span class="text-slate-300 cursor-not-allowed" title="hpc-agent is already installed">
-             <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-             </svg>
+             <%= lucide_icon("download", class: "h-4 w-4") %>
            </span>
         <% else %>
            <%= link_to new_node_install_path(hostname: node.hostname, arch: node.arch),
                class: "text-slate-400 hover:text-blue-600 transition-colors",
                title: "Install Agent",
                data: { turbo_frame: "install_modal" } do %>
-             <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-             </svg>
+             <%= lucide_icon("download", class: "h-4 w-4") %>
            <% end %>
         <% end %>
 
@@ -50,15 +57,11 @@
               class: "text-slate-400 hover:text-emerald-600 transition-colors",
               title: "Update Agent",
               data: { turbo_frame: "update_modal" } do %>
-            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-            </svg>
+            <%= lucide_icon("upload", class: "h-4 w-4") %>
           <% end %>
         <% else %>
            <span class="text-slate-300 cursor-not-allowed" title="hpc-agent is not installed">
-             <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-             </svg>
+             <%= lucide_icon("upload", class: "h-4 w-4") %>
            </span>
         <% end %>
 
@@ -68,37 +71,29 @@
               class: "text-slate-400 hover:text-red-600 transition-colors",
               title: "Uninstall Agent",
               data: { turbo_frame: "uninstall_modal" } do %>
-            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
+            <%= lucide_icon("circle-x", class: "h-4 w-4") %>
           <% end %>
         <% else %>
            <span class="text-slate-300 cursor-not-allowed" title="hpc-agent is not installed">
-             <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
-             </svg>
+             <%= lucide_icon("circle-x", class: "h-4 w-4") %>
            </span>
         <% end %>
 
         <%# Collect Action %>
-        <%= button_to collect_node_path(node), 
+        <%= button_to collect_node_path(node),
             method: :post,
             class: "text-slate-400 hover:text-blue-600 transition-colors",
             title: "Collect Info",
             data: { turbo_submits_with: "..." } do %>
-          <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-          </svg>
+          <%= lucide_icon("refresh-cw", class: "h-4 w-4") %>
         <% end %>
       <% end %>
 
-      <%= link_to edit_node_path(node), 
+      <%= link_to edit_node_path(node),
           class: "text-slate-400 hover:text-blue-600 transition-colors",
           title: "Edit",
           data: { turbo_frame: "node_modal" } do %>
-        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-        </svg>
+        <%= lucide_icon("pencil", class: "h-4 w-4") %>
       <% end %>
 
       <% if current_user.approver? %>
@@ -107,9 +102,7 @@
             class: "text-slate-400 hover:text-blue-600 transition-colors",
             title: "Delete",
             data: { turbo_confirm: "Are you sure you want to delete this node?" } do %>
-          <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h14" />
-          </svg>
+          <%= lucide_icon("trash-2", class: "h-4 w-4") %>
         <% end %>
       <% end %>
     </div>

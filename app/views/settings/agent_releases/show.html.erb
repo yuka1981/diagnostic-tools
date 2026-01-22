@@ -22,9 +22,7 @@
     <% if current_user.approver? %>
       <div class="flex items-center gap-2">
         <%= link_to edit_settings_agent_release_path(@agent_release), class: "btn-secondary" do %>
-          <svg class="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-          </svg>
+          <%= lucide_icon("square-pen", class: "h-4 w-4 mr-1") %>
           Edit
         <% end %>
 
@@ -145,9 +143,7 @@
                   <% if agent_binary.binary.attached? %>
                     <%= link_to rails_blob_path(agent_binary.binary, disposition: "attachment"),
                         class: "inline-flex items-center text-teal-600 hover:text-teal-700 font-medium text-xs" do %>
-                      <svg class="h-3 w-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                      </svg>
+                      <%= lucide_icon("download", class: "h-3 w-3 mr-1") %>
                       Download
                     <% end %>
                   <% end %>
@@ -197,9 +193,7 @@
               <td class="px-4 py-2">
                 <%= link_to rails_blob_path(@agent_release.binary, disposition: "attachment"),
                     class: "inline-flex items-center text-teal-600 hover:text-teal-700 font-medium" do %>
-                  <svg class="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                  </svg>
+                  <%= lucide_icon("download", class: "h-4 w-4 mr-1") %>
                   Download Binary
                 <% end %>
               </td>
