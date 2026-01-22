@@ -96,19 +96,10 @@ class NodesController < ApplicationController
   end
 
   def create
-    @node = Node.new(node_params)
-    set_sensitive_params
-    @node.source = :manual
-
-    if @node.save
-      respond_to do |format|
-        format.html { redirect_to nodes_path, notice: "Node was successfully created." }
-        format.turbo_stream
-      end
+    if bulk_pattern?(params[:node][:hostname])
+      create_bulk
     else
-      @api_keys = ApiKey.active.order(:name)
-      @ssh_profiles = SshProfile.order(:name)
-      render :new, status: :unprocessable_entity
+      create_single
     end
   end
 
@@ -164,5 +155,53 @@ class NodesController < ApplicationController
     return if current_user.approver?
 
     redirect_to nodes_path, alert: "You are not authorized to manage nodes."
+  end
+
+  def create_single
+    @node = Node.new(node_params)
+    set_sensitive_params
+    @node.source = :manual
+
+    if @node.save
+      respond_to do |format|
+        format.html { redirect_to nodes_path, notice: "Node was successfully created." }
+        format.turbo_stream
+      end
+    else
+      @api_keys = ApiKey.active.order(:name)
+      @ssh_profiles = SshProfile.order(:name)
+      render :new, status: :unprocessable_entity
+    end
+  end
+
+  def create_bulk
+    service = Nodes::BulkCreateService.new(
+      params[:node][:hostname],
+      node_params.except(:hostname),
+      params[:node_overrides] || {}
+    )
+    result = service.call
+
+    if result.success?
+      @nodes = result.nodes
+      respond_to do |format|
+        format.html { redirect_to nodes_path, notice: "#{@nodes.count} nodes were successfully created." }
+        format.turbo_stream { render :create_bulk }
+      end
+    else
+      @node = Node.new(node_params)
+      if result.conflicts.any?
+        @node.errors.add(:hostname, "has conflicts: #{result.conflicts.join(', ')}")
+      else
+        @node.errors.add(:hostname, result.error)
+      end
+      @api_keys = ApiKey.active.order(:name)
+      @ssh_profiles = SshProfile.order(:name)
+      render :new, status: :unprocessable_entity
+    end
+  end
+
+  def bulk_pattern?(hostname)
+    hostname.to_s.match?(/\[(\d+)-(\d+)\]/)
   end
 end
