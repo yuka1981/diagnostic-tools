@@ -17,7 +17,7 @@
     <% end %>
   </td>
   <td class="whitespace-nowrap px-3 py-2 text-sm text-slate-600">
-    <%= link_to task.node.hostname, node_path(task.node), class: "hover:text-teal-600", data: { no_toggle: true } %>
+    <%= link_to task.node.hostname, node_path(task.node), class: "hover:text-teal-600", data: { turbo_frame: "_top", no_toggle: true } %>
   </td>
   <td class="whitespace-nowrap px-3 py-2">
     <p class="text-sm font-medium text-slate-900"><%= task.recipe_name %></p>

@@ -56,6 +56,7 @@
           <% end %>
 
           <%= link_to node_path(task.node),
+              data: { turbo_frame: "_top" },
               class: "w-full btn-secondary text-sm justify-center" do %>
             <%= lucide_icon("arrow-right", class: "h-4 w-4 mr-1") %>
             View Node
