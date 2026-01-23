@@ -18,8 +18,9 @@
       <%= form_with(url: node_install_index_path, method: :post, class: "space-y-6", scope: :install) do |f| %>
         <%= f.hidden_field :hostname, value: params[:hostname] %>
         <%= f.hidden_field :arch, value: @arch, id: "install_arch" %>
-        <%= f.hidden_field :bastion_host, value: (@node&.custom_bastion? ? @node.jump_host : @ssh_setting.bastion_host) %>
-        <%= f.hidden_field :bastion_user, value: (@node&.custom_bastion? ? (@node.jump_user.presence || @node.ssh_user) : (@ssh_setting.bastion_user.presence || @node&.ssh_user)) %>
+        <%# Bastion settings are now only global - use SshSetting %>
+        <%= f.hidden_field :bastion_host, value: @ssh_setting.bastion_host %>
+        <%= f.hidden_field :bastion_user, value: @ssh_setting.bastion_user.presence || @node&.effective_ssh_user %>
 
         <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
           <div>

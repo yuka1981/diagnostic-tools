@@ -79,16 +79,10 @@
             API Keys
           <% end %>
 
-          <%= link_to settings_ssh_path,
-              class: "flex items-center gap-3 px-3 py-2 text-sm font-bold rounded transition-colors #{request.path.start_with?('/settings/ssh') && !request.path.start_with?('/settings/ssh_profiles') ? 'bg-slate-800 text-teal-400' : 'hover:bg-slate-800 hover:text-teal-400'}" do %>
+          <%= link_to settings_ssh_defaults_path,
+              class: "flex items-center gap-3 px-3 py-2 text-sm font-bold rounded transition-colors #{request.path.start_with?('/settings/ssh_defaults') ? 'bg-slate-800 text-teal-400' : 'hover:bg-slate-800 hover:text-teal-400'}" do %>
             <%= lucide_icon("lock", class: "h-5 w-5 opacity-75") %>
-            SSH Settings
-          <% end %>
-
-          <%= link_to settings_ssh_profiles_path,
-              class: "flex items-center gap-3 px-3 py-2 text-sm font-bold rounded transition-colors #{request.path.start_with?('/settings/ssh_profiles') ? 'bg-slate-800 text-teal-400' : 'hover:bg-slate-800 hover:text-teal-400'}" do %>
-            <%= lucide_icon("key-round", class: "h-5 w-5 opacity-75") %>
-            SSH Profiles
+            SSH Defaults
           <% end %>
 
           <%= link_to settings_agent_path,

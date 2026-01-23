@@ -45,17 +45,22 @@ FactoryBot.define do
 
     trait :direct do
       ssh_connect_method { :direct }
+      ssh_connect_method_override { true }
     end
 
     trait :global_bastion do
       ssh_connect_method { :global_bastion }
     end
 
-    trait :custom_bastion do
-      ssh_connect_method { :custom_bastion }
-      jump_host { "bastion.example.com" }
-      jump_user { "bastion_user" }
-      jump_port { 22 }
+    # Override traits for node-specific SSH settings
+    trait :with_ssh_user_override do
+      ssh_user_override { true }
+      ssh_user { "custom_user" }
+    end
+
+    trait :with_ssh_port_override do
+      ssh_port_override { true }
+      ssh_port { 2222 }
     end
 
     trait :racked do

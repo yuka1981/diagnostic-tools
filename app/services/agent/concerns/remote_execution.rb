@@ -25,10 +25,12 @@ module Agent
       end
 
       def use_bastion?
-        return false if @node.direct?
         return false if localhost_target?
-        return true if @node.custom_bastion? && @node.jump_host.present?
-        return true if @node.global_bastion? && ::SshConfig.use_jump_host?
+
+        # Check effective connection method (respects override flags)
+        effective_method = @node.effective_ssh_connect_method
+        return false if effective_method == "direct"
+        return true if effective_method == "global_bastion" && ::SshConfig.use_jump_host?
 
         false
       end
@@ -37,32 +39,37 @@ module Agent
         cached = Rails.cache.read(cache_key)
 
         @ssh_password = cached&.dig(:ssh_password) ||
-                        @node.ssh_password
+                        @node.effective_ssh_password
 
         @sudo_password = cached&.dig(:sudo_password) ||
-                         @node.sudo_credential ||
+                         @node.effective_sudo_credential ||
                          @ssh_password
       end
 
       def ssh_user
-        @node.ssh_user.presence || ::SshConfig.user || "root"
+        @node.effective_ssh_user.presence || ::SshConfig.user || "root"
       end
 
-      def ssh_keys
-        key_path = ::SshConfig.key_path
-        key_path.present? ? [ key_path ] : []
+      def ssh_key_data
+        # Use effective SSH key from node (respects override flags)
+        @node.effective_ssh_key.presence || ::SshConfig.ssh_key
       end
 
       def ssh_options
-        {
-          timeout: 30,
+        options = {
+          timeout: ::SshConfig.timeout || 30,
           non_interactive: true,
           verify_host_key: :never,
-          keys: ssh_keys,
           password: @ssh_password,
           append_all_supported_algorithms: true,
           auth_methods: [ "publickey", "password", "keyboard-interactive" ]
-        }.compact
+        }
+
+        # Add key data if available (stored key content, not file path)
+        key_data = ssh_key_data
+        options[:key_data] = [ key_data ] if key_data.present?
+
+        options.compact
       end
 
       def report_progress(message)

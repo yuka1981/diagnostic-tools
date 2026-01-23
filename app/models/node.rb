@@ -9,12 +9,11 @@ class Node < ApplicationRecord
   belongs_to :api_key, optional: true
   belongs_to :server_rack, foreign_key: :rack_id, optional: true
   belongs_to :server_product, optional: true
-  belongs_to :ssh_profile, optional: true
 
-  # Enums
+  # Enums - removed custom_bastion, only global_bastion and direct remain
   enum :role, { compute: 0, login: 1, admin: 2 }, default: :compute
   enum :source, { manual: 0, csv: 1, agent_push: 2 }, default: :manual
-  enum :ssh_connect_method, { global_bastion: 0, custom_bastion: 1, direct: 2 }, default: :global_bastion
+  enum :ssh_connect_method, { global_bastion: 0, direct: 2 }, default: :global_bastion
 
   # Validations
   validates :hostname, presence: true, uniqueness: true, length: { maximum: 255 }
@@ -80,57 +79,35 @@ class Node < ApplicationRecord
     api_token.presence || api_key&.token
   end
 
-  def use_jump_host?
-    jump_host.present?
-  end
-
   def status
     online? ? :online : :offline
   end
 
-  # Returns effective SSH user (from profile or node override)
+  # Simplified effective_* methods using override flags
+  # If override flag is true, use node value. Otherwise, use global default.
+
   def effective_ssh_user
-    use_profile_settings? ? ssh_profile.ssh_user : ssh_user
+    ssh_user_override? ? ssh_user : SshSetting.current.ssh_user
   end
 
-  # Returns effective SSH port (from profile or node override)
   def effective_ssh_port
-    use_profile_settings? ? ssh_profile.ssh_port : ssh_port
+    ssh_port_override? ? ssh_port : SshSetting.current.ssh_port
   end
 
-  # Returns effective SSH connect method (from profile or node override)
   def effective_ssh_connect_method
-    use_profile_settings? ? ssh_profile.ssh_connect_method : ssh_connect_method
+    ssh_connect_method_override? ? ssh_connect_method : "global_bastion"
   end
 
-  # Returns effective SSH key (from profile or node override)
   def effective_ssh_key
-    use_profile_settings? ? ssh_profile.ssh_key : ssh_key
+    ssh_key_override? ? ssh_key : SshSetting.current.ssh_key
   end
 
-  # Returns effective SSH password (from profile or node override)
   def effective_ssh_password
-    use_profile_settings? ? ssh_profile.ssh_password : ssh_password
+    ssh_password_override? ? ssh_password : SshSetting.current.ssh_password
   end
 
-  # Returns effective sudo credential (from profile or node override)
   def effective_sudo_credential
-    use_profile_settings? ? ssh_profile.sudo_credential : sudo_credential
-  end
-
-  # Returns effective jump host (from profile or node override)
-  def effective_jump_host
-    use_profile_settings? ? ssh_profile.jump_host : jump_host
-  end
-
-  # Returns effective jump user (from profile or node override)
-  def effective_jump_user
-    use_profile_settings? ? ssh_profile.jump_user : jump_user
-  end
-
-  # Returns effective jump port (from profile or node override)
-  def effective_jump_port
-    use_profile_settings? ? ssh_profile.jump_port : jump_port
+    sudo_credential_override? ? sudo_credential : SshSetting.current.sudo_credential
   end
 
   # Returns true if the node has any pending or running benchmark runs
@@ -149,10 +126,6 @@ class Node < ApplicationRecord
   end
 
   private
-
-  def use_profile_settings?
-    ssh_profile.present? && !ssh_profile_override
-  end
 
   def generate_uuid
     self.uuid ||= SecureRandom.uuid

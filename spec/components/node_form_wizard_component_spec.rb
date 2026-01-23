@@ -4,14 +4,12 @@ require "rails_helper"
 
 RSpec.describe NodeFormWizardComponent, type: :component do
   let(:node) { build(:node) }
-  let(:ssh_profiles) { [] }
   let(:api_keys) { [] }
   let(:agent_config) { nil }
 
   subject(:component) do
     described_class.new(
       node: node,
-      ssh_profiles: ssh_profiles,
       api_keys: api_keys,
       agent_config: agent_config
     )
@@ -74,9 +72,11 @@ RSpec.describe NodeFormWizardComponent, type: :component do
     end
 
     context "step 3 (Connection)" do
-      it "has ssh_profile_id select" do
+      it "has SSH override checkboxes" do
         step3 = rendered.css("[data-wizard-target='step']")[2]
-        expect(step3.css("select[name='node[ssh_profile_id]']")).to be_present
+        expect(step3.css("input[name='node[ssh_user_override]']")).to be_present
+        expect(step3.css("input[name='node[ssh_port_override]']")).to be_present
+        expect(step3.css("input[name='node[ssh_connect_method_override]']")).to be_present
       end
 
       it "has api_key_id select" do
@@ -87,6 +87,11 @@ RSpec.describe NodeFormWizardComponent, type: :component do
       it "has agent_path field" do
         step3 = rendered.css("[data-wizard-target='step']")[2]
         expect(step3.css("input[name='node[agent_path]']")).to be_present
+      end
+
+      it "has link to SSH Defaults settings" do
+        step3 = rendered.css("[data-wizard-target='step']")[2]
+        expect(step3.css("a[href='/settings/ssh_defaults']")).to be_present
       end
     end
 
@@ -157,16 +162,6 @@ RSpec.describe NodeFormWizardComponent, type: :component do
       it "returns :patch" do
         expect(component.send(:form_method)).to eq(:patch)
       end
-    end
-  end
-
-  describe "#ssh_profiles_for_select" do
-    let(:ssh_profiles) { create_list(:ssh_profile, 2) }
-
-    it "returns profiles mapped to [name, id]" do
-      profiles = component.send(:ssh_profiles_for_select)
-      expect(profiles.length).to eq(2)
-      expect(profiles.first).to eq([ ssh_profiles.first.name, ssh_profiles.first.id ])
     end
   end
 

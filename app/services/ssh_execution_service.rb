@@ -50,9 +50,7 @@ class SshExecutionService
   end
 
   def direct_connection_required?
-    return true if @target_node.direct?
-
-    false
+    @target_node.effective_ssh_connect_method == "direct"
   end
 
   def localhost?(host)
@@ -87,8 +85,10 @@ class SshExecutionService
   end
 
   def use_jump_host?
-    return true if @target_node.custom_bastion? && @target_node.jump_host.present?
-    return true if @target_node.global_bastion? && ::SshConfig.use_jump_host?
+    # Only global_bastion connection method uses the jump host
+    # direct connection method bypasses the bastion
+    effective_method = @target_node.effective_ssh_connect_method
+    return true if effective_method == "global_bastion" && ::SshConfig.use_jump_host?
 
     false
   end
@@ -104,9 +104,10 @@ class SshExecutionService
   end
 
   def execute_via_gateway(cmd, &block)
-    gateway_host = @target_node.jump_host.presence || ::SshConfig.jump_host
-    gateway_user = @target_node.jump_user.presence || ::SshConfig.jump_user || @ssh_config[:user]
-    gateway_port = @target_node.jump_port || ::SshConfig.jump_port
+    # Bastion settings are now only in global SshConfig
+    gateway_host = ::SshConfig.jump_host
+    gateway_user = ::SshConfig.jump_user || @ssh_config[:user]
+    gateway_port = ::SshConfig.jump_port
     gateway_options = ssh_options.merge(port: gateway_port)
 
     gateway = Net::SSH::Gateway.new(gateway_host, gateway_user, gateway_options)
@@ -161,11 +162,11 @@ class SshExecutionService
   end
 
   def target_user
-    @target_node.ssh_user.presence || @ssh_config[:user]
+    @target_node.effective_ssh_user.presence || @ssh_config[:user]
   end
 
   def target_options
-    ssh_options.merge(port: @target_node.ssh_port)
+    ssh_options.merge(port: @target_node.effective_ssh_port)
   end
 
   def ssh_host
@@ -192,8 +193,8 @@ class SshExecutionService
     {
       user: config[:user] || default_ssh_user,
       keys: Array(config[:keys] || default_ssh_keys),
-      key_data: Array(config[:key_data] || @target_node.ssh_key.presence),
-      password: config[:password] || @target_node.sudo_credential.presence,
+      key_data: Array(config[:key_data] || @target_node.effective_ssh_key.presence),
+      password: config[:password] || @target_node.effective_sudo_credential.presence,
       timeout: config[:timeout] || default_ssh_timeout,
       verify_host_key: config[:verify_host_key] || default_verify_host_key
     }
