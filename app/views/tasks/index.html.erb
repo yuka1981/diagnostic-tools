@@ -67,37 +67,42 @@
         </div>
 
         <%# Pagination %>
-        <% if @tasks.total_pages > 1 %>
-          <div class="border-t border-slate-200 bg-slate-50 px-6 py-4">
-            <nav class="flex items-center justify-between" aria-label="Pagination">
-              <div class="hidden sm:block">
-                <p class="text-xs font-bold text-slate-500 uppercase">
-                  Showing
-                  <span class="text-slate-700"><%= @tasks.offset_value + 1 %></span>
-                  to
-                  <span class="text-slate-700"><%= [@tasks.offset_value + @tasks.limit_value, @tasks.total_count].min %></span>
-                  of
-                  <span class="text-slate-700"><%= @tasks.total_count %></span>
-                  tasks
-                </p>
-              </div>
-              <div class="flex flex-1 justify-between sm:justify-end gap-2">
-                <% if @tasks.prev_page %>
-                  <%= link_to "Previous",
-                      tasks_path(filter_params.merge(page: @tasks.prev_page)),
-                      data: { turbo_frame: "tasks_list" },
-                      class: "btn-secondary" %>
+        <div class="border-t border-slate-200 bg-slate-50 px-6 py-4">
+          <div class="flex items-center justify-between gap-4">
+            <%# Left: Showing info %>
+            <div class="hidden sm:block">
+              <p class="text-xs font-bold text-slate-500 uppercase">
+                Showing
+                <span class="text-slate-700"><%= @tasks.offset_value + 1 %></span>
+                to
+                <span class="text-slate-700"><%= [@tasks.offset_value + @tasks.limit_value, @tasks.total_count].min %></span>
+                of
+                <span class="text-slate-700"><%= @tasks.total_count %></span>
+                tasks
+              </p>
+            </div>
+
+            <%# Center: Page numbers %>
+            <% if @tasks.total_pages > 1 %>
+              <%= paginate @tasks, params: filter_params, window: 2, outer_window: 1 %>
+            <% end %>
+
+            <%# Right: Per-page selector %>
+            <div class="flex items-center gap-2">
+              <label for="per_page" class="text-xs font-bold text-slate-500 uppercase whitespace-nowrap">Per page</label>
+              <select id="per_page"
+                      class="text-sm rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 py-1.5"
+                      onchange="document.getElementById('tasks_list').src = this.value">
+                <% [10, 20, 50].each do |count| %>
+                  <option value="<%= tasks_path(filter_params.merge(per_page: count, page: 1)) %>"
+                          <%= 'selected' if @per_page == count %>>
+                    <%= count %>
+                  </option>
                 <% end %>
-                <% if @tasks.next_page %>
-                  <%= link_to "Next",
-                      tasks_path(filter_params.merge(page: @tasks.next_page)),
-                      data: { turbo_frame: "tasks_list" },
-                      class: "btn-secondary" %>
-                <% end %>
-              </div>
-            </nav>
+              </select>
+            </div>
           </div>
-        <% end %>
+        </div>
       <% else %>
         <div class="flex flex-col items-center justify-center py-12 text-center">
           <div class="h-12 w-12 rounded-full bg-slate-100 flex items-center justify-center mb-4">

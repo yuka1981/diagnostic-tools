@@ -4,10 +4,14 @@ class TasksController < ApplicationController
   layout "dashboard"
   helper_method :filter_params
 
+  PER_PAGE_OPTIONS = [ 10, 20, 50 ].freeze
+  DEFAULT_PER_PAGE = 20
+
   def index
     @filter = Tasks::FilterQuery.new(filter_params)
     all_tasks = @filter.call
-    @tasks = Kaminari.paginate_array(all_tasks).page(params[:page]).per(25)
+    @per_page = validated_per_page
+    @tasks = Kaminari.paginate_array(all_tasks).page(params[:page]).per(@per_page)
 
     # Load data for filter dropdowns
     @nodes = Node.order(:hostname)
@@ -87,7 +91,12 @@ class TasksController < ApplicationController
   private
 
   def filter_params
-    params.permit(:type, :status, :node_id, :recipe_id, :date_range, :q)
+    params.permit(:type, :status, :node_id, :recipe_id, :date_range, :q, :per_page)
+  end
+
+  def validated_per_page
+    per_page = params[:per_page].to_i
+    PER_PAGE_OPTIONS.include?(per_page) ? per_page : DEFAULT_PER_PAGE
   end
 
   def find_run

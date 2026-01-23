@@ -58,7 +58,7 @@ RSpec.describe "Tasks", type: :request do
 
       it "paginates results" do
         get tasks_path
-        expect(response.body).to include("Next")
+        expect(response.body).to include("page=2") # Next page link
       end
 
       it "accepts page parameter" do

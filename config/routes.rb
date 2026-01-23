@@ -117,6 +117,7 @@ Rails.application.routes.draw do
       post :mark_read
     end
     collection do
+      get :dropdown
       post :mark_all_read
       post :archive_read
     end

@@ -14,6 +14,11 @@ class NotificationsController < ApplicationController
     @unread_count = current_user.notifications.unread.count
   end
 
+  def dropdown
+    @notifications = current_user.notifications.for_dropdown
+    render partial: "notifications/list", locals: { notifications: @notifications }
+  end
+
   def mark_read
     NotificationService.mark_read(@notification)
 
