@@ -16,6 +16,20 @@
             </div>
           </div>
         </div>
+      <% elsif @required_fields.values.none? %>
+        <div class="rounded-md bg-teal-50 p-4 border border-teal-200 mb-6">
+          <div class="flex">
+            <div class="flex-shrink-0">
+              <%= lucide_icon("check-circle", class: "h-5 w-5 text-teal-400") %>
+            </div>
+            <div class="ml-3">
+              <h3 class="text-sm font-bold text-teal-800">Credentials Configured</h3>
+              <p class="mt-1 text-xs text-teal-700">
+                All required credentials are already configured. Select a release version to deploy.
+              </p>
+            </div>
+          </div>
+        </div>
       <% else %>
         <div class="rounded-md bg-blue-50 p-4 border border-blue-200 mb-6">
           <div class="flex">
@@ -36,37 +50,31 @@
                         @node.hostname == "127.0.0.1" || @node.hostname == "localhost" || @node.hostname == "::1" %>
 
       <%= form_with(url: node_update_path(@node), method: :post, class: "space-y-6") do |f| %>
-        <% unless is_localhost %>
+        <% if @required_fields[:ssh_password] && !is_localhost %>
           <%# SSH Password (for remote hosts - used for SSH authentication) %>
           <div>
             <%= f.label :ssh_password, "SSH Password", class: "block text-sm font-bold text-slate-700 mb-1" %>
             <%= f.password_field :ssh_password,
-                placeholder: @node.ssh_password.present? ? "•••••••• (using saved credential)" : "Enter SSH password (or leave blank for key auth)",
+                placeholder: "Enter SSH password (or leave blank for key auth)",
                 class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" %>
             <p class="mt-1 text-[10px] text-slate-500 italic">
-              <% if @node.ssh_password.present? %>
-                Leave blank to use the node's saved SSH password.
-              <% else %>
-                Required for password-based SSH authentication. Leave blank if using SSH keys.
-              <% end %>
+              Required for password-based SSH authentication. Leave blank if using SSH keys.
             </p>
           </div>
         <% end %>
 
-        <%# Sudo Password (optional - uses node's stored credential if not provided) %>
-        <div>
-          <%= f.label :sudo_password, "Sudo Password", class: "block text-sm font-bold text-slate-700 mb-1" %>
-          <%= f.password_field :sudo_password,
-              placeholder: @node.sudo_credential.present? ? "•••••••• (using saved credential)" : "Enter sudo password",
-              class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" %>
-          <p class="mt-1 text-[10px] text-slate-500 italic">
-            <% if @node.sudo_credential.present? %>
-              Leave blank to use the node's saved sudo credential.
-            <% else %>
+        <% if @required_fields[:sudo_password] %>
+          <%# Sudo Password (required when not stored in node or global settings) %>
+          <div>
+            <%= f.label :sudo_password, "Sudo Password", class: "block text-sm font-bold text-slate-700 mb-1" %>
+            <%= f.password_field :sudo_password,
+                placeholder: "Enter sudo password",
+                class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" %>
+            <p class="mt-1 text-[10px] text-slate-500 italic">
               Required if the SSH user needs sudo for systemctl commands.
-            <% end %>
-          </p>
-        </div>
+            </p>
+          </div>
+        <% end %>
 
         <div>
           <%= f.label :agent_release_id, "Agent Release", class: "block text-sm font-bold text-slate-700 mb-1" %>
