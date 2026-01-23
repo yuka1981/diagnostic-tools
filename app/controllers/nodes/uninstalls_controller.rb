@@ -8,11 +8,22 @@ module Nodes
     def new
       @target_host = params[:hostname]
       @node = Node.find_by(hostname: @target_host)
-      @ssh_setting = SshSetting.current
 
-      # Adjust preloaded settings based on node configuration
-      if @node&.direct?
-        @ssh_setting = SshSetting.new # Empty settings to avoid prefilling global bastion
+      # If node doesn't exist, always show modal
+      if @node.nil?
+        setup_modal_variables
+        return render :new
+      end
+
+      # Check if we have all required credentials
+      @checker = Agent::CredentialChecker.new(@node, operation: :uninstall)
+
+      if @checker.needs_modal?
+        setup_modal_variables
+        @required_fields = @checker.required_fields
+        render :new
+      else
+        start_uninstall_directly
       end
     end
 
@@ -49,6 +60,42 @@ module Nodes
 
     def uninstall_params
       params.require(:uninstall).permit(:hostname, :bastion_host, :bastion_user, :bastion_password, :sudo_password)
+    end
+
+    def setup_modal_variables
+      @ssh_setting = SshSetting.current
+
+      # Adjust preloaded settings based on node configuration
+      # For direct connections, don't prefill global bastion settings
+      if @node&.effective_ssh_connect_method == "direct"
+        @ssh_setting = SshSetting.new # Empty settings to avoid prefilling global bastion
+      end
+    end
+
+    def start_uninstall_directly
+      # One-click uninstall: bypass modal when all credentials are stored
+      ssh_setting = SshSetting.current
+
+      # Store credentials from node's stored values
+      cache_key = SecureRandom.hex(16)
+      credentials = {
+        bastion_password: @node.effective_ssh_password,
+        sudo_password: @node.effective_sudo_credential
+      }
+      Rails.cache.write("install_creds_#{cache_key}", credentials, expires_in: 5.minutes)
+
+      Agent::UninstallJob.perform_later(
+        target_host: @node.hostname,
+        bastion_host: ssh_setting.bastion_host,
+        bastion_user: ssh_setting.bastion_user.presence || @node.effective_ssh_user,
+        credentials_cache_key: cache_key,
+        user_id: current_user.id
+      )
+
+      respond_to do |format|
+        format.html { render "started" }
+        format.turbo_stream { render "started" }
+      end
     end
   end
 end

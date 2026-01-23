@@ -1,0 +1,20 @@
+<%= turbo_frame_tag "uninstall_modal" do %>
+  <%= render "shared/modal", title: "Uninstall Agent: #{@node.hostname}" do %>
+    <div class="px-2" id="uninstall_modal_body">
+      <div class="space-y-6">
+        <%# Subscription for status updates (Turbo Streams) %>
+        <%= turbo_stream_from "agent_uninstall_#{@node.hostname.parameterize}" %>
+
+        <%# High-level status summary %>
+        <div id="agent_uninstall_status_<%= @node.hostname.parameterize %>">
+          <%= render "nodes/uninstalls/status",
+              status: "processing",
+              message: "Starting uninstallation using stored credentials...",
+              target_host: @node.hostname,
+              steps: Agent::UninstallJob::STEPS,
+              current_step: nil %>
+        </div>
+      </div>
+    </div>
+  <% end %>
+<% end %>
