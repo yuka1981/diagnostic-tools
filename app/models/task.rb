@@ -46,6 +46,37 @@ class Task
     benchmark? ? source.artifact_indices : source.profiling_artifacts
   end
 
+  # Wraps artifacts with unified interface for views
+  def wrapped_artifacts
+    artifacts.map { |a| ArtifactWrapper.new(a, self) }
+  end
+
+  # Wrapper providing unified interface for BenchmarkRun artifacts and ProfilingRun artifacts
+  class ArtifactWrapper
+    include Rails.application.routes.url_helpers
+
+    attr_reader :artifact, :task
+
+    delegate :id, :downloadable?, to: :artifact
+
+    def initialize(artifact, task)
+      @artifact = artifact
+      @task = task
+    end
+
+    def name
+      artifact.respond_to?(:filename) ? artifact.filename : File.basename(artifact.path)
+    end
+
+    def download_path
+      if task.benchmark?
+        download_artifact_benchmark_run_path(task.source, artifact_id: artifact.id)
+      else
+        download_artifact_node_profiling_run_path(task.node, task.source, artifact_id: artifact.id)
+      end
+    end
+  end
+
   def dom_id
     "task_#{type}_#{id}"
   end

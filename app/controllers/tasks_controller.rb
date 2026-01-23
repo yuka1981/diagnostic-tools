@@ -55,12 +55,8 @@ class TasksController < ApplicationController
     return redirect_with_error("Task not found") unless run
 
     if run.is_a?(BenchmarkRun)
-      new_run = BenchmarkRun.create!(
-        node: run.node,
-        benchmark_recipe: run.benchmark_recipe,
-        arguments: run.arguments,
-        log_path: run.log_path
-      )
+      new_run = run.build_rerun
+      new_run.save!
       Benchmark::TriggerJob.perform_later(
         new_run.node,
         new_run,
@@ -70,13 +66,8 @@ class TasksController < ApplicationController
         user_id: current_user.id
       )
     else
-      new_run = ProfilingRun.create!(
-        node: run.node,
-        profiling_recipe: run.profiling_recipe,
-        subcommand: run.subcommand,
-        options: run.options,
-        user: current_user
-      )
+      new_run = run.build_rerun(user: current_user)
+      new_run.save!
       Profiling::TriggerJob.perform_later(
         new_run,
         request.base_url,

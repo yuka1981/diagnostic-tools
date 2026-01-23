@@ -88,22 +88,17 @@
       <div class="mt-4 pt-4 border-t border-slate-200">
         <h4 class="text-xs font-bold text-slate-500 uppercase mb-2">Artifacts</h4>
         <div class="flex flex-wrap gap-2">
-          <% task.artifacts.each do |artifact| %>
-            <% artifact_name = artifact.respond_to?(:filename) ? artifact.filename : File.basename(artifact.path) %>
-            <% download_path = task.benchmark? ?
-                download_artifact_benchmark_run_path(task.source, artifact_id: artifact.id) :
-                download_artifact_node_profiling_run_path(task.node, task.source, artifact_id: artifact.id) %>
-
+          <% task.wrapped_artifacts.each do |artifact| %>
             <% if artifact.downloadable? %>
-              <%= link_to download_path,
+              <%= link_to artifact.download_path,
                   class: "inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-teal-700 bg-teal-50 rounded hover:bg-teal-100" do %>
                 <%= lucide_icon("download", class: "h-3 w-3") %>
-                <%= artifact_name %>
+                <%= artifact.name %>
               <% end %>
             <% else %>
               <span class="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-slate-400 bg-slate-100 rounded cursor-not-allowed" title="File unavailable">
                 <%= lucide_icon("download", class: "h-3 w-3") %>
-                <%= artifact_name %>
+                <%= artifact.name %>
               </span>
             <% end %>
           <% end %>

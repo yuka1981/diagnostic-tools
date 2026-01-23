@@ -71,7 +71,7 @@ module Tasks
 
       scope = BenchmarkRun.includes(:node, :benchmark_recipe)
       scope = apply_common_filters(scope, :benchmark)
-      scope = apply_benchmark_recipe_filter(scope)
+      scope = apply_recipe_filter(scope, :benchmark, :benchmark_recipe_id)
       scope = apply_benchmark_search(scope)
       scope
     end
@@ -81,7 +81,7 @@ module Tasks
 
       scope = ProfilingRun.includes(:node, :profiling_recipe)
       scope = apply_common_filters(scope, :profiling)
-      scope = apply_profiling_recipe_filter(scope)
+      scope = apply_recipe_filter(scope, :profiling, :profiling_recipe_id)
       scope = apply_profiling_search(scope)
       scope
     end
@@ -100,31 +100,16 @@ module Tasks
       scope.where(created_at: duration.ago..)
     end
 
-    def apply_benchmark_recipe_filter(scope)
+    def apply_recipe_filter(scope, expected_type, foreign_key)
       return scope unless recipe_id.present?
 
-      parsed = parse_recipe_id
-      return BenchmarkRun.none unless parsed
-      return BenchmarkRun.none unless parsed[:type] == :benchmark
+      parsed = Task.parse_param(recipe_id)
+      return scope.none unless parsed
 
-      scope.where(benchmark_recipe_id: parsed[:id])
-    end
+      type, id = parsed
+      return scope.none unless type == expected_type
 
-    def apply_profiling_recipe_filter(scope)
-      return scope unless recipe_id.present?
-
-      parsed = parse_recipe_id
-      return ProfilingRun.none unless parsed
-      return ProfilingRun.none unless parsed[:type] == :profiling
-
-      scope.where(profiling_recipe_id: parsed[:id])
-    end
-
-    def parse_recipe_id
-      match = recipe_id.to_s.match(/\A(benchmark|profiling)_(\d+)\z/)
-      return nil unless match
-
-      { type: match[1].to_sym, id: match[2].to_i }
+      scope.where(foreign_key => id)
     end
 
     def apply_benchmark_search(scope)

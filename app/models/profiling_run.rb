@@ -42,6 +42,17 @@ class ProfilingRun < ApplicationRecord
     success? || failed? || cancelled?
   end
 
+  # Creates a new run with the same configuration for re-running
+  def build_rerun(user:)
+    self.class.new(
+      node: node,
+      profiling_recipe: profiling_recipe,
+      subcommand: subcommand,
+      options: options,
+      user: user
+    )
+  end
+
   private
 
   def generate_uuid
