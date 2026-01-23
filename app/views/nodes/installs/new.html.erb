@@ -1,6 +1,25 @@
 <%= turbo_frame_tag "install_modal" do %>
   <%= render "shared/modal", title: "Install Agent: #{params[:hostname]}" do %>
     <div class="px-2" id="install_modal_body">
+      <% # Default to showing all fields if @required_fields is not set (e.g., new nodes) %>
+      <% required_fields = @required_fields || { ssh_password: true, sudo_password: true, api_key: true, server_url: true } %>
+      <% required_count = required_fields.values.count(true) %>
+      <% if required_count > 0 %>
+        <div class="rounded-md bg-blue-50 p-4 border border-blue-200 mb-4">
+          <div class="flex">
+            <div class="flex-shrink-0">
+              <%= lucide_icon("info", class: "h-5 w-5 text-blue-400") %>
+            </div>
+            <div class="ml-3">
+              <p class="text-sm text-blue-700">
+                <%= required_count == 1 ? "One field is needed" : "Some fields are needed" %> for this installation.
+                <span class="text-blue-600">Configure in node or global settings to enable one-click installs.</span>
+              </p>
+            </div>
+          </div>
+        </div>
+      <% end %>
+
       <div class="rounded-md bg-amber-50 p-4 border border-amber-200 mb-6">
         <div class="flex">
           <div class="flex-shrink-0">
@@ -23,33 +42,41 @@
         <%= f.hidden_field :bastion_user, value: @ssh_setting.bastion_user.presence || @node&.effective_ssh_user %>
 
         <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
-          <div>
-            <%= f.label :sudo_password, "Remote Sudo Password", class: "block text-sm font-bold text-slate-700 mb-1" %>
-            <%= f.password_field :sudo_password, required: true,
-                placeholder: "••••••••",
-                class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" %>
-          </div>
+          <% if required_fields[:sudo_password] %>
+            <div>
+              <%= f.label :sudo_password, "Remote Sudo Password", class: "block text-sm font-bold text-slate-700 mb-1" %>
+              <%= f.password_field :sudo_password, required: true,
+                  placeholder: "••••••••",
+                  class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" %>
+            </div>
+          <% end %>
 
-          <div>
-            <%= f.label :bastion_password, "SSH Password / Key Passphrase", class: "block text-sm font-bold text-slate-700 mb-1" %>
-            <%= f.password_field :bastion_password, required: false,
-                placeholder: "•••••••• (optional)",
-                class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" %>
-          </div>
+          <% if required_fields[:ssh_password] %>
+            <div>
+              <%= f.label :bastion_password, "SSH Password / Key Passphrase", class: "block text-sm font-bold text-slate-700 mb-1" %>
+              <%= f.password_field :bastion_password, required: false,
+                  placeholder: "•••••••• (optional)",
+                  class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" %>
+            </div>
+          <% end %>
 
-          <div class="sm:col-span-2">
-            <%= f.label :api_key_id, "Agent API Key", class: "block text-sm font-bold text-slate-700 mb-1" %>
-            <%= f.collection_select :api_key_id, @api_keys, :id, :name, { prompt: "Select an API key for the agent" },
-                class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" %>
-          </div>
+          <% if required_fields[:api_key] %>
+            <div class="sm:col-span-2">
+              <%= f.label :api_key_id, "Agent API Key", class: "block text-sm font-bold text-slate-700 mb-1" %>
+              <%= f.collection_select :api_key_id, @api_keys, :id, :name, { prompt: "Select an API key for the agent" },
+                  class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" %>
+            </div>
+          <% end %>
 
-          <div class="sm:col-span-2">
-            <%= f.label :server_url, "Server URL (Callback)", class: "block text-sm font-bold text-slate-700 mb-1" %>
-            <%= f.text_field :server_url, value: @server_url,
-                placeholder: "http://10.0.0.1:3000",
-                class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm font-mono" %>
-            <p class="mt-1 text-[10px] text-slate-500 italic">The URL the agent will use to push data back to this server.</p>
-          </div>
+          <% if required_fields[:server_url] %>
+            <div class="sm:col-span-2">
+              <%= f.label :server_url, "Server URL (Callback)", class: "block text-sm font-bold text-slate-700 mb-1" %>
+              <%= f.text_field :server_url, value: @server_url,
+                  placeholder: "http://10.0.0.1:3000",
+                  class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm font-mono" %>
+              <p class="mt-1 text-[10px] text-slate-500 italic">The URL the agent will use to push data back to this server.</p>
+            </div>
+          <% end %>
         </div>
 
         <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
