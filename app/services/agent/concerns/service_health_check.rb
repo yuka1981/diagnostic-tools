@@ -10,9 +10,10 @@ module Agent
       def verify_service_running(ssh)
         max_retries = 10
         retry_count = 0
+        via_ssh = use_bastion?
 
         loop do
-          status = get_service_status(ssh)
+          status = get_service_status(ssh, via_ssh: via_ssh)
 
           if status == "active"
             report_progress "Service is running"
@@ -25,7 +26,7 @@ module Agent
             report_progress "Service is starting... (#{retry_count}/#{max_retries})"
             sleep 1
           else
-            diagnostics = ssh.nil? ? {} : capture_diagnostics(ssh)
+            diagnostics = ssh.nil? ? {} : capture_diagnostics(ssh, via_ssh: via_ssh)
             raise Errors::ServiceError.new(
               "Service failed to start. Status: #{status}",
               phase: :verify,
@@ -35,12 +36,12 @@ module Agent
         end
       end
 
-      def get_service_status(ssh)
+      def get_service_status(ssh, via_ssh: false)
         if ssh.nil?
           output = execute_local_command("systemctl is-active #{SERVICE_NAME}", use_sudo: true)
           clean_sudo_output(output)
         else
-          cmd = build_remote_command("systemctl is-active #{SERVICE_NAME}", via_ssh: false, use_sudo: true)
+          cmd = build_remote_command("systemctl is-active #{SERVICE_NAME}", via_ssh: via_ssh, use_sudo: true)
           output = execute_command(ssh, cmd, password: @sudo_password)
           clean_sudo_output(output)
         end
