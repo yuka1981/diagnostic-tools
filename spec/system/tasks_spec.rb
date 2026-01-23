@@ -690,7 +690,7 @@ RSpec.describe "Tasks", type: :system do
 
   describe "pagination", :js do
     before do
-      # Create 30 tasks (more than the default 25 per page)
+      # Create 30 tasks (more than the default 20 per page)
       30.times do |i|
         create(:benchmark_run, :success,
                node: node1,
@@ -703,32 +703,32 @@ RSpec.describe "Tasks", type: :system do
     it "shows pagination controls when there are many tasks" do
       visit tasks_path
 
-      expect(page).to have_content(/Showing 1 to 25 of 30 tasks/i)
-      expect(page).to have_link("Next")
+      expect(page).to have_content(/Showing 1 to 20 of 30 tasks/i)
+      expect(page).to have_css('a[rel="next"]')
     end
 
     it "navigates to the next page" do
       visit tasks_path
 
-      click_link "Next"
+      find('a[rel="next"]').click
 
-      expect(page).to have_content(/Showing 26 to 30 of 30 tasks/i, wait: 5)
-      expect(page).to have_link("Previous")
+      expect(page).to have_content(/Showing 21 to 30 of 30 tasks/i, wait: 5)
+      expect(page).to have_css('a[rel="prev"]')
     end
 
     it "navigates back to the previous page" do
       visit tasks_path(page: 2)
 
-      click_link "Previous"
+      find('a[rel="prev"]').click
 
-      expect(page).to have_content(/Showing 1 to 25 of 30 tasks/i, wait: 5)
+      expect(page).to have_content(/Showing 1 to 20 of 30 tasks/i, wait: 5)
     end
 
     it "shows correct number of rows per page" do
       visit tasks_path
 
       within("tbody") do
-        expect(page).to have_selector("tr[id^='task_']", count: 25)
+        expect(page).to have_selector("tr[id^='task_']", count: 20)
       end
     end
   end
