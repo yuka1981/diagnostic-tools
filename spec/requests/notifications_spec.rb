@@ -96,6 +96,40 @@ RSpec.describe "Notifications", type: :request do
     end
   end
 
+  describe "GET /notifications/dropdown" do
+    context "when not authenticated" do
+      it "redirects to login page" do
+        get dropdown_notifications_path
+        expect(response).to redirect_to(new_user_session_path)
+      end
+    end
+
+    context "when authenticated" do
+      before { sign_in user }
+
+      it "returns http success" do
+        get dropdown_notifications_path
+        expect(response).to have_http_status(:success)
+      end
+
+      it "returns the notifications list partial" do
+        create(:notification, user: user, title: "Dropdown Test")
+        get dropdown_notifications_path
+        expect(response.body).to include("Dropdown Test")
+        expect(response.body).to include("notifications_list")
+      end
+
+      it "only includes current user notifications" do
+        create(:notification, user: user, title: "My Dropdown Notification")
+        create(:notification, user: other_user, title: "Other Dropdown Notification")
+
+        get dropdown_notifications_path
+        expect(response.body).to include("My Dropdown Notification")
+        expect(response.body).not_to include("Other Dropdown Notification")
+      end
+    end
+  end
+
   describe "POST /notifications/:id/mark_read" do
     let!(:notification) { create(:notification, user: user, read: false) }
 

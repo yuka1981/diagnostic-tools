@@ -44,10 +44,16 @@
           </button>
         </div>
 
-        <div id="notifications_list" class="max-h-96 overflow-y-auto">
+        <div class="max-h-96 overflow-y-auto">
           <% if current_user %>
             <%= turbo_stream_from "notifications_user_#{current_user.id}" %>
-            <%= render "notifications/list", notifications: current_user.notifications.for_dropdown %>
+            <%= turbo_frame_tag "notifications_list",
+                data: { notifications_target: "frame" } do %>
+              <div class="p-4 text-center text-gray-500 text-sm">
+                <%= lucide_icon("loader-2", class: "h-5 w-5 animate-spin inline-block mr-2") %>
+                Loading...
+              </div>
+            <% end %>
           <% end %>
         </div>
 

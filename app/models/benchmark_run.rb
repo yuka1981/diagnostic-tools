@@ -43,6 +43,16 @@ class BenchmarkRun < ApplicationRecord
     success? || failed? || cancelled?
   end
 
+  # Creates a new run with the same configuration for re-running
+  def build_rerun
+    self.class.new(
+      node: node,
+      benchmark_recipe: benchmark_recipe,
+      arguments: arguments,
+      log_path: log_path
+    )
+  end
+
   private
 
   def generate_uuid

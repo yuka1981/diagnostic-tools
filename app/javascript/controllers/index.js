@@ -4,6 +4,12 @@
 
 import { application } from "./application"
 
+import AccordionController from "./accordion_controller"
+application.register("accordion", AccordionController)
+
+import AutoRefreshController from "./auto_refresh_controller"
+application.register("auto-refresh", AutoRefreshController)
+
 import AutosubmitController from "./autosubmit_controller"
 application.register("autosubmit", AutosubmitController)
 

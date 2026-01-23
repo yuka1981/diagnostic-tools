@@ -272,6 +272,7 @@ After=network-online.target
 
 [Service]
 Type=simple
+Environment="PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 ExecStart=${INSTALL_DIR}/hpc-agent start --node-uuid "${NODE_UUID}" --server "${SERVER_URL}" --token "${AGENT_TOKEN}" --heartbeat-interval ${HEARTBEAT_INTERVAL} --inventory-interval ${INVENTORY_INTERVAL}
 Restart=always
 RestartSec=10s

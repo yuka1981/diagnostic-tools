@@ -1,0 +1,89 @@
+<div class="card-netbox mb-6">
+  <div class="card-header">
+    <h3 class="card-title">Filters</h3>
+  </div>
+  <div class="p-4">
+    <%= form_with url: tasks_path, method: :get, data: { controller: "autosubmit", turbo_frame: "tasks_list", turbo_action: "advance" }, class: "flex flex-wrap items-end gap-4" do |f| %>
+      <%# Search Field %>
+      <div class="flex-1 min-w-[200px]">
+        <label for="q" class="block text-xs font-bold text-slate-500 uppercase mb-1">Search</label>
+        <%= f.text_field :q,
+            value: @filter.search_query,
+            placeholder: "Search by node, recipe, UUID...",
+            class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" %>
+      </div>
+
+      <%# Type Filter %>
+      <div class="w-32">
+        <label for="type" class="block text-xs font-bold text-slate-500 uppercase mb-1">Type</label>
+        <%= f.select :type,
+            options_for_select([["All Types", ""], ["Benchmark", "benchmark"], ["Profiling", "profiling"]], @filter.type_filter),
+            {},
+            class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm",
+            data: { action: "change->autosubmit#submit" } %>
+      </div>
+
+      <%# Status Filter %>
+      <div class="w-32">
+        <label for="status" class="block text-xs font-bold text-slate-500 uppercase mb-1">Status</label>
+        <%= f.select :status,
+            options_for_select([["All Statuses", ""]] + BenchmarkRun.statuses.keys.map { |s| [s.humanize, s] }, @filter.status),
+            {},
+            class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm",
+            data: { action: "change->autosubmit#submit" } %>
+      </div>
+
+      <%# Node Filter %>
+      <div class="w-40">
+        <label for="node_id" class="block text-xs font-bold text-slate-500 uppercase mb-1">Node</label>
+        <%= f.select :node_id,
+            options_for_select([["All Nodes", ""]] + @nodes.map { |n| [n.hostname, n.id] }, @filter.node_id),
+            {},
+            class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm",
+            data: { action: "change->autosubmit#submit" } %>
+      </div>
+
+      <%# Recipe Filter %>
+      <div class="w-48">
+        <label for="recipe_id" class="block text-xs font-bold text-slate-500 uppercase mb-1">Recipe</label>
+        <%= f.select :recipe_id,
+            options_for_select(
+              [["All Recipes", ""]] +
+              @benchmark_recipes.map { |r| ["Benchmark: #{r.name}", "benchmark_#{r.id}"] } +
+              @profiling_recipes.map { |r| ["Profiling: #{r.name}", "profiling_#{r.id}"] },
+              @filter.recipe_id
+            ),
+            {},
+            class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm",
+            data: { action: "change->autosubmit#submit" } %>
+      </div>
+
+      <%# Date Range Filter %>
+      <div class="w-36">
+        <label for="date_range" class="block text-xs font-bold text-slate-500 uppercase mb-1">Date</label>
+        <%= f.select :date_range,
+            options_for_select([
+              ["All Time", ""],
+              ["Last Hour", "last_hour"],
+              ["Last 24 Hours", "last_24h"],
+              ["Last 7 Days", "last_7d"],
+              ["Last 30 Days", "last_30d"]
+            ], @filter.date_range),
+            {},
+            class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm",
+            data: { action: "change->autosubmit#submit" } %>
+      </div>
+
+      <%# Actions %>
+      <div class="flex items-center gap-2">
+        <%= f.submit "Search", class: "btn-primary cursor-pointer" %>
+
+        <% if @filter.filtered? %>
+          <%= link_to "Clear", tasks_path,
+              data: { turbo_frame: "tasks_list" },
+              class: "btn-secondary" %>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+</div>

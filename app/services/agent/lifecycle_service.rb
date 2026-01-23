@@ -158,15 +158,17 @@ module Agent
       gateway_host = @node.jump_host.presence || ::SshConfig.jump_host
       gateway_user = @node.jump_user.presence || ::SshConfig.jump_user || ssh_user
       gateway_port = @node.jump_port || ::SshConfig.jump_port || 22
+      target_host = @node.ip.presence || @node.hostname
 
-      report_progress "Connecting via bastion #{gateway_host}"
+      report_progress "Connecting to bastion #{gateway_host} (target: #{target_host})"
 
+      # Connect to bastion - commands will SSH from bastion to target via build_remote_command(via_ssh: true)
       Net::SSH.start(gateway_host, gateway_user, ssh_options.merge(port: gateway_port), &block)
     rescue Errno::ECONNREFUSED, Errno::EHOSTUNREACH, Errno::ETIMEDOUT, Net::SSH::AuthenticationFailed => e
       raise Errors::ConnectionError.new(
         "Bastion connection failed: #{e.message}",
         phase: :connect,
-        details: { bastion: gateway_host, error_class: e.class.name },
+        details: { bastion: gateway_host, target: target_host, error_class: e.class.name },
         recoverable: true
       )
     end
