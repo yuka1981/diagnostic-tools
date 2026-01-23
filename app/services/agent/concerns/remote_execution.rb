@@ -59,7 +59,7 @@ module Agent
         options = {
           timeout: ::SshConfig.timeout || 30,
           non_interactive: true,
-          verify_host_key: :never,
+          verify_host_key: ::SshConfig.verify_host_key ? :always : :never,
           password: @ssh_password,
           append_all_supported_algorithms: true,
           auth_methods: [ "publickey", "password", "keyboard-interactive" ]

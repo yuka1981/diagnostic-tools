@@ -178,4 +178,24 @@ RSpec.describe Agent::Concerns::RemoteExecution do
       service.set_selinux_context(mock_ssh, "/usr/local/bin/hpc-agent", type: "bin_t")
     end
   end
+
+  describe "#ssh_options" do
+    it "uses global verify_host_key setting when enabled" do
+      SshSetting.current.update!(verify_host_key: true)
+      options = service.ssh_options
+      expect(options[:verify_host_key]).to eq(:always)
+    end
+
+    it "disables host key verification when global setting is false" do
+      SshSetting.current.update!(verify_host_key: false)
+      options = service.ssh_options
+      expect(options[:verify_host_key]).to eq(:never)
+    end
+
+    it "uses global timeout setting" do
+      SshSetting.current.update!(timeout: 60)
+      options = service.ssh_options
+      expect(options[:timeout]).to eq(60)
+    end
+  end
 end
