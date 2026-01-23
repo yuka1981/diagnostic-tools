@@ -16,10 +16,10 @@ RSpec.describe "Settings::SshDefaults", type: :system do
     expect(page).to have_content("SSH Defaults")
     expect(page).to have_content("Bastion / Jump Host")
 
-    # Fill in the form
-    fill_in "Host", with: "bastion.example.com"
-    fill_in "node[bastion_user]", with: "admin-user", visible: false
-    fill_in "node[bastion_port]", with: "2222", visible: false
+    # Fill in the form - use form field names that match SshSetting model
+    fill_in "ssh_setting[bastion_host]", with: "bastion.example.com"
+    fill_in "ssh_setting[bastion_user]", with: "admin-user"
+    fill_in "ssh_setting[bastion_port]", with: "2222"
 
     click_button "Save SSH Defaults"
 
@@ -29,6 +29,8 @@ RSpec.describe "Settings::SshDefaults", type: :system do
     # Verify database state
     setting = SshSetting.current
     expect(setting.bastion_host).to eq("bastion.example.com")
+    expect(setting.bastion_user).to eq("admin-user")
+    expect(setting.bastion_port).to eq(2222)
   end
 
   it "allows updating global Agent settings" do

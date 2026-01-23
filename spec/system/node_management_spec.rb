@@ -27,12 +27,16 @@ RSpec.describe "Node Management", type: :system, js: true do
       # Step 2: Server & Location (skip through)
       click_button "Next"
 
-      # Step 3: Connection - SSH Configuration
-      expect(page).to have_content(/SSH Configuration/i)
-      fill_in "SSH Port", with: "22"
-      fill_in "SSH User", with: "deploy"
-      fill_in "Sudo Password", with: "secret-password"
-      fill_in "SSH Key (optional)", with: "ssh-rsa AAAAB3Nza..."
+      # Step 3: Connection - SSH Connection (override-based form)
+      expect(page).to have_content(/SSH Connection/i)
+
+      # Enable SSH User override and fill in
+      check "Override SSH User"
+      fill_in "node[ssh_user]", with: "deploy"
+
+      # Enable SSH Port override and fill in
+      check "Override SSH Port"
+      fill_in "node[ssh_port]", with: "22"
 
       click_button "Save Node"
     end
@@ -44,13 +48,17 @@ RSpec.describe "Node Management", type: :system, js: true do
     expect(node).to be_present
     expect(node.ssh_port).to eq(22)
     expect(node.ssh_user).to eq("deploy")
+    expect(node.ssh_user_override).to be true
+    expect(node.ssh_port_override).to be true
 
     # Ensure modal is closed
     expect(page).not_to have_selector("turbo-frame#node_modal .card-netbox")
   end
 
   it "allows an approver to remove an agent" do
-    node = create(:node, hostname: "uninstall-target", source: :agent_push, ip: "10.0.0.5")
+    # Create node with non-root SSH user to require sudo password
+    node = create(:node, hostname: "uninstall-target", source: :agent_push, ip: "10.0.0.5",
+                  ssh_user: "deploy", ssh_user_override: true)
     visit nodes_path
 
     # Use a more specific selector to avoid intercepting other elements
