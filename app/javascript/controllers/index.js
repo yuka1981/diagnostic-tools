@@ -25,6 +25,9 @@ application.register("clipboard", ClipboardController)
 import CollapsibleController from "./collapsible_controller"
 application.register("collapsible", CollapsibleController)
 
+import CredentialClearController from "./credential_clear_controller"
+application.register("credential-clear", CredentialClearController)
+
 import DisclosureController from "./disclosure_controller"
 application.register("disclosure", DisclosureController)
 
