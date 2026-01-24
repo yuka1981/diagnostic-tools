@@ -17,18 +17,29 @@ export default class extends Controller {
   }
 
   connect() {
+    // Register global toast function for use from other controllers
+    window.showToast = this.show.bind(this)
+    // Also listen for custom events
     this.boundShow = this.show.bind(this)
     window.addEventListener("toast:show", this.boundShow)
   }
 
   disconnect() {
     window.removeEventListener("toast:show", this.boundShow)
+    delete window.showToast
   }
 
   show(event) {
-    const { message, type = "info" } = event.detail
-    const toast = this.createToast(message, type)
+    // Handle both direct calls and custom events
+    const detail = event?.detail || event
+    const { message, type = "info" } = detail
 
+    if (!this.hasContainerTarget) {
+      console.error("[Toast] Container target not found!")
+      return
+    }
+
+    const toast = this.createToast(message, type)
     this.containerTarget.appendChild(toast)
 
     // Trigger enter animation
@@ -66,7 +77,8 @@ export default class extends Controller {
   }
 
   dismissClick(event) {
-    const toast = event.target.closest("[data-controller='toast'] > div")
+    // Find the toast element (parent of the close button)
+    const toast = event.target.closest(".flex.items-center.gap-3")
     if (toast) this.dismiss(toast)
   }
 
