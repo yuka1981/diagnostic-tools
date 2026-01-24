@@ -35,8 +35,8 @@ module Agent
         false
       end
 
-      def resolve_credentials(cache_key:)
-        cached = Rails.cache.read(cache_key)
+      def resolve_credentials(cache_key: nil)
+        cached = cache_key.present? ? Rails.cache.read(cache_key) : nil
 
         @ssh_password = cached&.dig(:ssh_password) ||
                         @node.effective_ssh_password

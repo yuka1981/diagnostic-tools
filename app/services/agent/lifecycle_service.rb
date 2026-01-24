@@ -32,7 +32,8 @@ module Agent
       @agent_event.mark_running!
       @operation_started_at = Time.current
 
-      resolve_credentials(cache_key: @cache_key) if @cache_key
+      # Always resolve credentials - from cache if available, otherwise from node settings
+      resolve_credentials(cache_key: @cache_key)
 
       run_preflight_checks
 
