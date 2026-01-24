@@ -30,15 +30,8 @@ module Api
 
       def update_run(run)
         # Map agent status to server status
-        # agent statuses: UNKNOWN, PASS, FAIL, ERROR
+        # agent statuses: UNKNOWN, PASS, FAIL, ERROR, RUNNING
         # server statuses: pending, running, success, failed, cancelled
-
-        status_map = {
-          "PASS" => :success,
-          "FAIL" => :failed,
-          "ERROR" => :failed,
-          "RUNNING" => :running # I'll add this to the agent
-        }
 
         # Build error message: prefer explicit error_message, fall back to status description
         error_msg = params[:error_message].presence
@@ -47,7 +40,7 @@ module Api
         end
 
         update_params = {
-          status: status_map[params[:status]] || run.status,
+          status: BenchmarkRun.status_from_agent(params[:status]) || run.status,
           metrics: params[:metrics],
           started_at: sanitize_timestamp(params[:start_time]),
           finished_at: sanitize_timestamp(params[:end_time]),

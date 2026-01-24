@@ -170,4 +170,26 @@ RSpec.describe BenchmarkRun, type: :model do
       expect(node.benchmark_runs.count).to eq(3)
     end
   end
+
+  describe ".status_from_agent" do
+    it "maps PASS to success" do
+      expect(BenchmarkRun.status_from_agent("PASS")).to eq(:success)
+    end
+
+    it "maps FAIL to failed" do
+      expect(BenchmarkRun.status_from_agent("FAIL")).to eq(:failed)
+    end
+
+    it "maps ERROR to failed" do
+      expect(BenchmarkRun.status_from_agent("ERROR")).to eq(:failed)
+    end
+
+    it "maps RUNNING to running" do
+      expect(BenchmarkRun.status_from_agent("RUNNING")).to eq(:running)
+    end
+
+    it "returns nil for unknown status" do
+      expect(BenchmarkRun.status_from_agent("UNKNOWN")).to be_nil
+    end
+  end
 end
