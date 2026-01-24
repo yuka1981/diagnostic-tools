@@ -37,6 +37,67 @@ RSpec.describe "Nodes::Installs", type: :request do
       get new_node_install_path(hostname: "compute-001"), headers: { "Turbo-Frame" => "install_modal" }
       expect(response.body).to include('value="https://agent.example.com"')
     end
+
+    context "one-click install (all credentials configured)" do
+      let(:api_key) { create(:api_key) }
+
+      before do
+        # Configure global SSH settings with all required credentials
+        SshSetting.current.update!(
+          server_url: "https://agent.example.com",
+          ssh_user: "root",  # root user doesn't need sudo
+          ssh_key: "-----BEGIN OPENSSH PRIVATE KEY-----\ntest\n-----END OPENSSH PRIVATE KEY-----"
+        )
+      end
+
+      it "bypasses modal and enqueues install job directly" do
+        node = create(:node, hostname: "configured-node", api_key: api_key)
+
+        expect {
+          get new_node_install_path(hostname: "configured-node"), headers: { "Turbo-Frame" => "install_modal" }
+        }.to enqueue_job(Agent::InstallJob).with(
+          hash_including(
+            target_host: "configured-node",
+            api_key_id: api_key.id
+          )
+        )
+
+        expect(response).to have_http_status(:success)
+        expect(response.body).to include("Starting installation using stored credentials")
+      end
+
+      it "shows modal when node has no API key" do
+        node = create(:node, hostname: "no-api-key-node", api_key: nil)
+
+        expect {
+          get new_node_install_path(hostname: "no-api-key-node"), headers: { "Turbo-Frame" => "install_modal" }
+        }.not_to enqueue_job(Agent::InstallJob)
+
+        expect(response).to have_http_status(:success)
+        expect(response.body).to include("Begin Installation")  # Form submit button
+      end
+
+      it "shows modal when server_url is not configured" do
+        SshSetting.current.update!(server_url: nil)
+        node = create(:node, hostname: "no-url-node", api_key: api_key)
+
+        expect {
+          get new_node_install_path(hostname: "no-url-node"), headers: { "Turbo-Frame" => "install_modal" }
+        }.not_to enqueue_job(Agent::InstallJob)
+
+        expect(response).to have_http_status(:success)
+        expect(response.body).to include("Begin Installation")
+      end
+
+      it "shows modal for new nodes (not in database)" do
+        expect {
+          get new_node_install_path(hostname: "new-node"), headers: { "Turbo-Frame" => "install_modal" }
+        }.not_to enqueue_job(Agent::InstallJob)
+
+        expect(response).to have_http_status(:success)
+        expect(response.body).to include("Begin Installation")
+      end
+    end
   end
 
   describe "POST /nodes/installs" do

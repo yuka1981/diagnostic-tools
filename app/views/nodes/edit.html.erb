@@ -2,7 +2,6 @@
   <%= render "shared/modal", title: "Edit Node: #{@node.hostname}", max_width: "max-w-3xl" do %>
     <%= render NodeFormWizardComponent.new(
       node: @node,
-      ssh_profiles: @ssh_profiles,
       api_keys: @api_keys
     ) %>
   <% end %>

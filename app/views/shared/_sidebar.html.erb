@@ -4,10 +4,8 @@
   <%# Brand %>
   <div class="flex h-14 items-center px-4 border-b border-slate-800 bg-slate-900">
     <div class="flex items-center gap-3">
-      <div class="flex h-8 w-8 items-center justify-center rounded bg-teal-600 text-white shadow-sm">
-        <%= lucide_icon("server", class: "h-5 w-5") %>
-      </div>
-      <span class="text-base font-bold text-white tracking-tight">HPC Diagnostics</span>
+      <%= image_tag "qct_logo.png", alt: "QCT", class: "h-8 w-auto" %>
+      <span class="text-base font-bold text-white tracking-tight">InfraScope</span>
     </div>
   </div>
 
@@ -79,16 +77,10 @@
             API Keys
           <% end %>
 
-          <%= link_to settings_ssh_path,
-              class: "flex items-center gap-3 px-3 py-2 text-sm font-bold rounded transition-colors #{request.path.start_with?('/settings/ssh') && !request.path.start_with?('/settings/ssh_profiles') ? 'bg-slate-800 text-teal-400' : 'hover:bg-slate-800 hover:text-teal-400'}" do %>
+          <%= link_to settings_ssh_defaults_path,
+              class: "flex items-center gap-3 px-3 py-2 text-sm font-bold rounded transition-colors #{request.path.start_with?('/settings/ssh_defaults') ? 'bg-slate-800 text-teal-400' : 'hover:bg-slate-800 hover:text-teal-400'}" do %>
             <%= lucide_icon("lock", class: "h-5 w-5 opacity-75") %>
-            SSH Settings
-          <% end %>
-
-          <%= link_to settings_ssh_profiles_path,
-              class: "flex items-center gap-3 px-3 py-2 text-sm font-bold rounded transition-colors #{request.path.start_with?('/settings/ssh_profiles') ? 'bg-slate-800 text-teal-400' : 'hover:bg-slate-800 hover:text-teal-400'}" do %>
-            <%= lucide_icon("key-round", class: "h-5 w-5 opacity-75") %>
-            SSH Profiles
+            SSH Defaults
           <% end %>
 
           <%= link_to settings_agent_path,

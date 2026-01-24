@@ -51,11 +51,27 @@ RSpec.describe Agent::Concerns::RemoteExecution do
       end
     end
 
-    context "with custom bastion and jump_host" do
-      let(:node) { create(:node, :custom_bastion, jump_host: "jump.example.com") }
+    context "with global_bastion and configured jump host" do
+      let(:node) { create(:node, :global_bastion) }
+
+      before do
+        SshSetting.current.update!(bastion_host: "bastion.example.com")
+      end
 
       it "returns true" do
         expect(service.use_bastion?).to be true
+      end
+    end
+
+    context "with global_bastion but no jump host configured" do
+      let(:node) { create(:node, :global_bastion) }
+
+      before do
+        SshSetting.current.update!(bastion_host: nil)
+      end
+
+      it "returns false" do
+        expect(service.use_bastion?).to be false
       end
     end
 
@@ -79,34 +95,34 @@ RSpec.describe Agent::Concerns::RemoteExecution do
     end
 
     it "falls back to node credentials when cache empty" do
-      node.update!(ssh_password: "node_ssh", sudo_credential: "node_sudo")
+      node.update!(ssh_password: "node_ssh", sudo_credential: "node_sudo", ssh_password_override: true, sudo_credential_override: true)
       service.resolve_credentials(cache_key: "nonexistent")
       expect(service.ssh_password).to eq("node_ssh")
       expect(service.sudo_password).to eq("node_sudo")
     end
 
     it "uses ssh_password as sudo fallback" do
-      node.update!(ssh_password: "shared_pass", sudo_credential: nil)
+      node.update!(ssh_password: "shared_pass", sudo_credential: nil, ssh_password_override: true)
       service.resolve_credentials(cache_key: "nonexistent")
       expect(service.sudo_password).to eq("shared_pass")
     end
   end
 
   describe "#ssh_user" do
-    it "uses node's ssh_user when present" do
-      node.ssh_user = "custom_user"
+    it "uses node's effective_ssh_user when present" do
+      node.update!(ssh_user: "custom_user", ssh_user_override: true)
       expect(service.ssh_user).to eq("custom_user")
     end
 
-    it "falls back to SshConfig user" do
-      node.ssh_user = nil
-      allow(SshConfig).to receive(:user).and_return("config_user")
+    it "falls back to SshConfig user when node has no override" do
+      node.update!(ssh_user_override: false)
+      SshSetting.current.update!(ssh_user: "config_user")
       expect(service.ssh_user).to eq("config_user")
     end
 
     it "defaults to root" do
-      node.ssh_user = nil
-      allow(SshConfig).to receive(:user).and_return(nil)
+      node.update!(ssh_user_override: false)
+      SshSetting.current.update!(ssh_user: nil)
       expect(service.ssh_user).to eq("root")
     end
   end
@@ -160,6 +176,26 @@ RSpec.describe Agent::Concerns::RemoteExecution do
         password: anything
       )
       service.set_selinux_context(mock_ssh, "/usr/local/bin/hpc-agent", type: "bin_t")
+    end
+  end
+
+  describe "#ssh_options" do
+    it "uses global verify_host_key setting when enabled" do
+      SshSetting.current.update!(verify_host_key: true)
+      options = service.ssh_options
+      expect(options[:verify_host_key]).to eq(:always)
+    end
+
+    it "disables host key verification when global setting is false" do
+      SshSetting.current.update!(verify_host_key: false)
+      options = service.ssh_options
+      expect(options[:verify_host_key]).to eq(:never)
+    end
+
+    it "uses global timeout setting" do
+      SshSetting.current.update!(timeout: 60)
+      options = service.ssh_options
+      expect(options[:timeout]).to eq(60)
     end
   end
 end

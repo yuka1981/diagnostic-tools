@@ -1,16 +1,15 @@
 # frozen_string_literal: true
 
 class NodeFormWizardComponent < ViewComponent::Base
-  def initialize(node:, ssh_profiles: [], api_keys: [], agent_config: nil)
+  def initialize(node:, api_keys: [], agent_config: nil)
     @node = node
-    @ssh_profiles = ssh_profiles
     @api_keys = api_keys
     @agent_config = agent_config || SshSetting.current
   end
 
   private
 
-  attr_reader :node, :ssh_profiles, :api_keys, :agent_config
+  attr_reader :node, :api_keys, :agent_config
 
   def roles_for_select
     Node.roles.keys.map { |r| [ r.titleize, r ] }
@@ -18,10 +17,6 @@ class NodeFormWizardComponent < ViewComponent::Base
 
   def architectures_for_select
     [ [ "x86_64", "x86_64" ], [ "ARM64", "aarch64" ] ]
-  end
-
-  def ssh_profiles_for_select
-    ssh_profiles.map { |p| [ p.name, p.id ] }
   end
 
   def api_keys_for_select

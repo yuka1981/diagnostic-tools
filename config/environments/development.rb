@@ -80,9 +80,14 @@ Rails.application.configure do
   # config.generators.apply_rubocop_autocorrect_after_generate!
 
   config.hosts = [
-    "8d986bdb7825.ngrok-free.app",
     "localhost",
-    /.*\.ngrok-free\.app/     # Allow requests from ngrok subdomains
+    "qis.hayashi-dev.me",
+    /.*\.ngrok-free\.app/,          # Allow requests from ngrok subdomains
+    /.*\.a\.free\.pinggy\.link/     # Allow requests from pinggy subdomains
     # /.*\.example\.com/ # Allow requests from subdomains like `www.example.com`
   ]
+
+  # Trust X-Forwarded-* headers from reverse proxies (ngrok, pinggy, etc.)
+  # This fixes Origin header mismatch when proxy terminates SSL
+  config.assume_ssl = true
 end

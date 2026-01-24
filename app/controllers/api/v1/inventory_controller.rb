@@ -58,7 +58,7 @@ module Api
       end
 
       def build_raw_json(parsed_body)
-        parsed_body.slice(:host, :cpu, :memory, :disks, :network, :network_v2)
+        parsed_body.slice(:host, :cpu, :memory, :disks, :network, :network_v2, :dmi)
       end
 
       def handle_service_error(result)
