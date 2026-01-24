@@ -3,6 +3,8 @@
 require "ipaddr"
 
 class Node < ApplicationRecord
+  include RangeOverlap
+
   # Associations
   has_many :node_states, dependent: :destroy
   has_many :benchmark_runs, dependent: :destroy
@@ -178,9 +180,5 @@ class Node < ApplicationRecord
     if overlapping
       errors.add(:base, "Position overlaps with existing node #{overlapping.hostname}")
     end
-  end
-
-  def ranges_overlap?(a_start, a_end, b_start, b_end)
-    a_start <= b_end && b_start <= a_end
   end
 end

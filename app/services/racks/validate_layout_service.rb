@@ -2,6 +2,8 @@
 
 module Racks
   class ValidateLayoutService
+    include RangeOverlap
+
     Result = Struct.new(:success?, :errors, keyword_init: true)
 
     def initialize(rack, positions)
@@ -66,10 +68,6 @@ module Racks
           top: node_top
         }
       end
-    end
-
-    def ranges_overlap?(a_start, a_end, b_start, b_end)
-      a_start <= b_end && b_start <= a_end
     end
   end
 end
