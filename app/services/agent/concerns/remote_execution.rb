@@ -25,6 +25,7 @@ module Agent
       end
 
       def use_bastion?
+        return false if @node.nil?
         return false if localhost_target?
 
         # Check effective connection method (respects override flags)
