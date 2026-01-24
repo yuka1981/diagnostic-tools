@@ -6,11 +6,12 @@ import { Controller } from "@hotwired/stimulus"
 // - Shows a confirmation dialog
 // - Sets a hidden flag to mark the credential for deletion on save
 // - Clears the field value and shows visual feedback
+// - Shows a toast notification
 export default class extends Controller {
   static targets = ["clearButton", "field", "clearedIndicator", "clearFlag"]
   static values = {
     confirmMessage: { type: String, default: "Are you sure you want to clear this credential?" },
-    fieldType: { type: String, default: "credential" }
+    fieldName: { type: String, default: "Credential" }
   }
 
   clear(event) {
@@ -46,6 +47,15 @@ export default class extends Controller {
     if (this.hasClearedIndicatorTarget) {
       this.clearedIndicatorTarget.classList.remove("hidden")
     }
+
+    // Show toast notification
+    this.showToast(`${this.fieldNameValue} will be cleared on save`)
+  }
+
+  showToast(message) {
+    window.dispatchEvent(new CustomEvent("toast:show", {
+      detail: { message: message, type: "info" }
+    }))
   }
 
   // Allow resetting/undoing the clear action before save
