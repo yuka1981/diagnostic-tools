@@ -107,6 +107,9 @@ class NodesController < ApplicationController
   end
 
   def update
+    # Handle credential clear flags before updating
+    process_credential_clear_flags
+
     if @node.update(node_params)
       respond_to do |format|
         format.html {
@@ -161,8 +164,25 @@ class NodesController < ApplicationController
       :sudo_credential, :ssh_connect_method, :agent_path, :benchmark_work_dir,
       :api_key_id, :rack_id, :rack_position, :rack_height, :server_product_id,
       :ssh_user_override, :ssh_port_override, :ssh_key_override, :ssh_password_override,
-      :sudo_credential_override, :ssh_connect_method_override
+      :sudo_credential_override, :ssh_connect_method_override,
+      :clear_ssh_key, :clear_ssh_password, :clear_sudo_credential
     )
+  end
+
+  def process_credential_clear_flags
+    return unless params[:node]
+
+    if params[:node][:clear_ssh_key] == "1"
+      params[:node][:ssh_key] = nil
+    end
+
+    if params[:node][:clear_ssh_password] == "1"
+      params[:node][:ssh_password] = nil
+    end
+
+    if params[:node][:clear_sudo_credential] == "1"
+      params[:node][:sudo_credential] = nil
+    end
   end
 
   def authorize_approver!
