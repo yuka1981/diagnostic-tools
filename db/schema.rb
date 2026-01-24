@@ -135,8 +135,6 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_23_151557) do
     t.datetime "updated_at", null: false
     t.string "log_path"
     t.uuid "uuid", default: -> { "gen_random_uuid()" }, null: false
-    t.datetime "last_heartbeat_at"
-    t.string "current_phase"
     t.text "log_content"
     t.jsonb "arguments", default: {}
     t.index ["benchmark_recipe_id"], name: "index_benchmark_runs_on_benchmark_recipe_id"
@@ -175,6 +173,9 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_23_151557) do
     t.datetime "updated_at", null: false
     t.integer "ssh_port", default: 22, null: false
     t.string "ssh_user"
+    t.string "jump_host"
+    t.string "jump_user"
+    t.integer "jump_port"
     t.string "agent_path"
     t.string "uuid"
     t.integer "ssh_connect_method"
@@ -192,6 +193,8 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_23_151557) do
     t.integer "rack_height", default: 1
     t.integer "rack_face", default: 0
     t.bigint "server_product_id"
+    t.bigint "ssh_profile_id"
+    t.boolean "ssh_profile_override", default: false, null: false
     t.boolean "ssh_user_override", default: false
     t.boolean "ssh_port_override", default: false
     t.boolean "ssh_key_override", default: false
@@ -200,10 +203,12 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_23_151557) do
     t.boolean "ssh_connect_method_override", default: false
     t.index ["api_key_id"], name: "index_nodes_on_api_key_id"
     t.index ["hostname"], name: "index_nodes_on_hostname", unique: true
+    t.index ["rack_id", "rack_face", "rack_position"], name: "index_nodes_on_rack_id_and_rack_face_and_rack_position"
     t.index ["rack_id"], name: "index_nodes_on_rack_id"
     t.index ["role"], name: "index_nodes_on_role"
     t.index ["server_product_id"], name: "index_nodes_on_server_product_id"
     t.index ["source"], name: "index_nodes_on_source"
+    t.index ["ssh_profile_id"], name: "index_nodes_on_ssh_profile_id"
     t.index ["uuid"], name: "index_nodes_on_uuid"
   end
 
@@ -226,59 +231,6 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_23_151557) do
     t.index ["user_id", "archived", "read"], name: "index_notifications_on_user_id_and_archived_and_read"
     t.index ["user_id", "created_at"], name: "index_notifications_on_user_id_and_created_at"
     t.index ["user_id"], name: "index_notifications_on_user_id"
-  end
-
-  create_table "profiling_artifacts", force: :cascade do |t|
-    t.bigint "profiling_run_id", null: false
-    t.string "filename", null: false
-    t.string "file_type"
-    t.string "file_path"
-    t.bigint "file_size"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["profiling_run_id", "filename"], name: "index_profiling_artifacts_on_profiling_run_id_and_filename", unique: true
-    t.index ["profiling_run_id"], name: "index_profiling_artifacts_on_profiling_run_id"
-  end
-
-  create_table "profiling_recipes", force: :cascade do |t|
-    t.string "name", limit: 100, null: false
-    t.string "slug", null: false
-    t.text "description"
-    t.string "tool", default: "perfspect", null: false
-    t.string "subcommand", null: false
-    t.string "module_name", default: "perfspect/3.13.0", null: false
-    t.jsonb "default_options", default: {}
-    t.integer "timeout_seconds", default: 300
-    t.integer "status", default: 0, null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["slug"], name: "index_profiling_recipes_on_slug", unique: true
-    t.index ["status"], name: "index_profiling_recipes_on_status"
-    t.index ["tool"], name: "index_profiling_recipes_on_tool"
-  end
-
-  create_table "profiling_runs", force: :cascade do |t|
-    t.uuid "uuid", default: -> { "gen_random_uuid()" }, null: false
-    t.bigint "node_id", null: false
-    t.bigint "profiling_recipe_id"
-    t.bigint "user_id"
-    t.integer "status", default: 0, null: false
-    t.string "subcommand", null: false
-    t.jsonb "options", default: {}
-    t.jsonb "metrics", default: {}
-    t.datetime "started_at"
-    t.datetime "finished_at"
-    t.text "log_content"
-    t.text "error_message"
-    t.string "artifact_path"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["node_id", "created_at"], name: "index_profiling_runs_on_node_id_and_created_at", order: { created_at: :desc }
-    t.index ["node_id"], name: "index_profiling_runs_on_node_id"
-    t.index ["profiling_recipe_id"], name: "index_profiling_runs_on_profiling_recipe_id"
-    t.index ["status"], name: "index_profiling_runs_on_status"
-    t.index ["user_id"], name: "index_profiling_runs_on_user_id"
-    t.index ["uuid"], name: "index_profiling_runs_on_uuid", unique: true
   end
 
   create_table "racks", force: :cascade do |t|
@@ -352,6 +304,22 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_23_151557) do
     t.index ["name"], name: "index_sites_on_name", unique: true
   end
 
+  create_table "ssh_profiles", force: :cascade do |t|
+    t.string "name", limit: 255, null: false
+    t.integer "ssh_connect_method", default: 0, null: false
+    t.integer "ssh_port", default: 22, null: false
+    t.string "ssh_user", limit: 255
+    t.string "ssh_password"
+    t.text "ssh_key"
+    t.string "sudo_credential"
+    t.string "jump_host", limit: 255
+    t.string "jump_user", limit: 255
+    t.integer "jump_port"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["name"], name: "index_ssh_profiles_on_name", unique: true
+  end
+
   create_table "ssh_settings", force: :cascade do |t|
     t.string "bastion_host"
     t.string "bastion_user"
@@ -392,7 +360,6 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_23_151557) do
     t.integer "role", default: 0, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.string "rack_node_preview_fields", default: ["cpu", "ram", "storage", "network"], array: true
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
   end
@@ -410,11 +377,8 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_23_151557) do
   add_foreign_key "nodes", "api_keys"
   add_foreign_key "nodes", "racks"
   add_foreign_key "nodes", "server_products"
+  add_foreign_key "nodes", "ssh_profiles"
   add_foreign_key "notifications", "users"
-  add_foreign_key "profiling_artifacts", "profiling_runs"
-  add_foreign_key "profiling_runs", "nodes"
-  add_foreign_key "profiling_runs", "profiling_recipes"
-  add_foreign_key "profiling_runs", "users"
   add_foreign_key "racks", "rooms"
   add_foreign_key "rooms", "sites"
 end
