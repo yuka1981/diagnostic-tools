@@ -106,11 +106,17 @@
          class="border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700 whitespace-nowrap border-b-2 py-4 px-1 text-sm font-bold uppercase transition-colors">
         Benchmark History
       </a>
-      <a href="#" 
-         data-tabs-target="tab" 
+      <a href="#"
+         data-tabs-target="tab"
          data-action="click->tabs#select"
          class="border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700 whitespace-nowrap border-b-2 py-4 px-1 text-sm font-bold uppercase transition-colors">
         Logs
+      </a>
+      <a href="#"
+         data-tabs-target="tab"
+         data-action="click->tabs#select"
+         class="border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700 whitespace-nowrap border-b-2 py-4 px-1 text-sm font-bold uppercase transition-colors">
+        Profiling
       </a>
     </nav>
   </div>
@@ -147,12 +153,18 @@
     <div data-tabs-target="panel" class="hidden col-span-12 outline-none" role="tabpanel" tabindex="0">
       <%= render "nodes/logs", node: @node %>
     </div>
+
+    <%# Panel 5: Profiling %>
+    <div data-tabs-target="panel" class="hidden col-span-12 outline-none" role="tabpanel" tabindex="0">
+      <%= render "nodes/profiling", node: @node %>
+    </div>
   </div>
 </div>
 
 <%= turbo_frame_tag "modal" %>
 <%= turbo_frame_tag "node_modal" %>
 <%= turbo_frame_tag "update_modal" %>
+<%= turbo_frame_tag "profiling_modal" %>
 
 <%# Slide-over Panel for Benchmark Run Details %>
 <%= render "benchmark_runs/slide_over" %>

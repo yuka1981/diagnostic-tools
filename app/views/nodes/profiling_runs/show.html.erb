@@ -1,0 +1,119 @@
+<% content_for(:page_title) { "Profiling Run: #{@run.subcommand.capitalize}" } %>
+<% content_for(:breadcrumbs) do %>
+  <span class="mx-2">/</span>
+  <%= link_to "Nodes", nodes_path, class: "hover:text-teal-600 font-bold" %>
+  <span class="mx-2">/</span>
+  <%= link_to @node.hostname, node_path(@node), class: "hover:text-teal-600 font-bold" %>
+  <span class="mx-2">/</span>
+  <span class="font-medium text-slate-700">Profiling Run</span>
+<% end %>
+
+<div class="space-y-6">
+  <%# Header %>
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="text-2xl font-bold text-slate-900">
+        <%= @run.subcommand.capitalize %> Profile
+      </h1>
+      <p class="text-sm text-slate-500 mt-1">
+        Node: <%= @node.hostname %> &bull;
+        Started: <%= @run.started_at ? l(@run.started_at, format: :long) : "Pending" %>
+      </p>
+    </div>
+    <div>
+      <% case @run.status %>
+      <% when "success" %>
+        <span class="inline-flex items-center rounded-full bg-green-100 px-3 py-1 text-sm font-medium text-green-700">
+          Success
+        </span>
+      <% when "failed" %>
+        <span class="inline-flex items-center rounded-full bg-red-100 px-3 py-1 text-sm font-medium text-red-700">
+          Failed
+        </span>
+      <% when "running" %>
+        <span class="inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-sm font-medium text-blue-700">
+          Running
+        </span>
+      <% else %>
+        <span class="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-sm font-medium text-slate-600">
+          <%= @run.status.capitalize %>
+        </span>
+      <% end %>
+    </div>
+  </div>
+
+  <%# Error Message %>
+  <% if @run.error_message.present? %>
+    <div class="rounded-md bg-red-50 p-4 border border-red-200">
+      <h3 class="text-sm font-bold text-red-800">Error</h3>
+      <p class="mt-1 text-sm text-red-700"><%= @run.error_message %></p>
+    </div>
+  <% end %>
+
+  <%# Metrics %>
+  <% if @run.metrics.present? %>
+    <div class="card-netbox">
+      <div class="card-header">
+        <h3 class="card-title text-xs font-bold text-slate-500 uppercase">Metrics</h3>
+      </div>
+      <div class="p-4">
+        <pre class="text-sm font-mono text-slate-700 bg-slate-50 p-3 rounded overflow-x-auto"><%= JSON.pretty_generate(@run.metrics) %></pre>
+      </div>
+    </div>
+  <% end %>
+
+  <%# Artifacts %>
+  <% if @run.profiling_artifacts.any? %>
+    <div class="card-netbox">
+      <div class="card-header">
+        <h3 class="card-title text-xs font-bold text-slate-500 uppercase">Artifacts</h3>
+      </div>
+      <div class="divide-y divide-slate-100">
+        <% @run.profiling_artifacts.each do |artifact| %>
+          <div class="p-4 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <% case artifact.file_type %>
+              <% when "html" %>
+                <svg class="h-6 w-6 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+              <% when "svg" %>
+                <svg class="h-6 w-6 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+              <% else %>
+                <svg class="h-6 w-6 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                </svg>
+              <% end %>
+              <div>
+                <p class="font-medium text-slate-800"><%= artifact.filename %></p>
+                <p class="text-xs text-slate-500">
+                  <%= number_to_human_size(artifact.file_size || 0) %>
+                </p>
+              </div>
+            </div>
+            <% if artifact.downloadable? %>
+              <%= link_to "Download", download_node_profiling_run_artifact_path(@node, @run, artifact),
+                  class: "btn-secondary btn-sm" %>
+            <% else %>
+              <span class="text-xs text-slate-400">Not available</span>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+
+  <%# Log Output %>
+  <% if @run.log_content.present? %>
+    <div class="card-netbox">
+      <div class="card-header">
+        <h3 class="card-title text-xs font-bold text-slate-500 uppercase">Log Output</h3>
+      </div>
+      <div class="p-4">
+        <pre class="text-xs font-mono text-slate-600 bg-slate-900 text-slate-100 p-4 rounded overflow-x-auto max-h-96"><%= @run.log_content %></pre>
+      </div>
+    </div>
+  <% end %>
+</div>

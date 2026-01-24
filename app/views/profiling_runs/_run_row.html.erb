@@ -1,0 +1,61 @@
+<tr id="profiling_run_<%= run.id %>">
+  <td class="px-4 py-3 text-sm">
+    <span class="font-medium text-slate-800"><%= run.subcommand.capitalize %></span>
+    <% if run.profiling_recipe %>
+      <span class="text-xs text-slate-500 block"><%= run.profiling_recipe.name %></span>
+    <% end %>
+  </td>
+  <td class="px-4 py-3">
+    <% case run.status %>
+    <% when "pending" %>
+      <span class="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-600">
+        Pending
+      </span>
+    <% when "running" %>
+      <span class="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-700">
+        <svg class="animate-spin -ml-0.5 mr-1.5 h-3 w-3" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        Running
+      </span>
+    <% when "success" %>
+      <span class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-700">
+        Success
+      </span>
+    <% when "failed" %>
+      <span class="inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-700">
+        Failed
+      </span>
+    <% when "cancelled" %>
+      <span class="inline-flex items-center rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-700">
+        Cancelled
+      </span>
+    <% end %>
+  </td>
+  <td class="px-4 py-3 text-sm text-slate-500">
+    <% if run.started_at %>
+      <%= time_ago_in_words(run.started_at) %> ago
+    <% else %>
+      -
+    <% end %>
+  </td>
+  <td class="px-4 py-3 text-sm text-slate-500">
+    <% if run.duration %>
+      <%= distance_of_time_in_words(run.duration) %>
+    <% elsif run.running? && run.started_at %>
+      <span class="text-blue-600"><%= distance_of_time_in_words(Time.current - run.started_at) %></span>
+    <% else %>
+      -
+    <% end %>
+  </td>
+  <td class="px-4 py-3 text-sm">
+    <%= link_to "View", node_profiling_run_path(run.node, run),
+        class: "text-teal-600 hover:text-teal-800 font-medium" %>
+    <% if run.profiling_artifacts.any? %>
+      <span class="ml-2 text-xs text-slate-400">
+        (<%= run.profiling_artifacts.count %> files)
+      </span>
+    <% end %>
+  </td>
+</tr>

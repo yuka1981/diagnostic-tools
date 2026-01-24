@@ -1,0 +1,14 @@
+---
+# Default module name for PerfSPECT
+perfspect_module: "perfspect/3.13.0"
+
+# Default output directory on target node
+perfspect_output_dir: "/tmp/perfspect_output"
+
+# Default timeout for commands (in seconds)
+perfspect_timeout: 300
+
+# API callback settings (overridden by extra vars)
+api_server: ""
+api_token: ""
+run_uuid: ""

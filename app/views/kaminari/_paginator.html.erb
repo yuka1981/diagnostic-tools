@@ -1,14 +1,27 @@
 <%# app/views/kaminari/_paginator.html.erb %>
 <%= paginator.render do %>
   <nav class="flex items-center justify-center gap-1" aria-label="Pagination">
-    <%= prev_page_tag unless current_page.first? %>
+    <%# Previous page link %>
+    <% unless current_page.first? %>
+      <%= link_to raw('&laquo;'), url_for(request.query_parameters.merge(page: current_page - 1)), class: "btn-secondary text-sm px-3 py-1.5", rel: "prev" %>
+    <% end %>
+
+    <%# Page numbers %>
     <% each_page do |page| %>
       <% if page.left_outer? || page.right_outer? || page.inside_window? %>
-        <%= page_tag page %>
+        <% if page.current? %>
+          <span class="btn-primary text-sm px-3 py-1.5" aria-current="page"><%= page %></span>
+        <% else %>
+          <%= link_to page, url_for(request.query_parameters.merge(page: page)), class: "btn-secondary text-sm px-3 py-1.5" %>
+        <% end %>
       <% elsif !page.was_truncated? %>
-        <%= gap_tag %>
+        <span class="px-2 py-1.5 text-slate-400 text-sm">&hellip;</span>
       <% end %>
     <% end %>
-    <%= next_page_tag unless current_page.last? %>
+
+    <%# Next page link %>
+    <% unless current_page.last? %>
+      <%= link_to raw('&raquo;'), url_for(request.query_parameters.merge(page: current_page + 1)), class: "btn-secondary text-sm px-3 py-1.5", rel: "next" %>
+    <% end %>
   </nav>
 <% end %>

@@ -181,4 +181,122 @@ RSpec.describe Agent::LifecycleService do
       end
     end
   end
+
+  describe "#connect_via_bastion" do
+    let(:node) do
+      create(:node, :global_bastion,
+             hostname: "compute-node.example.com",
+             ip: "10.0.0.100")
+    end
+    let(:service) { TestLifecycleService.new(node: node) }
+
+    before do
+      allow(SshConfig).to receive(:jump_host).and_return("bastion.example.com")
+      allow(SshConfig).to receive(:jump_user).and_return("bastion_user")
+      allow(SshConfig).to receive(:jump_port).and_return(22)
+      allow(SshConfig).to receive(:use_jump_host?).and_return(true)
+    end
+
+    context "when connection succeeds" do
+      let(:mock_ssh) { instance_double(Net::SSH::Connection::Session) }
+
+      before do
+        allow(Net::SSH).to receive(:start).and_yield(mock_ssh)
+      end
+
+      it "connects directly to bastion host" do
+        expect(Net::SSH).to receive(:start).with(
+          "bastion.example.com",
+          "bastion_user",
+          hash_including(port: 22)
+        ).and_yield(mock_ssh)
+
+        service.send(:with_connection) { |_ssh| }
+      end
+
+      it "yields SSH session connected to bastion" do
+        # In bastion mode, SSH session is to the bastion
+        # Commands use via_ssh: true to SSH from bastion to target
+        yielded_ssh = nil
+        service.send(:with_connection) { |ssh| yielded_ssh = ssh }
+
+        expect(yielded_ssh).to eq(mock_ssh)
+      end
+
+      it "logs connection to bastion with target info" do
+        expect(service).to receive(:report_progress).with(
+          "Connecting to bastion bastion.example.com (target: 10.0.0.100)"
+        )
+
+        service.send(:with_connection) { |_ssh| }
+      end
+    end
+
+    context "when node uses custom bastion" do
+      let(:node) do
+        create(:node, :custom_bastion,
+               hostname: "compute-node.example.com",
+               ip: "10.0.0.100",
+               jump_host: "custom-bastion.example.com",
+               jump_user: "custom_user",
+               jump_port: 2222)
+      end
+
+      let(:mock_ssh) { instance_double(Net::SSH::Connection::Session) }
+
+      before do
+        allow(Net::SSH).to receive(:start).and_yield(mock_ssh)
+      end
+
+      it "uses node-specific bastion settings" do
+        expect(Net::SSH).to receive(:start).with(
+          "custom-bastion.example.com",
+          "custom_user",
+          hash_including(port: 2222)
+        ).and_yield(mock_ssh)
+
+        service.send(:with_connection) { |_ssh| }
+      end
+    end
+
+    context "when bastion connection fails" do
+      before do
+        allow(Net::SSH).to receive(:start).and_raise(
+          Errno::ECONNREFUSED, "Connection refused"
+        )
+      end
+
+      it "raises ConnectionError with bastion and target details" do
+        expect {
+          service.send(:with_connection) { |_ssh| }
+        }.to raise_error(Agent::Errors::ConnectionError) do |error|
+          expect(error.message).to include("Bastion connection failed")
+          expect(error.details[:bastion]).to eq("bastion.example.com")
+          expect(error.details[:target]).to eq("10.0.0.100")
+        end
+      end
+    end
+
+    context "when node has hostname but no IP" do
+      let(:node) do
+        create(:node, :global_bastion,
+               hostname: "compute-node.example.com",
+               ip: nil)
+      end
+
+      let(:mock_ssh) { instance_double(Net::SSH::Connection::Session) }
+
+      before do
+        allow(Net::SSH).to receive(:start).and_yield(mock_ssh)
+      end
+
+      it "uses hostname as target in log message" do
+        expect(service).to receive(:report_progress).with(
+          "Connecting to bastion bastion.example.com (target: compute-node.example.com)"
+        )
+
+        service.send(:with_connection) { |_ssh| }
+      end
+    end
+  end
 end

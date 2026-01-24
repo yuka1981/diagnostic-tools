@@ -142,4 +142,22 @@ module ApplicationHelper
       lucide_icon("help-circle", class: "h-6 w-6 text-slate-400")
     end
   end
+
+  # CSS classes for task status badges (used on Tasks page)
+  def task_status_badge_class(status)
+    case status.to_s
+    when "pending"
+      "bg-slate-100 text-slate-700"
+    when "running"
+      "bg-blue-100 text-blue-700"
+    when "success"
+      "bg-green-100 text-green-700"
+    when "failed"
+      "bg-red-100 text-red-700"
+    when "cancelled"
+      "bg-slate-100 text-slate-500"
+    else
+      "bg-slate-100 text-slate-700"
+    end
+  end
 end

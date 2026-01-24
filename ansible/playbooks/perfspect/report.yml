@@ -1,0 +1,11 @@
+---
+- name: Run PerfSPECT System Report
+  hosts: "{{ target_host }}"
+  gather_facts: false
+  vars:
+    perfspect_subcommand: report
+    perfspect_output_dir: "/tmp/perfspect_{{ run_uuid }}"
+
+  roles:
+    - role: perfspect
+      perfspect_options: "{{ options | default({}) }}"

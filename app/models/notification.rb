@@ -4,7 +4,7 @@ class Notification < ApplicationRecord
   belongs_to :user
   belongs_to :resource, polymorphic: true, optional: true
 
-  TYPES = %w[agent_install agent_update agent_uninstall benchmark inventory_collect product_sync].freeze
+  TYPES = %w[agent_install agent_update agent_uninstall benchmark inventory_collect product_sync profiling].freeze
 
   enum :status, { pending: "pending", running: "running", completed: "completed", failed: "failed" }
 

@@ -233,6 +233,59 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_23_151557) do
     t.index ["user_id"], name: "index_notifications_on_user_id"
   end
 
+  create_table "profiling_artifacts", force: :cascade do |t|
+    t.bigint "profiling_run_id", null: false
+    t.string "filename", null: false
+    t.string "file_type"
+    t.string "file_path"
+    t.bigint "file_size"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index [ "profiling_run_id", "filename" ], name: "index_profiling_artifacts_on_profiling_run_id_and_filename", unique: true
+    t.index [ "profiling_run_id" ], name: "index_profiling_artifacts_on_profiling_run_id"
+  end
+
+  create_table "profiling_recipes", force: :cascade do |t|
+    t.string "name", limit: 100, null: false
+    t.string "slug", null: false
+    t.text "description"
+    t.string "tool", default: "perfspect", null: false
+    t.string "subcommand", null: false
+    t.string "module_name", default: "perfspect/3.13.0", null: false
+    t.jsonb "default_options", default: {}
+    t.integer "timeout_seconds", default: 300
+    t.integer "status", default: 0, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index [ "slug" ], name: "index_profiling_recipes_on_slug", unique: true
+    t.index [ "status" ], name: "index_profiling_recipes_on_status"
+    t.index [ "tool" ], name: "index_profiling_recipes_on_tool"
+  end
+
+  create_table "profiling_runs", force: :cascade do |t|
+    t.uuid "uuid", default: -> { "gen_random_uuid()" }, null: false
+    t.bigint "node_id", null: false
+    t.bigint "profiling_recipe_id"
+    t.bigint "user_id"
+    t.integer "status", default: 0, null: false
+    t.string "subcommand", null: false
+    t.jsonb "options", default: {}
+    t.jsonb "metrics", default: {}
+    t.datetime "started_at"
+    t.datetime "finished_at"
+    t.text "log_content"
+    t.text "error_message"
+    t.string "artifact_path"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index [ "node_id", "created_at" ], name: "index_profiling_runs_on_node_id_and_created_at", order: { created_at: :desc }
+    t.index [ "node_id" ], name: "index_profiling_runs_on_node_id"
+    t.index [ "profiling_recipe_id" ], name: "index_profiling_runs_on_profiling_recipe_id"
+    t.index [ "status" ], name: "index_profiling_runs_on_status"
+    t.index [ "user_id" ], name: "index_profiling_runs_on_user_id"
+    t.index [ "uuid" ], name: "index_profiling_runs_on_uuid", unique: true
+  end
+
   create_table "racks", force: :cascade do |t|
     t.string "name", limit: 255, null: false
     t.string "facility_id", limit: 255
@@ -379,6 +432,10 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_23_151557) do
   add_foreign_key "nodes", "server_products"
   add_foreign_key "nodes", "ssh_profiles"
   add_foreign_key "notifications", "users"
+  add_foreign_key "profiling_artifacts", "profiling_runs"
+  add_foreign_key "profiling_runs", "nodes"
+  add_foreign_key "profiling_runs", "profiling_recipes"
+  add_foreign_key "profiling_runs", "users"
   add_foreign_key "racks", "rooms"
   add_foreign_key "rooms", "sites"
 end

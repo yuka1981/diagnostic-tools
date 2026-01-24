@@ -1,0 +1,26 @@
+---
+- name: Build perfspect command
+  ansible.builtin.set_fact:
+    perfspect_cmd: >-
+      source /etc/profile.d/lmod.sh 2>/dev/null || source /etc/profile.d/modules.sh 2>/dev/null || true &&
+      module load {{ perfspect_module }} &&
+      perfspect {{ perfspect_subcommand }}
+      {% if perfspect_subcommand in ['telemetry', 'flame'] and perfspect_options.duration is defined %}
+      --duration {{ perfspect_options.duration }}
+      {% endif %}
+      --output {{ perfspect_output_dir }}
+
+- name: Execute perfspect command
+  ansible.builtin.shell: "{{ perfspect_cmd }}"
+  args:
+    chdir: "{{ perfspect_output_dir }}"
+  register: perfspect_result
+  async: "{{ perfspect_timeout }}"
+  poll: 10
+  ignore_errors: true
+
+- name: Record execution result
+  ansible.builtin.set_fact:
+    perfspect_success: "{{ perfspect_result.rc == 0 }}"
+    perfspect_stdout: "{{ perfspect_result.stdout | default('') }}"
+    perfspect_stderr: "{{ perfspect_result.stderr | default('') }}"

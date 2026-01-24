@@ -25,6 +25,7 @@ module Agent
       end
 
       def use_bastion?
+        return false if @node.nil?
         return false if localhost_target?
 
         # Check effective connection method (respects override flags)
@@ -181,15 +182,38 @@ module Agent
         end
       end
 
+      # Build a command for remote execution
+      # @param inner_cmd [String] The command to execute
+      # @param via_ssh [Boolean] If true, wrap command to SSH from bastion to target
+      # @param use_sudo [Boolean] If true, use sudo (on bastion when via_ssh, on current host otherwise)
       def build_remote_command(inner_cmd, via_ssh:, use_sudo: false)
         if via_ssh
+          # When via_ssh: true, we're on the bastion and need to SSH to the target
+          # The SSH is done as root to the target, so inner_cmd runs as root on target (no sudo needed)
+          # use_sudo applies to the SSH command itself (sudo on bastion to run ssh)
+          # -E preserves environment (SSH_AUTH_SOCK for agent forwarding)
           target_spec = @node.ip.presence || @node.hostname
           ssh_target = target_spec.include?(":") ? "[#{target_spec}]" : target_spec
-          remote_cmd = use_sudo ? "sudo -S bash -c '#{inner_cmd.gsub("'", "'\\''")}'" : inner_cmd
-          "ssh -o StrictHostKeyChecking=no root@#{Shellwords.escape(ssh_target)} #{Shellwords.escape(remote_cmd)}"
+          ssh_cmd = "ssh -o StrictHostKeyChecking=no root@#{ssh_target} #{Shellwords.escape(inner_cmd)}"
+          use_sudo ? "sudo -SE #{ssh_cmd}" : ssh_cmd
         else
           use_sudo ? "sudo -S bash -c '#{inner_cmd.gsub("'", "'\\''")}'" : inner_cmd
         end
+      end
+
+      # Transfer a file from bastion to target node via SSH pipe
+      # Uses cat | ssh instead of scp to avoid permission issues with intermediate files
+      # @param ssh [Net::SSH::Connection::Session] SSH connection to bastion
+      # @param local_path [String] Path on bastion where file is located
+      # @param remote_path [String] Path on target where file should be placed
+      def scp_to_target(ssh, local_path, remote_path)
+        target_spec = @node.ip.presence || @node.hostname
+        ssh_target = target_spec.include?(":") ? "[#{target_spec}]" : target_spec
+        # Use cat | ssh to transfer file - avoids scp permission issues
+        # -E preserves environment (SSH_AUTH_SOCK for agent forwarding)
+        transfer_cmd = "cat #{Shellwords.escape(local_path)} | ssh -o StrictHostKeyChecking=no root@#{ssh_target} 'cat > #{Shellwords.escape(remote_path)} && chmod 755 #{Shellwords.escape(remote_path)}'"
+        cmd = "sudo -SE bash -c #{Shellwords.escape(transfer_cmd)}"
+        execute_command(ssh, cmd, password: @sudo_password)
       end
 
       def set_selinux_context(ssh, path, type:)
@@ -238,6 +262,7 @@ module Agent
 
           [Service]
           Type=simple
+          Environment="PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
           ExecStart=#{TARGET_BIN_PATH} start --server "#{server_url}" --token "#{api_token}" --node-uuid "#{node_uuid}" --heartbeat-interval #{heartbeat_interval}s --inventory-interval #{inventory_interval}s
           Restart=always
           RestartSec=10

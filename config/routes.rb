@@ -21,6 +21,12 @@ Rails.application.routes.draw do
       post "inventory/push", to: "inventory#push"
       resources :benchmark_runs, only: [ :create, :update ]
       post "nodes/:id/heartbeat", to: "heartbeats#create"
+      resources :profiling_runs, param: :uuid, only: [] do
+        member do
+          post :status
+          post :complete
+        end
+      end
     end
   end
 
@@ -69,6 +75,11 @@ Rails.application.routes.draw do
       post :collect
     end
     resources :benchmark_runs, only: %i[index new create], controller: "nodes/benchmark_runs"
+    resources :profiling_runs, only: %i[index show new create], controller: "nodes/profiling_runs" do
+      member do
+        get "artifacts/:artifact_id/download", action: :download_artifact, as: :download_artifact
+      end
+    end
     resource :network, only: [], controller: "nodes/network" do
       get :ib_details
     end
@@ -93,11 +104,19 @@ Rails.application.routes.draw do
     end
   end
 
+  resources :tasks, only: [ :index, :destroy ] do
+    member do
+      post :cancel
+      post :rerun
+    end
+  end
+
   resources :notifications, only: [ :index ] do
     member do
       post :mark_read
     end
     collection do
+      get :dropdown
       post :mark_all_read
       post :archive_read
     end

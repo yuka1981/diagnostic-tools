@@ -134,10 +134,21 @@ module Agent
     end
 
     def upload_and_install(ssh)
+      if use_bastion?
+        upload_and_install_via_bastion(ssh)
+      else
+        upload_and_install_direct(ssh)
+      end
+    ensure
+      cleanup_binary_tempfile
+    end
+
+    # Direct connection: upload and execute directly on target
+    def upload_and_install_direct(ssh)
       report_progress "Uploading binary to target"
       ssh.scp.upload!(actual_binary_path, "/tmp/agent_install")
 
-      stop_existing_service_if_running_remote(ssh)
+      stop_existing_service_if_running_remote(ssh, via_ssh: false)
 
       report_progress "Installing binary"
       cmd = build_remote_command("mv /tmp/agent_install #{TARGET_BIN_PATH}", via_ssh: false, use_sudo: true)
@@ -147,14 +158,14 @@ module Agent
       cmd = build_remote_command("chmod 755 #{TARGET_BIN_PATH} && chown root:root #{TARGET_BIN_PATH}", via_ssh: false, use_sudo: true)
       execute_command(ssh, cmd, password: @sudo_password)
 
-      write_agent_uuid(ssh)
+      write_agent_uuid(ssh, via_ssh: false)
 
       report_progress "Deploying service file"
-      deploy_remote_service_file(ssh)
+      deploy_remote_service_file(ssh, via_ssh: false)
 
       report_progress "Setting SELinux contexts"
-      set_selinux_context(ssh, TARGET_BIN_PATH, type: "bin_t")
-      set_selinux_context(ssh, "/etc/systemd/system/#{SERVICE_NAME}.service", type: "systemd_unit_file_t")
+      set_selinux_context_remote(ssh, TARGET_BIN_PATH, type: "bin_t", via_ssh: false)
+      set_selinux_context_remote(ssh, "/etc/systemd/system/#{SERVICE_NAME}.service", type: "systemd_unit_file_t", via_ssh: false)
 
       report_progress "Enabling and starting service"
       cmd = build_remote_command("systemctl daemon-reload && systemctl enable #{SERVICE_NAME} && systemctl start #{SERVICE_NAME}", via_ssh: false, use_sudo: true)
@@ -163,16 +174,53 @@ module Agent
       report_progress "Setting dmidecode SUID"
       cmd = build_remote_command("chmod 4755 $(which dmidecode) 2>/dev/null || true", via_ssh: false, use_sudo: true)
       execute_command(ssh, cmd, password: @sudo_password)
-    ensure
-      cleanup_binary_tempfile
+    end
+
+    # Bastion connection: upload to bastion, then SCP and execute on target via SSH
+    def upload_and_install_via_bastion(ssh)
+      report_progress "Uploading binary to bastion"
+      ssh.scp.upload!(actual_binary_path, "/tmp/agent_install")
+
+      report_progress "Transferring binary from bastion to target"
+      scp_to_target(ssh, "/tmp/agent_install", "/tmp/agent_install")
+
+      stop_existing_service_if_running_remote(ssh, via_ssh: true)
+
+      report_progress "Installing binary on target"
+      cmd = build_remote_command("mv /tmp/agent_install #{TARGET_BIN_PATH}", via_ssh: true, use_sudo: true)
+      execute_command(ssh, cmd, password: @sudo_password)
+
+      report_progress "Setting file permissions on target"
+      cmd = build_remote_command("chmod 755 #{TARGET_BIN_PATH} && chown root:root #{TARGET_BIN_PATH}", via_ssh: true, use_sudo: true)
+      execute_command(ssh, cmd, password: @sudo_password)
+
+      write_agent_uuid(ssh, via_ssh: true)
+
+      report_progress "Deploying service file to target"
+      deploy_remote_service_file(ssh, via_ssh: true)
+
+      report_progress "Setting SELinux contexts on target"
+      set_selinux_context_remote(ssh, TARGET_BIN_PATH, type: "bin_t", via_ssh: true)
+      set_selinux_context_remote(ssh, "/etc/systemd/system/#{SERVICE_NAME}.service", type: "systemd_unit_file_t", via_ssh: true)
+
+      report_progress "Enabling and starting service on target"
+      cmd = build_remote_command("systemctl daemon-reload && systemctl enable #{SERVICE_NAME} && systemctl start #{SERVICE_NAME}", via_ssh: true, use_sudo: true)
+      execute_command(ssh, cmd, password: @sudo_password)
+
+      report_progress "Setting dmidecode SUID on target"
+      cmd = build_remote_command("chmod 4755 $(which dmidecode) 2>/dev/null || true", via_ssh: true, use_sudo: true)
+      execute_command(ssh, cmd, password: @sudo_password)
+
+      # Cleanup temp file on bastion
+      execute_command(ssh, "rm -f /tmp/agent_install", password: @sudo_password)
     end
 
     def stop_existing_service_if_running
       execute_local_command("systemctl stop #{SERVICE_NAME} 2>/dev/null || true", use_sudo: true)
     end
 
-    def stop_existing_service_if_running_remote(ssh)
-      cmd = build_remote_command("systemctl stop #{SERVICE_NAME} 2>/dev/null || true", via_ssh: false, use_sudo: true)
+    def stop_existing_service_if_running_remote(ssh, via_ssh:)
+      cmd = build_remote_command("systemctl stop #{SERVICE_NAME} 2>/dev/null || true", via_ssh: via_ssh, use_sudo: true)
       execute_command(ssh, cmd, password: @sudo_password)
     end
 
@@ -190,16 +238,16 @@ module Agent
       tempfile.unlink
     end
 
-    def deploy_remote_service_file(ssh)
+    def deploy_remote_service_file(ssh, via_ssh:)
       service_content = generate_service_file(server_url: @server_url, api_token: @api_token, node_uuid: @node.uuid)
       service_path = "/etc/systemd/system/#{SERVICE_NAME}.service"
 
       encoded_content = Base64.strict_encode64(service_content)
-      write_cmd = build_remote_command("echo #{encoded_content} | base64 -d > /tmp/hpc-agent.service && mv /tmp/hpc-agent.service #{service_path}", via_ssh: false, use_sudo: true)
+      write_cmd = build_remote_command("echo #{encoded_content} | base64 -d > /tmp/hpc-agent.service && mv /tmp/hpc-agent.service #{service_path}", via_ssh: via_ssh, use_sudo: true)
       execute_command(ssh, write_cmd, password: @sudo_password)
     end
 
-    def write_agent_uuid(ssh)
+    def write_agent_uuid(ssh, via_ssh: false)
       report_progress "Writing node UUID"
       uuid_path = "/etc/hpc-agent/node_id"
 
@@ -209,10 +257,22 @@ module Agent
       else
         cmd = build_remote_command(
           "mkdir -p /etc/hpc-agent && echo #{@node.uuid} > #{uuid_path}",
-          via_ssh: false, use_sudo: true
+          via_ssh: via_ssh, use_sudo: true
         )
         execute_command(ssh, cmd, password: @sudo_password)
       end
+    end
+
+    def set_selinux_context_remote(ssh, path, type:, via_ssh:)
+      selinux_cmd = <<~SELINUX.squish
+        if command -v getenforce >/dev/null 2>&1 && [ "$(getenforce)" != "Disabled" ]; then
+          restorecon -v #{path} 2>/dev/null ||
+          chcon -t #{type} #{path} 2>/dev/null || true;
+        fi
+      SELINUX
+
+      cmd = build_remote_command(selinux_cmd, via_ssh: via_ssh, use_sudo: true)
+      execute_command(ssh, cmd, password: @sudo_password)
     end
 
     def extract_installed_version

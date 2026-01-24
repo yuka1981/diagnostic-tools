@@ -13,3 +13,6 @@ result = Seeds::ServerProductsSeeder.new.call
 if result.seeded_count.positive?
   puts "Seeded #{result.seeded_count} server products"
 end
+
+# Load profiling recipes
+load Rails.root.join("db/seeds/profiling_recipes.rb")
