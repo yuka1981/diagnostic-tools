@@ -81,6 +81,7 @@ Rails.application.configure do
 
   config.hosts = [
     "localhost",
+    "qis.hayashi-dev.me",
     /.*\.ngrok-free\.app/,          # Allow requests from ngrok subdomains
     /.*\.a\.free\.pinggy\.link/     # Allow requests from pinggy subdomains
     # /.*\.example\.com/ # Allow requests from subdomains like `www.example.com`

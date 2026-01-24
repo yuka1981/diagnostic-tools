@@ -53,13 +53,8 @@ export default class extends Controller {
   }
 
   showToast(message) {
-    // Try global function first (more reliable), fall back to custom event
     if (typeof window.showToast === "function") {
-      window.showToast({ message: message, type: "info" })
-    } else {
-      window.dispatchEvent(new CustomEvent("toast:show", {
-        detail: { message: message, type: "info" }
-      }))
+      window.showToast(message, "info")
     }
   }
 

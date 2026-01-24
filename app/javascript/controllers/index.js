@@ -85,9 +85,6 @@ application.register("ssh-override", SshOverrideController)
 import TabsController from "./tabs_controller"
 application.register("tabs", TabsController)
 
-import ToastController from "./toast_controller"
-application.register("toast", ToastController)
-
 import ThemeController from "./theme_controller"
 application.register("theme", ThemeController)
 
