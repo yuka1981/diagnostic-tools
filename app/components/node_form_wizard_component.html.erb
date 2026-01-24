@@ -222,26 +222,10 @@
                   data: { ssh_override_target: "checkbox", action: "change->ssh-override#toggle" } %>
               <%= f.label :ssh_key_override, "Override SSH Key", class: "text-sm font-bold text-slate-700" %>
             </div>
-            <div class="<%= 'hidden' unless node.ssh_key_override? %>" data-ssh-override-target="field" data-controller="credential-clear" data-credential-clear-field-name-value="SSH Key">
-              <%= f.hidden_field :clear_ssh_key, value: "", data: { credential_clear_target: "clearFlag" } %>
-              <div class="flex items-start gap-2">
-                <%= f.text_area :ssh_key, rows: 3,
-                    placeholder: "Paste private key here...",
-                    class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm font-mono text-xs",
-                    data: { credential_clear_target: "field" } %>
-                <% if node.ssh_key.present? %>
-                  <button type="button"
-                          class="text-xs text-red-600 hover:text-red-800 font-medium whitespace-nowrap mt-1"
-                          data-credential-clear-target="clearButton"
-                          data-action="click->credential-clear#clear">
-                    Clear
-                  </button>
-                <% end %>
-              </div>
-              <div class="hidden mt-1 text-xs text-amber-600 font-medium" data-credential-clear-target="clearedIndicator">
-                Will be cleared on save.
-                <a href="#" class="text-teal-600 hover:text-teal-800 ml-1" data-action="click->credential-clear#undo">Undo</a>
-              </div>
+            <div class="<%= 'hidden' unless node.ssh_key_override? %>" data-ssh-override-target="field">
+              <%= f.text_area :ssh_key, rows: 3,
+                  placeholder: "Paste private key here...",
+                  class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm font-mono text-xs" %>
             </div>
           </div>
 
@@ -253,27 +237,11 @@
                   data: { ssh_override_target: "checkbox", action: "change->ssh-override#toggle" } %>
               <%= f.label :ssh_password_override, "Override SSH Password", class: "text-sm font-bold text-slate-700" %>
             </div>
-            <div class="<%= 'hidden' unless node.ssh_password_override? %>" data-ssh-override-target="field" data-controller="credential-clear" data-credential-clear-field-name-value="SSH Password">
-              <%= f.hidden_field :clear_ssh_password, value: "", data: { credential_clear_target: "clearFlag" } %>
-              <div class="flex items-center gap-2">
-                <%= f.password_field :ssh_password,
-                    placeholder: node.ssh_password.present? ? "••••••••" : "Leave blank for key auth",
-                    autocomplete: "off",
-                    class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm",
-                    data: { credential_clear_target: "field" } %>
-                <% if node.ssh_password.present? %>
-                  <button type="button"
-                          class="text-xs text-red-600 hover:text-red-800 font-medium whitespace-nowrap"
-                          data-credential-clear-target="clearButton"
-                          data-action="click->credential-clear#clear">
-                    Clear
-                  </button>
-                <% end %>
-              </div>
-              <div class="hidden mt-1 text-xs text-amber-600 font-medium" data-credential-clear-target="clearedIndicator">
-                Will be cleared on save.
-                <a href="#" class="text-teal-600 hover:text-teal-800 ml-1" data-action="click->credential-clear#undo">Undo</a>
-              </div>
+            <div class="<%= 'hidden' unless node.ssh_password_override? %>" data-ssh-override-target="field">
+              <%= f.password_field :ssh_password,
+                  placeholder: node.ssh_password.present? ? "••••••••" : "Leave blank for key auth",
+                  autocomplete: "off",
+                  class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" %>
             </div>
           </div>
 
@@ -285,27 +253,11 @@
                   data: { ssh_override_target: "checkbox", action: "change->ssh-override#toggle" } %>
               <%= f.label :sudo_credential_override, "Override Sudo Password", class: "text-sm font-bold text-slate-700" %>
             </div>
-            <div class="<%= 'hidden' unless node.sudo_credential_override? %>" data-ssh-override-target="field" data-controller="credential-clear" data-credential-clear-field-name-value="Sudo Password">
-              <%= f.hidden_field :clear_sudo_credential, value: "", data: { credential_clear_target: "clearFlag" } %>
-              <div class="flex items-center gap-2">
-                <%= f.password_field :sudo_credential,
-                    placeholder: node.sudo_credential.present? ? "••••••••" : "For privileged commands",
-                    autocomplete: "off",
-                    class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm",
-                    data: { credential_clear_target: "field" } %>
-                <% if node.sudo_credential.present? %>
-                  <button type="button"
-                          class="text-xs text-red-600 hover:text-red-800 font-medium whitespace-nowrap"
-                          data-credential-clear-target="clearButton"
-                          data-action="click->credential-clear#clear">
-                    Clear
-                  </button>
-                <% end %>
-              </div>
-              <div class="hidden mt-1 text-xs text-amber-600 font-medium" data-credential-clear-target="clearedIndicator">
-                Will be cleared on save.
-                <a href="#" class="text-teal-600 hover:text-teal-800 ml-1" data-action="click->credential-clear#undo">Undo</a>
-              </div>
+            <div class="<%= 'hidden' unless node.sudo_credential_override? %>" data-ssh-override-target="field">
+              <%= f.password_field :sudo_credential,
+                  placeholder: node.sudo_credential.present? ? "••••••••" : "For privileged commands",
+                  autocomplete: "off",
+                  class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" %>
             </div>
           </div>
         </div>

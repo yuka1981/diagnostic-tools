@@ -13,7 +13,7 @@ RSpec.describe 'UI Overhaul', type: :system do
       visit dashboard_path
 
       within('aside') do
-        expect(page).to have_content('HPC Diagnostics') # Brand
+        expect(page).to have_content('InfraScope') # Brand
         expect(page).to have_content(/ORGANIZATION/i) # Section header
         expect(page).to have_link('Dashboard')
         expect(page).to have_link('Nodes')
