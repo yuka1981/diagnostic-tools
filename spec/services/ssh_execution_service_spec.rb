@@ -37,16 +37,16 @@ RSpec.describe SshExecutionService, type: :service do
   end
 
   describe "#ssh_options" do
-    it "includes password from node if present" do
-      node.sudo_credential = "secret"
-      service_with_password = described_class.new(node)
+    it "includes password from node if override is enabled" do
+      node_with_override = build_stubbed(:node, sudo_credential: "secret", sudo_credential_override: true)
+      service_with_password = described_class.new(node_with_override)
       options = service_with_password.send(:ssh_options)
       expect(options[:password]).to eq("secret")
     end
 
-    it "includes key_data from node if present" do
-      node.ssh_key = "private_key_content"
-      service_with_key = described_class.new(node)
+    it "includes key_data from node if override is enabled" do
+      node_with_key = build_stubbed(:node, ssh_key: "private_key_content", ssh_key_override: true)
+      service_with_key = described_class.new(node_with_key)
       options = service_with_key.send(:ssh_options)
       expect(options[:key_data]).to include("private_key_content")
     end

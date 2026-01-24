@@ -11,6 +11,10 @@ module Nodes
     def new
       @agent_releases = AgentRelease.active.latest_first
       @latest_release = AgentRelease.latest
+
+      # Determine which credential fields are needed
+      @checker = Agent::CredentialChecker.new(@node, operation: :update)
+      @required_fields = @checker.required_fields
     end
 
     def create

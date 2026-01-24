@@ -12,24 +12,21 @@ module Nodes
       @target_host = params[:hostname]
       @node = Node.find_by(hostname: @target_host)
 
-      # Determine arch: prioritize node's arch, fallback to params, default to x86_64
-      raw_arch = @node&.arch.presence || params[:arch]
-      @arch = raw_arch == "aarch64" ? "arm64" : raw_arch
+      # If node doesn't exist, always show modal (need API key at minimum)
+      if @node.nil?
+        setup_modal_variables
+        return render :new
+      end
 
-      @api_keys = ApiKey.active.order(:name)
-      @ssh_setting = SshSetting.current
-      @server_url = @ssh_setting.server_url.presence || request.base_url
+      # Check if we have all required credentials
+      @checker = Agent::CredentialChecker.new(@node, operation: :install)
 
-      # Adjust preloaded settings based on node configuration
-      if @node&.direct?
-        @ssh_setting = SshSetting.new # Empty settings to avoid prefilling global bastion
-      elsif @node&.custom_bastion?
-        # If custom bastion, we might want to use node's jump host, but SshSetting is for global.
-        # We can construct a temporary object or just let the view handle @node.jump_host precedence if we updated the view.
-        # But for now, let's just clear global if custom is selected, so the form starts empty (or we fill from node).
-        # Actually, if custom_bastion, the view should probably autofill from @node.jump_host.
-        # The view currently uses @ssh_setting.bastion_host.
-        # Let's verify app/views/nodes/installs/new.html.erb
+      if @checker.needs_modal?
+        setup_modal_variables
+        @required_fields = @checker.required_fields
+        render :new
+      else
+        start_installation_directly
       end
     end
 
@@ -98,6 +95,56 @@ module Nodes
       respond_to do |format|
         format.turbo_stream { render "localhost_not_supported" }
         format.html { render "localhost_not_supported", status: :unprocessable_entity }
+      end
+    end
+
+    def setup_modal_variables
+      # Determine arch: prioritize node's arch, fallback to params, default to x86_64
+      raw_arch = @node&.arch.presence || params[:arch]
+      @arch = raw_arch == "aarch64" ? "arm64" : raw_arch
+
+      @api_keys = ApiKey.active.order(:name)
+      @ssh_setting = SshSetting.current
+      @server_url = @ssh_setting.server_url.presence || request.base_url
+
+      # Adjust preloaded settings based on node configuration
+      # For direct connections, don't prefill global bastion settings
+      if @node&.effective_ssh_connect_method == "direct"
+        @ssh_setting = SshSetting.new # Empty settings to avoid prefilling global bastion
+      end
+    end
+
+    def start_installation_directly
+      # One-click install: bypass modal when all credentials are stored
+      ssh_setting = SshSetting.current
+
+      # Store credentials from node's stored values
+      cache_key = SecureRandom.hex(16)
+      credentials = {
+        bastion_password: @node.effective_ssh_password,
+        sudo_password: @node.effective_sudo_credential
+      }
+      Rails.cache.write("install_creds_#{cache_key}", credentials, expires_in: 5.minutes)
+
+      # Update node for installation
+      @node.source = :agent_push
+      @node.save!
+
+      Agent::InstallJob.perform_later(
+        node: @node,
+        target_host: @node.hostname,
+        arch: @node.arch || "x86_64",
+        bastion_host: ssh_setting.bastion_host,
+        bastion_user: ssh_setting.bastion_user.presence || @node.effective_ssh_user,
+        credentials_cache_key: cache_key,
+        server_url: ssh_setting.server_url.presence || request.base_url,
+        api_key_id: @node.api_key_id,
+        user_id: current_user.id
+      )
+
+      respond_to do |format|
+        format.html { render "started" }
+        format.turbo_stream { render "started" }
       end
     end
   end

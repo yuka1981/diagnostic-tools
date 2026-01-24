@@ -153,104 +153,110 @@
     </div>
 
     <%# Step 3: Connection %>
-    <div data-wizard-target="step" class="hidden space-y-6" data-controller="ssh-profile-select">
+    <div data-wizard-target="step" class="hidden space-y-6">
       <div class="card-netbox">
         <div class="card-header">
-          <h3 class="card-title">SSH Profile</h3>
-        </div>
-        <div class="p-4">
-          <div>
-            <%= f.label :ssh_profile_id, "SSH Profile", class: "block text-sm font-bold text-slate-700 mb-1" %>
-            <%= f.select :ssh_profile_id,
-                options_for_select([["-- Custom SSH Settings --", ""]] + ssh_profiles_for_select, node.ssh_profile_id),
-                {},
-                class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm",
-                data: {
-                  ssh_profile_select_target: "select",
-                  action: "change->ssh-profile-select#toggleSshConfig"
-                } %>
-            <p class="mt-1 text-xs text-slate-500">
-              Select an SSH profile to use its settings, or choose "Custom SSH Settings" to configure manually.
-              <%= link_to "Manage Profiles", settings_ssh_profiles_path, class: "text-teal-600 hover:text-teal-800", data: { turbo_frame: "_top" } %>
-            </p>
-            <%# Always set ssh_profile_override to false - the dropdown selection determines behavior %>
-            <%= f.hidden_field :ssh_profile_override, value: false %>
-          </div>
-        </div>
-      </div>
-
-      <div class="card-netbox" data-controller="ssh-settings" data-ssh-profile-select-target="sshConfigSection">
-        <div class="card-header">
-          <h3 class="card-title">SSH Configuration</h3>
+          <h3 class="card-title">SSH Connection</h3>
         </div>
         <div class="p-4 space-y-6">
-          <div>
-            <%= f.label :ssh_connect_method, "Connection Method", class: "block text-sm font-bold text-slate-700 mb-1" %>
-            <%= f.select :ssh_connect_method,
-                ssh_connect_methods_for_select,
-                {},
-                class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm",
-                data: { action: "change->ssh-settings#toggle" } %>
-            <p class="mt-1 text-xs text-slate-500">How the system connects to this node.</p>
+          <p class="text-xs text-slate-500">
+            By default, nodes use the global SSH settings configured in
+            <%= link_to "SSH Defaults", helpers.settings_ssh_defaults_path, class: "text-teal-600 hover:text-teal-800", data: { turbo_frame: "_top" } %>.
+            Enable overrides below to use node-specific values.
+          </p>
+
+          <%# Connection Method Override %>
+          <div data-controller="ssh-override">
+            <div class="flex items-center gap-3 mb-2">
+              <%= f.check_box :ssh_connect_method_override,
+                  class: "h-4 w-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500",
+                  data: { ssh_override_target: "checkbox", action: "change->ssh-override#toggle" } %>
+              <%= f.label :ssh_connect_method_override, "Override Connection Method", class: "text-sm font-bold text-slate-700" %>
+            </div>
+            <div class="<%= 'hidden' unless node.ssh_connect_method_override? %>" data-ssh-override-target="field">
+              <%= f.select :ssh_connect_method,
+                  ssh_connect_methods_for_select,
+                  {},
+                  class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" %>
+              <p class="mt-1 text-xs text-slate-500">
+                <strong>Global Bastion:</strong> Connect via the global jump host.
+                <strong>Direct:</strong> Connect directly to the node.
+              </p>
+            </div>
           </div>
 
-          <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 border-t border-slate-100 pt-6" data-ssh-settings-target="fields">
-            <div>
-              <%= f.label :ssh_port, "SSH Port", class: "block text-sm font-bold text-slate-700 mb-1" %>
+          <%# SSH User Override %>
+          <div data-controller="ssh-override">
+            <div class="flex items-center gap-3 mb-2">
+              <%= f.check_box :ssh_user_override,
+                  class: "h-4 w-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500",
+                  data: { ssh_override_target: "checkbox", action: "change->ssh-override#toggle" } %>
+              <%= f.label :ssh_user_override, "Override SSH User", class: "text-sm font-bold text-slate-700" %>
+            </div>
+            <div class="<%= 'hidden' unless node.ssh_user_override? %>" data-ssh-override-target="field">
+              <%= f.text_field :ssh_user,
+                  placeholder: "e.g. root",
+                  class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" %>
+            </div>
+          </div>
+
+          <%# SSH Port Override %>
+          <div data-controller="ssh-override">
+            <div class="flex items-center gap-3 mb-2">
+              <%= f.check_box :ssh_port_override,
+                  class: "h-4 w-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500",
+                  data: { ssh_override_target: "checkbox", action: "change->ssh-override#toggle" } %>
+              <%= f.label :ssh_port_override, "Override SSH Port", class: "text-sm font-bold text-slate-700" %>
+            </div>
+            <div class="<%= 'hidden' unless node.ssh_port_override? %>" data-ssh-override-target="field">
               <%= f.number_field :ssh_port, min: 1, max: 65535,
                   class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" %>
             </div>
+          </div>
 
-            <div>
-              <%= f.label :ssh_user, "SSH User", class: "block text-sm font-bold text-slate-700 mb-1" %>
-              <%= f.text_field :ssh_user,
-                  placeholder: "root",
-                  class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" %>
+          <%# SSH Key Override %>
+          <div data-controller="ssh-override">
+            <div class="flex items-center gap-3 mb-2">
+              <%= f.check_box :ssh_key_override,
+                  class: "h-4 w-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500",
+                  data: { ssh_override_target: "checkbox", action: "change->ssh-override#toggle" } %>
+              <%= f.label :ssh_key_override, "Override SSH Key", class: "text-sm font-bold text-slate-700" %>
             </div>
+            <div class="<%= 'hidden' unless node.ssh_key_override? %>" data-ssh-override-target="field">
+              <%= f.text_area :ssh_key, rows: 3,
+                  placeholder: "Paste private key here...",
+                  class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm font-mono text-xs" %>
+            </div>
+          </div>
 
-            <div>
-              <%= f.label :ssh_password, "SSH Password", class: "block text-sm font-bold text-slate-700 mb-1" %>
+          <%# SSH Password Override %>
+          <div data-controller="ssh-override">
+            <div class="flex items-center gap-3 mb-2">
+              <%= f.check_box :ssh_password_override,
+                  class: "h-4 w-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500",
+                  data: { ssh_override_target: "checkbox", action: "change->ssh-override#toggle" } %>
+              <%= f.label :ssh_password_override, "Override SSH Password", class: "text-sm font-bold text-slate-700" %>
+            </div>
+            <div class="<%= 'hidden' unless node.ssh_password_override? %>" data-ssh-override-target="field">
               <%= f.password_field :ssh_password,
                   placeholder: node.ssh_password.present? ? "••••••••" : "Leave blank for key auth",
-                  class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" %>
-              <p class="mt-1 text-xs text-slate-500">For password-based SSH authentication.</p>
-            </div>
-
-            <div>
-              <%= f.label :sudo_credential, "Sudo Password", class: "block text-sm font-bold text-slate-700 mb-1" %>
-              <%= f.password_field :sudo_credential,
-                  placeholder: node.sudo_credential.present? ? "••••••••" : "For privileged commands",
-                  class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" %>
-              <p class="mt-1 text-xs text-slate-500">For systemctl and other privileged commands.</p>
-            </div>
-
-            <div class="sm:col-span-2">
-              <%= f.label :ssh_key, "SSH Key (optional)", class: "block text-sm font-bold text-slate-700 mb-1" %>
-              <%= f.text_area :ssh_key, rows: 2,
-                  placeholder: "ssh-rsa AAAAB3Nza...",
+                  autocomplete: "off",
                   class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" %>
             </div>
           </div>
 
-          <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 border-t border-slate-100 pt-6" data-ssh-settings-target="bastionFields">
-            <div class="col-span-2">
-              <h5 class="text-xs font-bold uppercase tracking-wider text-slate-500">Custom Bastion Settings</h5>
+          <%# Sudo Credential Override %>
+          <div data-controller="ssh-override">
+            <div class="flex items-center gap-3 mb-2">
+              <%= f.check_box :sudo_credential_override,
+                  class: "h-4 w-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500",
+                  data: { ssh_override_target: "checkbox", action: "change->ssh-override#toggle" } %>
+              <%= f.label :sudo_credential_override, "Override Sudo Password", class: "text-sm font-bold text-slate-700" %>
             </div>
-            <div>
-              <%= f.label :jump_host, "Jump Host", class: "block text-sm font-bold text-slate-700 mb-1" %>
-              <%= f.text_field :jump_host,
-                  placeholder: "bastion.example.com",
-                  class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" %>
-            </div>
-            <div>
-              <%= f.label :jump_user, "Jump User", class: "block text-sm font-bold text-slate-700 mb-1" %>
-              <%= f.text_field :jump_user,
-                  placeholder: "root",
-                  class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" %>
-            </div>
-            <div>
-              <%= f.label :jump_port, "Jump Port", class: "block text-sm font-bold text-slate-700 mb-1" %>
-              <%= f.number_field :jump_port, min: 1, max: 65535,
+            <div class="<%= 'hidden' unless node.sudo_credential_override? %>" data-ssh-override-target="field">
+              <%= f.password_field :sudo_credential,
+                  placeholder: node.sudo_credential.present? ? "••••••••" : "For privileged commands",
+                  autocomplete: "off",
                   class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" %>
             </div>
           </div>

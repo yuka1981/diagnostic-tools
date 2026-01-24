@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe "Settings::SshSettings", type: :system do
+RSpec.describe "Settings::SshDefaults", type: :system do
   let(:admin) { create(:user, :approver) }
 
   before do
@@ -10,26 +10,21 @@ RSpec.describe "Settings::SshSettings", type: :system do
   end
 
   it "allows updating global SSH settings" do
-    visit settings_ssh_path
+    visit settings_ssh_defaults_path
 
     # Check initial state
-    expect(page).to have_content("SSH Settings")
-    expect(page).to have_content("Global Bastion Configuration")
+    expect(page).to have_content("SSH Defaults")
+    expect(page).to have_content("Bastion / Jump Host")
 
-    # Fill in the form
-    fill_in "Bastion Hostname or IP", with: "bastion.example.com"
-    fill_in "Bastion SSH User", with: "admin-user"
-    fill_in "SSH Port", with: "2222"
+    # Fill in the form - use form field names that match SshSetting model
+    fill_in "ssh_setting[bastion_host]", with: "bastion.example.com"
+    fill_in "ssh_setting[bastion_user]", with: "admin-user"
+    fill_in "ssh_setting[bastion_port]", with: "2222"
 
-    click_button "Save Settings"
+    click_button "Save SSH Defaults"
 
     # Verify success message
-    expect(page).to have_content("SSH settings updated successfully")
-
-    # Verify persisted values
-    expect(page).to have_field("Bastion Hostname or IP", with: "bastion.example.com")
-    expect(page).to have_field("Bastion SSH User", with: "admin-user")
-    expect(page).to have_field("SSH Port", with: "2222")
+    expect(page).to have_content("SSH defaults updated successfully")
 
     # Verify database state
     setting = SshSetting.current

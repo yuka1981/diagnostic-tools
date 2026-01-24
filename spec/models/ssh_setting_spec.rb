@@ -5,6 +5,7 @@ require "rails_helper"
 RSpec.describe SshSetting, type: :model do
   describe ".current" do
     it "returns existing record or creates one" do
+      described_class.delete_all # Ensure no record exists
       expect { described_class.current }.to change(described_class, :count).by(1)
       expect { described_class.current }.not_to change(described_class, :count)
     end

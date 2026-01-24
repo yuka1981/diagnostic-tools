@@ -82,11 +82,8 @@ application.register("sidebar", SidebarController)
 import SlideOverController from "./slide_over_controller"
 application.register("slide-over", SlideOverController)
 
-import SshProfileSelectController from "./ssh_profile_select_controller"
-application.register("ssh-profile-select", SshProfileSelectController)
-
-import SshSettingsController from "./ssh_settings_controller"
-application.register("ssh-settings", SshSettingsController)
+import SshOverrideController from "./ssh_override_controller"
+application.register("ssh-override", SshOverrideController)
 
 import TabsController from "./tabs_controller"
 application.register("tabs", TabsController)

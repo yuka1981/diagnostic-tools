@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html class="h-full bg-slate-100">
   <head>
-    <title><%= content_for(:title) || "HPC Diagnostics" %></title>
+    <title><%= content_for(:title) || "QCT InfraScope" %></title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <%= csrf_meta_tags %>
@@ -56,11 +56,12 @@
         <%# Footer %>
         <footer class="mt-auto border-t border-slate-200 bg-white py-4 px-6 text-xs text-slate-400">
           <div class="flex items-center justify-between">
-            <p>&copy; <%= Time.current.year %> HPC Diagnostics. All rights reserved.</p>
+            <p>&copy; <%= Time.current.year %> QCT InfraScope. All rights reserved.</p>
             <p>v1.0.0</p>
           </div>
         </footer>
       </div>
     </div>
+
   </body>
 </html>

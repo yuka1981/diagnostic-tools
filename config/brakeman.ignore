@@ -21,7 +21,7 @@
       "note": "URL is validated at runtime with start_with?('https://') before being used in link_to. Non-HTTPS URLs are displayed as plain text. This prevents javascript: and other malicious protocol injection."
     },
     {
-      "fingerprint": "016428120fe035d9169ba8c5f0055648f5a12ca4081410e4ff0accce3b8dee06",
+      "fingerprint": "623cffc8c373701d450c2cf58535ce9f27fd5966b47f3558633eb4b411d0ca3c",
       "note": "Node :role refers to HPC node type (admin/compute/login), not user authorization. Access to this controller is already protected by authorize_approver! before_action. Only approvers can create/edit nodes."
     }
   ],

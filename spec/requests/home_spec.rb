@@ -12,7 +12,7 @@ RSpec.describe "Home", type: :request do
     it "displays the dashboard" do
       get root_path
       expect(response.body).to include("Dashboard")
-      expect(response.body).to include("HPC Diagnostics")
+      expect(response.body).to include("QCT InfraScope")
     end
   end
 end
