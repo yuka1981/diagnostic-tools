@@ -129,6 +129,23 @@ RSpec.describe ArtifactIndex, type: :model do
         expect(artifact.safe_download_path).to be_nil
       end
     end
+
+    context "with path traversal attempt via sibling directory" do
+      let(:evil_dir) { Rails.root.join("storage", "artifacts-evil").to_s }
+      let(:evil_file) { File.join(evil_dir, "secret.txt") }
+      let(:artifact) { create(:artifact_index, benchmark_run: benchmark_run, stored_path: evil_file) }
+
+      before do
+        FileUtils.mkdir_p(evil_dir)
+        File.write(evil_file, "secret content")
+      end
+
+      after { FileUtils.rm_rf(evil_dir) }
+
+      it "returns nil" do
+        expect(artifact.safe_download_path).to be_nil
+      end
+    end
   end
 
   describe "#mime_type" do

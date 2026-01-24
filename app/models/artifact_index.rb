@@ -62,7 +62,7 @@ class ArtifactIndex < ApplicationRecord
 
     clean_path = Pathname.new(stored_path).cleanpath.to_s
 
-    return nil unless clean_path.start_with?(storage_base)
+    return nil unless clean_path.start_with?(storage_base + File::SEPARATOR) || clean_path == storage_base
     return nil unless File.file?(clean_path)
 
     clean_path
