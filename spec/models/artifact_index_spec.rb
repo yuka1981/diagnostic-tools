@@ -91,4 +91,43 @@ RSpec.describe ArtifactIndex, type: :model do
       end
     end
   end
+
+  describe "#safe_download_path" do
+    let(:benchmark_run) { create(:benchmark_run) }
+
+    context "with stored_path" do
+      let(:artifact) { create(:artifact_index, benchmark_run: benchmark_run, stored_path: stored_path, path: "/legacy/path") }
+
+      context "when file exists in storage" do
+        let(:stored_path) { Rails.root.join("storage", "artifacts", "test.txt").to_s }
+
+        before do
+          FileUtils.mkdir_p(File.dirname(stored_path))
+          File.write(stored_path, "test content")
+        end
+
+        after { FileUtils.rm_f(stored_path) }
+
+        it "returns the stored_path" do
+          expect(artifact.safe_download_path).to eq(stored_path)
+        end
+      end
+
+      context "when stored file does not exist" do
+        let(:stored_path) { "/storage/artifacts/nonexistent.txt" }
+
+        it "returns nil" do
+          expect(artifact.safe_download_path).to be_nil
+        end
+      end
+    end
+
+    context "with path traversal attempt" do
+      let(:artifact) { create(:artifact_index, benchmark_run: benchmark_run, stored_path: "/storage/artifacts/../../../etc/passwd") }
+
+      it "returns nil" do
+        expect(artifact.safe_download_path).to be_nil
+      end
+    end
+  end
 end
