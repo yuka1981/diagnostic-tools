@@ -36,7 +36,7 @@ class BenchmarkRunsController < ApplicationController
 
     send_file safe_path,
               filename: @artifact.filename,
-              type: mime_type_for(@artifact),
+              type: @artifact.mime_type,
               disposition: "attachment"
   end
 
@@ -83,26 +83,5 @@ class BenchmarkRunsController < ApplicationController
 
   def filter_params
     params.permit(:status, :node_id, :recipe_id, :q)
-  end
-
-  def mime_type_for(artifact)
-    case artifact.file_type.to_s.downcase
-    when "txt", "log", "dat"
-      "text/plain"
-    when "yaml", "yml"
-      "text/yaml"
-    when "json"
-      "application/json"
-    when "csv"
-      "text/csv"
-    when "pdf"
-      "application/pdf"
-    when "tar", "gz", "tgz"
-      "application/gzip"
-    when "zip"
-      "application/zip"
-    else
-      "application/octet-stream"
-    end
   end
 end

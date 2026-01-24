@@ -130,4 +130,29 @@ RSpec.describe ArtifactIndex, type: :model do
       end
     end
   end
+
+  describe "#mime_type" do
+    let(:benchmark_run) { create(:benchmark_run) }
+
+    {
+      "txt" => "text/plain",
+      "log" => "text/plain",
+      "dat" => "text/plain",
+      "yaml" => "text/yaml",
+      "yml" => "text/yaml",
+      "json" => "application/json",
+      "csv" => "text/csv",
+      "pdf" => "application/pdf",
+      "tar" => "application/gzip",
+      "gz" => "application/gzip",
+      "tgz" => "application/gzip",
+      "zip" => "application/zip",
+      "unknown" => "application/octet-stream"
+    }.each do |file_type, expected_mime|
+      it "returns #{expected_mime} for #{file_type}" do
+        artifact = build(:artifact_index, benchmark_run: benchmark_run, file_type: file_type)
+        expect(artifact.mime_type).to eq(expected_mime)
+      end
+    end
+  end
 end
