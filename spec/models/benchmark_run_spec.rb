@@ -115,6 +115,36 @@ RSpec.describe BenchmarkRun, type: :model do
     end
   end
 
+  describe ".recent_for_dashboard" do
+    let!(:node1) { create(:node) }
+    let!(:node2) { create(:node) }
+    let!(:recipe) { create(:benchmark_recipe) }
+    let!(:run1) { create(:benchmark_run, node: node1, benchmark_recipe: recipe, created_at: 1.hour.ago) }
+    let!(:run2) { create(:benchmark_run, node: node1, benchmark_recipe: recipe, created_at: 2.hours.ago) }
+    let!(:run3) { create(:benchmark_run, node: node2, benchmark_recipe: recipe, created_at: 30.minutes.ago) }
+
+    context "without node filter" do
+      it "returns recent runs limited to 10" do
+        runs = BenchmarkRun.recent_for_dashboard.to_a
+        expect(runs).to eq([ run3, run1, run2 ])
+      end
+
+      it "includes node and recipe associations" do
+        runs = BenchmarkRun.recent_for_dashboard
+        expect(runs.first.association(:node).loaded?).to be true
+        expect(runs.first.association(:benchmark_recipe).loaded?).to be true
+      end
+    end
+
+    context "with node filter" do
+      it "returns only runs for specified node" do
+        runs = BenchmarkRun.recent_for_dashboard(node1).to_a
+        expect(runs).to eq([ run1, run2 ])
+        expect(runs).not_to include(run3)
+      end
+    end
+  end
+
   describe "#duration" do
     context "when run is completed" do
       it "returns the duration in seconds" do
