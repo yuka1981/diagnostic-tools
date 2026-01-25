@@ -31,7 +31,7 @@
               </div>
               <div class="flex-1 min-w-0">
                 <p class="text-xs font-bold text-slate-700 truncate uppercase tracking-tight">
-                  <%= run.benchmark_recipe.display_name %>
+                  <%= run.benchmark_recipe&.display_name || "Unknown Recipe" %>
                 </p>
                 <p class="text-[10px] text-slate-500 font-medium">
                   <span class="text-slate-400">Node:</span> <span class="font-bold text-slate-600"><%= run.node.hostname %></span>

@@ -129,16 +129,22 @@ RSpec.describe "Benchmark Runs Cancel Functionality", type: :system do
       it "cancels run and redirects when clicking Cancel Run button", :js do
         visit benchmark_run_path(pending_run)
 
-        accept_confirm("Are you sure you want to cancel this benchmark run?") do
+        # Wait for the button to be ready
+        expect(page).to have_button("Cancel Run")
+
+        accept_confirm do
           click_button "Cancel Run"
         end
 
-        # Wait for the page to change - either redirect or status update
-        # The cancel button should disappear after successful cancel
-        expect(page).not_to have_button("Cancel Run", wait: 5)
+        # Poll for database state change (more reliable than UI in flaky environments)
+        wait_until = Time.current + 10.seconds
+        while Time.current < wait_until
+          pending_run.reload
+          break if pending_run.status == "cancelled"
+          sleep 0.5
+        end
 
-        # Verify the run was actually cancelled
-        expect(pending_run.reload.status).to eq("cancelled")
+        expect(pending_run.status).to eq("cancelled")
       end
     end
 

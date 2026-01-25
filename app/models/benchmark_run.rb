@@ -40,7 +40,7 @@ class BenchmarkRun < ApplicationRecord
   scope :for_node, ->(node) { where(node: node) }
   scope :in_last_24_hours, -> { where(started_at: 24.hours.ago..) }
   scope :recent_for_dashboard, ->(node = nil) {
-    scope = recent.includes(:node, :benchmark_recipe)
+    scope = recent.includes(:node, :benchmark_recipe).where.not(benchmark_recipe_id: nil)
     scope = scope.for_node(node) if node
     scope.limit(10)
   }
