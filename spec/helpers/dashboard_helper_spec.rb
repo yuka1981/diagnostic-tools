@@ -5,23 +5,23 @@ require "rails_helper"
 RSpec.describe DashboardHelper, type: :helper do
   describe "#status_badge_class" do
     it "returns success colors for success status" do
-      expect(helper.status_badge_class("success")).to include("green")
+      expect(helper.status_badge_class("success")).to include("success")
     end
 
     it "returns success colors for completed status" do
-      expect(helper.status_badge_class("completed")).to include("green")
+      expect(helper.status_badge_class("completed")).to include("success")
     end
 
     it "returns success colors for online status" do
-      expect(helper.status_badge_class("online")).to include("green")
+      expect(helper.status_badge_class("online")).to include("success")
     end
 
     it "returns error colors for failed status" do
-      expect(helper.status_badge_class("failed")).to include("red")
+      expect(helper.status_badge_class("failed")).to include("error")
     end
 
     it "returns error colors for offline status" do
-      expect(helper.status_badge_class("offline")).to include("red")
+      expect(helper.status_badge_class("offline")).to include("error")
     end
 
     it "returns running colors for running status" do
@@ -33,7 +33,7 @@ RSpec.describe DashboardHelper, type: :helper do
     end
 
     it "returns muted colors for cancelled status" do
-      expect(helper.status_badge_class("cancelled")).to include("slate")
+      expect(helper.status_badge_class("cancelled")).to include("neutral")
     end
 
     it "returns warning colors for unknown status" do
@@ -42,50 +42,50 @@ RSpec.describe DashboardHelper, type: :helper do
     end
 
     it "returns default muted colors for unrecognized status" do
-      # Unrecognized statuses fall back to DEFAULT_BADGE_CLASS (muted/slate)
-      expect(helper.status_badge_class("unknown_status")).to include("slate")
+      # Unrecognized statuses fall back to DEFAULT_BADGE_CLASS (muted/neutral)
+      expect(helper.status_badge_class("unknown_status")).to include("neutral")
     end
 
     it "handles symbol status" do
-      expect(helper.status_badge_class(:success)).to include("green")
+      expect(helper.status_badge_class(:success)).to include("success")
     end
   end
 
   describe "#status_bg_class" do
     it "returns success background for success status" do
-      expect(helper.status_bg_class("success")).to include("green")
+      expect(helper.status_bg_class("success")).to include("success")
     end
 
     it "returns error background for failed status" do
-      expect(helper.status_bg_class("failed")).to include("red")
+      expect(helper.status_bg_class("failed")).to include("error")
     end
 
     it "returns warning background for unknown status" do
-      # "unknown" maps to :warning which uses yellow
+      # "unknown" maps to :warning which uses yellow color
       expect(helper.status_bg_class("unknown")).to include("yellow")
     end
 
     it "returns default background for unrecognized status" do
-      expect(helper.status_bg_class("unrecognized_status")).to include("slate")
+      expect(helper.status_bg_class("unrecognized_status")).to include("neutral")
     end
   end
 
   describe "#status_text_color" do
     it "returns success text color for success status" do
-      expect(helper.status_text_color("success")).to include("green")
+      expect(helper.status_text_color("success")).to include("success")
     end
 
     it "returns error text color for failed status" do
-      expect(helper.status_text_color("failed")).to include("red")
+      expect(helper.status_text_color("failed")).to include("error")
     end
 
     it "returns warning text color for unknown status" do
-      # "unknown" maps to :warning which uses yellow
+      # "unknown" maps to :warning which uses yellow color
       expect(helper.status_text_color("unknown")).to include("yellow")
     end
 
     it "returns default text color for unrecognized status" do
-      expect(helper.status_text_color("unrecognized_status")).to include("slate")
+      expect(helper.status_text_color("unrecognized_status")).to include("neutral")
     end
   end
 
@@ -103,7 +103,7 @@ RSpec.describe DashboardHelper, type: :helper do
     end
 
     it "returns default for unknown role" do
-      expect(helper.role_badge_class("unknown")).to include("slate")
+      expect(helper.role_badge_class("unknown")).to include("neutral")
     end
 
     it "handles symbol role" do
@@ -122,8 +122,8 @@ RSpec.describe DashboardHelper, type: :helper do
       expect(helper.node_heatmap_class(online_compute_node)).to include("emerald")
     end
 
-    it "returns slate for offline compute nodes" do
-      expect(helper.node_heatmap_class(offline_compute_node)).to include("slate")
+    it "returns neutral for offline compute nodes" do
+      expect(helper.node_heatmap_class(offline_compute_node)).to include("neutral")
     end
 
     it "returns blue for online login nodes" do
@@ -141,13 +141,13 @@ RSpec.describe DashboardHelper, type: :helper do
   describe "#status_icon" do
     it "returns success icon for success status" do
       result = helper.status_icon("success")
-      expect(result).to include("green")
+      expect(result).to include("success")
       expect(result).to include("<svg")
     end
 
     it "returns failed icon for failed status" do
       result = helper.status_icon("failed")
-      expect(result).to include("red")
+      expect(result).to include("error")
       expect(result).to include("<svg")
     end
 
@@ -159,19 +159,19 @@ RSpec.describe DashboardHelper, type: :helper do
 
     it "returns pending icon for pending status" do
       result = helper.status_icon("pending")
-      expect(result).to include("slate")
+      expect(result).to include("neutral")
       expect(result).to include("<svg")
     end
 
-    it "returns slate icon for cancelled status" do
+    it "returns neutral icon for cancelled status" do
       result = helper.status_icon("cancelled")
-      expect(result).to include("slate")
+      expect(result).to include("neutral")
       expect(result).to include("<svg")
     end
 
-    it "returns slate icon for unrecognized status" do
+    it "returns neutral icon for unrecognized status" do
       result = helper.status_icon("something_else")
-      expect(result).to include("slate")
+      expect(result).to include("neutral")
       expect(result).to include("<svg")
     end
   end
