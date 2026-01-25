@@ -132,7 +132,7 @@ RSpec.describe "Dashboard Heatmap", type: :system do
             end
             it "returns gray classes for offline nodes" do
         node = create(:node, role: :compute, last_heartbeat_at: 10.minutes.ago)
-        expect(ApplicationController.helpers.node_heatmap_class(node)).to include("bg-slate-300")
+        expect(ApplicationController.helpers.node_heatmap_class(node)).to include("bg-neutral-15")
       end
     end
   end
