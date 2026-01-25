@@ -40,7 +40,7 @@ gem "bootsnap", require: false
 gem "image_processing", "~> 1.2"
 
 # Authentication [https://github.com/heartcombo/devise]
-gem "devise", "~> 4.9"
+gem "devise", "~> 5.0"
 
 # SSH client for remote command execution [https://github.com/net-ssh/net-ssh]
 gem "net-ssh", "~> 7.2"
