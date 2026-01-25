@@ -1,117 +1,123 @@
-<tr id="<%= task.dom_id %>_details" class="hidden bg-slate-50" data-accordion-target="details">
-  <td colspan="8" class="px-6 py-4">
-    <div class="grid grid-cols-3 gap-6">
-      <%# Details Column %>
-      <div>
-        <h4 class="text-xs font-bold text-slate-500 uppercase mb-2">Details</h4>
-        <dl class="space-y-1 text-sm">
-          <div class="flex justify-between">
-            <dt class="text-slate-500">Started:</dt>
-            <dd class="font-medium text-slate-900"><%= task.started_at&.strftime("%b %d, %H:%M") || "Pending" %></dd>
-          </div>
-          <div class="flex justify-between">
-            <dt class="text-slate-500">Finished:</dt>
-            <dd class="font-medium text-slate-900"><%= task.finished_at&.strftime("%b %d, %H:%M") || "-" %></dd>
-          </div>
-          <div class="flex justify-between">
-            <dt class="text-slate-500">UUID:</dt>
-            <dd class="font-mono text-xs text-slate-700"><%= task.uuid[0..7] %>...</dd>
-          </div>
-          <div class="flex justify-between">
-            <dt class="text-slate-500">Recipe:</dt>
-            <dd class="font-medium text-slate-900"><%= task.recipe_name %></dd>
-          </div>
-        </dl>
-      </div>
+<tr id="<%= task.dom_id %>_details" class="bg-slate-50" data-accordion-target="details">
+  <td colspan="8" class="p-0">
+    <div class="grid grid-rows-[0fr] transition-[grid-template-rows] duration-200 ease-out" data-accordion-content>
+      <div class="overflow-hidden min-h-0">
+        <div class="px-6 py-4">
+          <div class="grid grid-cols-3 gap-6">
+            <%# Details Column %>
+            <div>
+              <h4 class="text-xs font-bold text-slate-500 uppercase mb-2">Details</h4>
+              <dl class="space-y-1 text-sm">
+                <div class="flex justify-between">
+                  <dt class="text-slate-500">Started:</dt>
+                  <dd class="font-medium text-slate-900"><%= task.started_at&.strftime("%b %d, %H:%M") || "Pending" %></dd>
+                </div>
+                <div class="flex justify-between">
+                  <dt class="text-slate-500">Finished:</dt>
+                  <dd class="font-medium text-slate-900"><%= task.finished_at&.strftime("%b %d, %H:%M") || "-" %></dd>
+                </div>
+                <div class="flex justify-between">
+                  <dt class="text-slate-500">UUID:</dt>
+                  <dd class="font-mono text-xs text-slate-700"><%= task.uuid[0..7] %>...</dd>
+                </div>
+                <div class="flex justify-between">
+                  <dt class="text-slate-500">Recipe:</dt>
+                  <dd class="font-medium text-slate-900"><%= task.recipe_name %></dd>
+                </div>
+              </dl>
+            </div>
 
-      <%# Metrics Column %>
-      <div>
-        <h4 class="text-xs font-bold text-slate-500 uppercase mb-2">Metrics</h4>
-        <% if task.metrics.present? %>
-          <dl class="space-y-1 text-sm">
-            <% task.metrics.each do |key, value| %>
-              <div class="flex justify-between">
-                <dt class="text-slate-500"><%= format_metric_key(key) %>:</dt>
-                <dd class="font-mono text-slate-900">
-                  <%= value.is_a?(Numeric) ? number_with_precision(value, precision: 2, strip_insignificant_zeros: true) : value %>
-                </dd>
+            <%# Metrics Column %>
+            <div>
+              <h4 class="text-xs font-bold text-slate-500 uppercase mb-2">Metrics</h4>
+              <% if task.metrics.present? %>
+                <dl class="space-y-1 text-sm">
+                  <% task.metrics.each do |key, value| %>
+                    <div class="flex justify-between">
+                      <dt class="text-slate-500"><%= format_metric_key(key) %>:</dt>
+                      <dd class="font-mono text-slate-900">
+                        <%= value.is_a?(Numeric) ? number_with_precision(value, precision: 2, strip_insignificant_zeros: true) : value %>
+                      </dd>
+                    </div>
+                  <% end %>
+                </dl>
+              <% else %>
+                <p class="text-sm text-slate-400 italic">No metrics available</p>
+              <% end %>
+            </div>
+
+            <%# Actions Column %>
+            <div>
+              <h4 class="text-xs font-bold text-slate-500 uppercase mb-2">Actions</h4>
+              <div class="space-y-2">
+                <%= button_to rerun_task_path(task.to_param),
+                    method: :post,
+                    data: { turbo_confirm: "Re-run this task with the same configuration?" },
+                    class: "w-full btn-secondary text-sm justify-center" do %>
+                  <%= lucide_icon("refresh-cw", class: "h-4 w-4 mr-1") %>
+                  Re-run
+                <% end %>
+
+                <%= link_to node_path(task.node),
+                    data: { turbo_frame: "_top" },
+                    class: "w-full btn-secondary text-sm justify-center" do %>
+                  <%= lucide_icon("arrow-right", class: "h-4 w-4 mr-1") %>
+                  View Node
+                <% end %>
+
+                <% if task.pending? || task.running? %>
+                  <%= button_to cancel_task_path(task.to_param),
+                      method: :post,
+                      data: { turbo_confirm: "Cancel this task?" },
+                      class: "w-full btn-danger text-sm justify-center" do %>
+                    <%= lucide_icon("x", class: "h-4 w-4 mr-1") %>
+                    Cancel
+                  <% end %>
+                <% end %>
+
+                <%= button_to task_path(task.to_param),
+                    method: :delete,
+                    data: { turbo_confirm: "Delete this task permanently?" },
+                    class: "w-full btn-danger text-sm justify-center" do %>
+                  <%= lucide_icon("trash-2", class: "h-4 w-4 mr-1") %>
+                  Delete
+                <% end %>
               </div>
-            <% end %>
-          </dl>
-        <% else %>
-          <p class="text-sm text-slate-400 italic">No metrics available</p>
-        <% end %>
-      </div>
+            </div>
+          </div>
 
-      <%# Actions Column %>
-      <div>
-        <h4 class="text-xs font-bold text-slate-500 uppercase mb-2">Actions</h4>
-        <div class="space-y-2">
-          <%= button_to rerun_task_path(task.to_param),
-              method: :post,
-              data: { turbo_confirm: "Re-run this task with the same configuration?" },
-              class: "w-full btn-secondary text-sm justify-center" do %>
-            <%= lucide_icon("refresh-cw", class: "h-4 w-4 mr-1") %>
-            Re-run
+          <%# Artifacts Section %>
+          <% if task.artifacts.any? %>
+            <div class="mt-4 pt-4 border-t border-slate-200">
+              <h4 class="text-xs font-bold text-slate-500 uppercase mb-2">Artifacts</h4>
+              <div class="flex flex-wrap gap-2">
+                <% task.wrapped_artifacts.each do |artifact| %>
+                  <% if artifact.downloadable? %>
+                    <%= link_to artifact.download_path,
+                        class: "inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-teal-700 bg-teal-50 rounded hover:bg-teal-100" do %>
+                      <%= lucide_icon("download", class: "h-3 w-3") %>
+                      <%= artifact.name %>
+                    <% end %>
+                  <% else %>
+                    <span class="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-slate-400 bg-slate-100 rounded cursor-not-allowed" title="File unavailable">
+                      <%= lucide_icon("download", class: "h-3 w-3") %>
+                      <%= artifact.name %>
+                    </span>
+                  <% end %>
+                <% end %>
+              </div>
+            </div>
           <% end %>
 
-          <%= link_to node_path(task.node),
-              data: { turbo_frame: "_top" },
-              class: "w-full btn-secondary text-sm justify-center" do %>
-            <%= lucide_icon("arrow-right", class: "h-4 w-4 mr-1") %>
-            View Node
-          <% end %>
-
-          <% if task.pending? || task.running? %>
-            <%= button_to cancel_task_path(task.to_param),
-                method: :post,
-                data: { turbo_confirm: "Cancel this task?" },
-                class: "w-full btn-danger text-sm justify-center" do %>
-              <%= lucide_icon("x", class: "h-4 w-4 mr-1") %>
-              Cancel
-            <% end %>
-          <% end %>
-
-          <%= button_to task_path(task.to_param),
-              method: :delete,
-              data: { turbo_confirm: "Delete this task permanently?" },
-              class: "w-full btn-danger text-sm justify-center" do %>
-            <%= lucide_icon("trash-2", class: "h-4 w-4 mr-1") %>
-            Delete
+          <%# Error Message Section %>
+          <% if task.error_message.present? %>
+            <div class="mt-4 pt-4 border-t border-red-200">
+              <h4 class="text-xs font-bold text-red-500 uppercase mb-2">Error</h4>
+              <p class="text-sm text-red-700 bg-red-50 rounded p-2"><%= task.error_message %></p>
+            </div>
           <% end %>
         </div>
       </div>
     </div>
-
-    <%# Artifacts Section %>
-    <% if task.artifacts.any? %>
-      <div class="mt-4 pt-4 border-t border-slate-200">
-        <h4 class="text-xs font-bold text-slate-500 uppercase mb-2">Artifacts</h4>
-        <div class="flex flex-wrap gap-2">
-          <% task.wrapped_artifacts.each do |artifact| %>
-            <% if artifact.downloadable? %>
-              <%= link_to artifact.download_path,
-                  class: "inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-teal-700 bg-teal-50 rounded hover:bg-teal-100" do %>
-                <%= lucide_icon("download", class: "h-3 w-3") %>
-                <%= artifact.name %>
-              <% end %>
-            <% else %>
-              <span class="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-slate-400 bg-slate-100 rounded cursor-not-allowed" title="File unavailable">
-                <%= lucide_icon("download", class: "h-3 w-3") %>
-                <%= artifact.name %>
-              </span>
-            <% end %>
-          <% end %>
-        </div>
-      </div>
-    <% end %>
-
-    <%# Error Message Section %>
-    <% if task.error_message.present? %>
-      <div class="mt-4 pt-4 border-t border-red-200">
-        <h4 class="text-xs font-bold text-red-500 uppercase mb-2">Error</h4>
-        <p class="text-sm text-red-700 bg-red-50 rounded p-2"><%= task.error_message %></p>
-      </div>
-    <% end %>
   </td>
 </tr>

@@ -1,8 +1,5 @@
 #!/usr/bin/env sh
 
-# Add local bin to PATH to allow finding dummy watchman or other local scripts
-export PATH="./bin:$PATH"
-
 if ! gem list foreman -i --silent; then
   echo "Installing foreman..."
   gem install foreman
