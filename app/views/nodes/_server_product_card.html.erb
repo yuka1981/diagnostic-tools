@@ -3,7 +3,7 @@
   <% product = node.server_product %>
   <div class="card-netbox">
     <div class="card-header">
-      <h3 class="card-title text-xs font-bold text-slate-500 uppercase">Server Model</h3>
+      <h3 class="card-title text-xs font-bold text-neutral-45 uppercase">Server Model</h3>
     </div>
     <div class="p-4">
       <div class="flex gap-6">
@@ -19,7 +19,7 @@
               <div class="flex gap-2 mt-2">
                 <% product.images.each_with_index do |image, i| %>
                   <button type="button"
-                          class="text-xs px-2 py-1 rounded border hover:bg-slate-100"
+                          class="text-xs px-2 py-1 rounded border hover:bg-neutral-4"
                           data-action="click->image-viewer#show"
                           data-index="<%= i %>">
                     View <%= i + 1 %>
@@ -28,7 +28,7 @@
               </div>
             <% end %>
           <% else %>
-            <div class="w-full h-32 bg-slate-100 rounded border flex items-center justify-center text-slate-400">
+            <div class="w-full h-32 bg-neutral-4 rounded border flex items-center justify-center text-neutral-25">
               <%= lucide_icon("image", class: "h-8 w-8") %>
             </div>
           <% end %>
@@ -37,20 +37,20 @@
         <%# Specs table %>
         <div class="w-2/3">
           <table class="w-full text-sm">
-            <tbody class="divide-y divide-slate-100">
+            <tbody class="divide-y divide-neutral-4">
               <tr>
-                <th class="py-2 text-left text-slate-600 w-1/3 font-bold">Model</th>
-                <td class="py-2 font-bold text-slate-900">
+                <th class="py-2 text-left text-neutral-45 w-1/3 font-bold">Model</th>
+                <td class="py-2 font-bold text-neutral-85">
                   <%= link_to product.name, settings_server_product_path(product),
-                      class: "text-teal-600 hover:text-teal-800" %>
+                      class: "text-primary-6 hover:text-primary-8" %>
                 </td>
               </tr>
               <tr>
-                <th class="py-2 text-left text-slate-600 font-bold">Form Factor</th>
+                <th class="py-2 text-left text-neutral-45 font-bold">Form Factor</th>
                 <td class="py-2"><%= product.form_factor %> (<%= product.rack_height %>U)</td>
               </tr>
               <tr>
-                <th class="py-2 text-left text-slate-600 font-bold">CPU Support</th>
+                <th class="py-2 text-left text-neutral-45 font-bold">CPU Support</th>
                 <td class="py-2">
                   <%= product.cpu_generations&.join(", ") || "---" %>
                   <% if product.socket_count %>
@@ -59,7 +59,7 @@
                 </td>
               </tr>
               <tr>
-                <th class="py-2 text-left text-slate-600 font-bold">Max Memory</th>
+                <th class="py-2 text-left text-neutral-45 font-bold">Max Memory</th>
                 <td class="py-2">
                   <% if product.max_memory_gb %>
                     <%= number_to_human_size(product.max_memory_gb.gigabytes) %>
@@ -73,7 +73,7 @@
               </tr>
               <% if product.drive_bays.present? %>
                 <tr>
-                  <th class="py-2 text-left text-slate-600 font-bold">Drive Bays</th>
+                  <th class="py-2 text-left text-neutral-45 font-bold">Drive Bays</th>
                   <td class="py-2">
                     <% product.drive_bays.each do |bay| %>
                       <%= bay["count"] %>x <%= bay["type"] %> <%= bay["form_factor"] %><br>
@@ -83,7 +83,7 @@
               <% end %>
               <% if product.pcie_slots.present? %>
                 <tr>
-                  <th class="py-2 text-left text-slate-600 font-bold">PCIe Slots</th>
+                  <th class="py-2 text-left text-neutral-45 font-bold">PCIe Slots</th>
                   <td class="py-2">
                     <% product.pcie_slots.each do |slot| %>
                       <%= slot["count"] %>x PCIe <%= slot["generation"] %> x<%= slot["lanes"] %><br>
@@ -93,8 +93,8 @@
               <% end %>
               <% if product.gpu_support %>
                 <tr>
-                  <th class="py-2 text-left text-slate-600 font-bold">GPU Support</th>
-                  <td class="py-2 text-green-600 font-bold">Yes</td>
+                  <th class="py-2 text-left text-neutral-45 font-bold">GPU Support</th>
+                  <td class="py-2 text-success-6 font-bold">Yes</td>
                 </tr>
               <% end %>
             </tbody>

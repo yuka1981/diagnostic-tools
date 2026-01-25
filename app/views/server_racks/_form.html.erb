@@ -1,6 +1,6 @@
 <%= form_with(model: @server_rack, class: "space-y-6") do |f| %>
   <% if @server_rack.errors.any? %>
-    <div class="rounded-lg bg-red-50 p-4 text-sm text-red-700 border border-red-200">
+    <div class="rounded-lg bg-error-1 p-4 text-sm text-error-7 border border-error-2">
       <h2 class="font-bold mb-2"><%= pluralize(@server_rack.errors.count, "error") %> prohibited this rack from being saved:</h2>
       <ul class="list-disc list-inside">
         <% @server_rack.errors.full_messages.each do |message| %>
@@ -17,60 +17,60 @@
     </div>
     <div class="p-4 grid grid-cols-1 md:grid-cols-2 gap-6">
       <div>
-        <%= f.label :room_id, "Room", class: "block text-sm font-bold text-slate-700 mb-1" %>
+        <%= f.label :room_id, "Room", class: "block text-sm font-bold text-neutral-85 mb-1" %>
         <%= f.collection_select :room_id, @rooms, :id, ->(r) { "#{r.site.name} / #{r.name}" },
             { prompt: "Select a room" },
-            { required: true, class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" } %>
-        <p class="mt-1 text-xs text-slate-500">Room where this rack is located.</p>
+            { required: true, class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm" } %>
+        <p class="mt-1 text-xs text-neutral-45">Room where this rack is located.</p>
       </div>
 
       <div>
-        <%= f.label :name, class: "block text-sm font-bold text-slate-700 mb-1" %>
+        <%= f.label :name, class: "block text-sm font-bold text-neutral-85 mb-1" %>
         <%= f.text_field :name, required: true,
             placeholder: "Rack A1",
-            class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" %>
-        <p class="mt-1 text-xs text-slate-500">Display name for this rack.</p>
+            class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm" %>
+        <p class="mt-1 text-xs text-neutral-45">Display name for this rack.</p>
       </div>
 
       <div>
-        <%= f.label :u_height, "U Height", class: "block text-sm font-bold text-slate-700 mb-1" %>
+        <%= f.label :u_height, "U Height", class: "block text-sm font-bold text-neutral-85 mb-1" %>
         <%= f.number_field :u_height, required: true,
             min: 1, max: 100, value: @server_rack.u_height || 42,
-            class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" %>
-        <p class="mt-1 text-xs text-slate-500">Height of the rack in rack units (1-100U).</p>
+            class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm" %>
+        <p class="mt-1 text-xs text-neutral-45">Height of the rack in rack units (1-100U).</p>
       </div>
 
       <div>
-        <%= f.label :status, class: "block text-sm font-bold text-slate-700 mb-1" %>
+        <%= f.label :status, class: "block text-sm font-bold text-neutral-85 mb-1" %>
         <%= f.select :status,
             options_for_select([["Active", "active"], ["Planned", "planned"], ["Decommissioned", "decommissioned"]], @server_rack.status || "active"),
             {},
-            { class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" } %>
-        <p class="mt-1 text-xs text-slate-500">Current operational status of the rack.</p>
+            { class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm" } %>
+        <p class="mt-1 text-xs text-neutral-45">Current operational status of the rack.</p>
       </div>
 
       <div>
-        <%= f.label :facility_id, "Facility ID", class: "block text-sm font-bold text-slate-700 mb-1" %>
+        <%= f.label :facility_id, "Facility ID", class: "block text-sm font-bold text-neutral-85 mb-1" %>
         <%= f.text_field :facility_id,
             placeholder: "FAC-001",
-            class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" %>
-        <p class="mt-1 text-xs text-slate-500">Optional facility identifier.</p>
+            class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm" %>
+        <p class="mt-1 text-xs text-neutral-45">Optional facility identifier.</p>
       </div>
 
       <div>
-        <%= f.label :asset_tag, "Asset Tag", class: "block text-sm font-bold text-slate-700 mb-1" %>
+        <%= f.label :asset_tag, "Asset Tag", class: "block text-sm font-bold text-neutral-85 mb-1" %>
         <%= f.text_field :asset_tag,
             placeholder: "ASSET-001",
-            class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" %>
-        <p class="mt-1 text-xs text-slate-500">Optional asset tag for tracking.</p>
+            class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm" %>
+        <p class="mt-1 text-xs text-neutral-45">Optional asset tag for tracking.</p>
       </div>
 
       <div class="md:col-span-2">
         <div class="flex items-center gap-2">
-          <%= f.check_box :desc_units, class: "rounded border-slate-300 text-teal-600 focus:ring-teal-500" %>
-          <%= f.label :desc_units, "Descending Units", class: "text-sm font-bold text-slate-700" %>
+          <%= f.check_box :desc_units, class: "rounded border-neutral-15 text-primary-6 focus:ring-primary-5" %>
+          <%= f.label :desc_units, "Descending Units", class: "text-sm font-bold text-neutral-85" %>
         </div>
-        <p class="mt-1 text-xs text-slate-500 ml-6">Check if rack units are numbered from top to bottom (U1 at top).</p>
+        <p class="mt-1 text-xs text-neutral-45 ml-6">Check if rack units are numbered from top to bottom (U1 at top).</p>
       </div>
     </div>
   </div>

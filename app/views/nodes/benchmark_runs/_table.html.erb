@@ -1,24 +1,24 @@
 <div class="overflow-x-auto">
-  <table class="min-w-full divide-y divide-slate-200">
-    <thead class="bg-slate-50">
+  <table class="min-w-full divide-y divide-neutral-8">
+    <thead class="bg-neutral-2">
       <tr>
-        <th class="px-3 py-2 text-left text-xs font-bold uppercase text-slate-500">ID</th>
-        <th class="px-3 py-2 text-left text-xs font-bold uppercase text-slate-500">Recipe</th>
-        <th class="px-3 py-2 text-left text-xs font-bold uppercase text-slate-500">Status</th>
-        <th class="px-3 py-2 text-right text-xs font-bold uppercase text-slate-500">Date</th>
+        <th class="px-3 py-2 text-left text-xs font-bold uppercase text-neutral-45">ID</th>
+        <th class="px-3 py-2 text-left text-xs font-bold uppercase text-neutral-45">Recipe</th>
+        <th class="px-3 py-2 text-left text-xs font-bold uppercase text-neutral-45">Status</th>
+        <th class="px-3 py-2 text-right text-xs font-bold uppercase text-neutral-45">Date</th>
       </tr>
     </thead>
-    <tbody class="divide-y divide-slate-100">
+    <tbody class="divide-y divide-neutral-4">
       <% benchmark_runs.each do |run| %>
-        <tr id="<%= dom_id(run) %>" class="hover:bg-slate-50">
-          <td class="px-3 py-2 text-xs font-mono text-slate-900">
-            <%= link_to run.id.to_s[0..7], benchmark_run_path(run), class: "text-teal-600 hover:underline" %>
+        <tr id="<%= dom_id(run) %>" class="hover:bg-neutral-2">
+          <td class="px-3 py-2 text-xs font-mono text-neutral-85">
+            <%= link_to run.id.to_s[0..7], benchmark_run_path(run), class: "text-primary-6 hover:underline" %>
           </td>
-          <td class="px-3 py-2 text-xs text-slate-900"><%= run.benchmark_recipe&.name || "N/A" %></td>
+          <td class="px-3 py-2 text-xs text-neutral-85"><%= run.benchmark_recipe&.name || "N/A" %></td>
           <td class="px-3 py-2 text-xs">
             <span class="font-medium <%= status_text_color(run.status) %>"><%= run.status.humanize %></span>
           </td>
-          <td class="px-3 py-2 text-xs text-right text-slate-500"><%= time_ago_in_words(run.created_at) %> ago</td>
+          <td class="px-3 py-2 text-xs text-right text-neutral-45"><%= time_ago_in_words(run.created_at) %> ago</td>
         </tr>
       <% end %>
     </tbody>

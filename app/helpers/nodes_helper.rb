@@ -34,11 +34,11 @@ module NodesHelper
     downgraded = installed && config_speed > 0 && spec_speed > 0 && config_speed < spec_speed
 
     if !installed
-      "bg-slate-50 border-dashed border-2 border-slate-200 text-slate-300"
+      "bg-neutral-2 border-dashed border-2 border-neutral-8 text-neutral-15"
     elsif downgraded
       "bg-amber-50 border-2 border-amber-400 text-amber-800"
     else
-      "bg-teal-600 border-2 border-teal-700 text-white shadow-sm"
+      "bg-primary-6 border-2 border-primary-7 text-white shadow-sm"
     end
   end
 
@@ -52,11 +52,11 @@ module NodesHelper
   def net_interface_status_badge(status)
     case status.to_s.downcase
     when "up", "active"
-      content_tag :span, "Active", class: "inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-green-500 text-white shadow-sm uppercase tracking-wider"
+      content_tag :span, "Active", class: "inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-success-5 text-white shadow-sm uppercase tracking-wider"
     when "down"
-      content_tag :span, "Down", class: "inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-red-500 text-white shadow-sm uppercase tracking-wider"
+      content_tag :span, "Down", class: "inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-error-5 text-white shadow-sm uppercase tracking-wider"
     else
-      content_tag :span, status.to_s.upcase, class: "inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-slate-500 text-white shadow-sm uppercase tracking-wider"
+      content_tag :span, status.to_s.upcase, class: "inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-neutral-45 text-white shadow-sm uppercase tracking-wider"
     end
   end
 end

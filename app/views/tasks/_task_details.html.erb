@@ -1,52 +1,52 @@
-<tr id="<%= task.dom_id %>_details" class="bg-slate-50 hidden" data-accordion-target="details">
+<tr id="<%= task.dom_id %>_details" class="bg-neutral-2 hidden" data-accordion-target="details">
   <td colspan="8" class="p-0">
     <div class="px-6 py-4">
           <div class="grid grid-cols-3 gap-6">
             <%# Details Column %>
             <div>
-              <h4 class="text-xs font-bold text-slate-500 uppercase mb-2">Details</h4>
+              <h4 class="text-xs font-bold text-neutral-45 uppercase mb-2">Details</h4>
               <dl class="space-y-1 text-sm">
                 <div class="flex justify-between">
-                  <dt class="text-slate-500">Started:</dt>
-                  <dd class="font-medium text-slate-900"><%= task.started_at&.strftime("%b %d, %H:%M") || "Pending" %></dd>
+                  <dt class="text-neutral-45">Started:</dt>
+                  <dd class="font-medium text-neutral-85"><%= task.started_at&.strftime("%b %d, %H:%M") || "Pending" %></dd>
                 </div>
                 <div class="flex justify-between">
-                  <dt class="text-slate-500">Finished:</dt>
-                  <dd class="font-medium text-slate-900"><%= task.finished_at&.strftime("%b %d, %H:%M") || "-" %></dd>
+                  <dt class="text-neutral-45">Finished:</dt>
+                  <dd class="font-medium text-neutral-85"><%= task.finished_at&.strftime("%b %d, %H:%M") || "-" %></dd>
                 </div>
                 <div class="flex justify-between">
-                  <dt class="text-slate-500">UUID:</dt>
-                  <dd class="font-mono text-xs text-slate-700"><%= task.uuid[0..7] %>...</dd>
+                  <dt class="text-neutral-45">UUID:</dt>
+                  <dd class="font-mono text-xs text-neutral-85"><%= task.uuid[0..7] %>...</dd>
                 </div>
                 <div class="flex justify-between">
-                  <dt class="text-slate-500">Recipe:</dt>
-                  <dd class="font-medium text-slate-900"><%= task.recipe_name %></dd>
+                  <dt class="text-neutral-45">Recipe:</dt>
+                  <dd class="font-medium text-neutral-85"><%= task.recipe_name %></dd>
                 </div>
               </dl>
             </div>
 
             <%# Metrics Column %>
             <div>
-              <h4 class="text-xs font-bold text-slate-500 uppercase mb-2">Metrics</h4>
+              <h4 class="text-xs font-bold text-neutral-45 uppercase mb-2">Metrics</h4>
               <% if task.metrics.present? %>
                 <dl class="space-y-1 text-sm">
                   <% task.metrics.each do |key, value| %>
                     <div class="flex justify-between">
-                      <dt class="text-slate-500"><%= format_metric_key(key) %>:</dt>
-                      <dd class="font-mono text-slate-900">
+                      <dt class="text-neutral-45"><%= format_metric_key(key) %>:</dt>
+                      <dd class="font-mono text-neutral-85">
                         <%= value.is_a?(Numeric) ? number_with_precision(value, precision: 2, strip_insignificant_zeros: true) : value %>
                       </dd>
                     </div>
                   <% end %>
                 </dl>
               <% else %>
-                <p class="text-sm text-slate-400 italic">No metrics available</p>
+                <p class="text-sm text-neutral-25 italic">No metrics available</p>
               <% end %>
             </div>
 
             <%# Actions Column %>
             <div>
-              <h4 class="text-xs font-bold text-slate-500 uppercase mb-2">Actions</h4>
+              <h4 class="text-xs font-bold text-neutral-45 uppercase mb-2">Actions</h4>
               <div class="space-y-2">
                 <%= button_to rerun_task_path(task.to_param),
                     method: :post,
@@ -86,18 +86,18 @@
 
           <%# Artifacts Section %>
           <% if task.artifacts.any? %>
-            <div class="mt-4 pt-4 border-t border-slate-200">
-              <h4 class="text-xs font-bold text-slate-500 uppercase mb-2">Artifacts</h4>
+            <div class="mt-4 pt-4 border-t border-neutral-8">
+              <h4 class="text-xs font-bold text-neutral-45 uppercase mb-2">Artifacts</h4>
               <div class="flex flex-wrap gap-2">
                 <% task.wrapped_artifacts.each do |artifact| %>
                   <% if artifact.downloadable? %>
                     <%= link_to artifact.download_path,
-                        class: "inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-teal-700 bg-teal-50 rounded hover:bg-teal-100" do %>
+                        class: "inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-primary-7 bg-primary-1 rounded hover:bg-primary-1" do %>
                       <%= lucide_icon("download", class: "h-3 w-3") %>
                       <%= artifact.name %>
                     <% end %>
                   <% else %>
-                    <span class="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-slate-400 bg-slate-100 rounded cursor-not-allowed" title="File unavailable">
+                    <span class="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-neutral-25 bg-neutral-4 rounded cursor-not-allowed" title="File unavailable">
                       <%= lucide_icon("download", class: "h-3 w-3") %>
                       <%= artifact.name %>
                     </span>
@@ -109,9 +109,9 @@
 
           <%# Error Message Section %>
           <% if task.error_message.present? %>
-            <div class="mt-4 pt-4 border-t border-red-200">
-              <h4 class="text-xs font-bold text-red-500 uppercase mb-2">Error</h4>
-              <p class="text-sm text-red-700 bg-red-50 rounded p-2"><%= task.error_message %></p>
+            <div class="mt-4 pt-4 border-t border-error-2">
+              <h4 class="text-xs font-bold text-error-5 uppercase mb-2">Error</h4>
+              <p class="text-sm text-error-7 bg-error-1 rounded p-2"><%= task.error_message %></p>
             </div>
           <% end %>
         </div>

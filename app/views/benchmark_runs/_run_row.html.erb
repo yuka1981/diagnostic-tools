@@ -1,26 +1,26 @@
-<tr id="<%= dom_id(run) %>" class="hover:bg-slate-50 transition-colors">
-  <td class="whitespace-nowrap px-3 py-2 text-sm font-mono text-slate-600">
+<tr id="<%= dom_id(run) %>" class="hover:bg-neutral-2 transition-colors">
+  <td class="whitespace-nowrap px-3 py-2 text-sm font-mono text-neutral-45">
     <%= run.id %>
   </td>
   <td class="whitespace-nowrap px-3 py-2">
-    <p class="text-sm font-medium text-slate-900"><%= run.benchmark_recipe.name %></p>
-    <p class="text-xs text-slate-500"><%= run.benchmark_recipe.version %></p>
+    <p class="text-sm font-medium text-neutral-85"><%= run.benchmark_recipe.name %></p>
+    <p class="text-xs text-neutral-45"><%= run.benchmark_recipe.version %></p>
   </td>
-  <td class="whitespace-nowrap px-3 py-2 text-sm text-slate-600">
-    <%= link_to run.node.hostname, node_path(run.node), class: "hover:text-teal-600" %>
+  <td class="whitespace-nowrap px-3 py-2 text-sm text-neutral-45">
+    <%= link_to run.node.hostname, node_path(run.node), class: "hover:text-primary-6" %>
   </td>
   <td class="whitespace-nowrap px-3 py-2">
     <span class="inline-flex items-center rounded-sm px-2 py-0.5 text-xs font-medium <%= status_badge_class(run.status) %>">
       <%= run.status.humanize %>
     </span>
   </td>
-  <td class="whitespace-nowrap px-3 py-2 text-sm text-slate-600 font-mono">
+  <td class="whitespace-nowrap px-3 py-2 text-sm text-neutral-45 font-mono">
     <%= run.metrics&.dig("gflops") ? number_with_precision(run.metrics["gflops"], precision: 2, strip_insignificant_zeros: true) : "-" %>
   </td>
-  <td class="whitespace-nowrap px-3 py-2 text-sm text-slate-500">
+  <td class="whitespace-nowrap px-3 py-2 text-sm text-neutral-45">
     <%= run.duration ? distance_of_time_in_words(run.duration) : "-" %>
   </td>
-  <td class="whitespace-nowrap px-3 py-2 text-sm text-slate-500">
+  <td class="whitespace-nowrap px-3 py-2 text-sm text-neutral-45">
     <%= l(run.created_at, format: :short) %>
   </td>
   <td class="whitespace-nowrap px-3 py-2 text-right text-sm">
@@ -30,14 +30,14 @@
             method: :post,
             data: { turbo_confirm: "Are you sure you want to cancel this benchmark run?" },
             title: "Cancel",
-            class: "p-1.5 text-red-500 hover:text-red-700 hover:bg-red-50 rounded transition-colors" do %>
+            class: "p-1.5 text-error-5 hover:text-error-7 hover:bg-error-1 rounded transition-colors" do %>
           <%= lucide_icon("x", class: "h-4 w-4") %>
         <% end %>
       <% end %>
       <%= link_to benchmark_run_path(run),
           data: { action: "click->slide-over#open", turbo_frame: "slide_over_content" },
           title: "View Details",
-          class: "p-1.5 text-slate-500 hover:text-teal-600 hover:bg-teal-50 rounded transition-colors" do %>
+          class: "p-1.5 text-neutral-45 hover:text-primary-6 hover:bg-primary-1 rounded transition-colors" do %>
         <%= lucide_icon("eye", class: "h-4 w-4") %>
       <% end %>
     </div>

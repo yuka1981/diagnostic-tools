@@ -6,17 +6,17 @@
   <div class="card-header">
     <div>
       <h2 class="card-title">Node Heatmap</h2>
-      <p class="text-[10px] text-slate-500 lowercase font-normal italic">Click a node to filter benchmark runs</p>
+      <p class="text-[10px] text-neutral-45 lowercase font-normal italic">Click a node to filter benchmark runs</p>
     </div>
     
     <%# Selection indicator and clear button %>
     <div class="flex items-center gap-3">
       <span data-heatmap-target="selectedLabel" 
-            class="hidden text-xs font-bold text-teal-600 uppercase tracking-tight"></span>
+            class="hidden text-xs font-bold text-primary-6 uppercase tracking-tight"></span>
       <button type="button"
               data-heatmap-target="clearButton"
               data-action="click->heatmap#clearSelection"
-              class="hidden items-center gap-1.5 rounded bg-slate-100 px-2 py-1 text-[10px] font-bold text-slate-700 hover:bg-slate-200 border border-slate-300 transition-colors uppercase">
+              class="hidden items-center gap-1.5 rounded bg-neutral-4 px-2 py-1 text-[10px] font-bold text-neutral-85 hover:bg-neutral-8 border border-neutral-15 transition-colors uppercase">
         <%= lucide_icon("x", class: "h-3 w-3") %>
         Clear filter
       </button>
@@ -28,19 +28,19 @@
     <div class="flex items-center gap-4 mb-4 text-[10px] font-bold uppercase tracking-tight">
       <div class="flex items-center gap-1.5">
         <div class="h-3 w-3 rounded-sm bg-emerald-500"></div>
-        <span class="text-slate-600">Online</span>
+        <span class="text-neutral-45">Online</span>
       </div>
       <div class="flex items-center gap-1.5">
-        <div class="h-3 w-3 rounded-sm bg-slate-300"></div>
-        <span class="text-slate-600">Offline</span>
+        <div class="h-3 w-3 rounded-sm bg-neutral-15"></div>
+        <span class="text-neutral-45">Offline</span>
       </div>
       <div class="flex items-center gap-1.5">
         <div class="h-3 w-3 rounded-sm bg-blue-500"></div>
-        <span class="text-slate-600">Login</span>
+        <span class="text-neutral-45">Login</span>
       </div>
       <div class="flex items-center gap-1.5">
         <div class="h-3 w-3 rounded-sm bg-amber-500"></div>
-        <span class="text-slate-600">Admin</span>
+        <span class="text-neutral-45">Admin</span>
       </div>
     </div>
 
@@ -53,20 +53,20 @@
                   data-action="click->heatmap#filter"
                   data-node-id="<%= node.id %>"
                   data-hostname="<%= node.hostname %>"
-                  class="group relative aspect-square rounded-sm transition-all duration-150 cursor-pointer hover:scale-105 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 <%= node_heatmap_class(node) %> border border-black/5"
+                  class="group relative aspect-square rounded-sm transition-all duration-150 cursor-pointer hover:scale-105 focus:outline-none focus:ring-2 focus:ring-primary-5 focus:ring-offset-2 <%= node_heatmap_class(node) %> border border-black/5"
                   title="<%= node.hostname %> (<%= node.role.humanize %>) - <%= node.online? ? 'Online' : 'Offline' %>"
                   aria-label="<%= node.hostname %>, <%= node.role %>, <%= node.online? ? 'online' : 'offline' %>">
             <%# Tooltip on hover %>
             <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block z-50 pointer-events-none">
-              <div class="whitespace-nowrap rounded bg-slate-900 px-2 py-1.5 text-[10px] font-bold text-white shadow-xl border border-slate-700 backdrop-blur-sm">
-                <p class="text-teal-400 uppercase tracking-widest"><%= node.hostname %></p>
-                <p class="text-slate-300 font-medium tracking-tight"><%= node.role.humanize %> · <%= node.online? ? 'Online' : 'Offline' %></p>
+              <div class="whitespace-nowrap rounded bg-neutral-85 px-2 py-1.5 text-[10px] font-bold text-white shadow-xl border border-neutral-85 backdrop-blur-sm">
+                <p class="text-primary-4 uppercase tracking-widest"><%= node.hostname %></p>
+                <p class="text-neutral-15 font-medium tracking-tight"><%= node.role.humanize %> · <%= node.online? ? 'Online' : 'Offline' %></p>
                 <% if node.last_seen_at %>
-                  <p class="text-slate-400 font-normal text-[9px] mt-0.5 border-t border-slate-800 pt-0.5">Last seen: <%= time_ago_in_words(node.last_seen_at) %> ago</p>
+                  <p class="text-neutral-25 font-normal text-[9px] mt-0.5 border-t border-neutral-85 pt-0.5">Last seen: <%= time_ago_in_words(node.last_seen_at) %> ago</p>
                 <% end %>
               </div>
               <%# Tooltip arrow %>
-              <div class="absolute left-1/2 -translate-x-1/2 -top-1 h-2 w-2 rotate-45 bg-slate-900 border-r border-b border-slate-700"></div>
+              <div class="absolute left-1/2 -translate-x-1/2 -top-1 h-2 w-2 rotate-45 bg-neutral-85 border-r border-b border-neutral-85"></div>
             </div>
           </button>
         <% end %>
@@ -74,16 +74,16 @@
       
       <%# Node count summary %>
       <% online_count = nodes.count(&:online?) %>
-      <div class="mt-4 flex items-center justify-between text-[10px] font-bold uppercase tracking-widest text-slate-400">
+      <div class="mt-4 flex items-center justify-between text-[10px] font-bold uppercase tracking-widest text-neutral-25">
         <span><%= nodes.size %> nodes total</span>
         <span><%= online_count %> online, <%= nodes.size - online_count %> offline</span>
       </div>
     <% else %>
       <%# Empty state %>
-      <div class="flex flex-col items-center justify-center py-12 text-center border-2 border-dashed border-slate-200 rounded-lg">
-        <%= lucide_icon("server", class: "h-12 w-12 text-slate-300") %>
-        <p class="mt-4 text-xs font-bold text-slate-500 uppercase">No nodes registered</p>
-        <p class="mt-1 text-[10px] text-slate-400 font-medium">Import nodes via CSV or API to see the heatmap</p>
+      <div class="flex flex-col items-center justify-center py-12 text-center border-2 border-dashed border-neutral-8 rounded-lg">
+        <%= lucide_icon("server", class: "h-12 w-12 text-neutral-15") %>
+        <p class="mt-4 text-xs font-bold text-neutral-45 uppercase">No nodes registered</p>
+        <p class="mt-1 text-[10px] text-neutral-25 font-medium">Import nodes via CSV or API to see the heatmap</p>
       </div>
     <% end %>
   </div>

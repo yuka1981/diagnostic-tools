@@ -1,14 +1,14 @@
 <tr id="profiling_run_<%= run.id %>">
   <td class="px-4 py-3 text-sm">
-    <span class="font-medium text-slate-800"><%= run.subcommand.capitalize %></span>
+    <span class="font-medium text-neutral-85"><%= run.subcommand.capitalize %></span>
     <% if run.profiling_recipe %>
-      <span class="text-xs text-slate-500 block"><%= run.profiling_recipe.name %></span>
+      <span class="text-xs text-neutral-45 block"><%= run.profiling_recipe.name %></span>
     <% end %>
   </td>
   <td class="px-4 py-3">
     <% case run.status %>
     <% when "pending" %>
-      <span class="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-600">
+      <span class="inline-flex items-center rounded-full bg-neutral-4 px-2.5 py-0.5 text-xs font-medium text-neutral-45">
         Pending
       </span>
     <% when "running" %>
@@ -20,11 +20,11 @@
         Running
       </span>
     <% when "success" %>
-      <span class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-700">
+      <span class="inline-flex items-center rounded-full bg-success-2 px-2.5 py-0.5 text-xs font-medium text-success-7">
         Success
       </span>
     <% when "failed" %>
-      <span class="inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-700">
+      <span class="inline-flex items-center rounded-full bg-error-1 px-2.5 py-0.5 text-xs font-medium text-error-7">
         Failed
       </span>
     <% when "cancelled" %>
@@ -33,14 +33,14 @@
       </span>
     <% end %>
   </td>
-  <td class="px-4 py-3 text-sm text-slate-500">
+  <td class="px-4 py-3 text-sm text-neutral-45">
     <% if run.started_at %>
       <%= time_ago_in_words(run.started_at) %> ago
     <% else %>
       -
     <% end %>
   </td>
-  <td class="px-4 py-3 text-sm text-slate-500">
+  <td class="px-4 py-3 text-sm text-neutral-45">
     <% if run.duration %>
       <%= distance_of_time_in_words(run.duration) %>
     <% elsif run.running? && run.started_at %>
@@ -51,9 +51,9 @@
   </td>
   <td class="px-4 py-3 text-sm">
     <%= link_to "View", node_profiling_run_path(run.node, run),
-        class: "text-teal-600 hover:text-teal-800 font-medium" %>
+        class: "text-primary-6 hover:text-primary-8 font-medium" %>
     <% if run.profiling_artifacts.any? %>
-      <span class="ml-2 text-xs text-slate-400">
+      <span class="ml-2 text-xs text-neutral-25">
         (<%= run.profiling_artifacts.count %> files)
       </span>
     <% end %>

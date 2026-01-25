@@ -8,12 +8,12 @@
                   data-wizard-target="indicator"
                   data-step="<%= index + 1 %>"
                   data-action="click->wizard#goToStep"
-                  class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors <%= index == 0 ? 'bg-teal-600 text-white' : 'bg-slate-300 text-slate-600' %>">
+                  class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors <%= index == 0 ? 'bg-primary-6 text-white' : 'bg-neutral-15 text-neutral-45' %>">
             <%= index + 1 %>
           </button>
-          <span class="ml-2 text-sm font-medium text-slate-700 hidden sm:inline"><%= label %></span>
+          <span class="ml-2 text-sm font-medium text-neutral-85 hidden sm:inline"><%= label %></span>
           <% unless index == 2 %>
-            <div class="flex-1 mx-4 h-0.5 bg-slate-200"></div>
+            <div class="flex-1 mx-4 h-0.5 bg-neutral-8"></div>
           <% end %>
         </div>
       <% end %>
@@ -22,7 +22,7 @@
 
   <%# Error display section %>
   <% if node.errors.any? %>
-    <div id="error_explanation" class="mb-6 rounded-lg bg-red-50 p-4 text-sm text-red-700 border border-red-200">
+    <div id="error_explanation" class="mb-6 rounded-lg bg-error-1 p-4 text-sm text-error-7 border border-error-2">
       <h2 class="font-bold mb-2"><%= pluralize(node.errors.count, "error") %> prohibited this node from being saved:</h2>
       <ul class="list-disc list-inside">
         <% node.errors.full_messages.each do |message| %>
@@ -41,41 +41,41 @@
         </div>
         <div class="p-4 grid grid-cols-1 gap-6 sm:grid-cols-2">
           <div>
-            <%= f.label :hostname, class: "block text-sm font-bold text-slate-700 mb-1" %>
+            <%= f.label :hostname, class: "block text-sm font-bold text-neutral-85 mb-1" %>
             <%= f.text_field :hostname, required: true,
                 placeholder: "node-001",
-                class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm",
+                class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm",
                 data: {
                   hostname_validation_target: "input",
                   action: "input->hostname-validation#validate blur->hostname-validation#validateHostnameOnBlur"
                 } %>
-            <p class="mt-1 text-xs text-slate-500">Unique hostname for the node.</p>
-            <p class="mt-1 text-xs text-red-600 font-medium hidden" data-hostname-validation-target="error"></p>
+            <p class="mt-1 text-xs text-neutral-45">Unique hostname for the node.</p>
+            <p class="mt-1 text-xs text-error-6 font-medium hidden" data-hostname-validation-target="error"></p>
           </div>
 
           <div>
-            <%= f.label :ip, "IP Address", class: "block text-sm font-bold text-slate-700 mb-1" %>
+            <%= f.label :ip, "IP Address", class: "block text-sm font-bold text-neutral-85 mb-1" %>
             <%= f.text_field :ip,
                 placeholder: "10.0.0.1",
-                class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm font-mono",
+                class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm font-mono",
                 data: {
                   hostname_validation_target: "ipInput",
                   action: "input->hostname-validation#validate"
                 } %>
-            <p class="mt-1 text-xs text-slate-500">IPv4 or IPv6 address. Localhost addresses not allowed.</p>
-            <p class="mt-1 text-xs text-red-600 font-medium hidden" data-hostname-validation-target="ipError"></p>
+            <p class="mt-1 text-xs text-neutral-45">IPv4 or IPv6 address. Localhost addresses not allowed.</p>
+            <p class="mt-1 text-xs text-error-6 font-medium hidden" data-hostname-validation-target="ipError"></p>
           </div>
 
           <div>
-            <%= f.label :role, class: "block text-sm font-bold text-slate-700 mb-1" %>
+            <%= f.label :role, class: "block text-sm font-bold text-neutral-85 mb-1" %>
             <%= f.select :role, roles_for_select, {},
-                class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" %>
+                class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm" %>
           </div>
 
           <div>
-            <%= f.label :arch, "Architecture", class: "block text-sm font-bold text-slate-700 mb-1" %>
+            <%= f.label :arch, "Architecture", class: "block text-sm font-bold text-neutral-85 mb-1" %>
             <%= f.select :arch, architectures_for_select, { include_blank: "Select Architecture" },
-                class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" %>
+                class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm" %>
           </div>
         </div>
       </div>
@@ -89,21 +89,21 @@
         </div>
         <div class="p-4" data-controller="server-product-search">
           <div>
-            <%= f.label :server_product_id, "Model", class: "block text-sm font-bold text-slate-700 mb-1" %>
+            <%= f.label :server_product_id, "Model", class: "block text-sm font-bold text-neutral-85 mb-1" %>
             <div class="relative">
               <input type="text"
                      placeholder="Search by model name (e.g., QuantaGrid D54Q)"
                      value="<%= node.server_product&.name %>"
-                     class="block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm"
+                     class="block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm"
                      data-server-product-search-target="input"
                      data-action="input->server-product-search#search" />
               <%= f.hidden_field :server_product_id, data: { server_product_search_target: "hiddenField" } %>
               <div data-server-product-search-target="results"
-                   class="absolute z-50 hidden mt-1 w-full bg-white rounded-md shadow-lg border border-slate-200 max-h-60 overflow-auto">
+                   class="absolute z-50 hidden mt-1 w-full bg-white rounded-md shadow-lg border border-neutral-8 max-h-60 overflow-auto">
               </div>
             </div>
           </div>
-          <p class="mt-2 text-xs text-slate-500">
+          <p class="mt-2 text-xs text-neutral-45">
             Optional: Select a server model to auto-fill rack height and view specifications.
           </p>
           <div data-server-product-search-target="preview" class="mt-4 hidden"></div>
@@ -116,35 +116,35 @@
         </div>
         <div class="p-4 grid grid-cols-1 gap-6 sm:grid-cols-3">
           <div>
-            <%= f.label :rack_id, "Rack", class: "block text-sm font-bold text-slate-700 mb-1" %>
+            <%= f.label :rack_id, "Rack", class: "block text-sm font-bold text-neutral-85 mb-1" %>
             <%= f.select :rack_id, racks_for_select, { include_blank: "Not assigned" },
-                class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm",
+                class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm",
                 data: {
                   rack_validation_target: "rackSelect",
                   action: "change->rack-validation#validateOnBlur"
                 } %>
           </div>
           <div>
-            <%= f.label :rack_position, "Position (RU)", class: "block text-sm font-bold text-slate-700 mb-1" %>
+            <%= f.label :rack_position, "Position (RU)", class: "block text-sm font-bold text-neutral-85 mb-1" %>
             <%= f.number_field :rack_position, min: 1,
-                class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm",
+                class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm",
                 data: {
                   rack_validation_target: "positionInput",
                   action: "blur->rack-validation#validateOnBlur"
                 } %>
-            <p class="mt-1 text-xs text-red-600 font-medium hidden" data-rack-validation-target="error"></p>
+            <p class="mt-1 text-xs text-error-6 font-medium hidden" data-rack-validation-target="error"></p>
           </div>
           <div>
-            <%= f.label :rack_height, "Height (U)", class: "block text-sm font-bold text-slate-700 mb-1" %>
+            <%= f.label :rack_height, "Height (U)", class: "block text-sm font-bold text-neutral-85 mb-1" %>
             <%= f.number_field :rack_height, min: 1, value: f.object.rack_height || 1,
-                class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm",
+                class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm",
                 data: {
                   rack_validation_target: "heightInput",
                   action: "blur->rack-validation#validateOnBlur"
                 } %>
           </div>
           <div class="sm:col-span-3">
-            <p class="text-xs text-slate-500">
+            <p class="text-xs text-neutral-45">
               Optional: Assign this node to a rack position. Position is the starting RU (bottom of device).
             </p>
           </div>
@@ -159,9 +159,9 @@
           <h3 class="card-title">SSH Connection</h3>
         </div>
         <div class="p-4 space-y-6">
-          <p class="text-xs text-slate-500">
+          <p class="text-xs text-neutral-45">
             By default, nodes use the global SSH settings configured in
-            <%= link_to "SSH Defaults", helpers.settings_ssh_defaults_path, class: "text-teal-600 hover:text-teal-800", data: { turbo_frame: "_top" } %>.
+            <%= link_to "SSH Defaults", helpers.settings_ssh_defaults_path, class: "text-primary-6 hover:text-primary-8", data: { turbo_frame: "_top" } %>.
             Enable overrides below to use node-specific values.
           </p>
 
@@ -169,16 +169,16 @@
           <div data-controller="ssh-override">
             <div class="flex items-center gap-3 mb-2">
               <%= f.check_box :ssh_connect_method_override,
-                  class: "h-4 w-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500",
+                  class: "h-4 w-4 rounded border-neutral-15 text-primary-6 focus:ring-primary-5",
                   data: { ssh_override_target: "checkbox", action: "change->ssh-override#toggle" } %>
-              <%= f.label :ssh_connect_method_override, "Override Connection Method", class: "text-sm font-bold text-slate-700" %>
+              <%= f.label :ssh_connect_method_override, "Override Connection Method", class: "text-sm font-bold text-neutral-85" %>
             </div>
             <div class="<%= 'hidden' unless node.ssh_connect_method_override? %>" data-ssh-override-target="field">
               <%= f.select :ssh_connect_method,
                   ssh_connect_methods_for_select,
                   {},
-                  class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" %>
-              <p class="mt-1 text-xs text-slate-500">
+                  class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm" %>
+              <p class="mt-1 text-xs text-neutral-45">
                 <strong>Global Bastion:</strong> Connect via the global jump host.
                 <strong>Direct:</strong> Connect directly to the node.
               </p>
@@ -189,14 +189,14 @@
           <div data-controller="ssh-override">
             <div class="flex items-center gap-3 mb-2">
               <%= f.check_box :ssh_user_override,
-                  class: "h-4 w-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500",
+                  class: "h-4 w-4 rounded border-neutral-15 text-primary-6 focus:ring-primary-5",
                   data: { ssh_override_target: "checkbox", action: "change->ssh-override#toggle" } %>
-              <%= f.label :ssh_user_override, "Override SSH User", class: "text-sm font-bold text-slate-700" %>
+              <%= f.label :ssh_user_override, "Override SSH User", class: "text-sm font-bold text-neutral-85" %>
             </div>
             <div class="<%= 'hidden' unless node.ssh_user_override? %>" data-ssh-override-target="field">
               <%= f.text_field :ssh_user,
                   placeholder: "e.g. root",
-                  class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" %>
+                  class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm" %>
             </div>
           </div>
 
@@ -204,13 +204,13 @@
           <div data-controller="ssh-override">
             <div class="flex items-center gap-3 mb-2">
               <%= f.check_box :ssh_port_override,
-                  class: "h-4 w-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500",
+                  class: "h-4 w-4 rounded border-neutral-15 text-primary-6 focus:ring-primary-5",
                   data: { ssh_override_target: "checkbox", action: "change->ssh-override#toggle" } %>
-              <%= f.label :ssh_port_override, "Override SSH Port", class: "text-sm font-bold text-slate-700" %>
+              <%= f.label :ssh_port_override, "Override SSH Port", class: "text-sm font-bold text-neutral-85" %>
             </div>
             <div class="<%= 'hidden' unless node.ssh_port_override? %>" data-ssh-override-target="field">
               <%= f.number_field :ssh_port, min: 1, max: 65535,
-                  class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" %>
+                  class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm" %>
             </div>
           </div>
 
@@ -218,14 +218,14 @@
           <div data-controller="ssh-override">
             <div class="flex items-center gap-3 mb-2">
               <%= f.check_box :ssh_key_override,
-                  class: "h-4 w-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500",
+                  class: "h-4 w-4 rounded border-neutral-15 text-primary-6 focus:ring-primary-5",
                   data: { ssh_override_target: "checkbox", action: "change->ssh-override#toggle" } %>
-              <%= f.label :ssh_key_override, "Override SSH Key", class: "text-sm font-bold text-slate-700" %>
+              <%= f.label :ssh_key_override, "Override SSH Key", class: "text-sm font-bold text-neutral-85" %>
             </div>
             <div class="<%= 'hidden' unless node.ssh_key_override? %>" data-ssh-override-target="field">
               <%= f.text_area :ssh_key, rows: 3,
                   placeholder: "Paste private key here...",
-                  class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm font-mono text-xs" %>
+                  class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm font-mono text-xs" %>
             </div>
           </div>
 
@@ -233,15 +233,15 @@
           <div data-controller="ssh-override">
             <div class="flex items-center gap-3 mb-2">
               <%= f.check_box :ssh_password_override,
-                  class: "h-4 w-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500",
+                  class: "h-4 w-4 rounded border-neutral-15 text-primary-6 focus:ring-primary-5",
                   data: { ssh_override_target: "checkbox", action: "change->ssh-override#toggle" } %>
-              <%= f.label :ssh_password_override, "Override SSH Password", class: "text-sm font-bold text-slate-700" %>
+              <%= f.label :ssh_password_override, "Override SSH Password", class: "text-sm font-bold text-neutral-85" %>
             </div>
             <div class="<%= 'hidden' unless node.ssh_password_override? %>" data-ssh-override-target="field">
               <%= f.password_field :ssh_password,
                   placeholder: node.ssh_password.present? ? "••••••••" : "Leave blank for key auth",
                   autocomplete: "off",
-                  class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" %>
+                  class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm" %>
             </div>
           </div>
 
@@ -249,15 +249,15 @@
           <div data-controller="ssh-override">
             <div class="flex items-center gap-3 mb-2">
               <%= f.check_box :sudo_credential_override,
-                  class: "h-4 w-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500",
+                  class: "h-4 w-4 rounded border-neutral-15 text-primary-6 focus:ring-primary-5",
                   data: { ssh_override_target: "checkbox", action: "change->ssh-override#toggle" } %>
-              <%= f.label :sudo_credential_override, "Override Sudo Password", class: "text-sm font-bold text-slate-700" %>
+              <%= f.label :sudo_credential_override, "Override Sudo Password", class: "text-sm font-bold text-neutral-85" %>
             </div>
             <div class="<%= 'hidden' unless node.sudo_credential_override? %>" data-ssh-override-target="field">
               <%= f.password_field :sudo_credential,
                   placeholder: node.sudo_credential.present? ? "••••••••" : "For privileged commands",
                   autocomplete: "off",
-                  class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" %>
+                  class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm" %>
             </div>
           </div>
         </div>
@@ -269,33 +269,33 @@
         </div>
         <div class="p-4 grid grid-cols-1 gap-6 sm:grid-cols-2">
           <div>
-            <%= f.label :agent_path, "Agent Path", class: "block text-sm font-bold text-slate-700 mb-1" %>
+            <%= f.label :agent_path, "Agent Path", class: "block text-sm font-bold text-neutral-85 mb-1" %>
             <%= f.text_field :agent_path,
                 placeholder: default_agent_path,
-                class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm font-mono" %>
-            <p class="mt-1 text-xs text-slate-500">Path to the hpc-agent binary on this node. Leave blank to use default.</p>
+                class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm font-mono" %>
+            <p class="mt-1 text-xs text-neutral-45">Path to the hpc-agent binary on this node. Leave blank to use default.</p>
           </div>
 
           <div>
-            <%= f.label :benchmark_work_dir, "Benchmark Working Directory", class: "block text-sm font-bold text-slate-700 mb-1" %>
+            <%= f.label :benchmark_work_dir, "Benchmark Working Directory", class: "block text-sm font-bold text-neutral-85 mb-1" %>
             <%= f.text_field :benchmark_work_dir,
                 placeholder: default_benchmark_work_dir,
-                class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm font-mono" %>
-            <p class="mt-1 text-xs text-slate-500">
+                class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm font-mono" %>
+            <p class="mt-1 text-xs text-neutral-45">
               Directory where benchmark source code is located.
-              Defaults to <code class="bg-slate-100 px-1 rounded"><%= default_benchmark_work_dir %></code>
+              Defaults to <code class="bg-neutral-4 px-1 rounded"><%= default_benchmark_work_dir %></code>
             </p>
           </div>
 
-          <div class="sm:col-span-2 border-t border-slate-100 pt-4">
-            <%= f.label :api_key_id, "API Token", class: "block text-sm font-bold text-slate-700 mb-1" %>
+          <div class="sm:col-span-2 border-t border-neutral-4 pt-4">
+            <%= f.label :api_key_id, "API Token", class: "block text-sm font-bold text-neutral-85 mb-1" %>
             <%= f.select :api_key_id,
                 options_for_select([["-- Select API Key --", ""]] + api_keys_for_select, node.api_key_id),
                 {},
-                class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" %>
-            <p class="mt-1 text-xs text-slate-500">
+                class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm" %>
+            <p class="mt-1 text-xs text-neutral-45">
               Select an API key for agent benchmark result uploads. Manage keys in
-              <%= link_to "API Keys", api_keys_path, class: "text-teal-600 hover:text-teal-800", data: { turbo_frame: "_top" } %>.
+              <%= link_to "API Keys", api_keys_path, class: "text-primary-6 hover:text-primary-8", data: { turbo_frame: "_top" } %>.
             </p>
           </div>
         </div>
@@ -303,7 +303,7 @@
     </div>
 
     <%# Navigation Buttons %>
-    <div class="flex items-center justify-between pt-4 border-t border-slate-200">
+    <div class="flex items-center justify-between pt-4 border-t border-neutral-8">
       <button type="button"
               data-wizard-target="backButton"
               data-action="click->wizard#back"

@@ -2,8 +2,8 @@
 
 <div class="flex items-center justify-between mb-6">
   <div>
-    <h1 class="text-2xl font-bold text-slate-900">Benchmark Recipes</h1>
-    <p class="text-sm text-slate-500 mt-1">Manage benchmark test configurations</p>
+    <h1 class="text-2xl font-bold text-neutral-85">Benchmark Recipes</h1>
+    <p class="text-sm text-neutral-45 mt-1">Manage benchmark test configurations</p>
   </div>
   <% if current_user.approver? %>
     <%= link_to new_benchmark_recipe_path, class: "btn-primary" do %>
@@ -16,32 +16,32 @@
 <div class="card-netbox">
   <% if @benchmark_recipes.any? %>
     <div class="overflow-x-auto">
-      <table class="min-w-full divide-y divide-slate-200 text-sm">
-        <thead class="bg-slate-50">
+      <table class="min-w-full divide-y divide-neutral-8 text-sm">
+        <thead class="bg-neutral-2">
           <tr>
-            <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Name</th>
-            <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Command</th>
-            <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Timeout</th>
-            <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Status</th>
-            <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Runs</th>
+            <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-neutral-45 border-b">Name</th>
+            <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-neutral-45 border-b">Command</th>
+            <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-neutral-45 border-b">Timeout</th>
+            <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-neutral-45 border-b">Status</th>
+            <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-neutral-45 border-b">Runs</th>
             <th scope="col" class="relative px-3 py-2 border-b">
               <span class="sr-only">Actions</span>
             </th>
           </tr>
         </thead>
-        <tbody class="divide-y divide-slate-200 bg-white">
+        <tbody class="divide-y divide-neutral-8 bg-white">
           <% @benchmark_recipes.each do |recipe| %>
-            <tr class="hover:bg-slate-50 transition-colors">
+            <tr class="hover:bg-neutral-2 transition-colors">
               <td class="whitespace-nowrap px-3 py-2">
                 <%= link_to benchmark_recipe_path(recipe), class: "group" do %>
-                  <p class="text-sm font-bold text-slate-900 group-hover:text-teal-600"><%= recipe.name %></p>
-                  <p class="text-xs text-slate-500">v<%= recipe.version %></p>
+                  <p class="text-sm font-bold text-neutral-85 group-hover:text-primary-6"><%= recipe.name %></p>
+                  <p class="text-xs text-neutral-45">v<%= recipe.version %></p>
                 <% end %>
               </td>
-              <td class="whitespace-nowrap px-3 py-2 text-sm text-slate-600 font-mono">
+              <td class="whitespace-nowrap px-3 py-2 text-sm text-neutral-45 font-mono">
                 <%= recipe.command %>
               </td>
-              <td class="whitespace-nowrap px-3 py-2 text-sm text-slate-500">
+              <td class="whitespace-nowrap px-3 py-2 text-sm text-neutral-45">
                 <%= distance_of_time_in_words(recipe.timeout_seconds) %>
               </td>
               <td class="whitespace-nowrap px-3 py-2">
@@ -50,19 +50,19 @@
                     Active
                   </span>
                 <% else %>
-                  <span class="inline-flex items-center rounded-sm px-2 py-0.5 text-xs font-medium bg-slate-100 text-slate-600 border border-slate-200">
+                  <span class="inline-flex items-center rounded-sm px-2 py-0.5 text-xs font-medium bg-neutral-4 text-neutral-45 border border-neutral-8">
                     Archived
                   </span>
                 <% end %>
               </td>
-              <td class="whitespace-nowrap px-3 py-2 text-sm text-slate-500">
+              <td class="whitespace-nowrap px-3 py-2 text-sm text-neutral-45">
                 <%= recipe.benchmark_runs.count %>
               </td>
               <td class="whitespace-nowrap px-3 py-2 text-right text-sm">
-                <%= link_to "View", benchmark_recipe_path(recipe), class: "text-teal-600 hover:text-teal-700 font-medium" %>
+                <%= link_to "View", benchmark_recipe_path(recipe), class: "text-primary-6 hover:text-primary-7 font-medium" %>
                 <% if current_user.approver? %>
-                  <span class="text-slate-300 mx-1">|</span>
-                  <%= link_to "Edit", edit_benchmark_recipe_path(recipe), class: "text-slate-600 hover:text-slate-700 font-medium" %>
+                  <span class="text-neutral-15 mx-1">|</span>
+                  <%= link_to "Edit", edit_benchmark_recipe_path(recipe), class: "text-neutral-45 hover:text-neutral-85 font-medium" %>
                 <% end %>
               </td>
             </tr>
@@ -72,11 +72,11 @@
     </div>
   <% else %>
     <div class="flex flex-col items-center justify-center py-12 text-center">
-      <div class="h-12 w-12 rounded-full bg-slate-100 flex items-center justify-center mb-4">
-        <%= lucide_icon("flask-conical", class: "h-6 w-6 text-slate-400") %>
+      <div class="h-12 w-12 rounded-full bg-neutral-4 flex items-center justify-center mb-4">
+        <%= lucide_icon("flask-conical", class: "h-6 w-6 text-neutral-25") %>
       </div>
-      <p class="text-sm font-medium text-slate-900">No benchmark recipes yet</p>
-      <p class="mt-1 text-xs text-slate-500">Create a recipe to define benchmark configurations</p>
+      <p class="text-sm font-medium text-neutral-85">No benchmark recipes yet</p>
+      <p class="mt-1 text-xs text-neutral-45">Create a recipe to define benchmark configurations</p>
       <% if current_user.approver? %>
         <%= link_to new_benchmark_recipe_path, class: "mt-4 btn-primary" do %>
           Add Recipe

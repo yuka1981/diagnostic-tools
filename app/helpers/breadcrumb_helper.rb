@@ -12,7 +12,7 @@ module BreadcrumbHelper
     content_for(:breadcrumbs) do
       safe_join([
         content_tag(:span, "/", class: "mx-2"),
-        content_tag(:span, title, class: "font-medium text-slate-700")
+        content_tag(:span, title, class: "font-medium text-neutral-85")
       ])
     end
   end
@@ -37,9 +37,9 @@ module BreadcrumbHelper
         is_last = index == crumbs.length - 1
 
         link_or_text = if is_last || crumb[:path].blank?
-          content_tag(:span, crumb[:title], class: "font-medium text-slate-700")
+          content_tag(:span, crumb[:title], class: "font-medium text-neutral-85")
         else
-          link_to(crumb[:title], crumb[:path], class: "hover:text-teal-600 font-bold")
+          link_to(crumb[:title], crumb[:path], class: "hover:text-primary-6 font-bold")
         end
 
         safe_join([

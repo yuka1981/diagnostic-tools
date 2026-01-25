@@ -1,20 +1,20 @@
 <% content_for(:page_title) { @agent_release.display_name } %>
 <% content_for(:breadcrumbs) do %>
   <span class="mx-2">/</span>
-  <%= link_to "Settings", settings_agent_path, class: "hover:text-teal-600 font-bold" %>
+  <%= link_to "Settings", settings_agent_path, class: "hover:text-primary-6 font-bold" %>
   <span class="mx-2">/</span>
-  <%= link_to "Agent Config", settings_agent_path, class: "hover:text-teal-600 font-bold" %>
+  <%= link_to "Agent Config", settings_agent_path, class: "hover:text-primary-6 font-bold" %>
   <span class="mx-2">/</span>
-  <span class="font-medium text-slate-700"><%= @agent_release.version %></span>
+  <span class="font-medium text-neutral-85"><%= @agent_release.version %></span>
 <% end %>
 
 <div class="mb-6">
   <div class="flex items-center justify-between">
     <div class="flex items-center gap-4">
-      <h1 class="text-2xl font-bold text-slate-900"><%= @agent_release.display_name %></h1>
+      <h1 class="text-2xl font-bold text-neutral-85"><%= @agent_release.display_name %></h1>
       <%= render partial: "status_badge", locals: { release: @agent_release } %>
       <% if @agent_release == AgentRelease.latest %>
-        <span class="inline-flex items-center rounded-sm px-2 py-0.5 text-xs font-medium bg-teal-100 text-teal-800 border border-teal-200">
+        <span class="inline-flex items-center rounded-sm px-2 py-0.5 text-xs font-medium bg-primary-1 text-primary-8 border border-primary-2">
           Latest
         </span>
       <% end %>
@@ -65,22 +65,22 @@
     </div>
     <div class="p-0">
       <table class="w-full text-sm text-left">
-        <tbody class="divide-y divide-slate-100">
-          <tr class="hover:bg-slate-50">
-            <th class="px-4 py-2 font-bold text-slate-700 w-1/3 border-r border-slate-200">Version</th>
-            <td class="px-4 py-2 text-slate-700 font-bold"><%= @agent_release.version %></td>
+        <tbody class="divide-y divide-neutral-4">
+          <tr class="hover:bg-neutral-2">
+            <th class="px-4 py-2 font-bold text-neutral-85 w-1/3 border-r border-neutral-8">Version</th>
+            <td class="px-4 py-2 text-neutral-85 font-bold"><%= @agent_release.version %></td>
           </tr>
-          <tr class="hover:bg-slate-50">
-            <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">Status</th>
+          <tr class="hover:bg-neutral-2">
+            <th class="px-4 py-2 font-bold text-neutral-85 border-r border-neutral-8">Status</th>
             <td class="px-4 py-2">
               <%= render partial: "status_badge", locals: { release: @agent_release } %>
             </td>
           </tr>
-          <tr class="hover:bg-slate-50">
-            <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">Uploaded</th>
-            <td class="px-4 py-2 text-slate-700">
+          <tr class="hover:bg-neutral-2">
+            <th class="px-4 py-2 font-bold text-neutral-85 border-r border-neutral-8">Uploaded</th>
+            <td class="px-4 py-2 text-neutral-85">
               <%= @agent_release.created_at.strftime("%Y-%m-%d %H:%M:%S") %>
-              <span class="text-slate-400">(<%= time_ago_in_words(@agent_release.created_at) %> ago)</span>
+              <span class="text-neutral-25">(<%= time_ago_in_words(@agent_release.created_at) %> ago)</span>
             </td>
           </tr>
         </tbody>
@@ -93,7 +93,7 @@
     <div class="card-header flex items-center justify-between">
       <h3 class="card-title">Binaries</h3>
       <% if current_user.approver? && @agent_release.agent_binaries.count < AgentBinary::SUPPORTED_ARCHITECTURES.size %>
-        <%= link_to new_settings_agent_release_binary_path(@agent_release), class: "text-xs text-teal-600 hover:text-teal-700 font-medium" do %>
+        <%= link_to new_settings_agent_release_binary_path(@agent_release), class: "text-xs text-primary-6 hover:text-primary-7 font-medium" do %>
           + Add Architecture
         <% end %>
       <% end %>
@@ -101,33 +101,33 @@
     <div class="p-0">
       <% if @agent_release.agent_binaries.any? %>
         <table class="w-full text-sm text-left">
-          <thead class="bg-slate-50 border-b border-slate-200">
+          <thead class="bg-neutral-2 border-b border-neutral-8">
             <tr>
-              <th class="px-4 py-2 font-bold text-slate-500 uppercase text-[10px]">Architecture</th>
-              <th class="px-4 py-2 font-bold text-slate-500 uppercase text-[10px]">Size</th>
-              <th class="px-4 py-2 font-bold text-slate-500 uppercase text-[10px]">Checksum</th>
-              <th class="px-4 py-2 font-bold text-slate-500 uppercase text-[10px]">Download</th>
+              <th class="px-4 py-2 font-bold text-neutral-45 uppercase text-[10px]">Architecture</th>
+              <th class="px-4 py-2 font-bold text-neutral-45 uppercase text-[10px]">Size</th>
+              <th class="px-4 py-2 font-bold text-neutral-45 uppercase text-[10px]">Checksum</th>
+              <th class="px-4 py-2 font-bold text-neutral-45 uppercase text-[10px]">Download</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-slate-100">
+          <tbody class="divide-y divide-neutral-4">
             <% @agent_release.agent_binaries.order(:arch).each do |agent_binary| %>
-              <tr class="hover:bg-slate-50">
-                <td class="px-4 py-2 text-slate-700 font-bold">
-                  <span class="inline-flex items-center rounded-sm px-2 py-0.5 text-xs font-mono bg-slate-100 text-slate-700 border border-slate-200">
+              <tr class="hover:bg-neutral-2">
+                <td class="px-4 py-2 text-neutral-85 font-bold">
+                  <span class="inline-flex items-center rounded-sm px-2 py-0.5 text-xs font-mono bg-neutral-4 text-neutral-85 border border-neutral-8">
                     <%= agent_binary.arch %>
                   </span>
                 </td>
-                <td class="px-4 py-2 text-slate-700"><%= agent_binary.formatted_size %></td>
-                <td class="px-4 py-2 text-slate-600 font-mono text-[10px]">
+                <td class="px-4 py-2 text-neutral-85"><%= agent_binary.formatted_size %></td>
+                <td class="px-4 py-2 text-neutral-45 font-mono text-[10px]">
                   <% if agent_binary.checksum.present? %>
                     <div data-controller="clipboard" class="inline-flex items-center gap-1">
                       <span data-clipboard-target="source" class="hidden"><%= agent_binary.checksum %></span>
                       <button type="button"
                               data-action="click->clipboard#copy"
-                              class="inline-flex items-center gap-1 hover:text-teal-600 cursor-pointer group"
+                              class="inline-flex items-center gap-1 hover:text-primary-6 cursor-pointer group"
                               title="Click to copy full checksum">
                         <span><%= agent_binary.checksum[0..15] %>...</span>
-                        <svg data-clipboard-target="icon" class="h-3 w-3 text-slate-400 group-hover:text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg data-clipboard-target="icon" class="h-3 w-3 text-neutral-25 group-hover:text-primary-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
                         </svg>
                         <svg data-clipboard-target="success" class="h-3 w-3 text-emerald-500 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -142,7 +142,7 @@
                 <td class="px-4 py-2">
                   <% if agent_binary.binary.attached? %>
                     <%= link_to rails_blob_path(agent_binary.binary, disposition: "attachment"),
-                        class: "inline-flex items-center text-teal-600 hover:text-teal-700 font-medium text-xs" do %>
+                        class: "inline-flex items-center text-primary-6 hover:text-primary-7 font-medium text-xs" do %>
                       <%= lucide_icon("download", class: "h-3 w-3 mr-1") %>
                       Download
                     <% end %>
@@ -155,27 +155,27 @@
       <% elsif @agent_release.binary.attached? %>
         <%# Legacy single binary display %>
         <table class="w-full text-sm text-left">
-          <tbody class="divide-y divide-slate-100">
-            <tr class="hover:bg-slate-50">
-              <th class="px-4 py-2 font-bold text-slate-700 w-1/3 border-r border-slate-200">Filename</th>
-              <td class="px-4 py-2 text-slate-700 font-mono"><%= @agent_release.binary_filename || "—" %></td>
+          <tbody class="divide-y divide-neutral-4">
+            <tr class="hover:bg-neutral-2">
+              <th class="px-4 py-2 font-bold text-neutral-85 w-1/3 border-r border-neutral-8">Filename</th>
+              <td class="px-4 py-2 text-neutral-85 font-mono"><%= @agent_release.binary_filename || "—" %></td>
             </tr>
-            <tr class="hover:bg-slate-50">
-              <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">Size</th>
-              <td class="px-4 py-2 text-slate-700"><%= @agent_release.formatted_size %></td>
+            <tr class="hover:bg-neutral-2">
+              <th class="px-4 py-2 font-bold text-neutral-85 border-r border-neutral-8">Size</th>
+              <td class="px-4 py-2 text-neutral-85"><%= @agent_release.formatted_size %></td>
             </tr>
-            <tr class="hover:bg-slate-50">
-              <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">SHA256 Checksum</th>
-              <td class="px-4 py-2 text-slate-600 font-mono text-xs break-all">
+            <tr class="hover:bg-neutral-2">
+              <th class="px-4 py-2 font-bold text-neutral-85 border-r border-neutral-8">SHA256 Checksum</th>
+              <td class="px-4 py-2 text-neutral-45 font-mono text-xs break-all">
                 <% if @agent_release.checksum.present? %>
                   <div data-controller="clipboard" class="inline-flex items-center gap-2">
                     <span data-clipboard-target="source" class="hidden"><%= @agent_release.checksum %></span>
                     <button type="button"
                             data-action="click->clipboard#copy"
-                            class="inline-flex items-center gap-2 hover:text-teal-600 cursor-pointer group"
+                            class="inline-flex items-center gap-2 hover:text-primary-6 cursor-pointer group"
                             title="Click to copy checksum">
                       <span><%= @agent_release.checksum %></span>
-                      <svg data-clipboard-target="icon" class="h-4 w-4 text-slate-400 group-hover:text-teal-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg data-clipboard-target="icon" class="h-4 w-4 text-neutral-25 group-hover:text-primary-6 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
                       </svg>
                       <svg data-clipboard-target="success" class="h-4 w-4 text-emerald-500 hidden flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -188,11 +188,11 @@
                 <% end %>
               </td>
             </tr>
-            <tr class="hover:bg-slate-50">
-              <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">Download</th>
+            <tr class="hover:bg-neutral-2">
+              <th class="px-4 py-2 font-bold text-neutral-85 border-r border-neutral-8">Download</th>
               <td class="px-4 py-2">
                 <%= link_to rails_blob_path(@agent_release.binary, disposition: "attachment"),
-                    class: "inline-flex items-center text-teal-600 hover:text-teal-700 font-medium" do %>
+                    class: "inline-flex items-center text-primary-6 hover:text-primary-7 font-medium" do %>
                   <%= lucide_icon("download", class: "h-4 w-4 mr-1") %>
                   Download Binary
                 <% end %>
@@ -201,10 +201,10 @@
           </tbody>
         </table>
       <% else %>
-        <div class="p-4 text-center text-slate-500 text-sm">
+        <div class="p-4 text-center text-neutral-45 text-sm">
           No binaries uploaded yet.
           <% if current_user.approver? %>
-            <%= link_to "Add a binary", new_settings_agent_release_binary_path(@agent_release), class: "text-teal-600 hover:underline" %>
+            <%= link_to "Add a binary", new_settings_agent_release_binary_path(@agent_release), class: "text-primary-6 hover:underline" %>
           <% end %>
         </div>
       <% end %>
@@ -222,7 +222,7 @@
       <%= simple_format(@agent_release.release_notes) %>
     </div>
   <% else %>
-    <div class="p-4 text-center text-slate-500 text-sm">
+    <div class="p-4 text-center text-neutral-45 text-sm">
       No release notes provided
     </div>
   <% end %>
@@ -230,15 +230,15 @@
 
 <%# Danger Zone %>
 <% if current_user.approver? %>
-  <div class="card-netbox mt-6 border-red-200">
-    <div class="card-header bg-red-50 border-red-200">
-      <h3 class="card-title text-red-800">Danger Zone</h3>
+  <div class="card-netbox mt-6 border-error-2">
+    <div class="card-header bg-error-1 border-error-2">
+      <h3 class="card-title text-error-8">Danger Zone</h3>
     </div>
     <div class="p-4">
       <div class="flex items-center justify-between">
         <div>
-          <p class="text-sm font-medium text-slate-900">Delete this release</p>
-          <p class="text-xs text-slate-500">Once deleted, this release cannot be recovered.</p>
+          <p class="text-sm font-medium text-neutral-85">Delete this release</p>
+          <p class="text-xs text-neutral-45">Once deleted, this release cannot be recovered.</p>
         </div>
         <%= button_to settings_agent_release_path(@agent_release),
             method: :delete,

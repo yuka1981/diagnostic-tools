@@ -14,7 +14,7 @@
      aria-labelledby="slide-over-title"
      class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 opacity-0 scale-95 transition-all duration-300 ease-in-out">
 
-  <div data-slide-over-target="modalContent" class="w-full max-w-2xl max-h-[90vh] bg-white shadow-2xl dark:bg-slate-900 ring-1 ring-gray-200 dark:ring-white/10 rounded-lg overflow-hidden">
+  <div data-slide-over-target="modalContent" class="w-full max-w-2xl max-h-[90vh] bg-white shadow-2xl dark:bg-neutral-85 ring-1 ring-gray-200 dark:ring-white/10 rounded-lg overflow-hidden">
     <%# Header %>
     <div class="flex items-center justify-between border-b border-gray-200 px-6 py-4 dark:border-white/10">
       <h2 id="slide-over-title" class="text-lg font-semibold text-gray-900 dark:text-white">
@@ -23,7 +23,7 @@
       <button type="button"
               data-slide-over-target="closeButton"
               data-action="click->slide-over#close"
-              class="rounded-lg p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 dark:hover:bg-white/10 dark:hover:text-slate-300 transition-colors">
+              class="rounded-lg p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 dark:hover:bg-white/10 dark:hover:text-neutral-15 transition-colors">
         <span class="sr-only">Close panel</span>
         <%= lucide_icon("x", class: "h-5 w-5") %>
       </button>
@@ -31,12 +31,12 @@
 
     <%# Content - Turbo Frame for lazy loading with fixed height to prevent tab-switch fluctuation %>
     <%= turbo_frame_tag "slide_over_content",
-        class: "block h-[60vh] overflow-y-auto bg-slate-50 border border-slate-200 rounded-b-md",
+        class: "block h-[60vh] overflow-y-auto bg-neutral-2 border border-neutral-8 rounded-b-md",
         data: { slide_over_target: "content" } do %>
       <%# Placeholder content - will be replaced when a run is selected %>
       <div class="flex flex-col items-center justify-center h-full py-12 text-center px-6">
-        <%= lucide_icon("clipboard", class: "h-12 w-12 text-slate-300") %>
-        <p class="mt-4 text-sm font-medium text-slate-500">Select a benchmark run to view details</p>
+        <%= lucide_icon("clipboard", class: "h-12 w-12 text-neutral-15") %>
+        <p class="mt-4 text-sm font-medium text-neutral-45">Select a benchmark run to view details</p>
       </div>
     <% end %>
   </div>

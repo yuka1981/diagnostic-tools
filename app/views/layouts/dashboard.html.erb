@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html class="h-full bg-slate-100">
+<html class="h-full bg-neutral-4">
   <head>
     <title><%= content_for(:title) || "QCT InfraScope" %></title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -19,12 +19,12 @@
     <%= javascript_importmap_tags %>
   </head>
 
-  <body class="h-full font-sans antialiased text-slate-600">
+  <body class="h-full font-sans antialiased text-neutral-45">
     <div class="min-h-full" data-controller="sidebar">
       <%# Mobile sidebar overlay %>
       <div data-sidebar-target="overlay" 
            data-action="click->sidebar#close"
-           class="hidden fixed inset-0 z-40 bg-slate-900/50 backdrop-blur-sm lg:hidden transition-opacity"></div>
+           class="hidden fixed inset-0 z-40 bg-neutral-85/50 backdrop-blur-sm lg:hidden transition-opacity"></div>
 
       <%= render "shared/sidebar" %>
 
@@ -35,13 +35,13 @@
         <%# Main content %>
         <main class="flex-1 py-8 px-6">
           <%# Breadcrumbs %>
-          <nav class="breadcrumb flex items-center text-xs text-slate-500 mb-4" aria-label="Breadcrumb">
-             <%= link_to "Home", dashboard_path, class: "hover:text-teal-600 font-bold" %>
+          <nav class="breadcrumb flex items-center text-xs text-neutral-45 mb-4" aria-label="Breadcrumb">
+             <%= link_to "Home", dashboard_path, class: "hover:text-primary-6 font-bold" %>
              <% if content_for?(:breadcrumbs) %>
                <%= yield :breadcrumbs %>
              <% else %>
                <span class="mx-2">/</span>
-               <span class="font-medium text-slate-700"><%= content_for(:page_title) || "Dashboard" %></span>
+               <span class="font-medium text-neutral-85"><%= content_for(:page_title) || "Dashboard" %></span>
              <% end %>
           </nav>
 
@@ -54,7 +54,7 @@
         </main>
         
         <%# Footer %>
-        <footer class="mt-auto border-t border-slate-200 bg-white py-4 px-6 text-xs text-slate-400">
+        <footer class="mt-auto border-t border-neutral-8 bg-white py-4 px-6 text-xs text-neutral-25">
           <div class="flex items-center justify-between">
             <p>&copy; <%= Time.current.year %> QCT InfraScope. All rights reserved.</p>
             <p>v1.0.0</p>

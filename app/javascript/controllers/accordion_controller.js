@@ -36,7 +36,7 @@ export default class extends Controller {
     if (chevron) {
       chevron.classList.toggle("rotate-90", !isCurrentlyOpen)
     }
-    row.classList.toggle("bg-slate-50", !isCurrentlyOpen)
+    row.classList.toggle("bg-neutral-2", !isCurrentlyOpen)
   }
 
   closeAll() {
@@ -46,7 +46,7 @@ export default class extends Controller {
       if (chevron) {
         chevron.classList.remove("rotate-90")
       }
-      this.rowTargets[index]?.classList.remove("bg-slate-50")
+      this.rowTargets[index]?.classList.remove("bg-neutral-2")
     })
   }
 }

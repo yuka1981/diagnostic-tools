@@ -7,12 +7,12 @@
          data-expanded-style="grid-template-rows: 1fr;"
          data-collapsed-style="grid-template-rows: 0fr;">
       <div class="overflow-hidden min-h-0">
-        <div class="bg-slate-100 border-b border-slate-200 px-4 py-3 flex items-center justify-between">
-          <span class="text-sm text-slate-700 font-bold" data-bulk-select-target="count">0 node(s) selected</span>
+        <div class="bg-neutral-4 border-b border-neutral-8 px-4 py-3 flex items-center justify-between">
+          <span class="text-sm text-neutral-85 font-bold" data-bulk-select-target="count">0 node(s) selected</span>
           <div class="flex items-center gap-3">
             <button type="button"
                     data-action="click->bulk-select#clearAll"
-                    class="text-sm text-slate-600 hover:text-slate-900">
+                    class="text-sm text-neutral-45 hover:text-neutral-85">
               Clear
             </button>
             <%= form_with url: bulk_destroy_nodes_path,
@@ -36,8 +36,8 @@
 
   <div class="overflow-x-auto">
     <% if nodes.any? %>
-      <table class="min-w-full divide-y divide-slate-200 text-sm">
-        <thead class="bg-slate-50">
+      <table class="min-w-full divide-y divide-neutral-8 text-sm">
+        <thead class="bg-neutral-2">
           <tr>
             <% if current_user.approver? %>
               <th scope="col" class="w-10 border-b">
@@ -45,31 +45,31 @@
                   <input type="checkbox"
                          data-bulk-select-target="selectAll"
                          data-action="change->bulk-select#toggleAll"
-                         class="rounded border-slate-300 text-teal-600 focus:ring-teal-500">
+                         class="rounded border-neutral-15 text-primary-6 focus:ring-primary-5">
                 </div>
               </th>
             <% end %>
-            <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Hostname</th>
-            <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Role</th>
-            <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Architecture</th>
-            <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Status</th>
-            <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Last Seen</th>
+            <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-neutral-45 border-b">Hostname</th>
+            <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-neutral-45 border-b">Role</th>
+            <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-neutral-45 border-b">Architecture</th>
+            <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-neutral-45 border-b">Status</th>
+            <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-neutral-45 border-b">Last Seen</th>
             <th scope="col" class="relative px-3 py-2 border-b">
               <span class="sr-only">Actions</span>
             </th>
           </tr>
         </thead>
-        <tbody id="nodes_tbody" class="divide-y divide-slate-200 bg-white">
+        <tbody id="nodes_tbody" class="divide-y divide-neutral-8 bg-white">
           <%= render partial: "nodes/node", collection: nodes, as: :node %>
         </tbody>
       </table>
     <% else %>
       <div class="flex flex-col items-center justify-center py-12 text-center">
-        <div class="h-12 w-12 rounded-full bg-slate-100 flex items-center justify-center mb-4">
-          <%= lucide_icon("server", class: "h-6 w-6 text-slate-400") %>
+        <div class="h-12 w-12 rounded-full bg-neutral-4 flex items-center justify-center mb-4">
+          <%= lucide_icon("server", class: "h-6 w-6 text-neutral-25") %>
         </div>
-        <h3 class="text-sm font-semibold text-slate-900">No nodes found</h3>
-        <p class="mt-1 text-sm text-slate-500">Get started by creating a new node.</p>
+        <h3 class="text-sm font-semibold text-neutral-85">No nodes found</h3>
+        <p class="mt-1 text-sm text-neutral-45">Get started by creating a new node.</p>
 
         <div class="mt-6 flex gap-3">
           <% if current_user.approver? %>

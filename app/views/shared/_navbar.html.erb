@@ -1,8 +1,8 @@
-<header class="sticky top-0 z-30 flex h-14 items-center gap-4 border-b border-slate-200 bg-white px-4 shadow-sm">
+<header class="sticky top-0 z-30 flex h-14 items-center gap-4 border-b border-neutral-8 bg-white px-4 shadow-sm">
   <%# Mobile menu button %>
   <button type="button"
           data-action="click->sidebar#toggle"
-          class="lg:hidden -ml-2 rounded p-2 text-slate-500 hover:bg-slate-100">
+          class="lg:hidden -ml-2 rounded p-2 text-neutral-45 hover:bg-neutral-4">
     <%= lucide_icon("menu", class: "h-6 w-6") %>
   </button>
 
@@ -10,12 +10,12 @@
   <div class="flex-1">
     <div class="relative max-w-sm">
       <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-2">
-        <%= lucide_icon("search", class: "h-4 w-4 text-slate-400") %>
+        <%= lucide_icon("search", class: "h-4 w-4 text-neutral-25") %>
       </div>
       <input type="text" 
              name="search" 
              id="search" 
-             class="block w-full rounded border-slate-300 pl-8 py-1.5 focus:border-teal-500 focus:ring-teal-500 sm:text-sm" 
+             class="block w-full rounded border-neutral-15 pl-8 py-1.5 focus:border-primary-5 focus:ring-primary-5 sm:text-sm" 
              placeholder="Search...">
     </div>
   </div>
@@ -28,18 +28,18 @@
          class="relative">
       <button type="button"
               data-action="click->notifications#toggle"
-              class="relative text-slate-400 hover:text-slate-600 p-2 rounded-lg hover:bg-slate-100">
+              class="relative text-neutral-25 hover:text-neutral-45 p-2 rounded-lg hover:bg-neutral-4">
         <%= lucide_icon("bell", class: "h-5 w-5") %>
         <%= render "notifications/badge", count: current_user&.notifications&.unread&.count || 0 %>
       </button>
 
       <div data-notifications-target="dropdown"
-           class="hidden absolute right-0 mt-2 w-96 bg-white dark:bg-slate-800
-                  rounded-lg shadow-lg border border-slate-200 dark:border-slate-700 z-50">
-        <div class="p-3 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center">
-          <span class="font-semibold text-slate-900 dark:text-slate-100">Notifications</span>
+           class="hidden absolute right-0 mt-2 w-96 bg-white dark:bg-neutral-85
+                  rounded-lg shadow-lg border border-neutral-8 dark:border-neutral-85 z-50">
+        <div class="p-3 border-b border-neutral-8 dark:border-neutral-85 flex justify-between items-center">
+          <span class="font-semibold text-neutral-85 dark:text-neutral-4">Notifications</span>
           <button data-action="click->notifications#markAllRead"
-                  class="text-sm text-teal-600 hover:text-teal-700 dark:text-teal-400">
+                  class="text-sm text-primary-6 hover:text-primary-7 dark:text-primary-4">
             Mark all read
           </button>
         </div>
@@ -57,17 +57,17 @@
           <% end %>
         </div>
 
-        <div class="p-3 border-t border-slate-200 dark:border-slate-700 text-center">
+        <div class="p-3 border-t border-neutral-8 dark:border-neutral-85 text-center">
           <%= link_to "View all notifications", notifications_path,
-              class: "text-sm text-teal-600 hover:text-teal-700 dark:text-teal-400" %>
+              class: "text-sm text-primary-6 hover:text-primary-7 dark:text-primary-4" %>
         </div>
       </div>
     </div>
     
-    <div class="h-6 w-px bg-slate-200"></div>
+    <div class="h-6 w-px bg-neutral-8"></div>
 
     <div class="flex items-center gap-2">
-      <span class="text-sm font-bold text-slate-700"><%= current_user&.name || current_user&.email || "Guest" %></span>
+      <span class="text-sm font-bold text-neutral-85"><%= current_user&.name || current_user&.email || "Guest" %></span>
     </div>
   </div>
 </header>

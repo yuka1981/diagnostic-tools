@@ -1,27 +1,27 @@
 <div class="card-netbox h-[600px] flex flex-col">
-  <div class="card-header bg-slate-900 border-slate-700">
+  <div class="card-header bg-neutral-85 border-neutral-85">
     <div class="flex items-center gap-2">
       <div class="flex gap-1.5">
-        <div class="w-2.5 h-2.5 rounded-full bg-red-500"></div>
+        <div class="w-2.5 h-2.5 rounded-full bg-error-5"></div>
         <div class="w-2.5 h-2.5 rounded-full bg-yellow-500"></div>
-        <div class="w-2.5 h-2.5 rounded-full bg-green-500"></div>
+        <div class="w-2.5 h-2.5 rounded-full bg-success-5"></div>
       </div>
-      <h3 class="ml-3 text-xs font-mono text-slate-400">Agent Log Stream</h3>
+      <h3 class="ml-3 text-xs font-mono text-neutral-25">Agent Log Stream</h3>
     </div>
     <div class="flex items-center gap-2">
-      <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-medium bg-slate-800 text-slate-400 border border-slate-700">
+      <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-medium bg-neutral-85 text-neutral-25 border border-neutral-85">
         <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
         Live
       </span>
     </div>
   </div>
-  <div class="flex-1 bg-slate-900 p-4 overflow-y-auto font-mono text-xs"
+  <div class="flex-1 bg-neutral-85 p-4 overflow-y-auto font-mono text-xs"
        data-controller="log-stream"
        data-log-stream-node-id-value="<%= node.id %>">
-    <pre data-log-stream-target="output" class="whitespace-pre-wrap text-slate-300 font-mono"></pre>
+    <pre data-log-stream-target="output" class="whitespace-pre-wrap text-neutral-15 font-mono"></pre>
     
     <%# Initial state message %>
-    <div class="text-slate-500 italic mt-2 text-center">
+    <div class="text-neutral-45 italic mt-2 text-center">
       Waiting for logs... Trigger an action (Collect/Benchmark) to see output.
     </div>
   </div>

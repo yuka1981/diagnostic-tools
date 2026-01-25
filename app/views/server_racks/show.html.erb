@@ -8,7 +8,7 @@
 <div class="mb-6">
   <div class="flex items-center justify-between">
     <div class="flex items-center gap-4">
-      <h1 class="text-2xl font-bold text-slate-900"><%= @server_rack.name %></h1>
+      <h1 class="text-2xl font-bold text-neutral-85"><%= @server_rack.name %></h1>
       <% case @server_rack.status %>
       <% when "active" %>
         <span class="inline-flex items-center rounded-sm px-2 py-0.5 text-xs font-medium bg-emerald-100 text-emerald-800 border border-emerald-200">
@@ -19,7 +19,7 @@
           Planned
         </span>
       <% when "decommissioned" %>
-        <span class="inline-flex items-center rounded-sm px-2 py-0.5 text-xs font-medium bg-slate-100 text-slate-600 border border-slate-200">
+        <span class="inline-flex items-center rounded-sm px-2 py-0.5 text-xs font-medium bg-neutral-4 text-neutral-45 border border-neutral-8">
           Decommissioned
         </span>
       <% end %>
@@ -43,38 +43,38 @@
     </div>
     <div class="p-0">
       <table class="w-full text-sm text-left">
-        <tbody class="divide-y divide-slate-100">
-          <tr class="hover:bg-slate-50">
-            <th class="px-4 py-2 font-bold text-slate-700 w-1/3 border-r border-slate-200">Name</th>
-            <td class="px-4 py-2 text-slate-700 font-bold"><%= @server_rack.name %></td>
+        <tbody class="divide-y divide-neutral-4">
+          <tr class="hover:bg-neutral-2">
+            <th class="px-4 py-2 font-bold text-neutral-85 w-1/3 border-r border-neutral-8">Name</th>
+            <td class="px-4 py-2 text-neutral-85 font-bold"><%= @server_rack.name %></td>
           </tr>
-          <tr class="hover:bg-slate-50">
-            <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">Site</th>
-            <td class="px-4 py-2 text-slate-700">
-              <%= link_to @server_rack.site.name, site_path(@server_rack.site), class: "text-teal-600 hover:text-teal-700" %>
+          <tr class="hover:bg-neutral-2">
+            <th class="px-4 py-2 font-bold text-neutral-85 border-r border-neutral-8">Site</th>
+            <td class="px-4 py-2 text-neutral-85">
+              <%= link_to @server_rack.site.name, site_path(@server_rack.site), class: "text-primary-6 hover:text-primary-7" %>
             </td>
           </tr>
-          <tr class="hover:bg-slate-50">
-            <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">Room</th>
-            <td class="px-4 py-2 text-slate-700">
-              <%= link_to @server_rack.room.name, room_path(@server_rack.room), class: "text-teal-600 hover:text-teal-700" %>
+          <tr class="hover:bg-neutral-2">
+            <th class="px-4 py-2 font-bold text-neutral-85 border-r border-neutral-8">Room</th>
+            <td class="px-4 py-2 text-neutral-85">
+              <%= link_to @server_rack.room.name, room_path(@server_rack.room), class: "text-primary-6 hover:text-primary-7" %>
             </td>
           </tr>
-          <tr class="hover:bg-slate-50">
-            <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">Facility ID</th>
-            <td class="px-4 py-2 text-slate-700 font-mono"><%= @server_rack.facility_id.presence || "-" %></td>
+          <tr class="hover:bg-neutral-2">
+            <th class="px-4 py-2 font-bold text-neutral-85 border-r border-neutral-8">Facility ID</th>
+            <td class="px-4 py-2 text-neutral-85 font-mono"><%= @server_rack.facility_id.presence || "-" %></td>
           </tr>
-          <tr class="hover:bg-slate-50">
-            <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">Asset Tag</th>
-            <td class="px-4 py-2 text-slate-700 font-mono"><%= @server_rack.asset_tag.presence || "-" %></td>
+          <tr class="hover:bg-neutral-2">
+            <th class="px-4 py-2 font-bold text-neutral-85 border-r border-neutral-8">Asset Tag</th>
+            <td class="px-4 py-2 text-neutral-85 font-mono"><%= @server_rack.asset_tag.presence || "-" %></td>
           </tr>
-          <tr class="hover:bg-slate-50">
-            <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">Status</th>
-            <td class="px-4 py-2 text-slate-700"><%= @server_rack.status.humanize %></td>
+          <tr class="hover:bg-neutral-2">
+            <th class="px-4 py-2 font-bold text-neutral-85 border-r border-neutral-8">Status</th>
+            <td class="px-4 py-2 text-neutral-85"><%= @server_rack.status.humanize %></td>
           </tr>
-          <tr class="hover:bg-slate-50">
-            <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">Descending Units</th>
-            <td class="px-4 py-2 text-slate-700"><%= @server_rack.desc_units ? "Yes" : "No" %></td>
+          <tr class="hover:bg-neutral-2">
+            <th class="px-4 py-2 font-bold text-neutral-85 border-r border-neutral-8">Descending Units</th>
+            <td class="px-4 py-2 text-neutral-85"><%= @server_rack.desc_units ? "Yes" : "No" %></td>
           </tr>
         </tbody>
       </table>
@@ -88,33 +88,33 @@
     </div>
     <div class="p-0">
       <table class="w-full text-sm text-left">
-        <tbody class="divide-y divide-slate-100">
-          <tr class="hover:bg-slate-50">
-            <th class="px-4 py-2 font-bold text-slate-700 w-1/3 border-r border-slate-200">Height</th>
-            <td class="px-4 py-2 text-slate-700"><%= @server_rack.u_height %>U</td>
+        <tbody class="divide-y divide-neutral-4">
+          <tr class="hover:bg-neutral-2">
+            <th class="px-4 py-2 font-bold text-neutral-85 w-1/3 border-r border-neutral-8">Height</th>
+            <td class="px-4 py-2 text-neutral-85"><%= @server_rack.u_height %>U</td>
           </tr>
-          <tr class="hover:bg-slate-50">
-            <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">Used</th>
-            <td class="px-4 py-2 text-slate-700"><%= @server_rack.utilization %>U</td>
+          <tr class="hover:bg-neutral-2">
+            <th class="px-4 py-2 font-bold text-neutral-85 border-r border-neutral-8">Used</th>
+            <td class="px-4 py-2 text-neutral-85"><%= @server_rack.utilization %>U</td>
           </tr>
-          <tr class="hover:bg-slate-50">
-            <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">Available</th>
-            <td class="px-4 py-2 text-slate-700"><%= @server_rack.u_height - @server_rack.utilization %>U</td>
+          <tr class="hover:bg-neutral-2">
+            <th class="px-4 py-2 font-bold text-neutral-85 border-r border-neutral-8">Available</th>
+            <td class="px-4 py-2 text-neutral-85"><%= @server_rack.u_height - @server_rack.utilization %>U</td>
           </tr>
-          <tr class="hover:bg-slate-50">
-            <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">Utilization</th>
+          <tr class="hover:bg-neutral-2">
+            <th class="px-4 py-2 font-bold text-neutral-85 border-r border-neutral-8">Utilization</th>
             <td class="px-4 py-2">
               <div class="flex items-center gap-2">
-                <div class="w-32 h-3 bg-slate-200 rounded-full overflow-hidden">
-                  <div class="h-full bg-teal-500 rounded-full" style="width: <%= @server_rack.utilization_percentage %>%"></div>
+                <div class="w-32 h-3 bg-neutral-8 rounded-full overflow-hidden">
+                  <div class="h-full bg-primary-5 rounded-full" style="width: <%= @server_rack.utilization_percentage %>%"></div>
                 </div>
-                <span class="text-sm font-medium text-slate-700"><%= @server_rack.utilization_percentage %>%</span>
+                <span class="text-sm font-medium text-neutral-85"><%= @server_rack.utilization_percentage %>%</span>
               </div>
             </td>
           </tr>
-          <tr class="hover:bg-slate-50">
-            <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">Node Count</th>
-            <td class="px-4 py-2 text-slate-700"><%= @server_rack.nodes.count %></td>
+          <tr class="hover:bg-neutral-2">
+            <th class="px-4 py-2 font-bold text-neutral-85 border-r border-neutral-8">Node Count</th>
+            <td class="px-4 py-2 text-neutral-85"><%= @server_rack.nodes.count %></td>
           </tr>
         </tbody>
       </table>
@@ -127,7 +127,7 @@
   <div class="card-header flex items-center justify-between">
     <h3 class="card-title">Rack Diagram</h3>
     <% if current_user&.approver? && @server_rack.nodes.any? %>
-      <button id="save-layout-btn" class="hidden px-4 py-2 bg-teal-600 text-white text-sm rounded-lg hover:bg-teal-700 transition-colors">
+      <button id="save-layout-btn" class="hidden px-4 py-2 bg-primary-6 text-white text-sm rounded-lg hover:bg-primary-7 transition-colors">
         Save Layout
       </button>
     <% end %>
@@ -144,11 +144,11 @@
       </div>
     <% else %>
       <div class="text-center py-8">
-        <div class="h-16 w-16 mx-auto rounded-full bg-slate-100 flex items-center justify-center mb-4">
-          <%= lucide_icon("server", class: "h-8 w-8 text-slate-400") %>
+        <div class="h-16 w-16 mx-auto rounded-full bg-neutral-4 flex items-center justify-center mb-4">
+          <%= lucide_icon("server", class: "h-8 w-8 text-neutral-25") %>
         </div>
-        <p class="text-sm font-medium text-slate-900">No nodes in this rack</p>
-        <p class="mt-1 text-xs text-slate-500">Assign nodes to this rack to see them in the diagram</p>
+        <p class="text-sm font-medium text-neutral-85">No nodes in this rack</p>
+        <p class="mt-1 text-xs text-neutral-45">Assign nodes to this rack to see them in the diagram</p>
       </div>
     <% end %>
   </div>
@@ -161,34 +161,34 @@
   </div>
   <% if @server_rack.nodes.any? %>
     <div class="overflow-x-auto">
-      <table class="min-w-full divide-y divide-slate-200 text-sm">
-        <thead class="bg-slate-50">
+      <table class="min-w-full divide-y divide-neutral-8 text-sm">
+        <thead class="bg-neutral-2">
           <tr>
-            <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Position</th>
-            <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Hostname</th>
-            <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Role</th>
-            <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Height</th>
-            <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">IP Address</th>
+            <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-neutral-45 border-b">Position</th>
+            <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-neutral-45 border-b">Hostname</th>
+            <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-neutral-45 border-b">Role</th>
+            <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-neutral-45 border-b">Height</th>
+            <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-neutral-45 border-b">IP Address</th>
           </tr>
         </thead>
-        <tbody class="divide-y divide-slate-200 bg-white">
+        <tbody class="divide-y divide-neutral-8 bg-white">
           <% @server_rack.nodes.order(:rack_position).each do |node| %>
-            <tr class="hover:bg-slate-50 transition-colors" data-node-id="<%= node.id %>">
-              <td class="whitespace-nowrap px-3 py-2 text-sm text-slate-700 font-mono" data-position>
+            <tr class="hover:bg-neutral-2 transition-colors" data-node-id="<%= node.id %>">
+              <td class="whitespace-nowrap px-3 py-2 text-sm text-neutral-85 font-mono" data-position>
                 U<%= node.rack_position %>
               </td>
               <td class="whitespace-nowrap px-3 py-2">
                 <%= link_to node_path(node), class: "group" do %>
-                  <p class="text-sm font-bold text-slate-900 group-hover:text-teal-600"><%= node.hostname %></p>
+                  <p class="text-sm font-bold text-neutral-85 group-hover:text-primary-6"><%= node.hostname %></p>
                 <% end %>
               </td>
-              <td class="whitespace-nowrap px-3 py-2 text-sm text-slate-600">
+              <td class="whitespace-nowrap px-3 py-2 text-sm text-neutral-45">
                 <%= node.role.humanize %>
               </td>
-              <td class="whitespace-nowrap px-3 py-2 text-sm text-slate-500">
+              <td class="whitespace-nowrap px-3 py-2 text-sm text-neutral-45">
                 <%= node.rack_height || 1 %>U
               </td>
-              <td class="whitespace-nowrap px-3 py-2 text-sm text-slate-500 font-mono">
+              <td class="whitespace-nowrap px-3 py-2 text-sm text-neutral-45 font-mono">
                 <%= node.ip %>
               </td>
             </tr>
@@ -198,26 +198,26 @@
     </div>
   <% else %>
     <div class="flex flex-col items-center justify-center py-12 text-center">
-      <div class="h-12 w-12 rounded-full bg-slate-100 flex items-center justify-center mb-4">
-        <%= lucide_icon("server", class: "h-6 w-6 text-slate-400") %>
+      <div class="h-12 w-12 rounded-full bg-neutral-4 flex items-center justify-center mb-4">
+        <%= lucide_icon("server", class: "h-6 w-6 text-neutral-25") %>
       </div>
-      <p class="text-sm font-medium text-slate-900">No nodes mounted in this rack</p>
-      <p class="mt-1 text-xs text-slate-500">Assign nodes to this rack to see them listed here</p>
+      <p class="text-sm font-medium text-neutral-85">No nodes mounted in this rack</p>
+      <p class="mt-1 text-xs text-neutral-45">Assign nodes to this rack to see them listed here</p>
     </div>
   <% end %>
 </div>
 
 <%# Danger Zone %>
 <% if current_user.approver? && @server_rack.nodes.empty? %>
-  <div class="card-netbox mt-6 border-red-200">
-    <div class="card-header bg-red-50 border-red-200">
-      <h3 class="card-title text-red-800">Danger Zone</h3>
+  <div class="card-netbox mt-6 border-error-2">
+    <div class="card-header bg-error-1 border-error-2">
+      <h3 class="card-title text-error-8">Danger Zone</h3>
     </div>
     <div class="p-4">
       <div class="flex items-center justify-between">
         <div>
-          <p class="text-sm font-medium text-slate-900">Delete this rack</p>
-          <p class="text-xs text-slate-500">Once deleted, this rack cannot be recovered.</p>
+          <p class="text-sm font-medium text-neutral-85">Delete this rack</p>
+          <p class="text-xs text-neutral-45">Once deleted, this rack cannot be recovered.</p>
         </div>
         <%= button_to server_rack_path(@server_rack),
             method: :delete,

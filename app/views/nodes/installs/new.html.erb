@@ -44,42 +44,42 @@
         <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
           <% if required_fields[:sudo_password] %>
             <div>
-              <%= f.label :sudo_password, "Remote Sudo Password", class: "block text-sm font-bold text-slate-700 mb-1" %>
+              <%= f.label :sudo_password, "Remote Sudo Password", class: "block text-sm font-bold text-neutral-85 mb-1" %>
               <%= f.password_field :sudo_password, required: true,
                   placeholder: "••••••••",
-                  class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" %>
+                  class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm" %>
             </div>
           <% end %>
 
           <% if required_fields[:ssh_password] %>
             <div>
-              <%= f.label :bastion_password, "SSH Password / Key Passphrase", class: "block text-sm font-bold text-slate-700 mb-1" %>
+              <%= f.label :bastion_password, "SSH Password / Key Passphrase", class: "block text-sm font-bold text-neutral-85 mb-1" %>
               <%= f.password_field :bastion_password, required: false,
                   placeholder: "•••••••• (optional)",
-                  class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" %>
+                  class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm" %>
             </div>
           <% end %>
 
           <% if required_fields[:api_key] %>
             <div class="sm:col-span-2">
-              <%= f.label :api_key_id, "Agent API Key", class: "block text-sm font-bold text-slate-700 mb-1" %>
+              <%= f.label :api_key_id, "Agent API Key", class: "block text-sm font-bold text-neutral-85 mb-1" %>
               <%= f.collection_select :api_key_id, @api_keys, :id, :name, { prompt: "Select an API key for the agent" },
-                  class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" %>
+                  class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm" %>
             </div>
           <% end %>
 
           <% if required_fields[:server_url] %>
             <div class="sm:col-span-2">
-              <%= f.label :server_url, "Server URL (Callback)", class: "block text-sm font-bold text-slate-700 mb-1" %>
+              <%= f.label :server_url, "Server URL (Callback)", class: "block text-sm font-bold text-neutral-85 mb-1" %>
               <%= f.text_field :server_url, value: @server_url,
                   placeholder: "http://10.0.0.1:3000",
-                  class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm font-mono" %>
-              <p class="mt-1 text-[10px] text-slate-500 italic">The URL the agent will use to push data back to this server.</p>
+                  class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm font-mono" %>
+              <p class="mt-1 text-[10px] text-neutral-45 italic">The URL the agent will use to push data back to this server.</p>
             </div>
           <% end %>
         </div>
 
-        <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
+        <div class="flex items-center justify-end gap-3 pt-4 border-t border-neutral-4">
           <button type="button" class="btn-secondary" data-action="modal#close">Cancel</button>
           <%= f.submit "Begin Installation", class: "btn-primary" %>
         </div>

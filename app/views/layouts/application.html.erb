@@ -24,13 +24,13 @@
     <%# Flash messages %>
     <% if notice.present? %>
       <div class="fixed top-4 right-4 z-50 max-w-sm">
-        <div class="rounded-lg bg-green-50 p-4 shadow-lg dark:bg-green-900/50">
+        <div class="rounded-lg bg-success-1 p-4 shadow-lg dark:bg-success-9/50">
           <div class="flex">
             <div class="flex-shrink-0">
-              <%= lucide_icon("circle-check", class: "h-5 w-5 text-green-400") %>
+              <%= lucide_icon("circle-check", class: "h-5 w-5 text-success-4") %>
             </div>
             <div class="ml-3">
-              <p class="text-sm font-medium text-green-800 dark:text-green-200"><%= notice %></p>
+              <p class="text-sm font-medium text-success-8 dark:text-success-2"><%= notice %></p>
             </div>
           </div>
         </div>
@@ -39,13 +39,13 @@
 
     <% if alert.present? %>
       <div class="fixed top-4 right-4 z-50 max-w-sm">
-        <div class="rounded-lg bg-red-50 p-4 shadow-lg dark:bg-red-900/50">
+        <div class="rounded-lg bg-error-1 p-4 shadow-lg dark:bg-error-9/50">
           <div class="flex">
             <div class="flex-shrink-0">
-              <%= lucide_icon("circle-x", class: "h-5 w-5 text-red-400") %>
+              <%= lucide_icon("circle-x", class: "h-5 w-5 text-error-4") %>
             </div>
             <div class="ml-3">
-              <p class="text-sm font-medium text-red-800 dark:text-red-200"><%= alert %></p>
+              <p class="text-sm font-medium text-error-8 dark:text-error-2"><%= alert %></p>
             </div>
           </div>
         </div>

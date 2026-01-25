@@ -2,14 +2,14 @@
 <%= turbo_frame_tag "slide_over_content" do %>
   <div data-controller="tabs">
     <%# Run Header with Status %>
-    <div class="border-b border-slate-200 px-6 py-4 bg-slate-50">
+    <div class="border-b border-neutral-8 px-6 py-4 bg-neutral-2">
       <div class="flex items-start gap-4">
-        <div class="flex h-12 w-12 items-center justify-center rounded-lg bg-white border border-slate-300 shadow-sm">
+        <div class="flex h-12 w-12 items-center justify-center rounded-lg bg-white border border-neutral-15 shadow-sm">
           <%= status_icon(benchmark_run.status) %>
         </div>
         <div class="flex-1 min-w-0">
           <div class="flex items-center gap-2">
-            <h3 class="text-base font-bold text-slate-900 truncate">
+            <h3 class="text-base font-bold text-neutral-85 truncate">
               <%= benchmark_run.benchmark_recipe.display_name %>
             </h3>
             <%= node_status_badge(benchmark_run.status) %>
@@ -17,13 +17,13 @@
               <%= button_to cancel_benchmark_run_path(benchmark_run),
                   method: :post,
                   data: { turbo_confirm: "Are you sure you want to cancel this benchmark run?" },
-                  class: "inline-flex items-center gap-1 px-2 py-1 text-xs font-bold text-red-600 bg-white border border-red-300 rounded hover:bg-red-50 hover:border-red-400 transition-colors" do %>
+                  class: "inline-flex items-center gap-1 px-2 py-1 text-xs font-bold text-error-6 bg-white border border-error-3 rounded hover:bg-error-1 hover:border-error-4 transition-colors" do %>
                 <%= lucide_icon("x", class: "h-3 w-3") %>
                 Cancel
               <% end %>
             <% end %>
           </div>
-          <p class="mt-1 text-sm text-slate-500">
+          <p class="mt-1 text-sm text-neutral-45">
             Run #<%= benchmark_run.id %> on <span class="font-bold"><%= benchmark_run.node.hostname %></span>
           </p>
         </div>
@@ -31,7 +31,7 @@
     </div>
 
     <%# Tabs Navigation %>
-    <div class="border-b border-slate-200 bg-white">
+    <div class="border-b border-neutral-8 bg-white">
       <nav class="flex px-6 tabs nav-tabs" aria-label="Tabs" role="tablist" data-action="keydown->tabs#handleKeydown">
         <button type="button"
                 id="tab-summary"
@@ -40,7 +40,7 @@
                 aria-controls="tab-panel-summary"
                 data-tabs-target="tab"
                 data-action="click->tabs#select"
-                class="border-b-2 border-teal-600 px-4 py-3 text-sm font-bold uppercase text-teal-600 focus:outline-none transition-colors">
+                class="border-b-2 border-primary-6 px-4 py-3 text-sm font-bold uppercase text-primary-6 focus:outline-none transition-colors">
           Summary
         </button>
         <button type="button"
@@ -51,7 +51,7 @@
                 tabindex="-1"
                 data-tabs-target="tab"
                 data-action="click->tabs#select"
-                class="border-b-2 border-transparent px-4 py-3 text-sm font-bold uppercase text-slate-500 hover:text-slate-700 hover:border-slate-300 focus:outline-none transition-colors">
+                class="border-b-2 border-transparent px-4 py-3 text-sm font-bold uppercase text-neutral-45 hover:text-neutral-85 hover:border-neutral-15 focus:outline-none transition-colors">
           Metrics
         </button>
         <button type="button"
@@ -62,7 +62,7 @@
                 tabindex="-1"
                 data-tabs-target="tab"
                 data-action="click->tabs#select"
-                class="border-b-2 border-transparent px-4 py-3 text-sm font-bold uppercase text-slate-500 hover:text-slate-700 hover:border-slate-300 focus:outline-none transition-colors">
+                class="border-b-2 border-transparent px-4 py-3 text-sm font-bold uppercase text-neutral-45 hover:text-neutral-85 hover:border-neutral-15 focus:outline-none transition-colors">
           Logs
         </button>
         <button type="button"
@@ -73,7 +73,7 @@
                 tabindex="-1"
                 data-tabs-target="tab"
                 data-action="click->tabs#select"
-                class="border-b-2 border-transparent px-4 py-3 text-sm font-bold uppercase text-slate-500 hover:text-slate-700 hover:border-slate-300 focus:outline-none transition-colors">
+                class="border-b-2 border-transparent px-4 py-3 text-sm font-bold uppercase text-neutral-45 hover:text-neutral-85 hover:border-neutral-15 focus:outline-none transition-colors">
           Artifacts
         </button>
       </nav>
@@ -90,11 +90,11 @@
         
         <%# Error Message (if any) %>
         <% if benchmark_run.error_message.present? %>
-          <div class="mb-6 card-netbox border-red-300">
-            <div class="card-header bg-red-50 border-red-300">
-              <h3 class="card-title text-red-800">Error</h3>
+          <div class="mb-6 card-netbox border-error-3">
+            <div class="card-header bg-error-1 border-error-3">
+              <h3 class="card-title text-error-8">Error</h3>
             </div>
-            <div class="p-4 text-sm text-red-700 italic">
+            <div class="p-4 text-sm text-error-7 italic">
               <%= benchmark_run.error_message %>
             </div>
           </div>
@@ -103,22 +103,22 @@
         <%# Details List %>
         <div class="card-netbox">
           <table class="w-full text-sm text-left">
-            <tbody class="divide-y divide-slate-100">
-              <tr class="hover:bg-slate-50">
-                <th class="px-4 py-2 font-bold text-slate-700 w-1/3 border-r border-slate-200">Node</th>
-                <td class="px-4 py-2 text-teal-600 font-bold"><%= benchmark_run.node.hostname %></td>
+            <tbody class="divide-y divide-neutral-4">
+              <tr class="hover:bg-neutral-2">
+                <th class="px-4 py-2 font-bold text-neutral-85 w-1/3 border-r border-neutral-8">Node</th>
+                <td class="px-4 py-2 text-primary-6 font-bold"><%= benchmark_run.node.hostname %></td>
               </tr>
-              <tr class="hover:bg-slate-50">
-                <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">Recipe</th>
-                <td class="px-4 py-2 text-slate-700 font-bold"><%= benchmark_run.benchmark_recipe.name %></td>
+              <tr class="hover:bg-neutral-2">
+                <th class="px-4 py-2 font-bold text-neutral-85 border-r border-neutral-8">Recipe</th>
+                <td class="px-4 py-2 text-neutral-85 font-bold"><%= benchmark_run.benchmark_recipe.name %></td>
               </tr>
-              <tr class="hover:bg-slate-50">
-                <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">Started</th>
-                <td class="px-4 py-2 text-slate-700"><%= benchmark_run.started_at ? l(benchmark_run.started_at, format: :short) : "Pending" %></td>
+              <tr class="hover:bg-neutral-2">
+                <th class="px-4 py-2 font-bold text-neutral-85 border-r border-neutral-8">Started</th>
+                <td class="px-4 py-2 text-neutral-85"><%= benchmark_run.started_at ? l(benchmark_run.started_at, format: :short) : "Pending" %></td>
               </tr>
-              <tr class="hover:bg-slate-50">
-                <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">Duration</th>
-                <td class="px-4 py-2 text-slate-700"><%= benchmark_run.duration ? distance_of_time_in_words(benchmark_run.duration) : "—" %></td>
+              <tr class="hover:bg-neutral-2">
+                <th class="px-4 py-2 font-bold text-neutral-85 border-r border-neutral-8">Duration</th>
+                <td class="px-4 py-2 text-neutral-85"><%= benchmark_run.duration ? distance_of_time_in_words(benchmark_run.duration) : "—" %></td>
               </tr>
             </tbody>
           </table>
@@ -146,11 +146,11 @@
         <% if benchmark_run.metrics.present? %>
           <div class="card-netbox">
             <table class="w-full text-sm text-left">
-              <tbody class="divide-y divide-slate-100">
+              <tbody class="divide-y divide-neutral-4">
                 <% benchmark_run.metrics.each do |key, value| %>
-                  <tr class="hover:bg-slate-50">
-                    <th class="px-4 py-2 font-bold text-slate-700 w-1/2 border-r border-slate-200"><%= key.humanize %></th>
-                    <td class="px-4 py-2 text-slate-700 font-mono">
+                  <tr class="hover:bg-neutral-2">
+                    <th class="px-4 py-2 font-bold text-neutral-85 w-1/2 border-r border-neutral-8"><%= key.humanize %></th>
+                    <td class="px-4 py-2 text-neutral-85 font-mono">
                       <%= value.is_a?(Numeric) ? number_with_precision(value, precision: 4, strip_insignificant_zeros: true) : value %>
                     </td>
                   </tr>
@@ -159,8 +159,8 @@
             </table>
           </div>
         <% else %>
-          <div class="text-center py-12 card-netbox bg-slate-50 border-dashed">
-            <p class="text-slate-500 font-bold uppercase text-xs">No metrics available</p>
+          <div class="text-center py-12 card-netbox bg-neutral-2 border-dashed">
+            <p class="text-neutral-45 font-bold uppercase text-xs">No metrics available</p>
           </div>
         <% end %>
       </div>
@@ -175,11 +175,11 @@
 
         <% if benchmark_run.log_content.present? %>
           <div class="card-netbox overflow-hidden">
-            <pre class="p-4 text-xs font-mono text-slate-700 bg-slate-50 overflow-x-auto max-h-96 whitespace-pre-wrap break-words"><%= benchmark_run.log_content %></pre>
+            <pre class="p-4 text-xs font-mono text-neutral-85 bg-neutral-2 overflow-x-auto max-h-96 whitespace-pre-wrap break-words"><%= benchmark_run.log_content %></pre>
           </div>
         <% else %>
-          <div class="text-center py-12 card-netbox bg-slate-50 border-dashed">
-            <p class="text-slate-500 font-bold uppercase text-xs">No logs available</p>
+          <div class="text-center py-12 card-netbox bg-neutral-2 border-dashed">
+            <p class="text-neutral-45 font-bold uppercase text-xs">No logs available</p>
           </div>
         <% end %>
       </div>
@@ -194,37 +194,37 @@
         
         <% if benchmark_run.artifact_indices.any? %>
           <div class="card-netbox">
-            <table class="min-w-full divide-y divide-slate-200 text-sm">
-              <thead class="bg-slate-50">
+            <table class="min-w-full divide-y divide-neutral-8 text-sm">
+              <thead class="bg-neutral-2">
                 <tr>
-                  <th class="px-3 py-2 text-left text-xs font-bold uppercase text-slate-500 border-b">Name</th>
-                  <th class="px-3 py-2 text-left text-xs font-bold uppercase text-slate-500 border-b">Type</th>
-                  <th class="px-3 py-2 text-left text-xs font-bold uppercase text-slate-500 border-b">Size</th>
-                  <th class="px-3 py-2 text-right text-xs font-bold uppercase text-slate-500 border-b">Actions</th>
+                  <th class="px-3 py-2 text-left text-xs font-bold uppercase text-neutral-45 border-b">Name</th>
+                  <th class="px-3 py-2 text-left text-xs font-bold uppercase text-neutral-45 border-b">Type</th>
+                  <th class="px-3 py-2 text-left text-xs font-bold uppercase text-neutral-45 border-b">Size</th>
+                  <th class="px-3 py-2 text-right text-xs font-bold uppercase text-neutral-45 border-b">Actions</th>
                 </tr>
               </thead>
-              <tbody class="divide-y divide-slate-100 bg-white">
+              <tbody class="divide-y divide-neutral-4 bg-white">
                 <% benchmark_run.artifact_indices.each do |artifact| %>
-                  <tr class="hover:bg-slate-50 border-b border-slate-200">
+                  <tr class="hover:bg-neutral-2 border-b border-neutral-8">
                     <td class="px-3 py-2">
-                      <div class="font-bold text-slate-700"><%= File.basename(artifact.path) %></div>
-                      <div class="text-[10px] font-mono text-slate-400 truncate max-w-[200px]"><%= artifact.path %></div>
+                      <div class="font-bold text-neutral-85"><%= File.basename(artifact.path) %></div>
+                      <div class="text-[10px] font-mono text-neutral-25 truncate max-w-[200px]"><%= artifact.path %></div>
                     </td>
-                    <td class="px-3 py-2 text-slate-600 uppercase text-xs font-bold">
+                    <td class="px-3 py-2 text-neutral-45 uppercase text-xs font-bold">
                       <%= artifact.file_type %>
                     </td>
-                    <td class="px-3 py-2 text-slate-600 text-xs">
+                    <td class="px-3 py-2 text-neutral-45 text-xs">
                       <%= artifact.size.present? ? number_to_human_size(artifact.size) : "—" %>
                     </td>
                     <td class="px-3 py-2 text-right">
                       <% if artifact.downloadable? %>
 <%= link_to download_artifact_benchmark_run_path(benchmark_run, artifact_id: artifact.id),
-                            class: "inline-flex items-center gap-1 text-teal-600 hover:text-teal-800 text-xs font-bold" do %>
+                            class: "inline-flex items-center gap-1 text-primary-6 hover:text-primary-8 text-xs font-bold" do %>
                           <%= lucide_icon("download", class: "h-4 w-4") %>
                           Download
                         <% end %>
                       <% else %>
-<span class="inline-flex items-center gap-1 text-slate-400 text-xs font-bold cursor-not-allowed" title="File not found on server">
+<span class="inline-flex items-center gap-1 text-neutral-25 text-xs font-bold cursor-not-allowed" title="File not found on server">
                           <%= lucide_icon("download", class: "h-4 w-4") %>
                           Unavailable
                         </span>
@@ -236,8 +236,8 @@
             </table>
           </div>
         <% else %>
-          <div class="text-center py-12 card-netbox bg-slate-50 border-dashed">
-            <p class="text-slate-500 font-bold uppercase text-xs">No artifacts found</p>
+          <div class="text-center py-12 card-netbox bg-neutral-2 border-dashed">
+            <p class="text-neutral-45 font-bold uppercase text-xs">No artifacts found</p>
           </div>
         <% end %>
       </div>

@@ -1,65 +1,65 @@
-<tr class="hover:bg-slate-50 transition-colors">
+<tr class="hover:bg-neutral-2 transition-colors">
   <td class="whitespace-nowrap px-3 py-2">
     <% if product.images.attached? %>
       <%= image_tag product.thumbnail_variant,
             loading: "lazy",
             decoding: "async",
-            class: "h-10 w-10 object-contain rounded bg-slate-100" %>
+            class: "h-10 w-10 object-contain rounded bg-neutral-4" %>
     <% else %>
-      <div class="h-10 w-10 bg-slate-100 rounded flex items-center justify-center">
-        <%= lucide_icon("server", class: "h-5 w-5 text-slate-400") %>
+      <div class="h-10 w-10 bg-neutral-4 rounded flex items-center justify-center">
+        <%= lucide_icon("server", class: "h-5 w-5 text-neutral-25") %>
       </div>
     <% end %>
   </td>
   <td class="whitespace-nowrap px-3 py-2">
     <%= link_to settings_server_product_path(product), class: "group" do %>
-      <p class="text-sm font-bold text-slate-900 group-hover:text-teal-600"><%= product.name %></p>
+      <p class="text-sm font-bold text-neutral-85 group-hover:text-primary-6"><%= product.name %></p>
     <% end %>
   </td>
-  <td class="px-3 py-2 text-sm text-slate-600">
+  <td class="px-3 py-2 text-sm text-neutral-45">
     <%= product.product_series.presence || "—" %>
   </td>
   <td class="whitespace-nowrap px-3 py-2">
     <% if product.form_factor.present? %>
-      <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-100 text-slate-700">
+      <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-neutral-4 text-neutral-85">
         <%= product.form_factor %>
       </span>
     <% else %>
-      <span class="text-sm text-slate-400">—</span>
+      <span class="text-sm text-neutral-25">—</span>
     <% end %>
   </td>
-  <td class="px-3 py-2 text-sm text-slate-600">
+  <td class="px-3 py-2 text-sm text-neutral-45">
     <% if product.cpu_generations.present? && product.cpu_generations.any? %>
       <%= product.cpu_generations.join(", ") %>
     <% else %>
-      <span class="text-slate-400">—</span>
+      <span class="text-neutral-25">—</span>
     <% end %>
   </td>
-  <td class="whitespace-nowrap px-3 py-2 text-sm text-slate-600">
+  <td class="whitespace-nowrap px-3 py-2 text-sm text-neutral-45">
     <% if product.max_memory_gb.present? %>
       <%= number_to_human_size(product.max_memory_gb * 1.gigabyte, precision: 0) %>
     <% else %>
-      <span class="text-slate-400">—</span>
+      <span class="text-neutral-25">—</span>
     <% end %>
   </td>
-  <td class="whitespace-nowrap px-3 py-2 text-sm text-slate-500">
+  <td class="whitespace-nowrap px-3 py-2 text-sm text-neutral-45">
     <% if product.last_synced_at.present? %>
       <%= time_ago_in_words(product.last_synced_at) %> ago
     <% else %>
-      <span class="text-slate-400">Manual</span>
+      <span class="text-neutral-25">Manual</span>
     <% end %>
   </td>
   <td class="whitespace-nowrap px-3 py-2">
     <div class="flex items-center justify-end gap-2">
-      <%= link_to settings_server_product_path(product), class: "inline-flex items-center text-teal-600 hover:text-teal-700", title: "View" do %>
+      <%= link_to settings_server_product_path(product), class: "inline-flex items-center text-primary-6 hover:text-primary-7", title: "View" do %>
         <%= lucide_icon("eye", class: "h-5 w-5") %>
         <span class="sr-only">View</span>
       <% end %>
-      <%= link_to edit_settings_server_product_path(product), class: "inline-flex items-center text-slate-600 hover:text-slate-700", title: "Edit" do %>
+      <%= link_to edit_settings_server_product_path(product), class: "inline-flex items-center text-neutral-45 hover:text-neutral-85", title: "Edit" do %>
         <%= lucide_icon("square-pen", class: "h-5 w-5") %>
         <span class="sr-only">Edit</span>
       <% end %>
-      <%= button_to settings_server_product_path(product), method: :delete, form: { class: "inline-flex" }, class: "inline-flex items-center text-red-600 hover:text-red-700", title: "Delete", data: { turbo_confirm: "Are you sure you want to delete this product?" } do %>
+      <%= button_to settings_server_product_path(product), method: :delete, form: { class: "inline-flex" }, class: "inline-flex items-center text-error-6 hover:text-error-7", title: "Delete", data: { turbo_confirm: "Are you sure you want to delete this product?" } do %>
         <%= lucide_icon("trash-2", class: "h-5 w-5") %>
         <span class="sr-only">Delete</span>
       <% end %>

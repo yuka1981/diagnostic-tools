@@ -1,6 +1,6 @@
 <%= form_with(model: [:settings, @server_product], class: "space-y-6") do |f| %>
   <% if @server_product.errors.any? %>
-    <div class="rounded-lg bg-red-50 p-4 text-sm text-red-700 border border-red-200">
+    <div class="rounded-lg bg-error-1 p-4 text-sm text-error-7 border border-error-2">
       <h2 class="font-bold mb-2"><%= pluralize(@server_product.errors.count, "error") %> prohibited this server product from being saved:</h2>
       <ul class="list-disc list-inside">
         <% @server_product.errors.full_messages.each do |message| %>
@@ -17,43 +17,43 @@
     </div>
     <div class="p-4 grid grid-cols-1 md:grid-cols-2 gap-6">
       <div class="md:col-span-2">
-        <%= f.label :name, class: "block text-sm font-bold text-slate-700 mb-1" %>
+        <%= f.label :name, class: "block text-sm font-bold text-neutral-85 mb-1" %>
         <%= f.text_field :name, required: true,
             placeholder: "QuantaGrid D54Q-2U",
-            class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" %>
-        <p class="mt-1 text-xs text-slate-500">The model name for this server product.</p>
+            class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm" %>
+        <p class="mt-1 text-xs text-neutral-45">The model name for this server product.</p>
       </div>
 
       <div>
-        <%= f.label :product_series, class: "block text-sm font-bold text-slate-700 mb-1" %>
+        <%= f.label :product_series, class: "block text-sm font-bold text-neutral-85 mb-1" %>
         <%= f.text_field :product_series,
             placeholder: "QuantaGrid",
-            class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" %>
-        <p class="mt-1 text-xs text-slate-500">Product line (e.g., QuantaGrid, QuantaPlex).</p>
+            class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm" %>
+        <p class="mt-1 text-xs text-neutral-45">Product line (e.g., QuantaGrid, QuantaPlex).</p>
       </div>
 
       <div>
-        <%= f.label :form_factor, class: "block text-sm font-bold text-slate-700 mb-1" %>
+        <%= f.label :form_factor, class: "block text-sm font-bold text-neutral-85 mb-1" %>
         <%= f.select :form_factor,
             options_for_select((1..10).map { |u| ["#{u}U", "#{u}U"] }, @server_product.form_factor),
             { include_blank: "Select form factor" },
-            class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" %>
-        <p class="mt-1 text-xs text-slate-500">Physical form factor of the server.</p>
+            class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm" %>
+        <p class="mt-1 text-xs text-neutral-45">Physical form factor of the server.</p>
       </div>
 
       <div>
-        <%= f.label :rack_height, class: "block text-sm font-bold text-slate-700 mb-1" %>
+        <%= f.label :rack_height, class: "block text-sm font-bold text-neutral-85 mb-1" %>
         <%= f.number_field :rack_height, min: 1, max: 48,
-            class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" %>
-        <p class="mt-1 text-xs text-slate-500">Height in rack units (U). Auto-set from form factor if not specified.</p>
+            class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm" %>
+        <p class="mt-1 text-xs text-neutral-45">Height in rack units (U). Auto-set from form factor if not specified.</p>
       </div>
 
       <div>
-        <%= f.label :qct_product_url, "QCT Product URL", class: "block text-sm font-bold text-slate-700 mb-1" %>
+        <%= f.label :qct_product_url, "QCT Product URL", class: "block text-sm font-bold text-neutral-85 mb-1" %>
         <%= f.url_field :qct_product_url,
             placeholder: "https://www.qct.io/product/...",
-            class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" %>
-        <p class="mt-1 text-xs text-slate-500">Link to the product page on QCT website.</p>
+            class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm" %>
+        <p class="mt-1 text-xs text-neutral-45">Link to the product page on QCT website.</p>
       </div>
     </div>
   </div>
@@ -65,38 +65,38 @@
     </div>
     <div class="p-4 grid grid-cols-1 md:grid-cols-2 gap-6">
       <div class="md:col-span-2">
-        <%= f.label :cpu_generations, "CPU Generations", class: "block text-sm font-bold text-slate-700 mb-1" %>
+        <%= f.label :cpu_generations, "CPU Generations", class: "block text-sm font-bold text-neutral-85 mb-1" %>
         <%= f.text_field :cpu_generations,
             value: @server_product.cpu_generations&.join(", "),
             placeholder: "5th Gen Xeon, 4th Gen Xeon",
-            class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" %>
-        <p class="mt-1 text-xs text-slate-500">Comma-separated list of supported CPU generations.</p>
+            class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm" %>
+        <p class="mt-1 text-xs text-neutral-45">Comma-separated list of supported CPU generations.</p>
       </div>
 
       <div>
-        <%= f.label :socket_count, class: "block text-sm font-bold text-slate-700 mb-1" %>
+        <%= f.label :socket_count, class: "block text-sm font-bold text-neutral-85 mb-1" %>
         <%= f.select :socket_count,
             options_for_select([["1 Socket", 1], ["2 Sockets", 2], ["4 Sockets", 4], ["8 Sockets", 8]], @server_product.socket_count),
             { include_blank: "Select socket count" },
-            class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" %>
-        <p class="mt-1 text-xs text-slate-500">Number of CPU sockets.</p>
+            class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm" %>
+        <p class="mt-1 text-xs text-neutral-45">Number of CPU sockets.</p>
       </div>
 
       <div>
-        <%= f.label :max_tdp_watts, "Max TDP (Watts)", class: "block text-sm font-bold text-slate-700 mb-1" %>
+        <%= f.label :max_tdp_watts, "Max TDP (Watts)", class: "block text-sm font-bold text-neutral-85 mb-1" %>
         <%= f.number_field :max_tdp_watts, min: 0,
             placeholder: "350",
-            class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" %>
-        <p class="mt-1 text-xs text-slate-500">Maximum supported CPU TDP in watts.</p>
+            class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm" %>
+        <p class="mt-1 text-xs text-neutral-45">Maximum supported CPU TDP in watts.</p>
       </div>
 
       <div class="md:col-span-2">
         <div class="flex items-center gap-3">
           <%= f.check_box :gpu_support,
-              class: "h-4 w-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500" %>
-          <%= f.label :gpu_support, class: "text-sm font-bold text-slate-700" %>
+              class: "h-4 w-4 rounded border-neutral-15 text-primary-6 focus:ring-primary-5" %>
+          <%= f.label :gpu_support, class: "text-sm font-bold text-neutral-85" %>
         </div>
-        <p class="mt-1 text-xs text-slate-500">Check if this server supports GPU accelerators.</p>
+        <p class="mt-1 text-xs text-neutral-45">Check if this server supports GPU accelerators.</p>
       </div>
     </div>
   </div>
@@ -108,36 +108,36 @@
     </div>
     <div class="p-4 grid grid-cols-1 md:grid-cols-2 gap-6">
       <div>
-        <%= f.label :max_memory_gb, "Max Memory (GB)", class: "block text-sm font-bold text-slate-700 mb-1" %>
+        <%= f.label :max_memory_gb, "Max Memory (GB)", class: "block text-sm font-bold text-neutral-85 mb-1" %>
         <%= f.number_field :max_memory_gb, min: 0,
             placeholder: "8192",
-            class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" %>
-        <p class="mt-1 text-xs text-slate-500">Maximum supported memory capacity in GB.</p>
+            class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm" %>
+        <p class="mt-1 text-xs text-neutral-45">Maximum supported memory capacity in GB.</p>
       </div>
 
       <div>
-        <%= f.label :dimm_slots, "DIMM Slots", class: "block text-sm font-bold text-slate-700 mb-1" %>
+        <%= f.label :dimm_slots, "DIMM Slots", class: "block text-sm font-bold text-neutral-85 mb-1" %>
         <%= f.number_field :dimm_slots, min: 0,
             placeholder: "32",
-            class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" %>
-        <p class="mt-1 text-xs text-slate-500">Number of DIMM slots available.</p>
+            class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm" %>
+        <p class="mt-1 text-xs text-neutral-45">Number of DIMM slots available.</p>
       </div>
 
       <div>
-        <%= f.label :memory_types, "Memory Types", class: "block text-sm font-bold text-slate-700 mb-1" %>
+        <%= f.label :memory_types, "Memory Types", class: "block text-sm font-bold text-neutral-85 mb-1" %>
         <%= f.text_field :memory_types,
             value: @server_product.memory_types&.join(", "),
             placeholder: "DDR5, DDR4",
-            class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" %>
-        <p class="mt-1 text-xs text-slate-500">Comma-separated list of supported memory types.</p>
+            class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm" %>
+        <p class="mt-1 text-xs text-neutral-45">Comma-separated list of supported memory types.</p>
       </div>
 
       <div>
-        <%= f.label :max_memory_speed_mhz, "Max Memory Speed (MHz)", class: "block text-sm font-bold text-slate-700 mb-1" %>
+        <%= f.label :max_memory_speed_mhz, "Max Memory Speed (MHz)", class: "block text-sm font-bold text-neutral-85 mb-1" %>
         <%= f.number_field :max_memory_speed_mhz, min: 0,
             placeholder: "5600",
-            class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" %>
-        <p class="mt-1 text-xs text-slate-500">Maximum supported memory speed in MHz.</p>
+            class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm" %>
+        <p class="mt-1 text-xs text-neutral-45">Maximum supported memory speed in MHz.</p>
       </div>
     </div>
   </div>
@@ -150,11 +150,11 @@
     <div class="p-4">
       <% if @server_product.images.attached? %>
         <div class="mb-4">
-          <p class="text-sm font-bold text-slate-700 mb-2">Current Images</p>
+          <p class="text-sm font-bold text-neutral-85 mb-2">Current Images</p>
           <div class="flex flex-wrap gap-4">
             <% @server_product.images.each do |image| %>
               <div class="relative group">
-                <%= image_tag image, class: "h-24 w-auto rounded border border-slate-200" %>
+                <%= image_tag image, class: "h-24 w-auto rounded border border-neutral-8" %>
               </div>
             <% end %>
           </div>
@@ -162,15 +162,15 @@
       <% end %>
 
       <div>
-        <%= f.label :images, "Upload Images", class: "block text-sm font-bold text-slate-700 mb-1" %>
+        <%= f.label :images, "Upload Images", class: "block text-sm font-bold text-neutral-85 mb-1" %>
         <%= f.file_field :images, multiple: true, accept: "image/*",
-            class: "block w-full text-sm text-slate-500
+            class: "block w-full text-sm text-neutral-45
                     file:mr-4 file:py-2 file:px-4
                     file:rounded-md file:border-0
                     file:text-sm file:font-semibold
-                    file:bg-teal-50 file:text-teal-700
-                    hover:file:bg-teal-100" %>
-        <p class="mt-1 text-xs text-slate-500">Select one or more product images (JPG, PNG, WebP).</p>
+                    file:bg-primary-1 file:text-primary-7
+                    hover:file:bg-primary-1" %>
+        <p class="mt-1 text-xs text-neutral-45">Select one or more product images (JPG, PNG, WebP).</p>
       </div>
     </div>
   </div>

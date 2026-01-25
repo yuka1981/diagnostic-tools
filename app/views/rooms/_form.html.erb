@@ -1,6 +1,6 @@
 <%= form_with(model: @room, class: "space-y-6") do |f| %>
   <% if @room.errors.any? %>
-    <div class="rounded-lg bg-red-50 p-4 text-sm text-red-700 border border-red-200">
+    <div class="rounded-lg bg-error-1 p-4 text-sm text-error-7 border border-error-2">
       <h2 class="font-bold mb-2"><%= pluralize(@room.errors.count, "error") %> prohibited this room from being saved:</h2>
       <ul class="list-disc list-inside">
         <% @room.errors.full_messages.each do |message| %>
@@ -17,27 +17,27 @@
     </div>
     <div class="p-4 grid grid-cols-1 gap-6">
       <div>
-        <%= f.label :site_id, "Site", class: "block text-sm font-bold text-slate-700 mb-1" %>
+        <%= f.label :site_id, "Site", class: "block text-sm font-bold text-neutral-85 mb-1" %>
         <%= f.collection_select :site_id, @sites, :id, :name,
             { prompt: "Select a site" },
-            { required: true, class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" } %>
-        <p class="mt-1 text-xs text-slate-500">Site where this room is located.</p>
+            { required: true, class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm" } %>
+        <p class="mt-1 text-xs text-neutral-45">Site where this room is located.</p>
       </div>
 
       <div>
-        <%= f.label :name, class: "block text-sm font-bold text-slate-700 mb-1" %>
+        <%= f.label :name, class: "block text-sm font-bold text-neutral-85 mb-1" %>
         <%= f.text_field :name, required: true,
             placeholder: "Server Room A",
-            class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" %>
-        <p class="mt-1 text-xs text-slate-500">Display name for this room.</p>
+            class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm" %>
+        <p class="mt-1 text-xs text-neutral-45">Display name for this room.</p>
       </div>
 
       <div>
-        <%= f.label :description, class: "block text-sm font-bold text-slate-700 mb-1" %>
+        <%= f.label :description, class: "block text-sm font-bold text-neutral-85 mb-1" %>
         <%= f.text_area :description, rows: 3,
             placeholder: "Primary server room on the first floor...",
-            class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" %>
-        <p class="mt-1 text-xs text-slate-500">Optional description of this room.</p>
+            class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm" %>
+        <p class="mt-1 text-xs text-neutral-45">Optional description of this room.</p>
       </div>
     </div>
   </div>
@@ -49,27 +49,27 @@
     </div>
     <div class="p-4 grid grid-cols-1 md:grid-cols-3 gap-6">
       <div>
-        <%= f.label :floor_number, "Floor Number", class: "block text-sm font-bold text-slate-700 mb-1" %>
+        <%= f.label :floor_number, "Floor Number", class: "block text-sm font-bold text-neutral-85 mb-1" %>
         <%= f.number_field :floor_number,
             placeholder: "1",
-            class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" %>
-        <p class="mt-1 text-xs text-slate-500">Floor number in the building.</p>
+            class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm" %>
+        <p class="mt-1 text-xs text-neutral-45">Floor number in the building.</p>
       </div>
 
       <div>
-        <%= f.label :building_wing, "Building Wing", class: "block text-sm font-bold text-slate-700 mb-1" %>
+        <%= f.label :building_wing, "Building Wing", class: "block text-sm font-bold text-neutral-85 mb-1" %>
         <%= f.text_field :building_wing,
             placeholder: "East Wing",
-            class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" %>
-        <p class="mt-1 text-xs text-slate-500">Wing or section of the building.</p>
+            class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm" %>
+        <p class="mt-1 text-xs text-neutral-45">Wing or section of the building.</p>
       </div>
 
       <div>
-        <%= f.label :grid_coordinates, "Grid Coordinates", class: "block text-sm font-bold text-slate-700 mb-1" %>
+        <%= f.label :grid_coordinates, "Grid Coordinates", class: "block text-sm font-bold text-neutral-85 mb-1" %>
         <%= f.text_field :grid_coordinates,
             placeholder: "A1-B3",
-            class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" %>
-        <p class="mt-1 text-xs text-slate-500">Grid reference on floor plan.</p>
+            class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm" %>
+        <p class="mt-1 text-xs text-neutral-45">Grid reference on floor plan.</p>
       </div>
     </div>
   </div>
@@ -81,35 +81,35 @@
     </div>
     <div class="p-4 grid grid-cols-1 md:grid-cols-2 gap-6">
       <div>
-        <%= f.label :floor_area_sqm, "Floor Area (m²)", class: "block text-sm font-bold text-slate-700 mb-1" %>
+        <%= f.label :floor_area_sqm, "Floor Area (m²)", class: "block text-sm font-bold text-neutral-85 mb-1" %>
         <%= f.number_field :floor_area_sqm, step: "0.01", min: 0,
             placeholder: "100.00",
-            class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" %>
-        <p class="mt-1 text-xs text-slate-500">Total floor area in square meters.</p>
+            class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm" %>
+        <p class="mt-1 text-xs text-neutral-45">Total floor area in square meters.</p>
       </div>
 
       <div>
-        <%= f.label :max_rack_count, "Max Rack Count", class: "block text-sm font-bold text-slate-700 mb-1" %>
+        <%= f.label :max_rack_count, "Max Rack Count", class: "block text-sm font-bold text-neutral-85 mb-1" %>
         <%= f.number_field :max_rack_count, min: 1,
             placeholder: "20",
-            class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" %>
-        <p class="mt-1 text-xs text-slate-500">Maximum number of racks this room can hold.</p>
+            class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm" %>
+        <p class="mt-1 text-xs text-neutral-45">Maximum number of racks this room can hold.</p>
       </div>
 
       <div>
-        <%= f.label :power_capacity_kw, "Power Capacity (kW)", class: "block text-sm font-bold text-slate-700 mb-1" %>
+        <%= f.label :power_capacity_kw, "Power Capacity (kW)", class: "block text-sm font-bold text-neutral-85 mb-1" %>
         <%= f.number_field :power_capacity_kw, step: "0.01", min: 0,
             placeholder: "500.00",
-            class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" %>
-        <p class="mt-1 text-xs text-slate-500">Total power capacity in kilowatts.</p>
+            class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm" %>
+        <p class="mt-1 text-xs text-neutral-45">Total power capacity in kilowatts.</p>
       </div>
 
       <div>
-        <%= f.label :cooling_capacity_kw, "Cooling Capacity (kW)", class: "block text-sm font-bold text-slate-700 mb-1" %>
+        <%= f.label :cooling_capacity_kw, "Cooling Capacity (kW)", class: "block text-sm font-bold text-neutral-85 mb-1" %>
         <%= f.number_field :cooling_capacity_kw, step: "0.01", min: 0,
             placeholder: "400.00",
-            class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" %>
-        <p class="mt-1 text-xs text-slate-500">Total cooling capacity in kilowatts.</p>
+            class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm" %>
+        <p class="mt-1 text-xs text-neutral-45">Total cooling capacity in kilowatts.</p>
       </div>
     </div>
   </div>

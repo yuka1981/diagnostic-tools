@@ -3,14 +3,14 @@
 module DashboardHelper
   COLOR_MAPS = {
     success: {
-      badge: "bg-green-100 text-green-800 border border-green-200",
-      bg: "bg-green-100",
-      text: "text-green-800"
+      badge: "bg-success-2 text-success-7 border border-success-2",
+      bg: "bg-success-2",
+      text: "text-success-7"
     },
     error: {
-      badge: "bg-red-100 text-red-800 border border-red-200",
-      bg: "bg-red-100",
-      text: "text-red-800"
+      badge: "bg-error-1 text-error-7 border border-error-2",
+      bg: "bg-error-1",
+      text: "text-error-7"
     },
     running: {
       badge: "bg-blue-100 text-blue-800 border border-blue-200",
@@ -23,9 +23,9 @@ module DashboardHelper
       text: "text-yellow-800"
     },
     muted: {
-      badge: "bg-slate-100 text-slate-700 border border-slate-200",
-      bg: "bg-slate-100",
-      text: "text-slate-500"
+      badge: "bg-neutral-4 text-neutral-85 border border-neutral-8",
+      bg: "bg-neutral-4",
+      text: "text-neutral-45"
     }
   }.freeze
 
@@ -58,15 +58,15 @@ module DashboardHelper
   HEATMAP_COLORS = {
     compute: {
       online: "bg-emerald-500 hover:bg-emerald-400",
-      offline: "bg-slate-300 hover:bg-slate-200"
+      offline: "bg-neutral-15 hover:bg-neutral-8"
     },
     login: {
       online: "bg-blue-500 hover:bg-blue-400",
-      offline: "bg-slate-300 hover:bg-slate-200"
+      offline: "bg-neutral-15 hover:bg-neutral-8"
     },
     admin: {
       online: "bg-amber-500 hover:bg-amber-400",
-      offline: "bg-slate-300 hover:bg-slate-200"
+      offline: "bg-neutral-15 hover:bg-neutral-8"
     }
   }.freeze
 
@@ -129,7 +129,7 @@ module DashboardHelper
   end
 
   def failed_icon
-    content_tag(:svg, class: "h-5 w-5 text-red-600 dark:text-red-400", fill: "none", stroke: "currentColor", viewBox: "0 0 24 24") do
+    content_tag(:svg, class: "h-5 w-5 text-error-6 dark:text-error-4", fill: "none", stroke: "currentColor", viewBox: "0 0 24 24") do
       content_tag(:path, nil, "stroke-linecap": "round", "stroke-linejoin": "round", "stroke-width": "2",
         d: "M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z")
     end
