@@ -62,12 +62,7 @@ RSpec.configure do |config|
   config.include ViewComponent::TestHelpers, type: :component
   config.include Capybara::RSpecMatchers, type: :component
 
-  # DatabaseCleaner configuration
-  # Clean database once before suite starts (removes any seeded data)
-  config.before(:suite) do
-    DatabaseCleaner.clean_with(:truncation)
-  end
-
+  # DatabaseCleaner configuration for test isolation
   # Use truncation for system/feature tests (JS runs in separate process)
   # Use transaction for everything else (faster)
   config.before(:each) do |example|

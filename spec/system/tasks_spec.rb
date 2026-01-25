@@ -8,8 +8,8 @@ RSpec.describe "Tasks", type: :system do
   let(:node2) { create(:node, hostname: "login-001", role: :login) }
   let(:benchmark_recipe) { create(:benchmark_recipe, :hpcg) }
   let(:benchmark_recipe2) { create(:benchmark_recipe, name: "HPL", version: "2.3") }
-  let(:profiling_recipe) { create(:profiling_recipe, :report, name: "Quick System Report") }
-  let(:profiling_recipe2) { create(:profiling_recipe, :telemetry, name: "Performance Telemetry") }
+  let(:profiling_recipe) { create(:profiling_recipe, :report) }
+  let(:profiling_recipe2) { create(:profiling_recipe, :telemetry) }
 
   before { sign_in user }
 
@@ -207,7 +207,7 @@ RSpec.describe "Tasks", type: :system do
       within("tbody") do
         expect(page).to have_content(benchmark_recipe.name, wait: 5)
         expect(page).not_to have_content("HPL")
-        expect(page).not_to have_content("Quick System Report")
+        expect(page).not_to have_content(profiling_recipe.name)
       end
     end
 

@@ -25,8 +25,8 @@ RSpec.describe ProfilingRecipe, type: :model do
 
   describe "callbacks" do
     it "generates slug from name if blank" do
-      recipe = create(:profiling_recipe, name: "Quick System Report", slug: nil)
-      expect(recipe.slug).to eq("quick-system-report")
+      recipe = create(:profiling_recipe, name: "Test System Report", slug: nil)
+      expect(recipe.slug).to eq("test-system-report")
     end
   end
 
