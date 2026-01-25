@@ -34,7 +34,7 @@
                   <%= run.benchmark_recipe&.display_name || "Unknown Recipe" %>
                 </p>
                 <p class="text-[10px] text-slate-500 font-medium">
-                  <span class="text-slate-400">Node:</span> <span class="font-bold text-slate-600"><%= run.node.hostname %></span>
+                  <span class="text-slate-400">Node:</span> <span class="font-bold text-slate-600"><%= run.node&.hostname || "Unknown" %></span>
                   <span class="mx-1 text-slate-300">|</span>
                   <% if run.started_at %>
                     <%= time_ago_in_words(run.started_at) %> ago
