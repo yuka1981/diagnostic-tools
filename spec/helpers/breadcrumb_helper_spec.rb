@@ -16,7 +16,7 @@ RSpec.describe BreadcrumbHelper, type: :helper do
       expect(breadcrumbs).to include("/")
       expect(breadcrumbs).to include("Notifications")
       expect(breadcrumbs).to include("font-medium")
-      expect(breadcrumbs).to include("text-slate-700")
+      expect(breadcrumbs).to include("text-neutral-85")
     end
   end
 
@@ -42,7 +42,7 @@ RSpec.describe BreadcrumbHelper, type: :helper do
 
       expect(breadcrumbs).to include('href="/settings"')
       expect(breadcrumbs).to include("Settings")
-      expect(breadcrumbs).to include("hover:text-teal-600")
+      expect(breadcrumbs).to include("hover:text-primary-6")
     end
 
     it "renders the last crumb as plain text" do
@@ -53,7 +53,7 @@ RSpec.describe BreadcrumbHelper, type: :helper do
       breadcrumbs = helper.content_for(:breadcrumbs)
 
       expect(breadcrumbs).to include("Agent Releases")
-      expect(breadcrumbs).to include("font-medium text-slate-700")
+      expect(breadcrumbs).to include("font-medium text-neutral-85")
     end
 
     it "handles single crumb" do
