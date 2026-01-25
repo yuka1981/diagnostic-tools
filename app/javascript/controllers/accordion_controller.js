@@ -26,7 +26,7 @@ export default class extends Controller {
     const details = this.detailsTargets[index]
     const chevron = this.chevronTargets[index]
     const gridWrapper = details.querySelector("[data-accordion-content]")
-    const isCurrentlyOpen = gridWrapper?.classList.contains("grid-rows-[1fr]") ?? false
+    const isCurrentlyOpen = gridWrapper?.classList.contains("accordion-expanded") ?? false
 
     // Close all if exclusive mode
     if (this.exclusiveValue && !isCurrentlyOpen) {
@@ -35,8 +35,8 @@ export default class extends Controller {
 
     // Toggle current
     if (gridWrapper) {
-      gridWrapper.classList.toggle("grid-rows-[1fr]", !isCurrentlyOpen)
-      gridWrapper.classList.toggle("grid-rows-[0fr]", isCurrentlyOpen)
+      gridWrapper.classList.toggle("accordion-expanded", !isCurrentlyOpen)
+      gridWrapper.classList.toggle("accordion-collapsed", isCurrentlyOpen)
     }
     if (chevron) {
       chevron.classList.toggle("rotate-90", !isCurrentlyOpen)
@@ -48,8 +48,8 @@ export default class extends Controller {
     this.detailsTargets.forEach((details, index) => {
       const gridWrapper = details.querySelector("[data-accordion-content]")
       if (gridWrapper) {
-        gridWrapper.classList.remove("grid-rows-[1fr]")
-        gridWrapper.classList.add("grid-rows-[0fr]")
+        gridWrapper.classList.remove("accordion-expanded")
+        gridWrapper.classList.add("accordion-collapsed")
       }
       const chevron = this.chevronTargets[index]
       if (chevron) {

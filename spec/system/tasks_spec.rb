@@ -379,14 +379,14 @@ RSpec.describe "Tasks", type: :system do
       visit tasks_path
 
       # Details row should be collapsed initially (grid wrapper has 0fr)
-      expect(page).not_to have_css("#task_benchmark_#{benchmark_run.id}_details .grid.grid-rows-\\[1fr\\]")
+      expect(page).not_to have_css("#task_benchmark_#{benchmark_run.id}_details .accordion-expanded")
 
       # Click the row to expand
       find("#task_benchmark_#{benchmark_run.id}").click
 
       # Wait for the details section to expand (grid wrapper gets 1fr)
       sleep 0.5 # Allow animation to complete
-      expect(page).to have_css("#task_benchmark_#{benchmark_run.id}_details .grid.grid-rows-\\[1fr\\]", wait: 5)
+      expect(page).to have_css("#task_benchmark_#{benchmark_run.id}_details .accordion-expanded", wait: 5)
     end
 
     it "collapses row details when clicking again" do
@@ -395,12 +395,12 @@ RSpec.describe "Tasks", type: :system do
       # Expand
       find("#task_benchmark_#{benchmark_run.id}").click
       sleep 0.5 # Allow animation to complete
-      expect(page).to have_css("#task_benchmark_#{benchmark_run.id}_details .grid.grid-rows-\\[1fr\\]", wait: 5)
+      expect(page).to have_css("#task_benchmark_#{benchmark_run.id}_details .accordion-expanded", wait: 5)
 
       # Collapse - click the main row again
       find("#task_benchmark_#{benchmark_run.id}").click
       sleep 0.5 # Allow animation to complete
-      expect(page).not_to have_css("#task_benchmark_#{benchmark_run.id}_details .grid.grid-rows-\\[1fr\\]", wait: 5)
+      expect(page).not_to have_css("#task_benchmark_#{benchmark_run.id}_details .accordion-expanded", wait: 5)
     end
 
     it "shows details section with started and finished times" do
@@ -910,7 +910,7 @@ RSpec.describe "Tasks", type: :system do
         visit tasks_path
 
         # Details row should be collapsed initially (grid wrapper has 0fr)
-        expect(page).not_to have_css("#task_benchmark_#{benchmark_run1.id}_details .grid.grid-rows-\\[1fr\\]")
+        expect(page).not_to have_css("#task_benchmark_#{benchmark_run1.id}_details .accordion-expanded")
 
         # Chevron should not be rotated
         within("#task_benchmark_#{benchmark_run1.id}") do
@@ -922,7 +922,7 @@ RSpec.describe "Tasks", type: :system do
         sleep 0.5 # Allow animation to complete
 
         # Details row should expand (grid wrapper gets 1fr)
-        expect(page).to have_css("#task_benchmark_#{benchmark_run1.id}_details .grid.grid-rows-\\[1fr\\]", wait: 5)
+        expect(page).to have_css("#task_benchmark_#{benchmark_run1.id}_details .accordion-expanded", wait: 5)
 
         # Chevron should be rotated
         within("#task_benchmark_#{benchmark_run1.id}") do
@@ -936,14 +936,14 @@ RSpec.describe "Tasks", type: :system do
         # Expand
         find("#task_benchmark_#{benchmark_run1.id}").click
         sleep 0.5 # Allow animation to complete
-        expect(page).to have_css("#task_benchmark_#{benchmark_run1.id}_details .grid.grid-rows-\\[1fr\\]", wait: 5)
+        expect(page).to have_css("#task_benchmark_#{benchmark_run1.id}_details .accordion-expanded", wait: 5)
 
         # Collapse by clicking again
         find("#task_benchmark_#{benchmark_run1.id}").click
         sleep 0.5 # Allow animation to complete
 
         # Details row should be collapsed again (grid wrapper back to 0fr)
-        expect(page).not_to have_css("#task_benchmark_#{benchmark_run1.id}_details .grid.grid-rows-\\[1fr\\]", wait: 5)
+        expect(page).not_to have_css("#task_benchmark_#{benchmark_run1.id}_details .accordion-expanded", wait: 5)
 
         # Chevron should not be rotated
         within("#task_benchmark_#{benchmark_run1.id}") do
@@ -957,20 +957,20 @@ RSpec.describe "Tasks", type: :system do
         # Expand first row
         find("#task_benchmark_#{benchmark_run1.id}").click
         sleep 0.5 # Allow animation to complete
-        expect(page).to have_css("#task_benchmark_#{benchmark_run1.id}_details .grid.grid-rows-\\[1fr\\]", wait: 5)
+        expect(page).to have_css("#task_benchmark_#{benchmark_run1.id}_details .accordion-expanded", wait: 5)
 
         # Click second row - should close first row and open second
         find("#task_benchmark_#{benchmark_run2.id}").click
         sleep 0.5 # Allow animation to complete
 
         # First row should be collapsed
-        expect(page).not_to have_css("#task_benchmark_#{benchmark_run1.id}_details .grid.grid-rows-\\[1fr\\]", wait: 5)
+        expect(page).not_to have_css("#task_benchmark_#{benchmark_run1.id}_details .accordion-expanded", wait: 5)
         within("#task_benchmark_#{benchmark_run1.id}") do
           expect(page).not_to have_css("[data-accordion-target='chevron'].rotate-90")
         end
 
         # Second row should be expanded
-        expect(page).to have_css("#task_benchmark_#{benchmark_run2.id}_details .grid.grid-rows-\\[1fr\\]")
+        expect(page).to have_css("#task_benchmark_#{benchmark_run2.id}_details .accordion-expanded")
         within("#task_benchmark_#{benchmark_run2.id}") do
           expect(page).to have_css("[data-accordion-target='chevron'].rotate-90")
         end
@@ -1002,14 +1002,14 @@ RSpec.describe "Tasks", type: :system do
         details_id = "#{row_id}_details"
 
         # Details should be collapsed initially (grid wrapper has 0fr)
-        expect(page).not_to have_css("##{details_id} .grid.grid-rows-\\[1fr\\]")
+        expect(page).not_to have_css("##{details_id} .accordion-expanded")
 
         # Click to expand - accordion should still work after Turbo Frame refresh
         first_row.click
         sleep 0.5 # Allow animation to complete
 
         # Details should be expanded (grid wrapper gets 1fr)
-        expect(page).to have_css("##{details_id} .grid.grid-rows-\\[1fr\\]", wait: 5)
+        expect(page).to have_css("##{details_id} .accordion-expanded", wait: 5)
 
         # Chevron should be rotated
         within("##{row_id}") do
@@ -1034,7 +1034,7 @@ RSpec.describe "Tasks", type: :system do
         sleep 0.5 # Allow animation to complete
 
         # Details should be expanded (grid wrapper gets 1fr)
-        expect(page).to have_css("##{details_id} .grid.grid-rows-\\[1fr\\]", wait: 5)
+        expect(page).to have_css("##{details_id} .accordion-expanded", wait: 5)
 
         # Verify chevron rotation
         within("##{row_id}") do
@@ -1059,17 +1059,17 @@ RSpec.describe "Tasks", type: :system do
         # Expand first row
         first_row.click
         sleep 0.5 # Allow animation to complete
-        expect(page).to have_css("##{first_row_id}_details .grid.grid-rows-\\[1fr\\]", wait: 5)
+        expect(page).to have_css("##{first_row_id}_details .accordion-expanded", wait: 5)
 
         # Click second row - exclusive mode should close the first
         second_row.click
         sleep 0.5 # Allow animation to complete
 
         # First row should be collapsed
-        expect(page).not_to have_css("##{first_row_id}_details .grid.grid-rows-\\[1fr\\]", wait: 5)
+        expect(page).not_to have_css("##{first_row_id}_details .accordion-expanded", wait: 5)
 
         # Second row should be expanded
-        expect(page).to have_css("##{second_row_id}_details .grid.grid-rows-\\[1fr\\]")
+        expect(page).to have_css("##{second_row_id}_details .accordion-expanded")
       end
     end
 
@@ -1105,7 +1105,7 @@ RSpec.describe "Tasks", type: :system do
         sleep 0.5 # Allow animation to complete
 
         # Details should be expanded (grid wrapper gets 1fr)
-        expect(page).to have_css("##{details_id} .grid.grid-rows-\\[1fr\\]", wait: 5)
+        expect(page).to have_css("##{details_id} .accordion-expanded", wait: 5)
 
         # Chevron should be rotated
         within("##{row_id}") do
@@ -1134,7 +1134,7 @@ RSpec.describe "Tasks", type: :system do
         sleep 0.5 # Allow animation to complete
 
         # Details should be expanded (grid wrapper gets 1fr)
-        expect(page).to have_css("##{details_id} .grid.grid-rows-\\[1fr\\]", wait: 5)
+        expect(page).to have_css("##{details_id} .accordion-expanded", wait: 5)
       end
 
       it "accordion expansion works after applying node filter" do
@@ -1159,7 +1159,7 @@ RSpec.describe "Tasks", type: :system do
         sleep 0.5 # Allow animation to complete
 
         # Details should be expanded (grid wrapper gets 1fr)
-        expect(page).to have_css("##{details_id} .grid.grid-rows-\\[1fr\\]", wait: 5)
+        expect(page).to have_css("##{details_id} .accordion-expanded", wait: 5)
       end
 
       it "accordion expansion works after clearing filters" do
@@ -1192,7 +1192,7 @@ RSpec.describe "Tasks", type: :system do
         sleep 0.5 # Allow animation to complete
 
         # Details should be expanded (grid wrapper gets 1fr)
-        expect(page).to have_css("##{details_id} .grid.grid-rows-\\[1fr\\]", wait: 5)
+        expect(page).to have_css("##{details_id} .accordion-expanded", wait: 5)
       end
 
       it "exclusive mode works after filtering" do
@@ -1224,17 +1224,17 @@ RSpec.describe "Tasks", type: :system do
         # Expand first row by finding it fresh
         find("##{first_row_id}").click
         sleep 0.5 # Allow animation to complete
-        expect(page).to have_css("##{first_row_id}_details .grid.grid-rows-\\[1fr\\]", wait: 5)
+        expect(page).to have_css("##{first_row_id}_details .accordion-expanded", wait: 5)
 
         # Click second row - exclusive mode should close first
         find("##{second_row_id}").click
         sleep 0.5 # Allow animation to complete
 
         # First row should be collapsed
-        expect(page).not_to have_css("##{first_row_id}_details .grid.grid-rows-\\[1fr\\]", wait: 5)
+        expect(page).not_to have_css("##{first_row_id}_details .accordion-expanded", wait: 5)
 
         # Second row should be expanded
-        expect(page).to have_css("##{second_row_id}_details .grid.grid-rows-\\[1fr\\]")
+        expect(page).to have_css("##{second_row_id}_details .accordion-expanded")
       end
     end
 
@@ -1266,7 +1266,7 @@ RSpec.describe "Tasks", type: :system do
         sleep 0.5 # Allow animation to complete
 
         # Details should be expanded (grid wrapper gets 1fr)
-        expect(page).to have_css("##{details_id} .grid.grid-rows-\\[1fr\\]", wait: 5)
+        expect(page).to have_css("##{details_id} .accordion-expanded", wait: 5)
 
         # Verify chevron rotation
         within("##{row_id}") do

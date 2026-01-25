@@ -3,6 +3,16 @@
 /* Enable class-based dark mode (instead of media query based) */
 @variant dark (&:where(.dark, .dark *));
 
+@layer utilities {
+  /* Accordion collapse/expand utilities for CSS Grid animation */
+  .accordion-collapsed {
+    grid-template-rows: 0fr;
+  }
+  .accordion-expanded {
+    grid-template-rows: 1fr;
+  }
+}
+
 @layer components {
 
   .card {
