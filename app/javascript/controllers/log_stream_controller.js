@@ -30,7 +30,7 @@ export default class extends Controller {
       const span = document.createElement("span")
       span.textContent = log
       if (stream === "stderr") {
-        span.classList.add("text-red-500")
+        span.classList.add("text-error-5")
       } else {
         span.classList.add("text-gray-300")
       }

@@ -53,7 +53,7 @@ export default class extends Controller {
 
     const html = products.map(p => `
       <button type="button"
-              class="w-full px-3 py-2 text-left hover:bg-slate-100 flex items-center gap-3"
+              class="w-full px-3 py-2 text-left hover:bg-neutral-4 flex items-center gap-3"
               data-action="click->server-product-search#select"
               data-id="${p.id}"
               data-name="${this.escapeHtml(p.name)}"
@@ -62,15 +62,15 @@ export default class extends Controller {
               data-thumbnail-url="${p.thumbnail_url || ''}">
         ${p.thumbnail_url
           ? `<img src="${p.thumbnail_url}" class="w-10 h-8 object-contain rounded border" alt="" />`
-          : `<div class="w-10 h-8 bg-slate-100 rounded border flex items-center justify-center">
-              <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          : `<div class="w-10 h-8 bg-neutral-4 rounded border flex items-center justify-center">
+              <svg class="w-4 h-4 text-neutral-25" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2" />
               </svg>
             </div>`
         }
         <div class="flex-1 min-w-0">
-          <p class="text-sm font-medium text-slate-900 truncate">${this.escapeHtml(p.name)}</p>
-          <p class="text-xs text-slate-500">${p.form_factor || ''} • ${p.rack_height}U</p>
+          <p class="text-sm font-medium text-neutral-85 truncate">${this.escapeHtml(p.name)}</p>
+          <p class="text-xs text-neutral-45">${p.form_factor || ''} • ${p.rack_height}U</p>
         </div>
       </button>
     `).join("")
@@ -112,21 +112,21 @@ export default class extends Controller {
     if (!this.hasPreviewTarget) return
 
     this.previewTarget.innerHTML = `
-      <div class="flex items-center gap-4 p-3 bg-slate-50 rounded-lg border border-slate-200">
+      <div class="flex items-center gap-4 p-3 bg-neutral-2 rounded-lg border border-neutral-8">
         ${data.thumbnailUrl
           ? `<img src="${data.thumbnailUrl}" class="w-16 h-12 object-contain rounded border" alt="" />`
-          : `<div class="w-16 h-12 bg-slate-100 rounded border flex items-center justify-center">
-              <svg class="w-6 h-6 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          : `<div class="w-16 h-12 bg-neutral-4 rounded border flex items-center justify-center">
+              <svg class="w-6 h-6 text-neutral-25" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2" />
               </svg>
             </div>`
         }
         <div class="flex-1">
-          <p class="text-sm font-bold text-slate-900">${this.escapeHtml(data.name)}</p>
-          <p class="text-xs text-slate-500">${data.formFactor || ''} • ${data.rackHeight}U</p>
+          <p class="text-sm font-bold text-neutral-85">${this.escapeHtml(data.name)}</p>
+          <p class="text-xs text-neutral-45">${data.formFactor || ''} • ${data.rackHeight}U</p>
         </div>
         <button type="button"
-                class="text-slate-400 hover:text-red-600"
+                class="text-neutral-25 hover:text-error-6"
                 data-action="click->server-product-search#clear">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />

@@ -2,7 +2,7 @@
   <div class="sm:mx-auto sm:w-full sm:max-w-md">
     <div class="card-netbox shadow-xl">
       <div class="card-header justify-center py-4">
-        <h2 class="text-lg font-black text-slate-800 uppercase tracking-tight">Create your account</h2>
+        <h2 class="text-lg font-black text-neutral-85 uppercase tracking-tight">Create your account</h2>
       </div>
 
       <div class="p-6">
@@ -10,32 +10,32 @@
           <%= render "devise/shared/error_messages", resource: resource %>
 
           <div>
-            <%= f.label :name, class: "block text-xs font-bold text-slate-700 uppercase mb-1" %>
+            <%= f.label :name, class: "block text-xs font-bold text-neutral-85 uppercase mb-1" %>
             <%= f.text_field :name, autofocus: true, autocomplete: "name",
-                class: "block w-full rounded border border-slate-300 py-1.5 px-3 text-slate-900 shadow-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500 sm:text-sm" %>
+                class: "block w-full rounded border border-neutral-15 py-1.5 px-3 text-neutral-85 shadow-sm focus:ring-2 focus:ring-primary-5 focus:border-primary-5 sm:text-sm" %>
           </div>
 
           <div>
-            <%= f.label :email, class: "block text-xs font-bold text-slate-700 uppercase mb-1" %>
+            <%= f.label :email, class: "block text-xs font-bold text-neutral-85 uppercase mb-1" %>
             <%= f.email_field :email, autocomplete: "email",
-                class: "block w-full rounded border border-slate-300 py-1.5 px-3 text-slate-900 shadow-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500 sm:text-sm" %>
+                class: "block w-full rounded border border-neutral-15 py-1.5 px-3 text-neutral-85 shadow-sm focus:ring-2 focus:ring-primary-5 focus:border-primary-5 sm:text-sm" %>
           </div>
 
           <div>
-            <%= f.label :password, class: "block text-xs font-bold text-slate-700 uppercase mb-1" %>
+            <%= f.label :password, class: "block text-xs font-bold text-neutral-85 uppercase mb-1" %>
             <%= f.password_field :password, autocomplete: "new-password",
-                class: "block w-full rounded border border-slate-300 py-1.5 px-3 text-slate-900 shadow-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500 sm:text-sm" %>
+                class: "block w-full rounded border border-neutral-15 py-1.5 px-3 text-neutral-85 shadow-sm focus:ring-2 focus:ring-primary-5 focus:border-primary-5 sm:text-sm" %>
             <% if @minimum_password_length %>
-              <p class="mt-1 text-[10px] text-slate-500 italic">
+              <p class="mt-1 text-[10px] text-neutral-45 italic">
                 <%= @minimum_password_length %> characters minimum
               </p>
             <% end %>
           </div>
 
           <div>
-            <%= f.label :password_confirmation, class: "block text-xs font-bold text-slate-700 uppercase mb-1" %>
+            <%= f.label :password_confirmation, class: "block text-xs font-bold text-neutral-85 uppercase mb-1" %>
             <%= f.password_field :password_confirmation, autocomplete: "new-password",
-                class: "block w-full rounded border border-slate-300 py-1.5 px-3 text-slate-900 shadow-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500 sm:text-sm" %>
+                class: "block w-full rounded border border-neutral-15 py-1.5 px-3 text-neutral-85 shadow-sm focus:ring-2 focus:ring-primary-5 focus:border-primary-5 sm:text-sm" %>
           </div>
 
           <div class="pt-2">
@@ -43,10 +43,10 @@
           </div>
         <% end %>
 
-        <div class="mt-6 border-t border-slate-100 pt-6 text-center">
-          <p class="text-xs text-slate-500">
+        <div class="mt-6 border-t border-neutral-4 pt-6 text-center">
+          <p class="text-xs text-neutral-45">
             Already have an account?
-            <%= link_to "Sign in", new_session_path(resource_name), class: "font-bold text-teal-600 hover:text-teal-700" %>
+            <%= link_to "Sign in", new_session_path(resource_name), class: "font-bold text-primary-6 hover:text-primary-7" %>
           </p>
         </div>
       </div>

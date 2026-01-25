@@ -15,7 +15,7 @@
           <%= link_to page, url_for(request.query_parameters.merge(page: page)), class: "btn-secondary text-sm px-3 py-1.5" %>
         <% end %>
       <% elsif !page.was_truncated? %>
-        <span class="px-2 py-1.5 text-slate-400 text-sm">&hellip;</span>
+        <span class="px-2 py-1.5 text-neutral-25 text-sm">&hellip;</span>
       <% end %>
     <% end %>
 

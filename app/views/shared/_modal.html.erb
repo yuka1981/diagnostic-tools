@@ -1,7 +1,7 @@
 <div class="fixed inset-0 z-50 overflow-y-auto" 
      data-controller="modal">
   <%# Backdrop %>
-  <div class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm transition-opacity"></div>
+  <div class="fixed inset-0 bg-neutral-85/50 backdrop-blur-sm transition-opacity"></div>
 
   <%# Modal Wrapper %>
   <div class="flex min-h-full items-center justify-center p-4">
@@ -10,7 +10,7 @@
       <div class="card-header">
         <h3 class="card-title"><%= title %></h3>
         <button type="button"
-                class="text-slate-400 hover:text-slate-600 transition-colors"
+                class="text-neutral-25 hover:text-neutral-45 transition-colors"
                 data-action="modal#close">
           <%= lucide_icon("x", class: "h-5 w-5") %>
         </button>

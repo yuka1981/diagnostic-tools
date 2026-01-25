@@ -26,20 +26,20 @@
         <div data-controller="file-drop"
              data-action="dragover->file-drop#dragOver dragenter->file-drop#dragEnter dragleave->file-drop#dragLeave drop->file-drop#drop"
              class="group relative">
-          <label for="file" class="block text-xs font-bold text-slate-700 uppercase mb-1">Select CSV File</label>
+          <label for="file" class="block text-xs font-bold text-neutral-85 uppercase mb-1">Select CSV File</label>
           
           <div data-file-drop-target="zone"
-               class="relative flex flex-col items-center justify-center rounded border-2 border-dashed border-slate-300 bg-slate-50 p-8 text-center transition-all hover:border-teal-400 hover:bg-teal-50">
+               class="relative flex flex-col items-center justify-center rounded border-2 border-dashed border-neutral-15 bg-neutral-2 p-8 text-center transition-all hover:border-primary-4 hover:bg-primary-1">
             
-            <div class="flex h-12 w-12 items-center justify-center rounded bg-white text-slate-400 shadow-sm border border-slate-200 mb-4 group-hover:text-teal-500 group-hover:border-teal-200 transition-colors">
+            <div class="flex h-12 w-12 items-center justify-center rounded bg-white text-neutral-25 shadow-sm border border-neutral-8 mb-4 group-hover:text-primary-5 group-hover:border-primary-2 transition-colors">
   <%= lucide_icon("cloud-upload", class: "h-6 w-6") %>
             </div>
 
             <div class="space-y-1">
-              <p class="text-xs font-bold text-slate-700 uppercase tracking-tight" data-file-drop-target="label">
+              <p class="text-xs font-bold text-neutral-85 uppercase tracking-tight" data-file-drop-target="label">
                 Click to upload or drag and drop
               </p>
-              <p class="text-[10px] text-slate-500 italic">CSV file only (hostname, ip, role)</p>
+              <p class="text-[10px] text-neutral-45 italic">CSV file only (hostname, ip, role)</p>
             </div>
 
             <%= f.file_field :file, 
@@ -53,7 +53,7 @@
           </div>
         </div>
 
-        <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
+        <div class="flex items-center justify-end gap-3 pt-4 border-t border-neutral-4">
           <button type="button" class="btn-secondary" data-action="modal#close">Cancel</button>
           <%= f.submit "Import Nodes", class: "btn-primary" %>
         </div>

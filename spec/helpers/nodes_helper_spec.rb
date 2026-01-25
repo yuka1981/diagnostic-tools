@@ -86,13 +86,13 @@ RSpec.describe NodesHelper, type: :helper do
       slot = { "size" => "No Module Installed" }
       result = helper.memory_slot_status_classes(slot)
       expect(result).to include("border-dashed")
-      expect(result).to include("slate")
+      expect(result).to include("neutral")
     end
 
-    it "returns teal for installed and running at spec speed" do
+    it "returns primary for installed and running at spec speed" do
       slot = { "size" => "8 GB", "speed" => "2400 MT/s", "configured_speed" => "2400 MT/s" }
       result = helper.memory_slot_status_classes(slot)
-      expect(result).to include("teal")
+      expect(result).to include("primary")
     end
 
     it "returns amber for downgraded slots" do
@@ -104,7 +104,7 @@ RSpec.describe NodesHelper, type: :helper do
     it "handles nil speeds" do
       slot = { "size" => "8 GB" }
       result = helper.memory_slot_status_classes(slot)
-      expect(result).to include("teal")
+      expect(result).to include("primary")
     end
   end
 
@@ -131,33 +131,33 @@ RSpec.describe NodesHelper, type: :helper do
   end
 
   describe "#net_interface_status_badge" do
-    it "returns green badge for up status" do
+    it "returns success badge for up status" do
       result = helper.net_interface_status_badge("up")
-      expect(result).to include("green")
+      expect(result).to include("success")
       expect(result).to include("Active")
     end
 
-    it "returns green badge for active status" do
+    it "returns success badge for active status" do
       result = helper.net_interface_status_badge("active")
-      expect(result).to include("green")
+      expect(result).to include("success")
       expect(result).to include("Active")
     end
 
-    it "returns red badge for down status" do
+    it "returns error badge for down status" do
       result = helper.net_interface_status_badge("down")
-      expect(result).to include("red")
+      expect(result).to include("error")
       expect(result).to include("Down")
     end
 
-    it "returns slate badge for unknown status" do
+    it "returns neutral badge for unknown status" do
       result = helper.net_interface_status_badge("unknown")
-      expect(result).to include("slate")
+      expect(result).to include("neutral")
       expect(result).to include("UNKNOWN")
     end
 
     it "handles symbol status" do
       result = helper.net_interface_status_badge(:up)
-      expect(result).to include("green")
+      expect(result).to include("success")
     end
   end
 end

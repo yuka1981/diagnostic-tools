@@ -2,8 +2,8 @@
 
 <div class="flex items-center justify-between mb-6">
   <div>
-    <h1 class="text-2xl font-bold text-slate-900">Rooms</h1>
-    <p class="text-sm text-slate-500 mt-1">Manage data center rooms across your sites</p>
+    <h1 class="text-2xl font-bold text-neutral-85">Rooms</h1>
+    <p class="text-sm text-neutral-45 mt-1">Manage data center rooms across your sites</p>
   </div>
   <% if current_user.approver? %>
     <%= link_to new_room_path, class: "btn-primary" do %>
@@ -17,15 +17,15 @@
 <div class="mb-4">
   <%= form_with url: rooms_path, method: :get, data: { turbo_frame: "_top" }, class: "flex items-center gap-4" do |f| %>
     <div class="flex items-center gap-2">
-      <%= f.label :site_id, "Filter by Site:", class: "text-sm font-medium text-slate-700" %>
+      <%= f.label :site_id, "Filter by Site:", class: "text-sm font-medium text-neutral-85" %>
       <%= f.select :site_id,
           options_from_collection_for_select(@sites, :id, :name, params[:site_id]),
           { include_blank: "All Sites" },
-          class: "rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm",
+          class: "rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm",
           onchange: "this.form.submit()" %>
     </div>
     <% if params[:site_id].present? %>
-      <%= link_to "Clear Filter", rooms_path, class: "text-sm text-teal-600 hover:text-teal-700" %>
+      <%= link_to "Clear Filter", rooms_path, class: "text-sm text-primary-6 hover:text-primary-7" %>
     <% end %>
   <% end %>
 </div>
@@ -33,53 +33,53 @@
 <div class="card-netbox">
   <% if @rooms.any? %>
     <div class="overflow-x-auto">
-      <table class="min-w-full divide-y divide-slate-200 text-sm">
-        <thead class="bg-slate-50">
+      <table class="min-w-full divide-y divide-neutral-8 text-sm">
+        <thead class="bg-neutral-2">
           <tr>
-            <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Name</th>
-            <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Site</th>
-            <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Floor</th>
-            <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Wing</th>
-            <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Racks</th>
-            <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Utilization</th>
+            <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-neutral-45 border-b">Name</th>
+            <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-neutral-45 border-b">Site</th>
+            <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-neutral-45 border-b">Floor</th>
+            <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-neutral-45 border-b">Wing</th>
+            <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-neutral-45 border-b">Racks</th>
+            <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-neutral-45 border-b">Utilization</th>
             <th scope="col" class="relative px-3 py-2 border-b">
               <span class="sr-only">Actions</span>
             </th>
           </tr>
         </thead>
-        <tbody class="divide-y divide-slate-200 bg-white">
+        <tbody class="divide-y divide-neutral-8 bg-white">
           <% @rooms.each do |room| %>
-            <tr class="hover:bg-slate-50 transition-colors">
+            <tr class="hover:bg-neutral-2 transition-colors">
               <td class="whitespace-nowrap px-3 py-2">
                 <%= link_to room_path(room), class: "group" do %>
-                  <p class="text-sm font-bold text-slate-900 group-hover:text-teal-600"><%= room.name %></p>
+                  <p class="text-sm font-bold text-neutral-85 group-hover:text-primary-6"><%= room.name %></p>
                 <% end %>
               </td>
-              <td class="whitespace-nowrap px-3 py-2 text-sm text-slate-600">
-                <%= link_to room.site.name, site_path(room.site), class: "hover:text-teal-600" %>
+              <td class="whitespace-nowrap px-3 py-2 text-sm text-neutral-45">
+                <%= link_to room.site.name, site_path(room.site), class: "hover:text-primary-6" %>
               </td>
-              <td class="whitespace-nowrap px-3 py-2 text-sm text-slate-500">
+              <td class="whitespace-nowrap px-3 py-2 text-sm text-neutral-45">
                 <%= room.floor_number.present? ? "Floor #{room.floor_number}" : "-" %>
               </td>
-              <td class="whitespace-nowrap px-3 py-2 text-sm text-slate-500">
+              <td class="whitespace-nowrap px-3 py-2 text-sm text-neutral-45">
                 <%= room.building_wing.presence || "-" %>
               </td>
-              <td class="whitespace-nowrap px-3 py-2 text-sm text-slate-500">
+              <td class="whitespace-nowrap px-3 py-2 text-sm text-neutral-45">
                 <%= room.rack_count %><%= room.max_rack_count.present? ? " / #{room.max_rack_count}" : "" %>
               </td>
               <td class="whitespace-nowrap px-3 py-2">
                 <div class="flex items-center gap-2">
-                  <div class="w-24 h-2 bg-slate-200 rounded-full overflow-hidden">
-                    <div class="h-full bg-teal-500 rounded-full" style="width: <%= room.utilization_percentage %>%"></div>
+                  <div class="w-24 h-2 bg-neutral-8 rounded-full overflow-hidden">
+                    <div class="h-full bg-primary-5 rounded-full" style="width: <%= room.utilization_percentage %>%"></div>
                   </div>
-                  <span class="text-xs text-slate-500"><%= room.utilization_percentage %>%</span>
+                  <span class="text-xs text-neutral-45"><%= room.utilization_percentage %>%</span>
                 </div>
               </td>
               <td class="whitespace-nowrap px-3 py-2 text-right text-sm">
-                <%= link_to "View", room_path(room), class: "text-teal-600 hover:text-teal-700 font-medium" %>
+                <%= link_to "View", room_path(room), class: "text-primary-6 hover:text-primary-7 font-medium" %>
                 <% if current_user.approver? %>
-                  <span class="text-slate-300 mx-1">|</span>
-                  <%= link_to "Edit", edit_room_path(room), class: "text-slate-600 hover:text-slate-700 font-medium" %>
+                  <span class="text-neutral-15 mx-1">|</span>
+                  <%= link_to "Edit", edit_room_path(room), class: "text-neutral-45 hover:text-neutral-85 font-medium" %>
                 <% end %>
               </td>
             </tr>
@@ -89,11 +89,11 @@
     </div>
   <% else %>
     <div class="flex flex-col items-center justify-center py-12 text-center">
-      <div class="h-12 w-12 rounded-full bg-slate-100 flex items-center justify-center mb-4">
-        <%= lucide_icon("building-2", class: "h-6 w-6 text-slate-400") %>
+      <div class="h-12 w-12 rounded-full bg-neutral-4 flex items-center justify-center mb-4">
+        <%= lucide_icon("building-2", class: "h-6 w-6 text-neutral-25") %>
       </div>
-      <p class="text-sm font-medium text-slate-900">No rooms yet</p>
-      <p class="mt-1 text-xs text-slate-500">Create a room to organize your rack infrastructure</p>
+      <p class="text-sm font-medium text-neutral-85">No rooms yet</p>
+      <p class="mt-1 text-xs text-neutral-45">Create a room to organize your rack infrastructure</p>
       <% if current_user.approver? %>
         <%= link_to new_room_path, class: "mt-4 btn-primary" do %>
           Add Room

@@ -45,19 +45,19 @@ export default class extends Controller {
     // Update indicators
     this.indicatorTargets.forEach((indicator, index) => {
       const stepNum = index + 1
-      indicator.classList.remove("bg-teal-600", "bg-slate-300", "text-white", "text-slate-600")
+      indicator.classList.remove("bg-primary-6", "bg-neutral-15", "text-white", "text-neutral-45")
 
       if (stepNum < stepNumber) {
         // Completed step - show checkmark
-        indicator.classList.add("bg-teal-600", "text-white")
+        indicator.classList.add("bg-primary-6", "text-white")
         indicator.innerHTML = `<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>`
       } else if (stepNum === stepNumber) {
         // Current step - show number with teal background
-        indicator.classList.add("bg-teal-600", "text-white")
+        indicator.classList.add("bg-primary-6", "text-white")
         indicator.textContent = stepNum
       } else {
         // Future step - show number with slate background
-        indicator.classList.add("bg-slate-300", "text-slate-600")
+        indicator.classList.add("bg-neutral-15", "text-neutral-45")
         indicator.textContent = stepNum
       }
     })
@@ -85,13 +85,13 @@ export default class extends Controller {
 
       if (!field.value.trim()) {
         // Show error state
-        field.classList.remove("border-slate-300")
-        field.classList.add("border-red-500", "ring-1", "ring-red-500")
+        field.classList.remove("border-neutral-15")
+        field.classList.add("border-error-5", "ring-1", "ring-error-5")
 
         // Show error message
         if (!errorEl) {
           errorEl = document.createElement("p")
-          errorEl.className = "wizard-field-error mt-1 text-xs text-red-600 font-medium"
+          errorEl.className = "wizard-field-error mt-1 text-xs text-error-6 font-medium"
           field.parentElement.appendChild(errorEl)
         }
         errorEl.textContent = "This field is required"
@@ -100,8 +100,8 @@ export default class extends Controller {
         valid = false
       } else {
         // Clear error state
-        field.classList.remove("border-red-500", "ring-1", "ring-red-500")
-        field.classList.add("border-slate-300")
+        field.classList.remove("border-error-5", "ring-1", "ring-error-5")
+        field.classList.add("border-neutral-15")
 
         // Hide error message
         if (errorEl) {
@@ -112,7 +112,7 @@ export default class extends Controller {
 
     // Focus first invalid field
     if (!valid) {
-      const firstInvalid = currentStep.querySelector(".border-red-500")
+      const firstInvalid = currentStep.querySelector(".border-error-5")
       if (firstInvalid) {
         firstInvalid.focus()
       }

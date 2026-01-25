@@ -28,15 +28,15 @@ module ApplicationHelper
 
     color_class = case status.to_s
     when "online", "success", "passed"
-      "bg-green-100 text-green-800 border border-green-200"
+      "bg-success-2 text-success-7 border border-success-2"
     when "offline", "failed", "error"
-      "bg-red-100 text-red-800 border border-red-200"
+      "bg-error-1 text-error-7 border border-error-2"
     when "running"
       "bg-blue-100 text-blue-800 border border-blue-200 animate-pulse"
     when "unknown", "warning"
       "bg-yellow-100 text-yellow-800 border border-yellow-200"
     else
-      "bg-slate-100 text-slate-700 border border-slate-200"
+      "bg-neutral-4 text-neutral-85 border border-neutral-8"
     end
 
     content_tag(:span, status.to_s.humanize, class: "#{base_classes} #{color_class}")
@@ -50,7 +50,7 @@ module ApplicationHelper
 
   def disk_usage_bar_color(percentage)
     if percentage > 90
-      "bg-red-500"
+      "bg-error-5"
     elsif percentage > 75
       "bg-amber-500"
     else
@@ -96,9 +96,9 @@ module ApplicationHelper
   def notification_status_badge_class(status)
     case status.to_s
     when "completed"
-      "bg-green-100 text-green-800"
+      "bg-success-2 text-success-7"
     when "failed"
-      "bg-red-100 text-red-800"
+      "bg-error-1 text-error-7"
     when "running"
       "bg-blue-100 text-blue-800"
     when "pending"
@@ -131,15 +131,15 @@ module ApplicationHelper
   def status_icon(status)
     case status.to_s
     when "success"
-      lucide_icon("circle-check", class: "h-6 w-6 text-green-500")
+      lucide_icon("circle-check", class: "h-6 w-6 text-success-5")
     when "failed"
-      lucide_icon("circle-x", class: "h-6 w-6 text-red-500")
+      lucide_icon("circle-x", class: "h-6 w-6 text-error-5")
     when "running"
       lucide_icon("loader-2", class: "h-6 w-6 text-blue-500 animate-spin")
     when "pending"
-      lucide_icon("clock", class: "h-6 w-6 text-slate-400")
+      lucide_icon("clock", class: "h-6 w-6 text-neutral-25")
     else
-      lucide_icon("help-circle", class: "h-6 w-6 text-slate-400")
+      lucide_icon("help-circle", class: "h-6 w-6 text-neutral-25")
     end
   end
 
@@ -147,17 +147,17 @@ module ApplicationHelper
   def task_status_badge_class(status)
     case status.to_s
     when "pending"
-      "bg-slate-100 text-slate-700"
+      "bg-neutral-4 text-neutral-85"
     when "running"
       "bg-blue-100 text-blue-700"
     when "success"
-      "bg-green-100 text-green-700"
+      "bg-success-2 text-success-7"
     when "failed"
-      "bg-red-100 text-red-700"
+      "bg-error-1 text-error-7"
     when "cancelled"
-      "bg-slate-100 text-slate-500"
+      "bg-neutral-4 text-neutral-45"
     else
-      "bg-slate-100 text-slate-700"
+      "bg-neutral-4 text-neutral-85"
     end
   end
 end

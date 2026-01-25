@@ -4,7 +4,7 @@
       <div class="flex-1 min-w-0">
         <div class="flex items-center space-x-2">
           <% unless notification.read? %>
-            <span class="inline-block w-2 h-2 bg-teal-500 rounded-full"></span>
+            <span class="inline-block w-2 h-2 bg-primary-5 rounded-full"></span>
           <% end %>
           <p class="text-sm font-medium text-gray-900 truncate">
             <%= notification.title %>
@@ -25,7 +25,7 @@
       </div>
       <div class="ml-4 flex-shrink-0 flex space-x-2">
         <% unless notification.read? %>
-          <%= button_to "Mark Read", mark_read_notification_path(notification), method: :post, class: "text-sm text-teal-600 hover:text-teal-800", data: { turbo_stream: true } %>
+          <%= button_to "Mark Read", mark_read_notification_path(notification), method: :post, class: "text-sm text-primary-6 hover:text-primary-8", data: { turbo_stream: true } %>
         <% end %>
       </div>
     </div>

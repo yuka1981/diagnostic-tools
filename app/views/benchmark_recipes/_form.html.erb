@@ -1,6 +1,6 @@
 <%= form_with(model: @benchmark_recipe, class: "space-y-6") do |f| %>
   <% if @benchmark_recipe.errors.any? %>
-    <div class="rounded-lg bg-red-50 p-4 text-sm text-red-700 border border-red-200">
+    <div class="rounded-lg bg-error-1 p-4 text-sm text-error-7 border border-error-2">
       <h2 class="font-bold mb-2"><%= pluralize(@benchmark_recipe.errors.count, "error") %> prohibited this recipe from being saved:</h2>
       <ul class="list-disc list-inside">
         <% @benchmark_recipe.errors.full_messages.each do |message| %>
@@ -17,42 +17,42 @@
     </div>
     <div class="p-4 grid grid-cols-1 gap-6 sm:grid-cols-2">
       <div>
-        <%= f.label :name, class: "block text-sm font-bold text-slate-700 mb-1" %>
+        <%= f.label :name, class: "block text-sm font-bold text-neutral-85 mb-1" %>
         <%= f.text_field :name, required: true,
             placeholder: "HPCG",
-            class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" %>
-        <p class="mt-1 text-xs text-slate-500">Display name for the benchmark recipe.</p>
+            class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm" %>
+        <p class="mt-1 text-xs text-neutral-45">Display name for the benchmark recipe.</p>
       </div>
 
       <div>
-        <%= f.label :version, class: "block text-sm font-bold text-slate-700 mb-1" %>
+        <%= f.label :version, class: "block text-sm font-bold text-neutral-85 mb-1" %>
         <%= f.text_field :version, required: true,
             placeholder: "3.1",
-            class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" %>
-        <p class="mt-1 text-xs text-slate-500">Version identifier.</p>
+            class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm" %>
+        <p class="mt-1 text-xs text-neutral-45">Version identifier.</p>
       </div>
 
       <div class="sm:col-span-2">
-        <%= f.label :description, class: "block text-sm font-bold text-slate-700 mb-1" %>
+        <%= f.label :description, class: "block text-sm font-bold text-neutral-85 mb-1" %>
         <%= f.text_area :description, rows: 3,
             placeholder: "High Performance Conjugate Gradients benchmark for measuring...",
-            class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" %>
-        <p class="mt-1 text-xs text-slate-500">Optional description of this benchmark recipe.</p>
+            class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm" %>
+        <p class="mt-1 text-xs text-neutral-45">Optional description of this benchmark recipe.</p>
       </div>
 
       <div>
-        <%= f.label :slug, class: "block text-sm font-bold text-slate-700 mb-1" %>
+        <%= f.label :slug, class: "block text-sm font-bold text-neutral-85 mb-1" %>
         <%= f.text_field :slug,
             placeholder: "hpcg-3-1 (auto-generated if empty)",
-            class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm font-mono" %>
-        <p class="mt-1 text-xs text-slate-500">URL-friendly identifier. Auto-generated from name and version if left empty.</p>
+            class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm font-mono" %>
+        <p class="mt-1 text-xs text-neutral-45">URL-friendly identifier. Auto-generated from name and version if left empty.</p>
       </div>
 
       <div>
-        <%= f.label :status, class: "block text-sm font-bold text-slate-700 mb-1" %>
+        <%= f.label :status, class: "block text-sm font-bold text-neutral-85 mb-1" %>
         <%= f.select :status, BenchmarkRecipe.statuses.keys.map { |s| [s.humanize, s] }, {},
-            class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" %>
-        <p class="mt-1 text-xs text-slate-500">Active recipes are available for running benchmarks.</p>
+            class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm" %>
+        <p class="mt-1 text-xs text-neutral-45">Active recipes are available for running benchmarks.</p>
       </div>
     </div>
   </div>
@@ -64,29 +64,29 @@
     </div>
     <div class="p-4 grid grid-cols-1 gap-6 sm:grid-cols-2">
       <div>
-        <%= f.label :command, class: "block text-sm font-bold text-slate-700 mb-1" %>
+        <%= f.label :command, class: "block text-sm font-bold text-neutral-85 mb-1" %>
         <%= f.text_field :command, required: true,
             placeholder: "hpcg",
-            class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm font-mono" %>
-        <p class="mt-1 text-xs text-slate-500">The command or binary to execute on the agent.</p>
+            class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm font-mono" %>
+        <p class="mt-1 text-xs text-neutral-45">The command or binary to execute on the agent.</p>
       </div>
 
       <div>
-        <%= f.label :timeout_seconds, "Timeout (seconds)", class: "block text-sm font-bold text-slate-700 mb-1" %>
+        <%= f.label :timeout_seconds, "Timeout (seconds)", class: "block text-sm font-bold text-neutral-85 mb-1" %>
         <%= f.number_field :timeout_seconds, min: 60, max: 86400,
             placeholder: "3600",
-            class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" %>
-        <p class="mt-1 text-xs text-slate-500">Maximum execution time before timeout (60-86400 seconds).</p>
+            class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm" %>
+        <p class="mt-1 text-xs text-neutral-45">Maximum execution time before timeout (60-86400 seconds).</p>
       </div>
 
       <div class="sm:col-span-2">
-        <%= f.label :default_profile, "Default Profile (JSON)", class: "block text-sm font-bold text-slate-700 mb-1" %>
+        <%= f.label :default_profile, "Default Profile (JSON)", class: "block text-sm font-bold text-neutral-85 mb-1" %>
         <%= f.text_area :default_profile,
             value: @benchmark_recipe.default_profile.present? ? JSON.pretty_generate(@benchmark_recipe.default_profile) : "",
             rows: 6,
             placeholder: '{"nx": 104, "ny": 104, "nz": 104}',
-            class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm font-mono" %>
-        <p class="mt-1 text-xs text-slate-500">Default parameters in JSON format. These can be overridden when running a benchmark.</p>
+            class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm font-mono" %>
+        <p class="mt-1 text-xs text-neutral-45">Default parameters in JSON format. These can be overridden when running a benchmark.</p>
       </div>
     </div>
   </div>

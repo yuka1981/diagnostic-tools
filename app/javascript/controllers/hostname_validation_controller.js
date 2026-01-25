@@ -216,13 +216,13 @@ export default class extends Controller {
   }
 
   markFieldAsError(field) {
-    field.classList.add("border-red-500", "focus:border-red-500", "focus:ring-red-500")
-    field.classList.remove("border-slate-300", "focus:border-teal-500", "focus:ring-teal-500")
+    field.classList.add("border-error-5", "focus:border-error-5", "focus:ring-error-5")
+    field.classList.remove("border-neutral-15", "focus:border-primary-5", "focus:ring-primary-5")
   }
 
   clearFieldError(field) {
-    field.classList.remove("border-red-500", "focus:border-red-500", "focus:ring-red-500")
-    field.classList.add("border-slate-300", "focus:border-teal-500", "focus:ring-teal-500")
+    field.classList.remove("border-error-5", "focus:border-error-5", "focus:ring-error-5")
+    field.classList.add("border-neutral-15", "focus:border-primary-5", "focus:ring-primary-5")
   }
 
   disableSubmit() {

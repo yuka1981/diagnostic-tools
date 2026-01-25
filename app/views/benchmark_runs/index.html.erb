@@ -4,7 +4,7 @@
   <%= turbo_stream_from "benchmark_runs" %>
   
   <div class="flex items-center justify-between mb-6">
-    <h1 class="text-2xl font-bold text-slate-900">Benchmark Runs</h1>
+    <h1 class="text-2xl font-bold text-neutral-85">Benchmark Runs</h1>
   </div>
 
   <%# Filter Controls %>
@@ -16,40 +16,40 @@
       <%= form_with url: benchmark_runs_path, method: :get, data: { controller: "autosubmit", turbo_frame: "runs_list", turbo_action: "advance" }, class: "flex flex-wrap items-end gap-4" do |f| %>
         <%# Search Field %>
         <div class="flex-1 min-w-[200px]">
-          <label for="q" class="block text-xs font-bold text-slate-500 uppercase mb-1">Search</label>
+          <label for="q" class="block text-xs font-bold text-neutral-45 uppercase mb-1">Search</label>
           <%= f.text_field :q, 
               value: @filter.search_query,
               placeholder: "Search by node or recipe...",
-              class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" %>
+              class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm" %>
         </div>
 
         <%# Status Filter %>
         <div class="w-40">
-          <label for="status" class="block text-xs font-bold text-slate-500 uppercase mb-1">Status</label>
+          <label for="status" class="block text-xs font-bold text-neutral-45 uppercase mb-1">Status</label>
           <%= f.select :status, 
               options_for_select([["All Statuses", ""]] + BenchmarkRun.statuses.keys.map { |s| [s.humanize, s] }, @filter.status),
               {},
-              class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm",
+              class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm",
               data: { action: "change->autosubmit#submit" } %>
         </div>
 
         <%# Node Filter %>
         <div class="w-44">
-          <label for="node_id" class="block text-xs font-bold text-slate-500 uppercase mb-1">Node</label>
+          <label for="node_id" class="block text-xs font-bold text-neutral-45 uppercase mb-1">Node</label>
           <%= f.select :node_id,
               options_for_select([["All Nodes", ""]] + @nodes.map { |n| [n.hostname, n.id] }, @filter.node_id),
               {},
-              class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm",
+              class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm",
               data: { action: "change->autosubmit#submit" } %>
         </div>
 
         <%# Recipe Filter %>
         <div class="w-44">
-          <label for="recipe_id" class="block text-xs font-bold text-slate-500 uppercase mb-1">Recipe</label>
+          <label for="recipe_id" class="block text-xs font-bold text-neutral-45 uppercase mb-1">Recipe</label>
           <%= f.select :recipe_id,
               options_for_select([["All Recipes", ""]] + @recipes.map { |r| [r.name, r.id] }, @filter.recipe_id),
               {},
-              class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm",
+              class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm",
               data: { action: "change->autosubmit#submit" } %>
         </div>
 
@@ -73,33 +73,33 @@
       <% if @benchmark_runs.any? %>
         <%# Filter Summary %>
         <% if @filter.filtered? %>
-          <div class="border-b border-slate-200 bg-slate-50 px-6 py-3">
-            <p class="text-sm text-slate-600">
+          <div class="border-b border-neutral-8 bg-neutral-2 px-6 py-3">
+            <p class="text-sm text-neutral-45">
               Showing <%= pluralize(@benchmark_runs.total_count, "result") %>
               <% if @filter.search_query.present? %>
-                matching <strong class="font-medium text-slate-900">"<%= h(@filter.search_query) %>"</strong>
+                matching <strong class="font-medium text-neutral-85">"<%= h(@filter.search_query) %>"</strong>
               <% end %>
             </p>
           </div>
         <% end %>
 
         <div class="overflow-x-auto">
-          <table class="min-w-full divide-y divide-slate-200 text-sm">
-            <thead class="bg-slate-50">
+          <table class="min-w-full divide-y divide-neutral-8 text-sm">
+            <thead class="bg-neutral-2">
               <tr>
-                <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">ID</th>
-                <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Recipe</th>
-                <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Hostname</th>
-                <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Status</th>
-                <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Gflops</th>
-                <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Duration</th>
-                <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Created At</th>
+                <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-neutral-45 border-b">ID</th>
+                <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-neutral-45 border-b">Recipe</th>
+                <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-neutral-45 border-b">Hostname</th>
+                <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-neutral-45 border-b">Status</th>
+                <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-neutral-45 border-b">Gflops</th>
+                <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-neutral-45 border-b">Duration</th>
+                <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-neutral-45 border-b">Created At</th>
                 <th scope="col" class="relative px-3 py-2 border-b">
                   <span class="sr-only">Actions</span>
                 </th>
               </tr>
             </thead>
-            <tbody id="benchmark_runs_tbody" class="divide-y divide-slate-200 bg-white">
+            <tbody id="benchmark_runs_tbody" class="divide-y divide-neutral-8 bg-white">
               <% @benchmark_runs.each do |run| %>
                 <%= render "benchmark_runs/run_row", run: run %>
               <% end %>
@@ -109,16 +109,16 @@
 
         <%# Pagination %>
         <% if @benchmark_runs.total_pages > 1 %>
-          <div class="border-t border-slate-200 bg-slate-50 px-6 py-4">
+          <div class="border-t border-neutral-8 bg-neutral-2 px-6 py-4">
             <nav class="flex items-center justify-between" aria-label="Pagination">
               <div class="hidden sm:block">
-                <p class="text-xs font-bold text-slate-500 uppercase">
+                <p class="text-xs font-bold text-neutral-45 uppercase">
                   Showing
-                  <span class="text-slate-700"><%= @benchmark_runs.offset_value + 1 %></span>
+                  <span class="text-neutral-85"><%= @benchmark_runs.offset_value + 1 %></span>
                   to
-                  <span class="text-slate-700"><%= [@benchmark_runs.offset_value + @benchmark_runs.limit_value, @benchmark_runs.total_count].min %></span>
+                  <span class="text-neutral-85"><%= [@benchmark_runs.offset_value + @benchmark_runs.limit_value, @benchmark_runs.total_count].min %></span>
                   of
-                  <span class="text-slate-700"><%= @benchmark_runs.total_count %></span>
+                  <span class="text-neutral-85"><%= @benchmark_runs.total_count %></span>
                   results
                 </p>
               </div>
@@ -141,10 +141,10 @@
         <% end %>
       <% else %>
         <div class="flex flex-col items-center justify-center py-12 text-center">
-          <div class="h-12 w-12 rounded-full bg-slate-100 flex items-center justify-center mb-4">
-            <%= lucide_icon("bar-chart-3", class: "h-6 w-6 text-slate-400") %>
+          <div class="h-12 w-12 rounded-full bg-neutral-4 flex items-center justify-center mb-4">
+            <%= lucide_icon("bar-chart-3", class: "h-6 w-6 text-neutral-25") %>
           </div>
-          <p class="text-sm font-medium text-slate-900">
+          <p class="text-sm font-medium text-neutral-85">
             <% if @filter.filtered? %>
               No benchmark runs match your filters
             <% else %>

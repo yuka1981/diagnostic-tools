@@ -11,7 +11,7 @@
           <% end %>
         </h2>
         <% if selected_node %>
-          <p class="text-[10px] text-slate-500 lowercase font-normal italic">
+          <p class="text-[10px] text-neutral-45 lowercase font-normal italic">
             <%= selected_node.role.humanize %> node · <%= selected_node.online? ? 'Online' : 'Offline' %>
           </p>
         <% end %>
@@ -23,19 +23,19 @@
 
     <div class="p-0">
       <% if runs.any? %>
-        <div class="divide-y divide-slate-100">
+        <div class="divide-y divide-neutral-4">
           <% runs.each do |run| %>
-            <div class="flex items-center gap-4 p-3 transition-colors hover:bg-slate-50">
+            <div class="flex items-center gap-4 p-3 transition-colors hover:bg-neutral-2">
               <div class="flex h-8 w-8 items-center justify-center rounded border <%= status_bg_class(run.status) %> shadow-sm">
                 <%= status_icon(run.status) %>
               </div>
               <div class="flex-1 min-w-0">
-                <p class="text-xs font-bold text-slate-700 truncate uppercase tracking-tight">
+                <p class="text-xs font-bold text-neutral-85 truncate uppercase tracking-tight">
                   <%= run.benchmark_recipe&.display_name || "Unknown Recipe" %>
                 </p>
-                <p class="text-[10px] text-slate-500 font-medium">
-                  <span class="text-slate-400">Node:</span> <span class="font-bold text-slate-600"><%= run.node&.hostname || "Unknown" %></span>
-                  <span class="mx-1 text-slate-300">|</span>
+                <p class="text-[10px] text-neutral-45 font-medium">
+                  <span class="text-neutral-25">Node:</span> <span class="font-bold text-neutral-45"><%= run.node&.hostname || "Unknown" %></span>
+                  <span class="mx-1 text-neutral-15">|</span>
                   <% if run.started_at %>
                     <%= time_ago_in_words(run.started_at) %> ago
                   <% else %>
@@ -54,23 +54,23 @@
         </div>
 
         <% if runs.count >= 10 %>
-          <div class="p-3 bg-slate-50 border-t border-slate-100 text-center">
+          <div class="p-3 bg-neutral-2 border-t border-neutral-4 text-center">
             <%= link_to "View all results", benchmark_runs_path(node_id: selected_node&.id),
                 data: { turbo_frame: "_top" },
-                class: "text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-slate-700 transition-colors" %>
+                class: "text-[10px] font-black uppercase tracking-widest text-neutral-45 hover:text-neutral-85 transition-colors" %>
           </div>
         <% end %>
       <% else %>
-        <div class="flex flex-col items-center justify-center py-12 text-center bg-slate-50/50">
-          <%= lucide_icon("bar-chart-3", class: "h-12 w-12 text-slate-300") %>
-          <p class="mt-4 text-xs font-bold text-slate-500 uppercase">
+        <div class="flex flex-col items-center justify-center py-12 text-center bg-neutral-2/50">
+          <%= lucide_icon("bar-chart-3", class: "h-12 w-12 text-neutral-15") %>
+          <p class="mt-4 text-xs font-bold text-neutral-45 uppercase">
             <% if selected_node %>
               No runs for <%= selected_node.hostname %>
             <% else %>
               No benchmark runs yet
             <% end %>
           </p>
-          <p class="mt-1 text-[10px] text-slate-400 font-medium">
+          <p class="mt-1 text-[10px] text-neutral-25 font-medium">
             <% if selected_node %>
               Run a benchmark on this node to see results
             <% else %>

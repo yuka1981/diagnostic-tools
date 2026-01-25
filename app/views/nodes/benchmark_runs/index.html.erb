@@ -6,7 +6,7 @@
 
 <div class="mb-6">
   <div class="flex items-center justify-between">
-    <h1 class="text-2xl font-bold text-slate-900">Benchmark Runs for <%= @node.hostname %></h1>
+    <h1 class="text-2xl font-bold text-neutral-85">Benchmark Runs for <%= @node.hostname %></h1>
     <% if current_user.approver? %>
       <%= link_to "Run Benchmark", new_node_benchmark_run_path(@node), class: "btn-primary" %>
     <% end %>
@@ -16,42 +16,42 @@
 <div class="card-netbox">
   <% if @benchmark_runs.any? %>
     <div class="overflow-x-auto">
-      <table class="min-w-full divide-y divide-slate-200 text-sm">
-        <thead class="bg-slate-50">
+      <table class="min-w-full divide-y divide-neutral-8 text-sm">
+        <thead class="bg-neutral-2">
           <tr>
-            <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Recipe</th>
-            <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Status</th>
-            <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Gflops</th>
-            <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Duration</th>
-            <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Created At</th>
+            <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-neutral-45 border-b">Recipe</th>
+            <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-neutral-45 border-b">Status</th>
+            <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-neutral-45 border-b">Gflops</th>
+            <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-neutral-45 border-b">Duration</th>
+            <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-neutral-45 border-b">Created At</th>
             <th scope="col" class="relative px-3 py-2 border-b">
               <span class="sr-only">Actions</span>
             </th>
           </tr>
         </thead>
-        <tbody class="divide-y divide-slate-200 bg-white">
+        <tbody class="divide-y divide-neutral-8 bg-white">
           <% @benchmark_runs.each do |run| %>
-            <tr class="hover:bg-slate-50">
+            <tr class="hover:bg-neutral-2">
               <td class="whitespace-nowrap px-3 py-2">
-                <p class="text-sm font-medium text-slate-900"><%= run.benchmark_recipe&.name || "N/A" %></p>
-                <p class="text-xs text-slate-500"><%= run.benchmark_recipe&.version %></p>
+                <p class="text-sm font-medium text-neutral-85"><%= run.benchmark_recipe&.name || "N/A" %></p>
+                <p class="text-xs text-neutral-45"><%= run.benchmark_recipe&.version %></p>
               </td>
               <td class="whitespace-nowrap px-3 py-2">
                 <span class="inline-flex items-center rounded-sm px-2 py-0.5 text-xs font-medium <%= status_badge_class(run.status) %>">
                   <%= run.status.humanize %>
                 </span>
               </td>
-              <td class="whitespace-nowrap px-3 py-2 text-sm text-slate-600 font-mono">
+              <td class="whitespace-nowrap px-3 py-2 text-sm text-neutral-45 font-mono">
                 <%= run.metrics&.dig("gflops") ? number_with_precision(run.metrics["gflops"], precision: 2, strip_insignificant_zeros: true) : "-" %>
               </td>
-              <td class="whitespace-nowrap px-3 py-2 text-sm text-slate-500">
+              <td class="whitespace-nowrap px-3 py-2 text-sm text-neutral-45">
                 <%= run.duration ? distance_of_time_in_words(run.duration) : "-" %>
               </td>
-              <td class="whitespace-nowrap px-3 py-2 text-sm text-slate-500">
+              <td class="whitespace-nowrap px-3 py-2 text-sm text-neutral-45">
                 <%= l(run.created_at, format: :short) %>
               </td>
               <td class="whitespace-nowrap px-3 py-2 text-right text-sm">
-                <%= link_to "View", benchmark_run_path(run), class: "text-teal-600 hover:text-teal-700 font-medium" %>
+                <%= link_to "View", benchmark_run_path(run), class: "text-primary-6 hover:text-primary-7 font-medium" %>
               </td>
             </tr>
           <% end %>
@@ -60,16 +60,16 @@
     </div>
 
     <% if @benchmark_runs.total_pages > 1 %>
-      <div class="border-t border-slate-200 bg-slate-50 px-6 py-4">
+      <div class="border-t border-neutral-8 bg-neutral-2 px-6 py-4">
         <nav class="flex items-center justify-between" aria-label="Pagination">
           <div class="hidden sm:block">
-            <p class="text-xs font-bold text-slate-500 uppercase">
+            <p class="text-xs font-bold text-neutral-45 uppercase">
               Showing
-              <span class="text-slate-700"><%= @benchmark_runs.offset_value + 1 %></span>
+              <span class="text-neutral-85"><%= @benchmark_runs.offset_value + 1 %></span>
               to
-              <span class="text-slate-700"><%= [@benchmark_runs.offset_value + @benchmark_runs.limit_value, @benchmark_runs.total_count].min %></span>
+              <span class="text-neutral-85"><%= [@benchmark_runs.offset_value + @benchmark_runs.limit_value, @benchmark_runs.total_count].min %></span>
               of
-              <span class="text-slate-700"><%= @benchmark_runs.total_count %></span>
+              <span class="text-neutral-85"><%= @benchmark_runs.total_count %></span>
               results
             </p>
           </div>
@@ -86,10 +86,10 @@
     <% end %>
   <% else %>
     <div class="flex flex-col items-center justify-center py-12 text-center">
-      <div class="h-12 w-12 rounded-full bg-slate-100 flex items-center justify-center mb-4">
-        <%= lucide_icon("bar-chart-3", class: "h-6 w-6 text-slate-400") %>
+      <div class="h-12 w-12 rounded-full bg-neutral-4 flex items-center justify-center mb-4">
+        <%= lucide_icon("bar-chart-3", class: "h-6 w-6 text-neutral-25") %>
       </div>
-      <p class="text-sm font-medium text-slate-900">No benchmark runs for this node yet</p>
+      <p class="text-sm font-medium text-neutral-85">No benchmark runs for this node yet</p>
       <% if current_user.approver? %>
         <%= link_to "Run Benchmark", new_node_benchmark_run_path(@node), class: "mt-4 btn-primary" %>
       <% end %>

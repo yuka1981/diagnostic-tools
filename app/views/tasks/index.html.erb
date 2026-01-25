@@ -4,14 +4,14 @@
      data-auto-refresh-frame-value="tasks_list">
 
   <div class="flex items-center justify-between mb-6">
-    <h1 class="text-2xl font-bold text-slate-900">Tasks</h1>
+    <h1 class="text-2xl font-bold text-neutral-85">Tasks</h1>
 
     <%# Auto-refresh control %>
     <div class="flex items-center gap-2">
-      <span data-auto-refresh-target="countdown" class="text-xs text-slate-500 hidden"></span>
+      <span data-auto-refresh-target="countdown" class="text-xs text-neutral-45 hidden"></span>
       <select data-auto-refresh-target="select"
               data-action="change->auto-refresh#updateInterval"
-              class="text-sm rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500">
+              class="text-sm rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5">
         <option value="0">Auto-refresh: Off</option>
         <option value="10000">10s</option>
         <option value="30000">30s</option>
@@ -30,33 +30,33 @@
       <% if @tasks.any? %>
         <%# Filter Summary %>
         <% if @filter.filtered? %>
-          <div class="border-b border-slate-200 bg-slate-50 px-6 py-3">
-            <p class="text-sm text-slate-600">
+          <div class="border-b border-neutral-8 bg-neutral-2 px-6 py-3">
+            <p class="text-sm text-neutral-45">
               Showing <%= pluralize(@filter.total_count, "task") %>
               <% if @filter.search_query.present? %>
-                matching <strong class="font-medium text-slate-900">"<%= h(@filter.search_query) %>"</strong>
+                matching <strong class="font-medium text-neutral-85">"<%= h(@filter.search_query) %>"</strong>
               <% end %>
             </p>
           </div>
         <% end %>
 
         <div class="overflow-x-auto">
-          <table class="min-w-full divide-y divide-slate-200 text-sm">
-            <thead class="bg-slate-50">
+          <table class="min-w-full divide-y divide-neutral-8 text-sm">
+            <thead class="bg-neutral-2">
               <tr>
                 <th scope="col" class="w-8 px-3 py-2 border-b"></th>
-                <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Type</th>
-                <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Node</th>
-                <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Recipe</th>
-                <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Status</th>
-                <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Started</th>
-                <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Duration</th>
+                <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-neutral-45 border-b">Type</th>
+                <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-neutral-45 border-b">Node</th>
+                <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-neutral-45 border-b">Recipe</th>
+                <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-neutral-45 border-b">Status</th>
+                <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-neutral-45 border-b">Started</th>
+                <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-neutral-45 border-b">Duration</th>
                 <th scope="col" class="relative px-3 py-2 border-b">
                   <span class="sr-only">Actions</span>
                 </th>
               </tr>
             </thead>
-            <tbody class="divide-y divide-slate-200 bg-white" data-controller="accordion" data-accordion-exclusive-value="true">
+            <tbody class="divide-y divide-neutral-8 bg-white" data-controller="accordion" data-accordion-exclusive-value="true">
               <% @tasks.each do |task| %>
                 <%= render "tasks/task_row", task: task %>
                 <%= render "tasks/task_details", task: task %>
@@ -66,17 +66,17 @@
         </div>
 
         <%# Pagination %>
-        <div class="border-t border-slate-200 bg-slate-50 px-6 py-4">
+        <div class="border-t border-neutral-8 bg-neutral-2 px-6 py-4">
           <div class="flex items-center justify-between gap-4">
             <%# Left: Showing info %>
             <div class="hidden sm:block">
-              <p class="text-xs font-bold text-slate-500 uppercase">
+              <p class="text-xs font-bold text-neutral-45 uppercase">
                 Showing
-                <span class="text-slate-700"><%= @tasks.offset_value + 1 %></span>
+                <span class="text-neutral-85"><%= @tasks.offset_value + 1 %></span>
                 to
-                <span class="text-slate-700"><%= [@tasks.offset_value + @tasks.limit_value, @tasks.total_count].min %></span>
+                <span class="text-neutral-85"><%= [@tasks.offset_value + @tasks.limit_value, @tasks.total_count].min %></span>
                 of
-                <span class="text-slate-700"><%= @tasks.total_count %></span>
+                <span class="text-neutral-85"><%= @tasks.total_count %></span>
                 tasks
               </p>
             </div>
@@ -88,9 +88,9 @@
 
             <%# Right: Per-page selector %>
             <div class="flex items-center gap-2">
-              <label for="per_page" class="text-xs font-bold text-slate-500 uppercase whitespace-nowrap">Per page</label>
+              <label for="per_page" class="text-xs font-bold text-neutral-45 uppercase whitespace-nowrap">Per page</label>
               <select id="per_page"
-                      class="text-sm rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 py-1.5"
+                      class="text-sm rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 py-1.5"
                       onchange="document.getElementById('tasks_list').src = this.value">
                 <% [10, 20, 50].each do |count| %>
                   <option value="<%= tasks_path(filter_params.merge(per_page: count, page: 1)) %>"
@@ -104,10 +104,10 @@
         </div>
       <% else %>
         <div class="flex flex-col items-center justify-center py-12 text-center">
-          <div class="h-12 w-12 rounded-full bg-slate-100 flex items-center justify-center mb-4">
-            <%= lucide_icon("list-checks", class: "h-6 w-6 text-slate-400") %>
+          <div class="h-12 w-12 rounded-full bg-neutral-4 flex items-center justify-center mb-4">
+            <%= lucide_icon("list-checks", class: "h-6 w-6 text-neutral-25") %>
           </div>
-          <p class="text-sm font-medium text-slate-900">
+          <p class="text-sm font-medium text-neutral-85">
             <% if @filter.filtered? %>
               No tasks match your filters
             <% else %>

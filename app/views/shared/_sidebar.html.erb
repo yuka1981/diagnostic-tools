@@ -1,8 +1,8 @@
-<aside class="fixed inset-y-0 left-0 z-50 w-64 bg-slate-900 text-slate-300 flex flex-col transition-transform duration-300 ease-in-out lg:translate-x-0" 
+<aside class="fixed inset-y-0 left-0 z-50 w-64 bg-neutral-85 text-neutral-15 flex flex-col transition-transform duration-300 ease-in-out lg:translate-x-0" 
        data-sidebar-target="menu">
   
   <%# Brand %>
-  <div class="flex h-14 items-center px-4 border-b border-slate-800 bg-slate-900">
+  <div class="flex h-14 items-center px-4 border-b border-neutral-85 bg-neutral-85">
     <div class="flex items-center gap-3">
       <%= image_tag "qct_logo.png", alt: "QCT", class: "h-8 w-auto" %>
       <span class="text-base font-bold text-white tracking-tight">InfraScope</span>
@@ -10,50 +10,50 @@
   </div>
 
   <%# Navigation %>
-  <nav class="flex-1 overflow-y-auto px-2 py-4 space-y-6 text-slate-400">
+  <nav class="flex-1 overflow-y-auto px-2 py-4 space-y-6 text-neutral-25">
     
     <%# Organization %>
     <div>
-      <h3 class="px-3 text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Organization</h3>
+      <h3 class="px-3 text-xs font-bold text-neutral-45 uppercase tracking-wider mb-1">Organization</h3>
       <div class="space-y-0.5">
         <%= link_to dashboard_path,
             data: { turbo_prefetch: false },
-            class: "flex items-center gap-3 px-3 py-2 text-sm font-bold rounded transition-colors #{current_page?(dashboard_path) ? 'bg-slate-800 text-teal-400' : 'hover:bg-slate-800 hover:text-teal-400'}" do %>
+            class: "flex items-center gap-3 px-3 py-2 text-sm font-bold rounded transition-colors #{current_page?(dashboard_path) ? 'bg-neutral-85 text-primary-4' : 'hover:bg-neutral-85 hover:text-primary-4'}" do %>
           <%= lucide_icon("layout-dashboard", class: "h-5 w-5 opacity-75") %>
           Dashboard
         <% end %>
 
         <%= link_to sites_path,
             data: { turbo_prefetch: false },
-            class: "flex items-center gap-3 px-3 py-2 text-sm font-bold rounded transition-colors #{request.path.start_with?('/sites') ? 'bg-slate-800 text-teal-400' : 'hover:bg-slate-800 hover:text-teal-400'}" do %>
+            class: "flex items-center gap-3 px-3 py-2 text-sm font-bold rounded transition-colors #{request.path.start_with?('/sites') ? 'bg-neutral-85 text-primary-4' : 'hover:bg-neutral-85 hover:text-primary-4'}" do %>
           <%= lucide_icon("building-2", class: "h-5 w-5 opacity-75") %>
           Sites
         <% end %>
 
         <%= link_to rooms_path,
             data: { turbo_prefetch: false },
-            class: "flex items-center gap-3 px-3 py-2 text-sm font-bold rounded transition-colors #{request.path.start_with?('/rooms') ? 'bg-slate-800 text-teal-400' : 'hover:bg-slate-800 hover:text-teal-400'}" do %>
+            class: "flex items-center gap-3 px-3 py-2 text-sm font-bold rounded transition-colors #{request.path.start_with?('/rooms') ? 'bg-neutral-85 text-primary-4' : 'hover:bg-neutral-85 hover:text-primary-4'}" do %>
           <%= lucide_icon("warehouse", class: "h-5 w-5 opacity-75") %>
           Rooms
         <% end %>
 
         <%= link_to server_racks_path,
             data: { turbo_prefetch: false },
-            class: "flex items-center gap-3 px-3 py-2 text-sm font-bold rounded transition-colors #{request.path.start_with?('/racks') ? 'bg-slate-800 text-teal-400' : 'hover:bg-slate-800 hover:text-teal-400'}" do %>
+            class: "flex items-center gap-3 px-3 py-2 text-sm font-bold rounded transition-colors #{request.path.start_with?('/racks') ? 'bg-neutral-85 text-primary-4' : 'hover:bg-neutral-85 hover:text-primary-4'}" do %>
           <%= lucide_icon("server", class: "h-5 w-5 opacity-75") %>
           Racks
         <% end %>
 
         <%= link_to nodes_path,
             data: { turbo_prefetch: false },
-            class: "flex items-center gap-3 px-3 py-2 text-sm font-bold rounded transition-colors #{request.path.start_with?('/nodes') ? 'bg-slate-800 text-teal-400' : 'hover:bg-slate-800 hover:text-teal-400'}" do %>
+            class: "flex items-center gap-3 px-3 py-2 text-sm font-bold rounded transition-colors #{request.path.start_with?('/nodes') ? 'bg-neutral-85 text-primary-4' : 'hover:bg-neutral-85 hover:text-primary-4'}" do %>
           <%= lucide_icon("hard-drive", class: "h-5 w-5 opacity-75") %>
           Nodes
         <% end %>
 
         <%= link_to tasks_path,
             data: { turbo_prefetch: false },
-            class: "flex items-center gap-3 px-3 py-2 text-sm font-bold rounded transition-colors #{request.path.start_with?('/tasks') ? 'bg-slate-800 text-teal-400' : 'hover:bg-slate-800 hover:text-teal-400'}" do %>
+            class: "flex items-center gap-3 px-3 py-2 text-sm font-bold rounded transition-colors #{request.path.start_with?('/tasks') ? 'bg-neutral-85 text-primary-4' : 'hover:bg-neutral-85 hover:text-primary-4'}" do %>
           <%= lucide_icon("list-checks", class: "h-5 w-5 opacity-75") %>
           Tasks
         <% end %>
@@ -62,18 +62,18 @@
 
     <%# Benchmarks %>
     <div>
-      <h3 class="px-3 text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Benchmarks</h3>
+      <h3 class="px-3 text-xs font-bold text-neutral-45 uppercase tracking-wider mb-1">Benchmarks</h3>
       <div class="space-y-0.5">
         <%= link_to benchmark_runs_path,
             data: { turbo_prefetch: false },
-            class: "flex items-center gap-3 px-3 py-2 text-sm font-bold rounded transition-colors #{request.path.start_with?('/benchmark_runs') ? 'bg-slate-800 text-teal-400' : 'hover:bg-slate-800 hover:text-teal-400'}" do %>
+            class: "flex items-center gap-3 px-3 py-2 text-sm font-bold rounded transition-colors #{request.path.start_with?('/benchmark_runs') ? 'bg-neutral-85 text-primary-4' : 'hover:bg-neutral-85 hover:text-primary-4'}" do %>
           <%= lucide_icon("bar-chart-3", class: "h-5 w-5 opacity-75") %>
           Benchmark Runs
         <% end %>
 
         <%= link_to benchmark_recipes_path,
             data: { turbo_prefetch: false },
-            class: "flex items-center gap-3 px-3 py-2 text-sm font-bold rounded transition-colors #{request.path.start_with?('/benchmark_recipes') ? 'bg-slate-800 text-teal-400' : 'hover:bg-slate-800 hover:text-teal-400'}" do %>
+            class: "flex items-center gap-3 px-3 py-2 text-sm font-bold rounded transition-colors #{request.path.start_with?('/benchmark_recipes') ? 'bg-neutral-85 text-primary-4' : 'hover:bg-neutral-85 hover:text-primary-4'}" do %>
           <%= lucide_icon("flask-conical", class: "h-5 w-5 opacity-75") %>
           Recipes
         <% end %>
@@ -83,32 +83,32 @@
     <%# Admin %>
     <% if current_user&.approver? %>
       <div>
-        <h3 class="px-3 text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Admin</h3>
+        <h3 class="px-3 text-xs font-bold text-neutral-45 uppercase tracking-wider mb-1">Admin</h3>
         <div class="space-y-0.5">
           <%= link_to api_keys_path,
               data: { turbo_prefetch: false },
-              class: "flex items-center gap-3 px-3 py-2 text-sm font-bold rounded transition-colors #{request.path.start_with?('/api_keys') ? 'bg-slate-800 text-teal-400' : 'hover:bg-slate-800 hover:text-teal-400'}" do %>
+              class: "flex items-center gap-3 px-3 py-2 text-sm font-bold rounded transition-colors #{request.path.start_with?('/api_keys') ? 'bg-neutral-85 text-primary-4' : 'hover:bg-neutral-85 hover:text-primary-4'}" do %>
             <%= lucide_icon("key", class: "h-5 w-5 opacity-75") %>
             API Keys
           <% end %>
 
           <%= link_to settings_ssh_defaults_path,
               data: { turbo_prefetch: false },
-              class: "flex items-center gap-3 px-3 py-2 text-sm font-bold rounded transition-colors #{request.path.start_with?('/settings/ssh_defaults') ? 'bg-slate-800 text-teal-400' : 'hover:bg-slate-800 hover:text-teal-400'}" do %>
+              class: "flex items-center gap-3 px-3 py-2 text-sm font-bold rounded transition-colors #{request.path.start_with?('/settings/ssh_defaults') ? 'bg-neutral-85 text-primary-4' : 'hover:bg-neutral-85 hover:text-primary-4'}" do %>
             <%= lucide_icon("lock", class: "h-5 w-5 opacity-75") %>
             SSH Defaults
           <% end %>
 
           <%= link_to settings_agent_path,
               data: { turbo_prefetch: false },
-              class: "flex items-center gap-3 px-3 py-2 text-sm font-bold rounded transition-colors #{request.path.start_with?('/settings/agent') ? 'bg-slate-800 text-teal-400' : 'hover:bg-slate-800 hover:text-teal-400'}" do %>
+              class: "flex items-center gap-3 px-3 py-2 text-sm font-bold rounded transition-colors #{request.path.start_with?('/settings/agent') ? 'bg-neutral-85 text-primary-4' : 'hover:bg-neutral-85 hover:text-primary-4'}" do %>
             <%= lucide_icon("settings", class: "h-5 w-5 opacity-75") %>
             Agent Config
           <% end %>
 
           <%= link_to settings_server_products_path,
               data: { turbo_prefetch: false },
-              class: "flex items-center gap-3 px-3 py-2 text-sm font-bold rounded transition-colors #{request.path.start_with?('/settings/server_products') ? 'bg-slate-800 text-teal-400' : 'hover:bg-slate-800 hover:text-teal-400'}" do %>
+              class: "flex items-center gap-3 px-3 py-2 text-sm font-bold rounded transition-colors #{request.path.start_with?('/settings/server_products') ? 'bg-neutral-85 text-primary-4' : 'hover:bg-neutral-85 hover:text-primary-4'}" do %>
             <%= lucide_icon("server", class: "h-5 w-5 opacity-75") %>
             Server Products
           <% end %>
@@ -119,28 +119,28 @@
 
   <%# Footer %>
   <% if current_user %>
-    <div class="border-t border-slate-800 p-4">
+    <div class="border-t border-neutral-85 p-4">
       <div class="flex items-center gap-3">
-        <div class="h-8 w-8 rounded-full bg-slate-700 flex items-center justify-center text-sm font-medium text-white">
+        <div class="h-8 w-8 rounded-full bg-neutral-85 flex items-center justify-center text-sm font-medium text-white">
           <%= current_user.name&.first&.upcase || current_user.email.first.upcase %>
         </div>
         <div class="flex-1 min-w-0">
           <p class="text-sm font-medium text-white truncate"><%= current_user.name || current_user.email %></p>
-          <p class="text-xs text-slate-500 truncate"><%= current_user.role.humanize %></p>
+          <p class="text-xs text-neutral-45 truncate"><%= current_user.role.humanize %></p>
         </div>
       </div>
       <%= link_to destroy_user_session_path,
           data: { turbo_method: :delete, turbo_prefetch: false },
-          class: "mt-3 flex items-center gap-2 text-xs text-slate-500 hover:text-slate-300 transition-colors" do %>
+          class: "mt-3 flex items-center gap-2 text-xs text-neutral-45 hover:text-neutral-15 transition-colors" do %>
         <%= lucide_icon("log-out", class: "h-4 w-4") %>
         Sign out
       <% end %>
     </div>
   <% else %>
-    <div class="border-t border-slate-800 p-4">
+    <div class="border-t border-neutral-85 p-4">
       <%= link_to new_user_session_path,
           data: { turbo_prefetch: false },
-          class: "flex items-center gap-2 text-sm text-slate-500 hover:text-white transition-colors" do %>
+          class: "flex items-center gap-2 text-sm text-neutral-45 hover:text-white transition-colors" do %>
         <%= lucide_icon("log-in", class: "h-5 w-5") %>
         Sign in
       <% end %>

@@ -130,7 +130,7 @@ export default class extends Controller {
   showNotification(message, type) {
     const flash = document.getElementById("flash_messages")
     if (flash) {
-      const alertClass = type === "success" ? "bg-green-50 text-green-800 border-green-200" : "bg-red-50 text-red-800 border-red-200"
+      const alertClass = type === "success" ? "bg-success-1 text-success-8 border-success-2" : "bg-error-1 text-error-8 border-error-2"
       flash.innerHTML = `<div class="p-4 rounded-lg border ${alertClass}">${message}</div>`
       setTimeout(() => { flash.innerHTML = "" }, 3000)
     }

@@ -2,8 +2,8 @@
 
 <div class="flex items-center justify-between mb-6">
   <div>
-    <h1 class="text-2xl font-bold text-slate-900">Server Products</h1>
-    <p class="text-sm text-slate-500 mt-1">Manage QCT server product catalog</p>
+    <h1 class="text-2xl font-bold text-neutral-85">Server Products</h1>
+    <p class="text-sm text-neutral-45 mt-1">Manage QCT server product catalog</p>
   </div>
   <div class="flex items-center gap-3">
     <%= button_to sync_settings_server_products_path, method: :post, class: "btn-secondary", data: { turbo_confirm: "Start sync from QCT website?" } do %>
@@ -18,7 +18,7 @@
 </div>
 
 <% if @last_sync %>
-  <div class="mb-4 text-sm text-slate-500">
+  <div class="mb-4 text-sm text-neutral-45">
     Last synced <%= time_ago_in_words(@last_sync.completed_at) %> ago
     <% if @last_sync.products_added > 0 || @last_sync.products_updated > 0 %>
       (<%= @last_sync.products_added %> added, <%= @last_sync.products_updated %> updated)
@@ -59,16 +59,16 @@
 <div class="card-netbox">
   <% if @server_products.any? %>
     <div class="overflow-x-auto">
-      <table class="min-w-full divide-y divide-slate-200 text-sm">
-        <thead class="bg-slate-50">
+      <table class="min-w-full divide-y divide-neutral-8 text-sm">
+        <thead class="bg-neutral-2">
           <tr>
-            <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b w-16">Image</th>
-            <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Model Name</th>
-            <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Series</th>
-            <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Form Factor</th>
-            <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">CPU Support</th>
-            <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Max Memory</th>
-            <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b">Last Synced</th>
+            <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-neutral-45 border-b w-16">Image</th>
+            <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-neutral-45 border-b">Model Name</th>
+            <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-neutral-45 border-b">Series</th>
+            <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-neutral-45 border-b">Form Factor</th>
+            <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-neutral-45 border-b">CPU Support</th>
+            <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-neutral-45 border-b">Max Memory</th>
+            <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-neutral-45 border-b">Last Synced</th>
             <th scope="col" class="relative px-3 py-2 border-b">
               <span class="sr-only">Actions</span>
             </th>
@@ -81,9 +81,9 @@
     </div>
 
     <% if @server_products.total_pages > 1 %>
-      <div class="border-t border-slate-200 bg-slate-50 px-6 py-4">
+      <div class="border-t border-neutral-8 bg-neutral-2 px-6 py-4">
         <div class="flex items-center justify-between">
-          <div class="text-sm text-slate-700">
+          <div class="text-sm text-neutral-85">
             Showing
             <span class="font-medium"><%= @server_products.offset_value + 1 %></span>
             to
@@ -98,11 +98,11 @@
     <% end %>
   <% else %>
     <div class="flex flex-col items-center justify-center py-12 text-center">
-      <div class="h-12 w-12 rounded-full bg-slate-100 flex items-center justify-center mb-4">
-        <%= lucide_icon("server", class: "h-6 w-6 text-slate-400") %>
+      <div class="h-12 w-12 rounded-full bg-neutral-4 flex items-center justify-center mb-4">
+        <%= lucide_icon("server", class: "h-6 w-6 text-neutral-25") %>
       </div>
-      <p class="text-sm font-medium text-slate-900">No server products yet</p>
-      <p class="mt-1 text-xs text-slate-500">Add a product manually or sync from QCT</p>
+      <p class="text-sm font-medium text-neutral-85">No server products yet</p>
+      <p class="mt-1 text-xs text-neutral-45">Add a product manually or sync from QCT</p>
       <div class="mt-4 flex gap-2">
         <%= button_to sync_settings_server_products_path, method: :post, class: "btn-secondary" do %>
           Sync from QCT

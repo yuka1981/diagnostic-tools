@@ -29,11 +29,11 @@ export default class extends Controller {
       tab.setAttribute("tabindex", isActive ? "0" : "-1")
 
       if (isActive) {
-        tab.classList.add("border-teal-600", "text-teal-600")
-        tab.classList.remove("border-transparent", "text-slate-500")
+        tab.classList.add("border-primary-6", "text-primary-6")
+        tab.classList.remove("border-transparent", "text-neutral-45")
       } else {
-        tab.classList.remove("border-teal-600", "text-teal-600")
-        tab.classList.add("border-transparent", "text-slate-500")
+        tab.classList.remove("border-primary-6", "text-primary-6")
+        tab.classList.add("border-transparent", "text-neutral-45")
       }
     })
 

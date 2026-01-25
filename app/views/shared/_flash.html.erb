@@ -8,10 +8,10 @@
 <% end %>
 
 <% if alert.present? %>
-  <div class="rounded-none bg-red-50 p-4 dark:bg-red-500/10">
+  <div class="rounded-none bg-error-1 p-4 dark:bg-error-5/10">
     <div class="flex items-center gap-3">
-      <%= lucide_icon("alert-circle", class: "h-5 w-5 text-red-500") %>
-      <p class="text-sm font-medium text-red-800 dark:text-red-200"><%= alert %></p>
+      <%= lucide_icon("alert-circle", class: "h-5 w-5 text-error-5") %>
+      <p class="text-sm font-medium text-error-8 dark:text-error-2"><%= alert %></p>
     </div>
   </div>
 <% end %>

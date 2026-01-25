@@ -6,13 +6,13 @@
 <div class="mb-6">
   <div class="flex items-center justify-between">
     <div class="flex items-center gap-4">
-      <h1 class="text-2xl font-bold text-slate-900"><%= @benchmark_recipe.display_name %></h1>
+      <h1 class="text-2xl font-bold text-neutral-85"><%= @benchmark_recipe.display_name %></h1>
       <% if @benchmark_recipe.active? %>
         <span class="inline-flex items-center rounded-sm px-2 py-0.5 text-xs font-medium bg-emerald-100 text-emerald-800 border border-emerald-200">
           Active
         </span>
       <% else %>
-        <span class="inline-flex items-center rounded-sm px-2 py-0.5 text-xs font-medium bg-slate-100 text-slate-600 border border-slate-200">
+        <span class="inline-flex items-center rounded-sm px-2 py-0.5 text-xs font-medium bg-neutral-4 text-neutral-45 border border-neutral-8">
           Archived
         </span>
       <% end %>
@@ -45,26 +45,26 @@
     </div>
     <div class="p-0">
       <table class="w-full text-sm text-left">
-        <tbody class="divide-y divide-slate-100">
-          <tr class="hover:bg-slate-50">
-            <th class="px-4 py-2 font-bold text-slate-700 w-1/3 border-r border-slate-200">Name</th>
-            <td class="px-4 py-2 text-slate-700 font-bold"><%= @benchmark_recipe.name %></td>
+        <tbody class="divide-y divide-neutral-4">
+          <tr class="hover:bg-neutral-2">
+            <th class="px-4 py-2 font-bold text-neutral-85 w-1/3 border-r border-neutral-8">Name</th>
+            <td class="px-4 py-2 text-neutral-85 font-bold"><%= @benchmark_recipe.name %></td>
           </tr>
-          <tr class="hover:bg-slate-50">
-            <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">Version</th>
-            <td class="px-4 py-2 text-slate-700"><%= @benchmark_recipe.version %></td>
+          <tr class="hover:bg-neutral-2">
+            <th class="px-4 py-2 font-bold text-neutral-85 border-r border-neutral-8">Version</th>
+            <td class="px-4 py-2 text-neutral-85"><%= @benchmark_recipe.version %></td>
           </tr>
-          <tr class="hover:bg-slate-50">
-            <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">Slug</th>
-            <td class="px-4 py-2 text-slate-600 font-mono text-xs"><%= @benchmark_recipe.slug %></td>
+          <tr class="hover:bg-neutral-2">
+            <th class="px-4 py-2 font-bold text-neutral-85 border-r border-neutral-8">Slug</th>
+            <td class="px-4 py-2 text-neutral-45 font-mono text-xs"><%= @benchmark_recipe.slug %></td>
           </tr>
-          <tr class="hover:bg-slate-50">
-            <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">Description</th>
-            <td class="px-4 py-2 text-slate-700"><%= @benchmark_recipe.description.presence || "—" %></td>
+          <tr class="hover:bg-neutral-2">
+            <th class="px-4 py-2 font-bold text-neutral-85 border-r border-neutral-8">Description</th>
+            <td class="px-4 py-2 text-neutral-85"><%= @benchmark_recipe.description.presence || "—" %></td>
           </tr>
-          <tr class="hover:bg-slate-50">
-            <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">Total Runs</th>
-            <td class="px-4 py-2 text-slate-700"><%= @benchmark_recipe.benchmark_runs.count %></td>
+          <tr class="hover:bg-neutral-2">
+            <th class="px-4 py-2 font-bold text-neutral-85 border-r border-neutral-8">Total Runs</th>
+            <td class="px-4 py-2 text-neutral-85"><%= @benchmark_recipe.benchmark_runs.count %></td>
           </tr>
         </tbody>
       </table>
@@ -78,27 +78,27 @@
     </div>
     <div class="p-0">
       <table class="w-full text-sm text-left">
-        <tbody class="divide-y divide-slate-100">
-          <tr class="hover:bg-slate-50">
-            <th class="px-4 py-2 font-bold text-slate-700 w-1/3 border-r border-slate-200">Command</th>
-            <td class="px-4 py-2 text-slate-700 font-mono"><%= @benchmark_recipe.command %></td>
+        <tbody class="divide-y divide-neutral-4">
+          <tr class="hover:bg-neutral-2">
+            <th class="px-4 py-2 font-bold text-neutral-85 w-1/3 border-r border-neutral-8">Command</th>
+            <td class="px-4 py-2 text-neutral-85 font-mono"><%= @benchmark_recipe.command %></td>
           </tr>
-          <tr class="hover:bg-slate-50">
-            <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">Timeout</th>
-            <td class="px-4 py-2 text-slate-700">
+          <tr class="hover:bg-neutral-2">
+            <th class="px-4 py-2 font-bold text-neutral-85 border-r border-neutral-8">Timeout</th>
+            <td class="px-4 py-2 text-neutral-85">
               <%= @benchmark_recipe.timeout_seconds %> seconds
-              <span class="text-slate-400">(<%= distance_of_time_in_words(@benchmark_recipe.timeout_seconds) %>)</span>
+              <span class="text-neutral-25">(<%= distance_of_time_in_words(@benchmark_recipe.timeout_seconds) %>)</span>
             </td>
           </tr>
-          <tr class="hover:bg-slate-50">
-            <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">Status</th>
+          <tr class="hover:bg-neutral-2">
+            <th class="px-4 py-2 font-bold text-neutral-85 border-r border-neutral-8">Status</th>
             <td class="px-4 py-2">
               <% if @benchmark_recipe.active? %>
                 <span class="inline-flex items-center rounded-sm px-2 py-0.5 text-xs font-medium bg-emerald-100 text-emerald-800 border border-emerald-200">
                   Active
                 </span>
               <% else %>
-                <span class="inline-flex items-center rounded-sm px-2 py-0.5 text-xs font-medium bg-slate-100 text-slate-600 border border-slate-200">
+                <span class="inline-flex items-center rounded-sm px-2 py-0.5 text-xs font-medium bg-neutral-4 text-neutral-45 border border-neutral-8">
                   Archived
                 </span>
               <% end %>
@@ -116,11 +116,11 @@
     <h3 class="card-title">Default Profile</h3>
   </div>
   <% if @benchmark_recipe.default_profile.present? %>
-    <div class="p-4 bg-slate-50">
-      <pre class="text-xs text-slate-700 font-mono overflow-x-auto whitespace-pre-wrap"><%= JSON.pretty_generate(@benchmark_recipe.default_profile) %></pre>
+    <div class="p-4 bg-neutral-2">
+      <pre class="text-xs text-neutral-85 font-mono overflow-x-auto whitespace-pre-wrap"><%= JSON.pretty_generate(@benchmark_recipe.default_profile) %></pre>
     </div>
   <% else %>
-    <div class="p-4 text-center text-slate-500 text-sm">
+    <div class="p-4 text-center text-neutral-45 text-sm">
       No default profile configured
     </div>
   <% end %>
@@ -128,15 +128,15 @@
 
 <%# Danger Zone %>
 <% if current_user.approver? && @benchmark_recipe.benchmark_runs.empty? %>
-  <div class="card-netbox mt-6 border-red-200">
-    <div class="card-header bg-red-50 border-red-200">
-      <h3 class="card-title text-red-800">Danger Zone</h3>
+  <div class="card-netbox mt-6 border-error-2">
+    <div class="card-header bg-error-1 border-error-2">
+      <h3 class="card-title text-error-8">Danger Zone</h3>
     </div>
     <div class="p-4">
       <div class="flex items-center justify-between">
         <div>
-          <p class="text-sm font-medium text-slate-900">Delete this recipe</p>
-          <p class="text-xs text-slate-500">Once deleted, this recipe cannot be recovered.</p>
+          <p class="text-sm font-medium text-neutral-85">Delete this recipe</p>
+          <p class="text-xs text-neutral-45">Once deleted, this recipe cannot be recovered.</p>
         </div>
         <%= button_to benchmark_recipe_path(@benchmark_recipe),
             method: :delete,

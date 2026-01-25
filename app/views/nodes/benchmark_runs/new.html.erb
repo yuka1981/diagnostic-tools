@@ -3,14 +3,14 @@
     <div class="space-y-4">
       <%# Configuration Summary %>
       <div class="card-netbox">
-        <div class="card-header bg-slate-50">
-          <h4 class="text-xs font-bold uppercase text-slate-600">Configuration</h4>
+        <div class="card-header bg-neutral-2">
+          <h4 class="text-xs font-bold uppercase text-neutral-45">Configuration</h4>
         </div>
         <table class="w-full text-sm">
-          <tbody class="divide-y divide-slate-100">
+          <tbody class="divide-y divide-neutral-4">
             <tr>
-              <td class="px-3 py-2 text-slate-500 font-medium w-1/3">Working Directory</td>
-              <td class="px-3 py-2 font-mono text-slate-700"><%= @preflight.config[:work_dir] %></td>
+              <td class="px-3 py-2 text-neutral-45 font-medium w-1/3">Working Directory</td>
+              <td class="px-3 py-2 font-mono text-neutral-85"><%= @preflight.config[:work_dir] %></td>
               <td class="px-3 py-1 text-right">
                 <% case @preflight.config[:work_dir_source] %>
                 <% when :node %>
@@ -18,28 +18,28 @@
                 <% when :global %>
                   <span class="inline-flex items-center rounded-full bg-purple-50 px-2 py-0.5 text-[10px] font-medium text-purple-700">Global</span>
                 <% else %>
-                  <span class="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-600">Default</span>
+                  <span class="inline-flex items-center rounded-full bg-neutral-4 px-2 py-0.5 text-[10px] font-medium text-neutral-45">Default</span>
                 <% end %>
               </td>
             </tr>
             <tr>
-              <td class="px-3 py-2 text-slate-500 font-medium">Agent Path</td>
-              <td class="px-3 py-2 font-mono text-slate-700" colspan="2"><%= @preflight.config[:agent_path] %></td>
+              <td class="px-3 py-2 text-neutral-45 font-medium">Agent Path</td>
+              <td class="px-3 py-2 font-mono text-neutral-85" colspan="2"><%= @preflight.config[:agent_path] %></td>
             </tr>
             <% if @preflight.config[:server_url].present? %>
             <tr>
-              <td class="px-3 py-2 text-slate-500 font-medium">Callback URL</td>
-              <td class="px-3 py-2 font-mono text-slate-700 text-xs" colspan="2"><%= @preflight.config[:server_url] %></td>
+              <td class="px-3 py-2 text-neutral-45 font-medium">Callback URL</td>
+              <td class="px-3 py-2 font-mono text-neutral-85 text-xs" colspan="2"><%= @preflight.config[:server_url] %></td>
             </tr>
             <% end %>
             <tr>
-              <td class="px-3 py-2 text-slate-500 font-medium">API Token</td>
-              <td class="px-3 py-2 text-slate-700">
+              <td class="px-3 py-2 text-neutral-45 font-medium">API Token</td>
+              <td class="px-3 py-2 text-neutral-85">
                 <% case @preflight.config[:token_source] %>
                 <% when :node %>
-                  <span class="text-green-600">Configured</span>
+                  <span class="text-success-6">Configured</span>
                 <% when :global %>
-                  <span class="text-green-600">Using global</span>
+                  <span class="text-success-6">Using global</span>
                 <% else %>
                   <span class="text-amber-600">Not configured</span>
                 <% end %>
@@ -59,22 +59,22 @@
 
       <%# Preflight Checks %>
       <div class="card-netbox">
-        <div class="card-header bg-slate-50">
-          <h4 class="text-xs font-bold uppercase text-slate-600">Pre-flight Checks</h4>
+        <div class="card-header bg-neutral-2">
+          <h4 class="text-xs font-bold uppercase text-neutral-45">Pre-flight Checks</h4>
         </div>
-        <div class="divide-y divide-slate-100">
+        <div class="divide-y divide-neutral-4">
           <% @preflight.checks.each do |check| %>
             <div class="px-3 py-2 flex items-start gap-3">
               <% if check.passed %>
-                <%= lucide_icon("circle-check", class: "h-5 w-5 text-green-500 flex-shrink-0") %>
+                <%= lucide_icon("circle-check", class: "h-5 w-5 text-success-5 flex-shrink-0") %>
               <% else %>
-                <%= lucide_icon("circle-x", class: "h-5 w-5 text-red-500 flex-shrink-0") %>
+                <%= lucide_icon("circle-x", class: "h-5 w-5 text-error-5 flex-shrink-0") %>
               <% end %>
               <div class="flex-1 min-w-0">
-                <p class="text-sm font-medium text-slate-700"><%= check.name %></p>
-                <p class="text-xs text-slate-500"><%= check.message %></p>
+                <p class="text-sm font-medium text-neutral-85"><%= check.name %></p>
+                <p class="text-xs text-neutral-45"><%= check.message %></p>
                 <% if check.details.present? && !check.passed %>
-                  <div class="mt-1 text-xs text-slate-600 bg-slate-50 rounded p-2 whitespace-pre-wrap font-mono"><%= check.details %></div>
+                  <div class="mt-1 text-xs text-neutral-45 bg-neutral-2 rounded p-2 whitespace-pre-wrap font-mono"><%= check.details %></div>
                 <% end %>
               </div>
             </div>
@@ -123,9 +123,9 @@
             },
             class: "space-y-4" do |f| %>
           <% if @form.errors.any? %>
-            <div class="rounded-md bg-red-50 p-4 border border-red-200">
-              <h3 class="text-sm font-bold text-red-800">Please correct the errors below</h3>
-              <div class="mt-2 text-xs text-red-700">
+            <div class="rounded-md bg-error-1 p-4 border border-error-2">
+              <h3 class="text-sm font-bold text-error-8">Please correct the errors below</h3>
+              <div class="mt-2 text-xs text-error-7">
                 <ul role="list" class="list-disc pl-5 space-y-1">
                   <% @form.errors.full_messages.each do |msg| %>
                     <li><%= msg %></li>
@@ -136,63 +136,63 @@
           <% end %>
 
           <div>
-            <%= f.label :benchmark_recipe_id, "Benchmark Recipe", class: "block text-sm font-bold text-slate-700 mb-1" %>
+            <%= f.label :benchmark_recipe_id, "Benchmark Recipe", class: "block text-sm font-bold text-neutral-85 mb-1" %>
             <%= f.select :benchmark_recipe_id,
                 options_from_collection_for_select(@benchmark_recipes, :id, :display_name, @form.benchmark_recipe_id),
                 { prompt: "Select a recipe..." },
-                { class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm",
+                { class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm",
                   data: {
                     benchmark_recipe_target: "select",
                     action: "change->benchmark-recipe#showDefaults"
                   } } %>
-            <p class="mt-1 text-[10px] text-slate-500 italic">
+            <p class="mt-1 text-[10px] text-neutral-45 italic">
               Select the benchmark recipe to run on this node.
             </p>
           </div>
 
           <div data-benchmark-recipe-target="defaults" class="hidden">
-            <div class="rounded-md bg-slate-50 p-3 border border-slate-200">
+            <div class="rounded-md bg-neutral-2 p-3 border border-neutral-8">
               <div class="flex items-center justify-between mb-2">
-                <h4 class="text-xs font-bold text-slate-600">Recipe Default Profile</h4>
+                <h4 class="text-xs font-bold text-neutral-45">Recipe Default Profile</h4>
                 <button type="button"
-                        class="text-[10px] text-teal-600 hover:text-teal-800 font-medium"
+                        class="text-[10px] text-primary-6 hover:text-primary-8 font-medium"
                         data-action="click->benchmark-recipe#populateOverrides">
                   Copy to overrides
                 </button>
               </div>
-              <pre data-benchmark-recipe-target="defaultsContent" class="text-xs text-slate-700 font-mono whitespace-pre-wrap"></pre>
+              <pre data-benchmark-recipe-target="defaultsContent" class="text-xs text-neutral-85 font-mono whitespace-pre-wrap"></pre>
             </div>
           </div>
 
           <div>
-            <%= f.label :argument_overrides, "Argument Overrides (Optional)", class: "block text-sm font-bold text-slate-700 mb-1" %>
+            <%= f.label :argument_overrides, "Argument Overrides (Optional)", class: "block text-sm font-bold text-neutral-85 mb-1" %>
             <%= f.text_area :argument_overrides,
                 rows: 3,
-                class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm font-mono",
+                class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm font-mono",
                 placeholder: '{"nx": 128, "ny": 128}',
                 data: { benchmark_recipe_target: "overrides" } %>
-            <p class="mt-1 text-[10px] text-slate-500 italic">
+            <p class="mt-1 text-[10px] text-neutral-45 italic">
               Optional JSON to override recipe defaults. Leave blank to use recipe defaults.
             </p>
           </div>
 
           <div>
-            <%= f.label :log_path, "Log File Path (Optional)", class: "block text-sm font-bold text-slate-700 mb-1" %>
+            <%= f.label :log_path, "Log File Path (Optional)", class: "block text-sm font-bold text-neutral-85 mb-1" %>
             <%= f.text_field :log_path,
-                class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm font-mono",
+                class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm font-mono",
                 placeholder: "/tmp/hpcg.log" %>
-            <p class="mt-1 text-[10px] text-slate-500 italic">
+            <p class="mt-1 text-[10px] text-neutral-45 italic">
               Leave blank to use the default generated log file.
             </p>
           </div>
 
-          <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
+          <div class="flex items-center justify-end gap-3 pt-4 border-t border-neutral-4">
             <button type="button" class="btn-secondary" data-action="modal#close">Cancel</button>
             <%= f.submit "Start Benchmark", class: "btn-primary" %>
           </div>
         <% end %>
       <% else %>
-        <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
+        <div class="flex items-center justify-end gap-3 pt-4 border-t border-neutral-4">
           <button type="button" class="btn-secondary" data-action="modal#close">Close</button>
           <button type="button" class="btn-primary opacity-50 cursor-not-allowed" disabled>Start Benchmark</button>
         </div>

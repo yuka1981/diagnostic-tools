@@ -13,13 +13,13 @@ RSpec.describe 'UI NetBox Theme Migration', type: :system do
       visit dashboard_path
 
       # Sidebar
-      expect(page).to have_selector('aside.bg-slate-900')
+      expect(page).to have_selector('aside.bg-neutral-85')
 
       # Top Header
-      expect(page).to have_selector('header.bg-white.border-slate-200')
+      expect(page).to have_selector('header.bg-white.border-neutral-8')
 
       # Page Background
-      expect(page).to have_selector('html.bg-slate-100')
+      expect(page).to have_selector('html.bg-neutral-4')
     end
 
     it 'renders breadcrumbs' do
@@ -60,7 +60,7 @@ RSpec.describe 'UI NetBox Theme Migration', type: :system do
     it 'uses NetBox input styles' do
       visit new_node_path
       # Use a selector that doesn't trigger pseudo-class issues in Capybara
-      expect(page).to have_css('input[class*="focus:ring-teal-500"]')
+      expect(page).to have_css('input[class*="focus:ring-primary-5"]')
     end
   end
 

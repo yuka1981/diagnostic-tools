@@ -2,34 +2,34 @@
   <div class="sm:mx-auto sm:w-full sm:max-w-md">
     <div class="card-netbox shadow-xl">
       <div class="card-header justify-center py-4">
-        <h2 class="text-lg font-black text-slate-800 uppercase tracking-tight">Sign in to your account</h2>
+        <h2 class="text-lg font-black text-neutral-85 uppercase tracking-tight">Sign in to your account</h2>
       </div>
 
       <div class="p-6">
         <%= form_for(resource, as: resource_name, url: session_path(resource_name), html: { class: "space-y-5" }) do |f| %>
           <div>
-            <%= f.label :email, class: "block text-xs font-bold text-slate-700 uppercase mb-1" %>
+            <%= f.label :email, class: "block text-xs font-bold text-neutral-85 uppercase mb-1" %>
             <%= f.email_field :email, autofocus: true, autocomplete: "email", 
-                class: "block w-full rounded border border-slate-300 py-1.5 px-3 text-slate-900 shadow-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500 sm:text-sm" %>
+                class: "block w-full rounded border border-neutral-15 py-1.5 px-3 text-neutral-85 shadow-sm focus:ring-2 focus:ring-primary-5 focus:border-primary-5 sm:text-sm" %>
           </div>
 
           <div>
-            <%= f.label :password, class: "block text-xs font-bold text-slate-700 uppercase mb-1" %>
+            <%= f.label :password, class: "block text-xs font-bold text-neutral-85 uppercase mb-1" %>
             <%= f.password_field :password, autocomplete: "current-password",
-                class: "block w-full rounded border border-slate-300 py-1.5 px-3 text-slate-900 shadow-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500 sm:text-sm" %>
+                class: "block w-full rounded border border-neutral-15 py-1.5 px-3 text-neutral-85 shadow-sm focus:ring-2 focus:ring-primary-5 focus:border-primary-5 sm:text-sm" %>
           </div>
 
           <div class="flex items-center justify-between">
             <% if devise_mapping.rememberable? %>
               <div class="flex items-center">
-                <%= f.check_box :remember_me, class: "h-4 w-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500" %>
-                <%= f.label :remember_me, class: "ml-2 block text-xs font-bold text-slate-600 uppercase" %>
+                <%= f.check_box :remember_me, class: "h-4 w-4 rounded border-neutral-15 text-primary-6 focus:ring-primary-5" %>
+                <%= f.label :remember_me, class: "ml-2 block text-xs font-bold text-neutral-45 uppercase" %>
               </div>
             <% end %>
 
             <% if devise_mapping.recoverable? && controller_name != 'passwords' %>
               <div class="text-xs">
-                <%= link_to "Forgot password?", new_password_path(resource_name), class: "font-bold text-teal-600 hover:text-teal-700" %>
+                <%= link_to "Forgot password?", new_password_path(resource_name), class: "font-bold text-primary-6 hover:text-primary-7" %>
               </div>
             <% end %>
           </div>
@@ -39,10 +39,10 @@
           </div>
         <% end %>
 
-        <div class="mt-6 border-t border-slate-100 pt-6 text-center">
-          <p class="text-xs text-slate-500">
+        <div class="mt-6 border-t border-neutral-4 pt-6 text-center">
+          <p class="text-xs text-neutral-45">
             Not a member?
-            <%= link_to "Create an account", new_registration_path(resource_name), class: "font-bold text-teal-600 hover:text-teal-700" %>
+            <%= link_to "Create an account", new_registration_path(resource_name), class: "font-bold text-primary-6 hover:text-primary-7" %>
           </p>
         </div>
       </div>

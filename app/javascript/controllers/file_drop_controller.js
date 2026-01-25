@@ -57,7 +57,7 @@ export default class extends Controller {
       nameSpan.textContent = file.name
 
       const sizeSpan = document.createElement("span")
-      sizeSpan.className = "text-gray-400 dark:text-slate-500"
+      sizeSpan.className = "text-gray-400 dark:text-neutral-45"
       sizeSpan.textContent = ` (${this.formatFileSize(file.size)})`
 
       this.labelTarget.appendChild(nameSpan)

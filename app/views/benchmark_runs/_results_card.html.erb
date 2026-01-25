@@ -7,17 +7,17 @@
       <h3 class="card-title">Results</h3>
       <% if run.completed? %>
         <% if run.success? %>
-          <span class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-bold text-green-800">
+          <span class="inline-flex items-center rounded-full bg-success-2 px-2.5 py-0.5 text-xs font-bold text-success-8">
             <%= lucide_icon("circle-check", class: "mr-1 h-3 w-3") %>
             PASS
           </span>
         <% elsif run.failed? %>
-          <span class="inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-bold text-red-800">
+          <span class="inline-flex items-center rounded-full bg-error-1 px-2.5 py-0.5 text-xs font-bold text-error-8">
             <%= lucide_icon("circle-x", class: "mr-1 h-3 w-3") %>
             FAIL
           </span>
         <% elsif run.cancelled? %>
-          <span class="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-bold text-slate-600">
+          <span class="inline-flex items-center rounded-full bg-neutral-4 px-2.5 py-0.5 text-xs font-bold text-neutral-45">
             Cancelled
           </span>
         <% end %>
@@ -28,55 +28,55 @@
   <div class="p-0">
     <% if run.pending? || run.running? %>
       <%# Waiting state %>
-      <div class="px-4 py-8 text-center bg-slate-50">
+      <div class="px-4 py-8 text-center bg-neutral-2">
         <% if run.running? %>
           <div class="flex items-center justify-center mb-3">
-            <%= lucide_icon("loader-2", class: "animate-spin h-6 w-6 text-teal-600") %>
+            <%= lucide_icon("loader-2", class: "animate-spin h-6 w-6 text-primary-6") %>
           </div>
-          <p class="text-slate-600 font-bold">Benchmark in progress...</p>
+          <p class="text-neutral-45 font-bold">Benchmark in progress...</p>
           <% if run.current_phase.present? %>
-            <p class="text-sm text-slate-500 mt-1">Phase: <%= run.current_phase %></p>
+            <p class="text-sm text-neutral-45 mt-1">Phase: <%= run.current_phase %></p>
           <% end %>
         <% else %>
-          <%= lucide_icon("clock", class: "mx-auto h-8 w-8 text-slate-400 mb-2") %>
-          <p class="text-slate-500 font-bold">Waiting for results...</p>
-          <p class="text-xs text-slate-400 mt-1">Results will appear once the benchmark completes</p>
+          <%= lucide_icon("clock", class: "mx-auto h-8 w-8 text-neutral-25 mb-2") %>
+          <p class="text-neutral-45 font-bold">Waiting for results...</p>
+          <p class="text-xs text-neutral-25 mt-1">Results will appear once the benchmark completes</p>
         <% end %>
       </div>
 
     <% elsif run.metrics.present? && run.metrics.any? %>
       <%# Metrics table %>
       <table class="w-full text-sm text-left">
-        <tbody class="divide-y divide-slate-100">
+        <tbody class="divide-y divide-neutral-4">
           <% # Prioritize key metrics at the top %>
           <% priority_keys = %w[gflops gflop_s bandwidth result score] %>
           <% sorted_metrics = run.metrics.sort_by { |k, _| priority_keys.index(k.to_s.downcase) || 999 } %>
 
           <% sorted_metrics.each do |key, value| %>
-            <tr class="hover:bg-slate-50">
-              <th class="px-4 py-2 font-bold text-slate-700 w-1/2 border-r border-slate-200">
+            <tr class="hover:bg-neutral-2">
+              <th class="px-4 py-2 font-bold text-neutral-85 w-1/2 border-r border-neutral-8">
                 <%= format_metric_key(key) %>
               </th>
               <td class="px-4 py-2 font-mono">
                 <% if key.to_s.downcase == "result" %>
                   <% if value.to_s.upcase == "PASS" || value.to_s.upcase == "VALID" %>
-                    <span class="text-green-600 font-bold"><%= value %></span>
+                    <span class="text-success-6 font-bold"><%= value %></span>
                   <% elsif value.to_s.upcase == "FAIL" || value.to_s.upcase == "INVALID" %>
-                    <span class="text-red-600 font-bold"><%= value %></span>
+                    <span class="text-error-6 font-bold"><%= value %></span>
                   <% else %>
-                    <span class="text-slate-700"><%= value %></span>
+                    <span class="text-neutral-85"><%= value %></span>
                   <% end %>
                 <% elsif value.is_a?(Numeric) %>
-                  <span class="text-slate-800 font-bold"><%= number_with_precision(value, precision: 4, strip_insignificant_zeros: true) %></span>
+                  <span class="text-neutral-85 font-bold"><%= number_with_precision(value, precision: 4, strip_insignificant_zeros: true) %></span>
                   <% if key.to_s.downcase.include?("gflop") %>
-                    <span class="text-slate-400 text-xs ml-1">GFLOP/s</span>
+                    <span class="text-neutral-25 text-xs ml-1">GFLOP/s</span>
                   <% elsif key.to_s.downcase.include?("bandwidth") %>
-                    <span class="text-slate-400 text-xs ml-1">GB/s</span>
+                    <span class="text-neutral-25 text-xs ml-1">GB/s</span>
                   <% elsif key.to_s.downcase.include?("time") || key.to_s.downcase.include?("duration") %>
-                    <span class="text-slate-400 text-xs ml-1">seconds</span>
+                    <span class="text-neutral-25 text-xs ml-1">seconds</span>
                   <% end %>
                 <% else %>
-                  <span class="text-slate-700"><%= value %></span>
+                  <span class="text-neutral-85"><%= value %></span>
                 <% end %>
               </td>
             </tr>
@@ -86,11 +86,11 @@
 
     <% else %>
       <%# No metrics available for completed run %>
-      <div class="px-4 py-8 text-center bg-slate-50">
-        <%= lucide_icon("clipboard", class: "mx-auto h-8 w-8 text-slate-400 mb-2") %>
-        <p class="text-slate-500 font-bold">No metrics recorded</p>
+      <div class="px-4 py-8 text-center bg-neutral-2">
+        <%= lucide_icon("clipboard", class: "mx-auto h-8 w-8 text-neutral-25 mb-2") %>
+        <p class="text-neutral-45 font-bold">No metrics recorded</p>
         <% if run.failed? %>
-          <p class="text-xs text-slate-400 mt-1">The benchmark failed before producing results</p>
+          <p class="text-xs text-neutral-25 mt-1">The benchmark failed before producing results</p>
         <% end %>
       </div>
     <% end %>

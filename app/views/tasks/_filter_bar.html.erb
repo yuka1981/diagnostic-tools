@@ -6,46 +6,46 @@
     <%= form_with url: tasks_path, method: :get, data: { controller: "autosubmit", turbo_frame: "tasks_list", turbo_action: "advance" }, class: "flex flex-wrap items-end gap-4" do |f| %>
       <%# Search Field %>
       <div class="flex-1 min-w-[200px]">
-        <label for="q" class="block text-xs font-bold text-slate-500 uppercase mb-1">Search</label>
+        <label for="q" class="block text-xs font-bold text-neutral-45 uppercase mb-1">Search</label>
         <%= f.text_field :q,
             value: @filter.search_query,
             placeholder: "Search by node, recipe, UUID...",
-            class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" %>
+            class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm" %>
       </div>
 
       <%# Type Filter %>
       <div class="w-32">
-        <label for="type" class="block text-xs font-bold text-slate-500 uppercase mb-1">Type</label>
+        <label for="type" class="block text-xs font-bold text-neutral-45 uppercase mb-1">Type</label>
         <%= f.select :type,
             options_for_select([["All Types", ""], ["Benchmark", "benchmark"], ["Profiling", "profiling"]], @filter.type_filter),
             {},
-            class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm",
+            class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm",
             data: { action: "change->autosubmit#submit" } %>
       </div>
 
       <%# Status Filter %>
       <div class="w-32">
-        <label for="status" class="block text-xs font-bold text-slate-500 uppercase mb-1">Status</label>
+        <label for="status" class="block text-xs font-bold text-neutral-45 uppercase mb-1">Status</label>
         <%= f.select :status,
             options_for_select([["All Statuses", ""]] + BenchmarkRun.statuses.keys.map { |s| [s.humanize, s] }, @filter.status),
             {},
-            class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm",
+            class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm",
             data: { action: "change->autosubmit#submit" } %>
       </div>
 
       <%# Node Filter %>
       <div class="w-40">
-        <label for="node_id" class="block text-xs font-bold text-slate-500 uppercase mb-1">Node</label>
+        <label for="node_id" class="block text-xs font-bold text-neutral-45 uppercase mb-1">Node</label>
         <%= f.select :node_id,
             options_for_select([["All Nodes", ""]] + @nodes.map { |n| [n.hostname, n.id] }, @filter.node_id),
             {},
-            class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm",
+            class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm",
             data: { action: "change->autosubmit#submit" } %>
       </div>
 
       <%# Recipe Filter %>
       <div class="w-48">
-        <label for="recipe_id" class="block text-xs font-bold text-slate-500 uppercase mb-1">Recipe</label>
+        <label for="recipe_id" class="block text-xs font-bold text-neutral-45 uppercase mb-1">Recipe</label>
         <%= f.select :recipe_id,
             options_for_select(
               [["All Recipes", ""]] +
@@ -54,13 +54,13 @@
               @filter.recipe_id
             ),
             {},
-            class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm",
+            class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm",
             data: { action: "change->autosubmit#submit" } %>
       </div>
 
       <%# Date Range Filter %>
       <div class="w-36">
-        <label for="date_range" class="block text-xs font-bold text-slate-500 uppercase mb-1">Date</label>
+        <label for="date_range" class="block text-xs font-bold text-neutral-45 uppercase mb-1">Date</label>
         <%= f.select :date_range,
             options_for_select([
               ["All Time", ""],
@@ -70,7 +70,7 @@
               ["Last 30 Days", "last_30d"]
             ], @filter.date_range),
             {},
-            class: "block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm",
+            class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm",
             data: { action: "change->autosubmit#submit" } %>
       </div>
 

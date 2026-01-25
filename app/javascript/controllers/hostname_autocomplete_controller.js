@@ -67,22 +67,22 @@ export default class extends Controller {
     let html = ""
 
     if (suggestions.length > 0) {
-      html += '<div class="px-3 py-2 text-xs font-medium text-slate-500 bg-slate-50">Suggestions</div>'
+      html += '<div class="px-3 py-2 text-xs font-medium text-neutral-45 bg-neutral-2">Suggestions</div>'
       suggestions.forEach(hostname => {
         html += `<button type="button"
-                         class="w-full px-3 py-2 text-left text-sm hover:bg-teal-50 text-teal-700 flex items-center justify-between"
+                         class="w-full px-3 py-2 text-left text-sm hover:bg-primary-1 text-primary-7 flex items-center justify-between"
                          data-action="click->hostname-autocomplete#select"
                          data-hostname="${this.escapeHtml(hostname)}">
                    ${this.escapeHtml(hostname)}
-                   <span class="text-xs text-teal-500">(next available)</span>
+                   <span class="text-xs text-primary-5">(next available)</span>
                  </button>`
       })
     }
 
     if (existing.length > 0) {
-      html += '<div class="px-3 py-2 text-xs font-medium text-slate-500 bg-slate-50 border-t">Existing (avoid duplicates)</div>'
+      html += '<div class="px-3 py-2 text-xs font-medium text-neutral-45 bg-neutral-2 border-t">Existing (avoid duplicates)</div>'
       existing.forEach(hostname => {
-        html += `<div class="px-3 py-2 text-sm text-slate-400 flex items-center justify-between">
+        html += `<div class="px-3 py-2 text-sm text-neutral-25 flex items-center justify-between">
                    ${this.escapeHtml(hostname)}
                    <span class="text-xs">(exists)</span>
                  </div>`
@@ -106,7 +106,7 @@ export default class extends Controller {
     const count = hostnames ? hostnames.length : 0
     const valid = !conflicts || conflicts.length === 0
 
-    let html = `<span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${valid ? "bg-teal-100 text-teal-800" : "bg-amber-100 text-amber-800"}">
+    let html = `<span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${valid ? "bg-primary-1 text-primary-8" : "bg-amber-100 text-amber-800"}">
                   ${count} node${count !== 1 ? "s" : ""} will be created`
 
     if (!valid && conflicts.length > 0) {

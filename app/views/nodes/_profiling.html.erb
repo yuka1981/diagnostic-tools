@@ -2,19 +2,19 @@
   <%# Quick Profiles %>
   <div class="card-netbox">
     <div class="card-header">
-      <h3 class="card-title text-xs font-bold text-slate-500 uppercase">Quick Profiles</h3>
+      <h3 class="card-title text-xs font-bold text-neutral-45 uppercase">Quick Profiles</h3>
     </div>
     <div class="p-4">
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <%# System Report %>
-        <div class="border border-slate-200 rounded-lg p-4 hover:border-teal-300 transition-colors">
+        <div class="border border-neutral-8 rounded-lg p-4 hover:border-primary-3 transition-colors">
           <div class="flex items-center gap-3 mb-2">
             <svg class="h-8 w-8 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
             <div>
-              <h4 class="font-bold text-slate-800">System Report</h4>
-              <p class="text-xs text-slate-500">Hardware & BIOS config</p>
+              <h4 class="font-bold text-neutral-85">System Report</h4>
+              <p class="text-xs text-neutral-45">Hardware & BIOS config</p>
             </div>
           </div>
           <% if current_user&.approver? %>
@@ -26,14 +26,14 @@
         </div>
 
         <%# Telemetry %>
-        <div class="border border-slate-200 rounded-lg p-4 hover:border-teal-300 transition-colors">
+        <div class="border border-neutral-8 rounded-lg p-4 hover:border-primary-3 transition-colors">
           <div class="flex items-center gap-3 mb-2">
-            <svg class="h-8 w-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="h-8 w-8 text-success-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
             </svg>
             <div>
-              <h4 class="font-bold text-slate-800">Telemetry</h4>
-              <p class="text-xs text-slate-500">60s performance metrics</p>
+              <h4 class="font-bold text-neutral-85">Telemetry</h4>
+              <p class="text-xs text-neutral-45">60s performance metrics</p>
             </div>
           </div>
           <% if current_user&.approver? %>
@@ -45,14 +45,14 @@
         </div>
 
         <%# Flame Graph %>
-        <div class="border border-slate-200 rounded-lg p-4 hover:border-teal-300 transition-colors">
+        <div class="border border-neutral-8 rounded-lg p-4 hover:border-primary-3 transition-colors">
           <div class="flex items-center gap-3 mb-2">
             <svg class="h-8 w-8 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z" />
             </svg>
             <div>
-              <h4 class="font-bold text-slate-800">Flame Graph</h4>
-              <p class="text-xs text-slate-500">CPU profiling visualization</p>
+              <h4 class="font-bold text-neutral-85">Flame Graph</h4>
+              <p class="text-xs text-neutral-45">CPU profiling visualization</p>
             </div>
           </div>
           <% if current_user&.approver? %>
@@ -65,9 +65,9 @@
       </div>
 
       <% if current_user&.approver? %>
-        <div class="mt-4 pt-4 border-t border-slate-100">
+        <div class="mt-4 pt-4 border-t border-neutral-4">
           <%= link_to new_node_profiling_run_path(node),
-              class: "text-sm text-teal-600 hover:text-teal-800 font-medium",
+              class: "text-sm text-primary-6 hover:text-primary-8 font-medium",
               data: { turbo_frame: "profiling_modal" } do %>
             + Custom Profile...
           <% end %>
@@ -79,28 +79,28 @@
   <%# Recent Profiling Runs %>
   <div class="card-netbox">
     <div class="card-header">
-      <h3 class="card-title text-xs font-bold text-slate-500 uppercase">Recent Profiling Runs</h3>
+      <h3 class="card-title text-xs font-bold text-neutral-45 uppercase">Recent Profiling Runs</h3>
     </div>
     <div class="overflow-x-auto">
       <% if node.profiling_runs.any? %>
-        <table class="min-w-full divide-y divide-slate-200">
-          <thead class="bg-slate-50">
+        <table class="min-w-full divide-y divide-neutral-8">
+          <thead class="bg-neutral-2">
             <tr>
-              <th class="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">Type</th>
-              <th class="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">Status</th>
-              <th class="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">Started</th>
-              <th class="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">Duration</th>
-              <th class="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">Actions</th>
+              <th class="px-4 py-2 text-left text-xs font-medium text-neutral-45 uppercase">Type</th>
+              <th class="px-4 py-2 text-left text-xs font-medium text-neutral-45 uppercase">Status</th>
+              <th class="px-4 py-2 text-left text-xs font-medium text-neutral-45 uppercase">Started</th>
+              <th class="px-4 py-2 text-left text-xs font-medium text-neutral-45 uppercase">Duration</th>
+              <th class="px-4 py-2 text-left text-xs font-medium text-neutral-45 uppercase">Actions</th>
             </tr>
           </thead>
-          <tbody id="profiling_runs_tbody" class="divide-y divide-slate-100">
+          <tbody id="profiling_runs_tbody" class="divide-y divide-neutral-4">
             <% node.profiling_runs.recent.limit(10).each do |run| %>
               <%= render "profiling_runs/run_row", run: run %>
             <% end %>
           </tbody>
         </table>
       <% else %>
-        <div class="p-8 text-center text-slate-500">No profiling runs recorded.</div>
+        <div class="p-8 text-center text-neutral-45">No profiling runs recorded.</div>
       <% end %>
     </div>
   </div>

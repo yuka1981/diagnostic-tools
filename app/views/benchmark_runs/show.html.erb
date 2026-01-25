@@ -1,24 +1,24 @@
 <% content_for(:page_title) { "Run ##{@benchmark_run.id}" } %>
 <% content_for(:breadcrumbs) do %>
   <span class="mx-2">/</span>
-  <%= link_to "Benchmark Runs", benchmark_runs_path, class: "hover:text-teal-600 font-bold" %>
+  <%= link_to "Benchmark Runs", benchmark_runs_path, class: "hover:text-primary-6 font-bold" %>
   <span class="mx-2">/</span>
-  <span class="font-medium text-slate-700">Run #<%= @benchmark_run.id %></span>
+  <span class="font-medium text-neutral-85">Run #<%= @benchmark_run.id %></span>
 <% end %>
 
 <%# Header with status %>
 <div class="mb-6 flex items-start justify-between">
   <div class="flex items-center gap-4">
-    <div class="flex h-14 w-14 items-center justify-center rounded-lg bg-white border border-slate-300 shadow-sm">
+    <div class="flex h-14 w-14 items-center justify-center rounded-lg bg-white border border-neutral-15 shadow-sm">
       <%= status_icon(@benchmark_run.status) %>
     </div>
     <div>
-      <h1 class="text-2xl font-bold text-slate-900">
+      <h1 class="text-2xl font-bold text-neutral-85">
         <%= @benchmark_run.benchmark_recipe.display_name %>
       </h1>
-      <p class="text-sm text-slate-500">
+      <p class="text-sm text-neutral-45">
         Run #<%= @benchmark_run.id %> on
-        <%= link_to @benchmark_run.node.hostname, node_path(@benchmark_run.node), class: "text-teal-600 font-bold hover:underline" %>
+        <%= link_to @benchmark_run.node.hostname, node_path(@benchmark_run.node), class: "text-primary-6 font-bold hover:underline" %>
       </p>
     </div>
   </div>
@@ -28,7 +28,7 @@
       <%= button_to cancel_benchmark_run_path(@benchmark_run),
           method: :post,
           data: { turbo_confirm: "Are you sure you want to cancel this benchmark run?" },
-          class: "inline-flex items-center gap-1 px-3 py-1.5 text-sm font-bold text-red-600 bg-white border border-red-300 rounded hover:bg-red-50 hover:border-red-400 transition-colors" do %>
+          class: "inline-flex items-center gap-1 px-3 py-1.5 text-sm font-bold text-error-6 bg-white border border-error-3 rounded hover:bg-error-1 hover:border-error-4 transition-colors" do %>
         <%= lucide_icon("x", class: "h-4 w-4") %>
         Cancel Run
       <% end %>
@@ -45,35 +45,35 @@
     </div>
     <div class="p-0">
       <table class="w-full text-sm text-left">
-        <tbody class="divide-y divide-slate-100">
-          <tr class="hover:bg-slate-50">
-            <th class="px-4 py-2 font-bold text-slate-700 w-1/3 border-r border-slate-200">Status</th>
+        <tbody class="divide-y divide-neutral-4">
+          <tr class="hover:bg-neutral-2">
+            <th class="px-4 py-2 font-bold text-neutral-85 w-1/3 border-r border-neutral-8">Status</th>
             <td class="px-4 py-2"><%= node_status_badge(@benchmark_run.status) %></td>
           </tr>
-          <tr class="hover:bg-slate-50">
-            <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">Node</th>
-            <td class="px-4 py-2"><%= link_to @benchmark_run.node.hostname, node_path(@benchmark_run.node), class: "text-teal-600 font-bold hover:underline" %></td>
+          <tr class="hover:bg-neutral-2">
+            <th class="px-4 py-2 font-bold text-neutral-85 border-r border-neutral-8">Node</th>
+            <td class="px-4 py-2"><%= link_to @benchmark_run.node.hostname, node_path(@benchmark_run.node), class: "text-primary-6 font-bold hover:underline" %></td>
           </tr>
-          <tr class="hover:bg-slate-50">
-            <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">Created</th>
-            <td class="px-4 py-2 text-slate-700"><%= l(@benchmark_run.created_at, format: :short) %></td>
+          <tr class="hover:bg-neutral-2">
+            <th class="px-4 py-2 font-bold text-neutral-85 border-r border-neutral-8">Created</th>
+            <td class="px-4 py-2 text-neutral-85"><%= l(@benchmark_run.created_at, format: :short) %></td>
           </tr>
-          <tr class="hover:bg-slate-50">
-            <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">Started</th>
-            <td class="px-4 py-2 text-slate-700"><%= @benchmark_run.started_at ? l(@benchmark_run.started_at, format: :short) : "—" %></td>
+          <tr class="hover:bg-neutral-2">
+            <th class="px-4 py-2 font-bold text-neutral-85 border-r border-neutral-8">Started</th>
+            <td class="px-4 py-2 text-neutral-85"><%= @benchmark_run.started_at ? l(@benchmark_run.started_at, format: :short) : "—" %></td>
           </tr>
-          <tr class="hover:bg-slate-50">
-            <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">Finished</th>
-            <td class="px-4 py-2 text-slate-700"><%= @benchmark_run.finished_at ? l(@benchmark_run.finished_at, format: :short) : "—" %></td>
+          <tr class="hover:bg-neutral-2">
+            <th class="px-4 py-2 font-bold text-neutral-85 border-r border-neutral-8">Finished</th>
+            <td class="px-4 py-2 text-neutral-85"><%= @benchmark_run.finished_at ? l(@benchmark_run.finished_at, format: :short) : "—" %></td>
           </tr>
-          <tr class="hover:bg-slate-50">
-            <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">Duration</th>
-            <td class="px-4 py-2 text-slate-700"><%= @benchmark_run.duration ? distance_of_time_in_words(@benchmark_run.duration) : "—" %></td>
+          <tr class="hover:bg-neutral-2">
+            <th class="px-4 py-2 font-bold text-neutral-85 border-r border-neutral-8">Duration</th>
+            <td class="px-4 py-2 text-neutral-85"><%= @benchmark_run.duration ? distance_of_time_in_words(@benchmark_run.duration) : "—" %></td>
           </tr>
           <% if @benchmark_run.log_path.present? %>
-            <tr class="hover:bg-slate-50">
-              <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">Log Path</th>
-              <td class="px-4 py-2 font-mono text-xs text-slate-600"><%= @benchmark_run.log_path %></td>
+            <tr class="hover:bg-neutral-2">
+              <th class="px-4 py-2 font-bold text-neutral-85 border-r border-neutral-8">Log Path</th>
+              <td class="px-4 py-2 font-mono text-xs text-neutral-45"><%= @benchmark_run.log_path %></td>
             </tr>
           <% end %>
         </tbody>
@@ -87,11 +87,11 @@
 
 <%# Error Message Card (full width) %>
 <% if @benchmark_run.error_message.present? %>
-  <div class="card-netbox border-red-300 mb-6">
-    <div class="card-header bg-red-50 border-red-300">
-      <h3 class="card-title text-red-800">Error Message</h3>
+  <div class="card-netbox border-error-3 mb-6">
+    <div class="card-header bg-error-1 border-error-3">
+      <h3 class="card-title text-error-8">Error Message</h3>
     </div>
-    <div class="p-4 bg-red-50 text-red-700 text-sm">
+    <div class="p-4 bg-error-1 text-error-7 text-sm">
       <pre class="whitespace-pre-wrap font-mono text-xs"><%= @benchmark_run.error_message %></pre>
     </div>
   </div>
@@ -108,11 +108,11 @@
       <div class="card-header cursor-pointer" data-action="click->collapsible#toggle">
         <div class="flex items-center justify-between w-full">
           <h3 class="card-title">Logs</h3>
-          <%= lucide_icon("chevron-down", class: "h-5 w-5 text-slate-400 transform transition-transform", data: { collapsible_target: "icon" }) %>
+          <%= lucide_icon("chevron-down", class: "h-5 w-5 text-neutral-25 transform transition-transform", data: { collapsible_target: "icon" }) %>
         </div>
       </div>
       <div data-collapsible-target="content" class="hidden">
-        <pre class="p-4 text-xs font-mono text-slate-700 bg-slate-50 overflow-x-auto max-h-96 whitespace-pre-wrap break-words border-t border-slate-200"><%= @benchmark_run.log_content %></pre>
+        <pre class="p-4 text-xs font-mono text-neutral-85 bg-neutral-2 overflow-x-auto max-h-96 whitespace-pre-wrap break-words border-t border-neutral-8"><%= @benchmark_run.log_content %></pre>
       </div>
     </div>
   <% end %>
@@ -122,40 +122,40 @@
     <div class="card-netbox">
       <div class="card-header">
         <h3 class="card-title">Artifacts</h3>
-        <span class="text-xs text-slate-500"><%= @benchmark_run.artifact_indices.count %> files</span>
+        <span class="text-xs text-neutral-45"><%= @benchmark_run.artifact_indices.count %> files</span>
       </div>
       <div class="p-0">
-        <table class="min-w-full divide-y divide-slate-200 text-sm">
-          <thead class="bg-slate-50">
+        <table class="min-w-full divide-y divide-neutral-8 text-sm">
+          <thead class="bg-neutral-2">
             <tr>
-              <th class="px-4 py-2 text-left text-xs font-bold uppercase text-slate-500">Name</th>
-              <th class="px-4 py-2 text-left text-xs font-bold uppercase text-slate-500">Type</th>
-              <th class="px-4 py-2 text-left text-xs font-bold uppercase text-slate-500">Size</th>
-              <th class="px-4 py-2 text-right text-xs font-bold uppercase text-slate-500">Actions</th>
+              <th class="px-4 py-2 text-left text-xs font-bold uppercase text-neutral-45">Name</th>
+              <th class="px-4 py-2 text-left text-xs font-bold uppercase text-neutral-45">Type</th>
+              <th class="px-4 py-2 text-left text-xs font-bold uppercase text-neutral-45">Size</th>
+              <th class="px-4 py-2 text-right text-xs font-bold uppercase text-neutral-45">Actions</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-slate-100 bg-white">
+          <tbody class="divide-y divide-neutral-4 bg-white">
             <% @benchmark_run.artifact_indices.each do |artifact| %>
-              <tr class="hover:bg-slate-50">
+              <tr class="hover:bg-neutral-2">
                 <td class="px-4 py-2">
-                  <div class="font-bold text-slate-700"><%= File.basename(artifact.path) %></div>
-                  <div class="text-[10px] font-mono text-slate-400 truncate max-w-xs"><%= artifact.path %></div>
+                  <div class="font-bold text-neutral-85"><%= File.basename(artifact.path) %></div>
+                  <div class="text-[10px] font-mono text-neutral-25 truncate max-w-xs"><%= artifact.path %></div>
                 </td>
-                <td class="px-4 py-2 text-slate-600 uppercase text-xs font-bold">
+                <td class="px-4 py-2 text-neutral-45 uppercase text-xs font-bold">
                   <%= artifact.file_type %>
                 </td>
-                <td class="px-4 py-2 text-slate-600 text-xs">
+                <td class="px-4 py-2 text-neutral-45 text-xs">
                   <%= artifact.size.present? ? number_to_human_size(artifact.size) : "—" %>
                 </td>
                 <td class="px-4 py-2 text-right">
                   <% if artifact.downloadable? %>
                     <%= link_to download_artifact_benchmark_run_path(@benchmark_run, artifact_id: artifact.id),
-                        class: "inline-flex items-center gap-1 text-teal-600 hover:text-teal-800 text-xs font-bold" do %>
+                        class: "inline-flex items-center gap-1 text-primary-6 hover:text-primary-8 text-xs font-bold" do %>
                       <%= lucide_icon("download", class: "h-4 w-4") %>
                       Download
                     <% end %>
                   <% else %>
-                    <span class="inline-flex items-center gap-1 text-slate-400 text-xs font-bold cursor-not-allowed" title="File not found on server">
+                    <span class="inline-flex items-center gap-1 text-neutral-25 text-xs font-bold cursor-not-allowed" title="File not found on server">
                       <%= lucide_icon("download", class: "h-4 w-4") %>
                       Unavailable
                     </span>

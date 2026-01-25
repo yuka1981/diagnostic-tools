@@ -6,9 +6,9 @@
 <div class="mb-6">
   <div class="flex items-center justify-between">
     <div class="flex items-center gap-4">
-      <h1 class="text-2xl font-bold text-slate-900"><%= @server_product.name %></h1>
+      <h1 class="text-2xl font-bold text-neutral-85"><%= @server_product.name %></h1>
       <% if @server_product.product_series.present? %>
-        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-teal-100 text-teal-800">
+        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-1 text-primary-8">
           <%= @server_product.product_series %>
         </span>
       <% end %>
@@ -40,15 +40,15 @@
         <% if @server_product.images.attached? %>
           <div class="space-y-4">
             <% @server_product.images.each do |image| %>
-              <%= image_tag image, class: "w-full rounded border border-slate-200" %>
+              <%= image_tag image, class: "w-full rounded border border-neutral-8" %>
             <% end %>
           </div>
         <% else %>
           <div class="flex flex-col items-center justify-center py-8 text-center">
-            <div class="h-12 w-12 rounded-full bg-slate-100 flex items-center justify-center mb-4">
-              <%= lucide_icon("image", class: "h-6 w-6 text-slate-400") %>
+            <div class="h-12 w-12 rounded-full bg-neutral-4 flex items-center justify-center mb-4">
+              <%= lucide_icon("image", class: "h-6 w-6 text-neutral-25") %>
             </div>
-            <p class="text-sm text-slate-500">No images available</p>
+            <p class="text-sm text-neutral-45">No images available</p>
           </div>
         <% end %>
       </div>
@@ -64,28 +64,28 @@
       </div>
       <div class="p-0">
         <table class="w-full text-sm text-left">
-          <tbody class="divide-y divide-slate-100">
-            <tr class="hover:bg-slate-50">
-              <th class="px-4 py-2 font-bold text-slate-700 w-1/3 border-r border-slate-200">Model Name</th>
-              <td class="px-4 py-2 text-slate-700 font-bold"><%= @server_product.name %></td>
+          <tbody class="divide-y divide-neutral-4">
+            <tr class="hover:bg-neutral-2">
+              <th class="px-4 py-2 font-bold text-neutral-85 w-1/3 border-r border-neutral-8">Model Name</th>
+              <td class="px-4 py-2 text-neutral-85 font-bold"><%= @server_product.name %></td>
             </tr>
-            <tr class="hover:bg-slate-50">
-              <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">Product Series</th>
-              <td class="px-4 py-2 text-slate-700"><%= @server_product.product_series.presence || "-" %></td>
+            <tr class="hover:bg-neutral-2">
+              <th class="px-4 py-2 font-bold text-neutral-85 border-r border-neutral-8">Product Series</th>
+              <td class="px-4 py-2 text-neutral-85"><%= @server_product.product_series.presence || "-" %></td>
             </tr>
-            <tr class="hover:bg-slate-50">
-              <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">Form Factor</th>
-              <td class="px-4 py-2 text-slate-700"><%= @server_product.form_factor.presence || "-" %></td>
+            <tr class="hover:bg-neutral-2">
+              <th class="px-4 py-2 font-bold text-neutral-85 border-r border-neutral-8">Form Factor</th>
+              <td class="px-4 py-2 text-neutral-85"><%= @server_product.form_factor.presence || "-" %></td>
             </tr>
-            <tr class="hover:bg-slate-50">
-              <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">Rack Height</th>
-              <td class="px-4 py-2 text-slate-700"><%= @server_product.rack_height.present? ? "#{@server_product.rack_height}U" : "-" %></td>
+            <tr class="hover:bg-neutral-2">
+              <th class="px-4 py-2 font-bold text-neutral-85 border-r border-neutral-8">Rack Height</th>
+              <td class="px-4 py-2 text-neutral-85"><%= @server_product.rack_height.present? ? "#{@server_product.rack_height}U" : "-" %></td>
             </tr>
-            <tr class="hover:bg-slate-50">
-              <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">QCT Product URL</th>
-              <td class="px-4 py-2 text-slate-700">
+            <tr class="hover:bg-neutral-2">
+              <th class="px-4 py-2 font-bold text-neutral-85 border-r border-neutral-8">QCT Product URL</th>
+              <td class="px-4 py-2 text-neutral-85">
                 <% if @server_product.qct_product_url.present? && @server_product.qct_product_url.start_with?("https://") %>
-                  <%= link_to @server_product.qct_product_url, @server_product.qct_product_url, target: "_blank", rel: "noopener noreferrer", class: "text-teal-600 hover:text-teal-700 hover:underline" %>
+                  <%= link_to @server_product.qct_product_url, @server_product.qct_product_url, target: "_blank", rel: "noopener noreferrer", class: "text-primary-6 hover:text-primary-7 hover:underline" %>
                 <% elsif @server_product.qct_product_url.present? %>
                   <%= @server_product.qct_product_url %>
                 <% else %>
@@ -93,9 +93,9 @@
                 <% end %>
               </td>
             </tr>
-            <tr class="hover:bg-slate-50">
-              <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">Last Synced</th>
-              <td class="px-4 py-2 text-slate-700"><%= @server_product.last_synced_at.present? ? time_ago_in_words(@server_product.last_synced_at) + " ago" : "Never" %></td>
+            <tr class="hover:bg-neutral-2">
+              <th class="px-4 py-2 font-bold text-neutral-85 border-r border-neutral-8">Last Synced</th>
+              <td class="px-4 py-2 text-neutral-85"><%= @server_product.last_synced_at.present? ? time_ago_in_words(@server_product.last_synced_at) + " ago" : "Never" %></td>
             </tr>
           </tbody>
         </table>
@@ -109,14 +109,14 @@
       </div>
       <div class="p-0">
         <table class="w-full text-sm text-left">
-          <tbody class="divide-y divide-slate-100">
-            <tr class="hover:bg-slate-50">
-              <th class="px-4 py-2 font-bold text-slate-700 w-1/3 border-r border-slate-200">CPU Generations</th>
-              <td class="px-4 py-2 text-slate-700">
+          <tbody class="divide-y divide-neutral-4">
+            <tr class="hover:bg-neutral-2">
+              <th class="px-4 py-2 font-bold text-neutral-85 w-1/3 border-r border-neutral-8">CPU Generations</th>
+              <td class="px-4 py-2 text-neutral-85">
                 <% if @server_product.cpu_generations.present? && @server_product.cpu_generations.any? %>
                   <div class="flex flex-wrap gap-1">
                     <% @server_product.cpu_generations.each do |gen| %>
-                      <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-100 text-slate-700"><%= gen %></span>
+                      <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-neutral-4 text-neutral-85"><%= gen %></span>
                     <% end %>
                   </div>
                 <% else %>
@@ -124,21 +124,21 @@
                 <% end %>
               </td>
             </tr>
-            <tr class="hover:bg-slate-50">
-              <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">Socket Count</th>
-              <td class="px-4 py-2 text-slate-700"><%= @server_product.socket_count.present? ? "#{@server_product.socket_count} Socket(s)" : "-" %></td>
+            <tr class="hover:bg-neutral-2">
+              <th class="px-4 py-2 font-bold text-neutral-85 border-r border-neutral-8">Socket Count</th>
+              <td class="px-4 py-2 text-neutral-85"><%= @server_product.socket_count.present? ? "#{@server_product.socket_count} Socket(s)" : "-" %></td>
             </tr>
-            <tr class="hover:bg-slate-50">
-              <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">Max TDP</th>
-              <td class="px-4 py-2 text-slate-700"><%= @server_product.max_tdp_watts.present? ? "#{@server_product.max_tdp_watts}W" : "-" %></td>
+            <tr class="hover:bg-neutral-2">
+              <th class="px-4 py-2 font-bold text-neutral-85 border-r border-neutral-8">Max TDP</th>
+              <td class="px-4 py-2 text-neutral-85"><%= @server_product.max_tdp_watts.present? ? "#{@server_product.max_tdp_watts}W" : "-" %></td>
             </tr>
-            <tr class="hover:bg-slate-50">
-              <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">GPU Support</th>
-              <td class="px-4 py-2 text-slate-700">
+            <tr class="hover:bg-neutral-2">
+              <th class="px-4 py-2 font-bold text-neutral-85 border-r border-neutral-8">GPU Support</th>
+              <td class="px-4 py-2 text-neutral-85">
                 <% if @server_product.gpu_support %>
-                  <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">Yes</span>
+                  <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-success-2 text-success-8">Yes</span>
                 <% else %>
-                  <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-100 text-slate-600">No</span>
+                  <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-neutral-4 text-neutral-45">No</span>
                 <% end %>
               </td>
             </tr>
@@ -154,22 +154,22 @@
       </div>
       <div class="p-0">
         <table class="w-full text-sm text-left">
-          <tbody class="divide-y divide-slate-100">
-            <tr class="hover:bg-slate-50">
-              <th class="px-4 py-2 font-bold text-slate-700 w-1/3 border-r border-slate-200">Max Memory</th>
-              <td class="px-4 py-2 text-slate-700"><%= @server_product.max_memory_gb.present? ? "#{@server_product.max_memory_gb} GB" : "-" %></td>
+          <tbody class="divide-y divide-neutral-4">
+            <tr class="hover:bg-neutral-2">
+              <th class="px-4 py-2 font-bold text-neutral-85 w-1/3 border-r border-neutral-8">Max Memory</th>
+              <td class="px-4 py-2 text-neutral-85"><%= @server_product.max_memory_gb.present? ? "#{@server_product.max_memory_gb} GB" : "-" %></td>
             </tr>
-            <tr class="hover:bg-slate-50">
-              <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">DIMM Slots</th>
-              <td class="px-4 py-2 text-slate-700"><%= @server_product.dimm_slots.presence || "-" %></td>
+            <tr class="hover:bg-neutral-2">
+              <th class="px-4 py-2 font-bold text-neutral-85 border-r border-neutral-8">DIMM Slots</th>
+              <td class="px-4 py-2 text-neutral-85"><%= @server_product.dimm_slots.presence || "-" %></td>
             </tr>
-            <tr class="hover:bg-slate-50">
-              <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">Memory Types</th>
-              <td class="px-4 py-2 text-slate-700">
+            <tr class="hover:bg-neutral-2">
+              <th class="px-4 py-2 font-bold text-neutral-85 border-r border-neutral-8">Memory Types</th>
+              <td class="px-4 py-2 text-neutral-85">
                 <% if @server_product.memory_types.present? && @server_product.memory_types.any? %>
                   <div class="flex flex-wrap gap-1">
                     <% @server_product.memory_types.each do |type| %>
-                      <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-100 text-slate-700"><%= type %></span>
+                      <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-neutral-4 text-neutral-85"><%= type %></span>
                     <% end %>
                   </div>
                 <% else %>
@@ -177,9 +177,9 @@
                 <% end %>
               </td>
             </tr>
-            <tr class="hover:bg-slate-50">
-              <th class="px-4 py-2 font-bold text-slate-700 border-r border-slate-200">Max Memory Speed</th>
-              <td class="px-4 py-2 text-slate-700"><%= @server_product.max_memory_speed_mhz.present? ? "#{@server_product.max_memory_speed_mhz} MHz" : "-" %></td>
+            <tr class="hover:bg-neutral-2">
+              <th class="px-4 py-2 font-bold text-neutral-85 border-r border-neutral-8">Max Memory Speed</th>
+              <td class="px-4 py-2 text-neutral-85"><%= @server_product.max_memory_speed_mhz.present? ? "#{@server_product.max_memory_speed_mhz} MHz" : "-" %></td>
             </tr>
           </tbody>
         </table>
@@ -194,26 +194,26 @@
       <div class="p-0">
         <% if @server_product.drive_bays.present? && @server_product.drive_bays.any? %>
           <table class="w-full text-sm text-left">
-            <thead class="bg-slate-50">
+            <thead class="bg-neutral-2">
               <tr>
-                <th class="px-4 py-2 text-xs font-bold uppercase text-slate-500 border-b">Count</th>
-                <th class="px-4 py-2 text-xs font-bold uppercase text-slate-500 border-b">Type</th>
-                <th class="px-4 py-2 text-xs font-bold uppercase text-slate-500 border-b">Form Factor</th>
+                <th class="px-4 py-2 text-xs font-bold uppercase text-neutral-45 border-b">Count</th>
+                <th class="px-4 py-2 text-xs font-bold uppercase text-neutral-45 border-b">Type</th>
+                <th class="px-4 py-2 text-xs font-bold uppercase text-neutral-45 border-b">Form Factor</th>
               </tr>
             </thead>
-            <tbody class="divide-y divide-slate-100">
+            <tbody class="divide-y divide-neutral-4">
               <% @server_product.drive_bays.each do |bay| %>
-                <tr class="hover:bg-slate-50">
-                  <td class="px-4 py-2 text-slate-700"><%= bay["count"] %></td>
-                  <td class="px-4 py-2 text-slate-700"><%= bay["type"] %></td>
-                  <td class="px-4 py-2 text-slate-700"><%= bay["form_factor"].present? ? "#{bay["form_factor"]}\"" : "-" %></td>
+                <tr class="hover:bg-neutral-2">
+                  <td class="px-4 py-2 text-neutral-85"><%= bay["count"] %></td>
+                  <td class="px-4 py-2 text-neutral-85"><%= bay["type"] %></td>
+                  <td class="px-4 py-2 text-neutral-85"><%= bay["form_factor"].present? ? "#{bay["form_factor"]}\"" : "-" %></td>
                 </tr>
               <% end %>
             </tbody>
           </table>
         <% else %>
           <div class="flex flex-col items-center justify-center py-8 text-center">
-            <p class="text-sm text-slate-500">No storage configuration specified</p>
+            <p class="text-sm text-neutral-45">No storage configuration specified</p>
           </div>
         <% end %>
       </div>
@@ -227,26 +227,26 @@
       <div class="p-0">
         <% if @server_product.pcie_slots.present? && @server_product.pcie_slots.any? %>
           <table class="w-full text-sm text-left">
-            <thead class="bg-slate-50">
+            <thead class="bg-neutral-2">
               <tr>
-                <th class="px-4 py-2 text-xs font-bold uppercase text-slate-500 border-b">Count</th>
-                <th class="px-4 py-2 text-xs font-bold uppercase text-slate-500 border-b">Generation</th>
-                <th class="px-4 py-2 text-xs font-bold uppercase text-slate-500 border-b">Lanes</th>
+                <th class="px-4 py-2 text-xs font-bold uppercase text-neutral-45 border-b">Count</th>
+                <th class="px-4 py-2 text-xs font-bold uppercase text-neutral-45 border-b">Generation</th>
+                <th class="px-4 py-2 text-xs font-bold uppercase text-neutral-45 border-b">Lanes</th>
               </tr>
             </thead>
-            <tbody class="divide-y divide-slate-100">
+            <tbody class="divide-y divide-neutral-4">
               <% @server_product.pcie_slots.each do |slot| %>
-                <tr class="hover:bg-slate-50">
-                  <td class="px-4 py-2 text-slate-700"><%= slot["count"] %></td>
-                  <td class="px-4 py-2 text-slate-700"><%= slot["generation"].present? ? "PCIe #{slot["generation"]}" : "-" %></td>
-                  <td class="px-4 py-2 text-slate-700"><%= slot["lanes"].present? ? "x#{slot["lanes"]}" : "-" %></td>
+                <tr class="hover:bg-neutral-2">
+                  <td class="px-4 py-2 text-neutral-85"><%= slot["count"] %></td>
+                  <td class="px-4 py-2 text-neutral-85"><%= slot["generation"].present? ? "PCIe #{slot["generation"]}" : "-" %></td>
+                  <td class="px-4 py-2 text-neutral-85"><%= slot["lanes"].present? ? "x#{slot["lanes"]}" : "-" %></td>
                 </tr>
               <% end %>
             </tbody>
           </table>
         <% else %>
           <div class="flex flex-col items-center justify-center py-8 text-center">
-            <p class="text-sm text-slate-500">No PCIe configuration specified</p>
+            <p class="text-sm text-neutral-45">No PCIe configuration specified</p>
           </div>
         <% end %>
       </div>
