@@ -66,6 +66,7 @@ const qpdmColors = {
 
   // Neutral - Black Scale (for light backgrounds)
   'black': {
+    DEFAULT: '#000000',  // Preserve bg-black/text-black
     2: '#FAFAFA',
     4: '#F5F5F5',
     6: '#F0F0F0',
@@ -78,6 +79,7 @@ const qpdmColors = {
 
   // Neutral - White Scale (for dark backgrounds)
   'white': {
+    DEFAULT: '#FFFFFF',  // Preserve bg-white/text-white
     4: '#1D1D1D',
     8: '#262626',
     12: '#303030',
