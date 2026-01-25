@@ -361,9 +361,15 @@ RSpec.describe "Tasks", type: :system do
       select "Benchmark", from: "Type"
       select "Success", from: "Status"
 
+      # Wait for page to stabilize after Turbo updates
+      expect(page).to have_content("Showing", wait: 5)
+
       within("tbody") do
         # Only run1 and run2 are benchmark + success
-        expect(page).to have_selector("tr[data-accordion-target='row'][id^='task_benchmark']", count: 2, wait: 5)
+        # Use simpler selector to avoid Playwright DOM query issues during Turbo updates
+        expect(page).to have_css("tr[data-accordion-target='row']", count: 2, wait: 5)
+        # Verify they are benchmark type (blue badge) not profiling (purple badge)
+        expect(page).to have_css(".bg-blue-100", minimum: 2)
         expect(page).not_to have_css(".bg-purple-100")
       end
     end
