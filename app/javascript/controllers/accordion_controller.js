@@ -1,15 +1,13 @@
 import { Controller } from "@hotwired/stimulus"
 
-// Handles accordion row expansion in tables with CSS Grid animation
+// Handles accordion row expansion in tables
 // Usage:
 //   <tbody data-controller="accordion">
 //     <tr data-accordion-target="row" data-action="click->accordion#toggle">
-//     <tr data-accordion-target="details">
-//       <td><div data-accordion-content class="grid grid-rows-[0fr]">...
+//     <tr data-accordion-target="details" class="hidden">
 export default class extends Controller {
   static targets = ["row", "details", "chevron"]
   static values = {
-    open: { type: Boolean, default: false },
     exclusive: { type: Boolean, default: true }
   }
 
@@ -26,19 +24,15 @@ export default class extends Controller {
 
     const details = this.detailsTargets[index]
     const chevron = this.chevronTargets[index]
-    const gridWrapper = details.querySelector("[data-accordion-content]")
-    const isCurrentlyOpen = gridWrapper?.classList.contains("grid-rows-[1fr]") ?? false
+    const isCurrentlyOpen = !details.classList.contains("hidden")
 
-    // Close all if exclusive mode
+    // Close all if exclusive mode and we're opening
     if (this.exclusiveValue && !isCurrentlyOpen) {
       this.closeAll()
     }
 
     // Toggle current
-    if (gridWrapper) {
-      gridWrapper.classList.toggle("grid-rows-[1fr]", !isCurrentlyOpen)
-      gridWrapper.classList.toggle("grid-rows-[0fr]", isCurrentlyOpen)
-    }
+    details.classList.toggle("hidden", isCurrentlyOpen)
     if (chevron) {
       chevron.classList.toggle("rotate-90", !isCurrentlyOpen)
     }
@@ -47,11 +41,7 @@ export default class extends Controller {
 
   closeAll() {
     this.detailsTargets.forEach((details, index) => {
-      const gridWrapper = details.querySelector("[data-accordion-content]")
-      if (gridWrapper) {
-        gridWrapper.classList.remove("grid-rows-[1fr]")
-        gridWrapper.classList.add("grid-rows-[0fr]")
-      }
+      details.classList.add("hidden")
       const chevron = this.chevronTargets[index]
       if (chevron) {
         chevron.classList.remove("rotate-90")
