@@ -24,8 +24,6 @@ class DashboardController < ApplicationController
     @selected_node = Node.find_by(id: params[:node_id])
 
     # Load runs with optional node filter
-    runs_scope = BenchmarkRun.recent.includes(:node, :benchmark_recipe)
-    runs_scope = runs_scope.for_node(@selected_node) if @selected_node
-    @filtered_runs = runs_scope.limit(10)
+    @filtered_runs = BenchmarkRun.recent_for_dashboard(@selected_node)
   end
 end

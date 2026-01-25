@@ -15,6 +15,14 @@ class BenchmarkRun < ApplicationRecord
     cancelled: 4
   }, default: :pending
 
+  # Maps agent-reported status strings to model status symbols
+  AGENT_STATUS_MAP = {
+    "PASS" => :success,
+    "FAIL" => :failed,
+    "ERROR" => :failed,
+    "RUNNING" => :running
+  }.freeze
+
   # Validations
   validates :status, presence: true
   validates :uuid, presence: true, uniqueness: true
@@ -31,6 +39,21 @@ class BenchmarkRun < ApplicationRecord
   scope :successful, -> { where(status: :success) }
   scope :for_node, ->(node) { where(node: node) }
   scope :in_last_24_hours, -> { where(started_at: 24.hours.ago..) }
+  scope :recent_for_dashboard, ->(node = nil) {
+    scope = recent.includes(:node, :benchmark_recipe)
+                  .where.not(benchmark_recipe_id: nil)
+                  .where.not(node_id: nil)
+    scope = scope.for_node(node) if node
+    scope.limit(10)
+  }
+
+  # Class methods
+  # Converts agent status string to model status symbol
+  # @param agent_status [String] Status from agent (PASS, FAIL, ERROR, RUNNING)
+  # @return [Symbol, nil] Model status symbol or nil if unknown
+  def self.status_from_agent(agent_status)
+    AGENT_STATUS_MAP[agent_status]
+  end
 
   # Instance methods
   def duration

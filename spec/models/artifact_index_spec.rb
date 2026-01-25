@@ -91,4 +91,85 @@ RSpec.describe ArtifactIndex, type: :model do
       end
     end
   end
+
+  describe "#safe_download_path" do
+    let(:benchmark_run) { create(:benchmark_run) }
+
+    context "with stored_path" do
+      let(:artifact) { create(:artifact_index, benchmark_run: benchmark_run, stored_path: stored_path, path: "/legacy/path") }
+
+      context "when file exists in storage" do
+        let(:stored_path) { Rails.root.join("storage", "artifacts", "test.txt").to_s }
+
+        before do
+          FileUtils.mkdir_p(File.dirname(stored_path))
+          File.write(stored_path, "test content")
+        end
+
+        after { FileUtils.rm_f(stored_path) }
+
+        it "returns the stored_path" do
+          expect(artifact.safe_download_path).to eq(stored_path)
+        end
+      end
+
+      context "when stored file does not exist" do
+        let(:stored_path) { "/storage/artifacts/nonexistent.txt" }
+
+        it "returns nil" do
+          expect(artifact.safe_download_path).to be_nil
+        end
+      end
+    end
+
+    context "with path traversal attempt" do
+      let(:artifact) { create(:artifact_index, benchmark_run: benchmark_run, stored_path: "/storage/artifacts/../../../etc/passwd") }
+
+      it "returns nil" do
+        expect(artifact.safe_download_path).to be_nil
+      end
+    end
+
+    context "with path traversal attempt via sibling directory" do
+      let(:evil_dir) { Rails.root.join("storage", "artifacts-evil").to_s }
+      let(:evil_file) { File.join(evil_dir, "secret.txt") }
+      let(:artifact) { create(:artifact_index, benchmark_run: benchmark_run, stored_path: evil_file) }
+
+      before do
+        FileUtils.mkdir_p(evil_dir)
+        File.write(evil_file, "secret content")
+      end
+
+      after { FileUtils.rm_rf(evil_dir) }
+
+      it "returns nil" do
+        expect(artifact.safe_download_path).to be_nil
+      end
+    end
+  end
+
+  describe "#mime_type" do
+    let(:benchmark_run) { create(:benchmark_run) }
+
+    {
+      "txt" => "text/plain",
+      "log" => "text/plain",
+      "dat" => "text/plain",
+      "yaml" => "text/yaml",
+      "yml" => "text/yaml",
+      "json" => "application/json",
+      "csv" => "text/csv",
+      "pdf" => "application/pdf",
+      "tar" => "application/gzip",
+      "gz" => "application/gzip",
+      "tgz" => "application/gzip",
+      "zip" => "application/zip",
+      "unknown" => "application/octet-stream"
+    }.each do |file_type, expected_mime|
+      it "returns #{expected_mime} for #{file_type}" do
+        artifact = build(:artifact_index, benchmark_run: benchmark_run, file_type: file_type)
+        expect(artifact.mime_type).to eq(expected_mime)
+      end
+    end
+  end
 end

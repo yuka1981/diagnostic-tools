@@ -1,8 +1,7 @@
 <% content_for(:page_title) { "Tasks" } %>
 
-<div data-controller="accordion auto-refresh"
-     data-auto-refresh-frame-value="tasks_list"
-     data-accordion-exclusive-value="true">
+<div data-controller="auto-refresh"
+     data-auto-refresh-frame-value="tasks_list">
 
   <div class="flex items-center justify-between mb-6">
     <h1 class="text-2xl font-bold text-slate-900">Tasks</h1>
@@ -57,7 +56,7 @@
                 </th>
               </tr>
             </thead>
-            <tbody class="divide-y divide-slate-200 bg-white">
+            <tbody class="divide-y divide-slate-200 bg-white" data-controller="accordion" data-accordion-exclusive-value="true">
               <% @tasks.each do |task| %>
                 <%= render "tasks/task_row", task: task %>
                 <%= render "tasks/task_details", task: task %>

@@ -5,8 +5,8 @@
       "note": "Path is validated by validate_artifact_path method which uses File.expand_path and verifies the path starts with PROFILING_ARTIFACTS_PATH base directory. Path traversal attacks are prevented."
     },
     {
-      "fingerprint": "eba7d6cf0d3b34f49314cd8aad4fce6b207dfa09550918a33e90b441712878b4",
-      "note": "Path is validated by validated_artifact_path method which ensures the path is within allowed storage/artifacts or artifacts_base_path directories. Path traversal attacks are prevented by Pathname#cleanpath and prefix check."
+      "fingerprint": "f187750b92112684fc6c901bfb1b127f94a45ff06d0284ff656e4f01676f337f",
+      "note": "Path is validated by ArtifactIndex#safe_download_path model method which ensures the path is within allowed storage/artifacts or artifacts_base_path directories. Path traversal attacks are prevented by Pathname#cleanpath and prefix check. Validation logic moved from controller to model for better separation of concerns."
     },
     {
       "fingerprint": "7b6c3c7e90f6842f339c03f9c6969f3cc5933f578002d1dc5469e1a8d76dd372",
@@ -25,6 +25,6 @@
       "note": "Node :role refers to HPC node type (admin/compute/login), not user authorization. Access to this controller is already protected by authorize_approver! before_action. Only approvers can create/edit nodes."
     }
   ],
-  "updated": "2026-01-22",
+  "updated": "2026-01-24",
   "brakeman_version": "7.1.2"
 }

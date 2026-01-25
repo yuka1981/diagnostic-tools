@@ -15,7 +15,8 @@ gem "turbo-rails"
 # Hotwire's modest JavaScript framework [https://stimulus.hotwired.dev]
 gem "stimulus-rails"
 # Use Tailwind CSS [https://github.com/rails/tailwindcss-rails]
-gem "tailwindcss-rails"
+# Pinned to v2.7.x for Tailwind CSS v3 which supports arbitrary values like grid-rows-[0fr]
+gem "tailwindcss-rails", "~> 2.7"
 # Build JSON APIs with ease [https://github.com/rails/jbuilder]
 gem "jbuilder"
 # CSV parsing (required from Ruby 3.4.0+) [https://github.com/ruby/csv]

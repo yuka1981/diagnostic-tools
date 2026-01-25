@@ -2,13 +2,12 @@ import { Controller } from "@hotwired/stimulus"
 
 // Handles accordion row expansion in tables
 // Usage:
-//   <div data-controller="accordion">
+//   <tbody data-controller="accordion">
 //     <tr data-accordion-target="row" data-action="click->accordion#toggle">
 //     <tr data-accordion-target="details" class="hidden">
 export default class extends Controller {
   static targets = ["row", "details", "chevron"]
   static values = {
-    open: { type: Boolean, default: false },
     exclusive: { type: Boolean, default: true }
   }
 
@@ -27,7 +26,7 @@ export default class extends Controller {
     const chevron = this.chevronTargets[index]
     const isCurrentlyOpen = !details.classList.contains("hidden")
 
-    // Close all if exclusive mode
+    // Close all if exclusive mode and we're opening
     if (this.exclusiveValue && !isCurrentlyOpen) {
       this.closeAll()
     }

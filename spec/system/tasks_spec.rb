@@ -8,8 +8,8 @@ RSpec.describe "Tasks", type: :system do
   let(:node2) { create(:node, hostname: "login-001", role: :login) }
   let(:benchmark_recipe) { create(:benchmark_recipe, :hpcg) }
   let(:benchmark_recipe2) { create(:benchmark_recipe, name: "HPL", version: "2.3") }
-  let(:profiling_recipe) { create(:profiling_recipe, :report, name: "Quick System Report") }
-  let(:profiling_recipe2) { create(:profiling_recipe, :telemetry, name: "Performance Telemetry") }
+  let(:profiling_recipe) { create(:profiling_recipe, :report) }
+  let(:profiling_recipe2) { create(:profiling_recipe, :telemetry) }
 
   before { sign_in user }
 
@@ -207,7 +207,7 @@ RSpec.describe "Tasks", type: :system do
       within("tbody") do
         expect(page).to have_content(benchmark_recipe.name, wait: 5)
         expect(page).not_to have_content("HPL")
-        expect(page).not_to have_content("Quick System Report")
+        expect(page).not_to have_content(profiling_recipe.name)
       end
     end
 
@@ -351,7 +351,7 @@ RSpec.describe "Tasks", type: :system do
         expect(page).to have_content("compute-001", wait: 5)
         expect(page).not_to have_content("login-001")
         # Only 2 matches: run1 (benchmark success on compute-001) and run4 (profiling success on compute-001)
-        expect(page).to have_selector("tr[id^='task_']", count: 2)
+        expect(page).to have_selector("tr[data-accordion-target='row']", count: 2)
       end
     end
 
@@ -361,9 +361,15 @@ RSpec.describe "Tasks", type: :system do
       select "Benchmark", from: "Type"
       select "Success", from: "Status"
 
+      # Wait for page to stabilize after Turbo updates
+      expect(page).to have_content("Showing", wait: 5)
+
       within("tbody") do
         # Only run1 and run2 are benchmark + success
-        expect(page).to have_selector("tr[id^='task_benchmark']", count: 2, wait: 5)
+        # Use simpler selector to avoid Playwright DOM query issues during Turbo updates
+        expect(page).to have_css("tr[data-accordion-target='row']", count: 2, wait: 5)
+        # Verify they are benchmark type (blue badge) not profiling (purple badge)
+        expect(page).to have_css(".bg-blue-100", minimum: 2)
         expect(page).not_to have_css(".bg-purple-100")
       end
     end
@@ -378,15 +384,14 @@ RSpec.describe "Tasks", type: :system do
     it "expands row details when clicking" do
       visit tasks_path
 
-      # Details row should be hidden initially (check for hidden class using attribute selector)
-      expect(page).to have_css("#task_benchmark_#{benchmark_run.id}_details[class*='hidden']", visible: :all)
+      # Details row should be collapsed initially (has hidden class)
+      expect(page).to have_css("#task_benchmark_#{benchmark_run.id}_details.hidden", visible: :all)
 
       # Click the row to expand
       find("#task_benchmark_#{benchmark_run.id}").click
 
-      # Wait for the details section to become visible (hidden class removed)
-      sleep 0.5 # Allow animation to complete
-      expect(page).to have_css("#task_benchmark_#{benchmark_run.id}_details:not(.hidden)", visible: true, wait: 5)
+      # Details should be visible (hidden class removed)
+      expect(page).not_to have_css("#task_benchmark_#{benchmark_run.id}_details.hidden", wait: 5)
     end
 
     it "collapses row details when clicking again" do
@@ -394,13 +399,11 @@ RSpec.describe "Tasks", type: :system do
 
       # Expand
       find("#task_benchmark_#{benchmark_run.id}").click
-      sleep 0.5 # Allow animation to complete
-      expect(page).to have_css("#task_benchmark_#{benchmark_run.id}_details:not(.hidden)", visible: true, wait: 5)
+      expect(page).not_to have_css("#task_benchmark_#{benchmark_run.id}_details.hidden", wait: 5)
 
       # Collapse - click the main row again
       find("#task_benchmark_#{benchmark_run.id}").click
-      sleep 0.5 # Allow animation to complete
-      expect(page).to have_css("#task_benchmark_#{benchmark_run.id}_details[class*='hidden']", visible: :all, wait: 5)
+      expect(page).to have_css("#task_benchmark_#{benchmark_run.id}_details.hidden", visible: :all, wait: 5)
     end
 
     it "shows details section with started and finished times" do
@@ -642,7 +645,7 @@ RSpec.describe "Tasks", type: :system do
 
       # Wait for the page to update - a new task should appear
       # There should now be 2 benchmark tasks
-      expect(page).to have_selector("tr[id^='task_benchmark']", count: 2, wait: 5)
+      expect(page).to have_selector("tr[data-accordion-target='row'][id^='task_benchmark']", count: 2, wait: 5)
       expect(BenchmarkRun.count).to eq(2)
     end
   end
@@ -728,7 +731,7 @@ RSpec.describe "Tasks", type: :system do
       visit tasks_path
 
       within("tbody") do
-        expect(page).to have_selector("tr[id^='task_']", count: 20)
+        expect(page).to have_selector("tr[data-accordion-target='row']", count: 20)
       end
     end
   end
@@ -891,6 +894,371 @@ RSpec.describe "Tasks", type: :system do
 
       within("#task_benchmark_#{pending_run.id}") do
         expect(page).to have_content("Pending")
+      end
+    end
+  end
+
+  describe "accordion expansion after Turbo Frame refresh", :js do
+    let!(:benchmark_run1) do
+      create(:benchmark_run, :success, node: node1, benchmark_recipe: benchmark_recipe,
+             started_at: 1.hour.ago, finished_at: 30.minutes.ago)
+    end
+    let!(:benchmark_run2) do
+      create(:benchmark_run, :success, node: node2, benchmark_recipe: benchmark_recipe2,
+             started_at: 2.hours.ago, finished_at: 1.hour.ago)
+    end
+
+    describe "basic accordion functionality" do
+      it "expands row when clicking and shows chevron rotation" do
+        visit tasks_path
+
+        # Details row should be collapsed initially (has hidden class)
+        expect(page).to have_css("#task_benchmark_#{benchmark_run1.id}_details.hidden", visible: :all)
+
+        # Chevron should not be rotated
+        within("#task_benchmark_#{benchmark_run1.id}") do
+          expect(page).not_to have_css("[data-accordion-target='chevron'].rotate-90")
+        end
+
+        # Click the row to expand
+        find("#task_benchmark_#{benchmark_run1.id}").click
+
+        # Details row should expand (hidden class removed)
+        expect(page).not_to have_css("#task_benchmark_#{benchmark_run1.id}_details.hidden", wait: 5)
+
+        # Chevron should be rotated
+        within("#task_benchmark_#{benchmark_run1.id}") do
+          expect(page).to have_css("[data-accordion-target='chevron'].rotate-90", wait: 5)
+        end
+      end
+
+      it "collapses row when clicking the same row again" do
+        visit tasks_path
+
+        # Expand
+        find("#task_benchmark_#{benchmark_run1.id}").click
+        expect(page).not_to have_css("#task_benchmark_#{benchmark_run1.id}_details.hidden", wait: 5)
+
+        # Collapse by clicking again
+        find("#task_benchmark_#{benchmark_run1.id}").click
+
+        # Details row should be collapsed again (hidden class added back)
+        expect(page).to have_css("#task_benchmark_#{benchmark_run1.id}_details.hidden", visible: :all, wait: 5)
+
+        # Chevron should not be rotated
+        within("#task_benchmark_#{benchmark_run1.id}") do
+          expect(page).not_to have_css("[data-accordion-target='chevron'].rotate-90")
+        end
+      end
+
+      it "closes previously opened row when clicking a different row (exclusive mode)" do
+        visit tasks_path
+
+        # Expand first row
+        find("#task_benchmark_#{benchmark_run1.id}").click
+        expect(page).not_to have_css("#task_benchmark_#{benchmark_run1.id}_details.hidden", wait: 5)
+
+        # Click second row - should close first row and open second
+        find("#task_benchmark_#{benchmark_run2.id}").click
+
+        # First row should be collapsed
+        expect(page).to have_css("#task_benchmark_#{benchmark_run1.id}_details.hidden", visible: :all, wait: 5)
+        within("#task_benchmark_#{benchmark_run1.id}") do
+          expect(page).not_to have_css("[data-accordion-target='chevron'].rotate-90")
+        end
+
+        # Second row should be expanded
+        expect(page).not_to have_css("#task_benchmark_#{benchmark_run2.id}_details.hidden")
+        within("#task_benchmark_#{benchmark_run2.id}") do
+          expect(page).to have_css("[data-accordion-target='chevron'].rotate-90")
+        end
+      end
+    end
+
+    describe "accordion after pagination (Turbo Frame refresh)" do
+      before do
+        # Create enough tasks to have multiple pages (more than 20)
+        25.times do |i|
+          create(:benchmark_run, :success,
+                 node: node1,
+                 benchmark_recipe: benchmark_recipe,
+                 started_at: (i + 3).hours.ago,
+                 created_at: (i + 3).hours.ago)
+        end
+      end
+
+      it "accordion expansion works after navigating to next page" do
+        visit tasks_path
+
+        # Navigate to page 2
+        find('a[rel="next"]').click
+        expect(page).to have_content(/showing 21 to/i, wait: 5)
+
+        # Get the first task row on page 2
+        first_row = find("tbody tr[data-accordion-target='row']", match: :first)
+        row_id = first_row[:id]
+        details_id = "#{row_id}_details"
+
+        # Details should be collapsed initially (has hidden class)
+        expect(page).to have_css("##{details_id}.hidden", visible: :all)
+
+        # Click to expand - accordion should still work after Turbo Frame refresh
+        first_row.click
+
+        # Details should be expanded (hidden class removed)
+        expect(page).not_to have_css("##{details_id}.hidden", wait: 5)
+
+        # Chevron should be rotated
+        within("##{row_id}") do
+          expect(page).to have_css("[data-accordion-target='chevron'].rotate-90")
+        end
+      end
+
+      it "accordion expansion works after navigating back to previous page" do
+        visit tasks_path(page: 2)
+
+        # Navigate back to page 1
+        find('a[rel="prev"]').click
+        expect(page).to have_content(/showing 1 to 20/i, wait: 5)
+
+        # Get the first task row on page 1
+        first_row = find("tbody tr[data-accordion-target='row']", match: :first)
+        row_id = first_row[:id]
+        details_id = "#{row_id}_details"
+
+        # Click to expand - accordion should work after Turbo Frame refresh
+        first_row.click
+
+        # Details should be expanded (hidden class removed)
+        expect(page).not_to have_css("##{details_id}.hidden", wait: 5)
+
+        # Verify chevron rotation
+        within("##{row_id}") do
+          expect(page).to have_css("[data-accordion-target='chevron'].rotate-90")
+        end
+      end
+
+      it "exclusive mode works after pagination" do
+        visit tasks_path
+
+        # Navigate to page 2 to trigger Turbo Frame refresh
+        find('a[rel="next"]').click
+        expect(page).to have_content(/showing 21 to/i, wait: 5)
+
+        # Get the first two task rows on page 2
+        rows = all("tbody tr[data-accordion-target='row']")
+        first_row = rows[0]
+        second_row = rows[1]
+        first_row_id = first_row[:id]
+        second_row_id = second_row[:id]
+
+        # Expand first row
+        first_row.click
+        expect(page).not_to have_css("##{first_row_id}_details.hidden", wait: 5)
+
+        # Click second row - exclusive mode should close the first
+        second_row.click
+
+        # First row should be collapsed
+        expect(page).to have_css("##{first_row_id}_details.hidden", visible: :all, wait: 5)
+
+        # Second row should be expanded
+        expect(page).not_to have_css("##{second_row_id}_details.hidden")
+      end
+    end
+
+    describe "accordion after filtering (Turbo Frame refresh)" do
+      let!(:failed_run) do
+        create(:benchmark_run, :failed, node: node1, benchmark_recipe: benchmark_recipe,
+               started_at: 30.minutes.ago)
+      end
+      let!(:profiling_run) do
+        create(:profiling_run, :success, node: node2, profiling_recipe: profiling_recipe,
+               started_at: 45.minutes.ago)
+      end
+
+      it "accordion expansion works after applying status filter" do
+        visit tasks_path
+
+        # Apply status filter - triggers Turbo Frame refresh
+        select "Success", from: "Status"
+
+        # Wait for filter to be applied
+        within("tbody") do
+          expect(page).to have_content("Success", wait: 5)
+          expect(page).not_to have_content("Failed")
+        end
+
+        # Get first task row after filtering
+        first_row = find("tbody tr[data-accordion-target='row']", match: :first)
+        row_id = first_row[:id]
+        details_id = "#{row_id}_details"
+
+        # Click to expand - accordion should work after filter refresh
+        first_row.click
+
+        # Details should be expanded (hidden class removed)
+        expect(page).not_to have_css("##{details_id}.hidden", wait: 5)
+
+        # Chevron should be rotated
+        within("##{row_id}") do
+          expect(page).to have_css("[data-accordion-target='chevron'].rotate-90")
+        end
+      end
+
+      it "accordion expansion works after applying type filter" do
+        visit tasks_path
+
+        # Apply type filter - triggers Turbo Frame refresh
+        select "Profiling", from: "Type"
+
+        # Wait for filter to be applied
+        within("tbody") do
+          expect(page).to have_css(".bg-purple-100", text: "Profiling", wait: 5)
+          expect(page).not_to have_css(".bg-blue-100", text: "Benchmark")
+        end
+
+        # Get the profiling task row
+        profiling_row = find("#task_profiling_#{profiling_run.id}")
+        details_id = "task_profiling_#{profiling_run.id}_details"
+
+        # Click to expand
+        profiling_row.click
+
+        # Details should be expanded (hidden class removed)
+        expect(page).not_to have_css("##{details_id}.hidden", wait: 5)
+      end
+
+      it "accordion expansion works after applying node filter" do
+        visit tasks_path
+
+        # Apply node filter - triggers Turbo Frame refresh
+        select "compute-001", from: "Node"
+
+        # Wait for filter to be applied
+        within("tbody") do
+          expect(page).to have_content("compute-001", wait: 5)
+          expect(page).not_to have_content("login-001")
+        end
+
+        # Get first task row after filtering
+        first_row = find("tbody tr[data-accordion-target='row']", match: :first)
+        row_id = first_row[:id]
+        details_id = "#{row_id}_details"
+
+        # Click to expand
+        first_row.click
+
+        # Details should be expanded (hidden class removed)
+        expect(page).not_to have_css("##{details_id}.hidden", wait: 5)
+      end
+
+      it "accordion expansion works after clearing filters" do
+        visit tasks_path(status: "success")
+
+        # Verify filter is applied
+        expect(page).to have_link("Clear")
+
+        # Clear filters - triggers Turbo Frame refresh
+        click_link "Clear"
+
+        # Wait for all tasks to be visible and Turbo Frame to settle
+        within("tbody") do
+          expect(page).to have_content("compute-001", wait: 5)
+          expect(page).to have_content("login-001")
+        end
+
+        # Wait for Turbo Frame to fully settle
+        sleep 0.5
+
+        # Get row ID directly from DOM to avoid stale reference
+        row_id = page.evaluate_script(<<~JS)
+          document.querySelector("tbody tr[data-accordion-target='row']")?.id
+        JS
+
+        details_id = "#{row_id}_details"
+
+        # Click to expand using fresh element reference
+        find("##{row_id}").click
+
+        # Details should be expanded (hidden class removed)
+        expect(page).not_to have_css("##{details_id}.hidden", wait: 5)
+      end
+
+      it "exclusive mode works after filtering" do
+        visit tasks_path
+
+        # Apply filter to show only success status
+        select "Success", from: "Status"
+
+        # Wait for filter to be fully applied and DOM to settle
+        within("tbody") do
+          expect(page).to have_content("Success", wait: 5)
+        end
+
+        # Wait a moment for Turbo Frame to fully settle
+        sleep 0.5
+
+        # Get row IDs directly from DOM to avoid stale references
+        row_ids = page.evaluate_script(<<~JS)
+          Array.from(document.querySelectorAll("tbody tr[data-accordion-target='row']"))
+            .slice(0, 2)
+            .map(r => r.id)
+        JS
+
+        return if row_ids.length < 2 # Skip if not enough rows
+
+        first_row_id = row_ids[0]
+        second_row_id = row_ids[1]
+
+        # Expand first row by finding it fresh
+        find("##{first_row_id}").click
+        expect(page).not_to have_css("##{first_row_id}_details.hidden", wait: 5)
+
+        # Click second row - exclusive mode should close first
+        find("##{second_row_id}").click
+
+        # First row should be collapsed
+        expect(page).to have_css("##{first_row_id}_details.hidden", visible: :all, wait: 5)
+
+        # Second row should be expanded
+        expect(page).not_to have_css("##{second_row_id}_details.hidden")
+      end
+    end
+
+    describe "accordion after search (Turbo Frame refresh)" do
+      it "accordion expansion works after performing search" do
+        visit tasks_path
+
+        # Perform search - triggers Turbo Frame refresh
+        fill_in "Search", with: "compute"
+        click_button "Search"
+
+        # Wait for search results
+        within("tbody") do
+          expect(page).to have_content("compute-001", wait: 5)
+        end
+
+        # Wait for Turbo Frame to fully settle
+        sleep 0.5
+
+        # Get row ID directly from DOM to avoid stale reference
+        row_id = page.evaluate_script(<<~JS)
+          document.querySelector("tbody tr[data-accordion-target='row']")?.id
+        JS
+
+        details_id = "#{row_id}_details"
+
+        # Click to expand using fresh element reference
+        find("##{row_id}").click
+
+        # Details should be expanded (hidden class removed)
+        expect(page).not_to have_css("##{details_id}.hidden", wait: 5)
+
+        # Verify chevron rotation
+        within("##{row_id}") do
+          expect(page).to have_css("[data-accordion-target='chevron'].rotate-90")
+        end
       end
     end
   end

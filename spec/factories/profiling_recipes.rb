@@ -12,23 +12,23 @@ FactoryBot.define do
     status { :active }
 
     trait :report do
-      name { "Quick System Report" }
-      slug { "quick-system-report" }
+      name { "System Report #{Faker::Alphanumeric.alphanumeric(number: 6)}" }
+      slug { nil } # Let callback generate from name
       subcommand { "report" }
       description { "Collect system configuration snapshot" }
     end
 
     trait :telemetry do
-      name { "Performance Telemetry" }
-      slug { "performance-telemetry" }
+      name { "Performance Telemetry #{Faker::Alphanumeric.alphanumeric(number: 6)}" }
+      slug { nil } # Let callback generate from name
       subcommand { "telemetry" }
       description { "Collect live performance metrics" }
       default_options { { "duration" => 60 } }
     end
 
     trait :flame do
-      name { "CPU Flame Graph" }
-      slug { "cpu-flame-graph" }
+      name { "CPU Flame Graph #{Faker::Alphanumeric.alphanumeric(number: 6)}" }
+      slug { nil } # Let callback generate from name
       subcommand { "flame" }
       description { "Generate CPU flame graph" }
       default_options { { "duration" => 30 } }

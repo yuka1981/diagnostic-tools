@@ -25,27 +25,18 @@ require_relative "../config/environment"
 # Prevent database truncation if the environment is production
 abort("The Rails environment is running in production mode!") if Rails.env.production?
 require "rspec/rails"
+require "database_cleaner/active_record"
 # Add additional requires below this line. Rails is not loaded until this point!
 
 # Requires supporting ruby files with custom matchers and macros, etc, in
 # spec/support/ and its subdirectories.
 Rails.root.glob("spec/support/**/*.rb").sort_by(&:to_s).each { |f| require f }
 
-# Check database availability once at load time
-DATABASE_AVAILABLE = begin
-  ActiveRecord::Base.connection.active?
-rescue ActiveRecord::ConnectionNotEstablished, PG::ConnectionBad
-  puts "[WARN] Database connection not established, some tests may be skipped"
-  false
-end
-
 # Checks for pending migrations and applies them before tests are run.
-if DATABASE_AVAILABLE
-  begin
-    ActiveRecord::Migration.maintain_test_schema!
-  rescue ActiveRecord::PendingMigrationError => e
-    abort e.to_s.strip
-  end
+begin
+  ActiveRecord::Migration.maintain_test_schema!
+rescue ActiveRecord::PendingMigrationError => e
+  abort e.to_s.strip
 end
 
 RSpec.configure do |config|
@@ -54,8 +45,9 @@ RSpec.configure do |config|
     Rails.root.join("spec/fixtures")
   ]
 
-  # Use transactional fixtures for test isolation
-  config.use_transactional_fixtures = true
+  # Disable transactional fixtures - using DatabaseCleaner instead
+  # This is required for system tests where browser runs in separate process
+  config.use_transactional_fixtures = false
 
   # Infer spec type from file location
   config.infer_spec_type_from_file_location!
@@ -70,18 +62,20 @@ RSpec.configure do |config|
   config.include ViewComponent::TestHelpers, type: :component
   config.include Capybara::RSpecMatchers, type: :component
 
-  # DatabaseCleaner configuration (only if database is available)
-  if DATABASE_AVAILABLE
-    config.before(:suite) do
+  # DatabaseCleaner configuration for test isolation
+  # Use truncation for system/feature tests (JS runs in separate process)
+  # Use transaction for everything else (faster)
+  config.before(:each) do |example|
+    if example.metadata[:js] || example.metadata[:type] == :system
+      DatabaseCleaner.strategy = :truncation
+    else
       DatabaseCleaner.strategy = :transaction
-      DatabaseCleaner.clean_with(:truncation)
     end
+    DatabaseCleaner.start
+  end
 
-    config.around(:each) do |example|
-      DatabaseCleaner.cleaning do
-        example.run
-      end
-    end
+  config.after(:each) do
+    DatabaseCleaner.clean
   end
 end
 
