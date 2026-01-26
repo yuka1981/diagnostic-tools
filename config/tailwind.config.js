@@ -64,6 +64,34 @@ const qpdmColors = {
     6: '#FFD400',
   },
 
+  // Geek Blue Scale (for login role badges)
+  'geek-blue': {
+    1: '#F0F5FF',
+    2: '#D6E4FF',
+    3: '#ADC6FF',
+    4: '#85A5FF',
+    5: '#597EF7',
+    6: '#2F54EB',
+    7: '#1D39C4',
+    8: '#10239E',
+    9: '#061178',
+    10: '#030852',
+  },
+
+  // Sunrise Yellow Scale (for pending states)
+  'sunrise-yellow': {
+    1: '#FEFFE6',
+    2: '#FFFFB8',
+    3: '#FFFB8F',
+    4: '#FFF566',
+    5: '#FFEC3D',
+    6: '#FADB14',
+    7: '#D4B106',
+    8: '#AD8B00',
+    9: '#876800',
+    10: '#614700',
+  },
+
   // Neutral - Black Scale (for light backgrounds)
   'black': {
     DEFAULT: '#000000',  // Preserve bg-black/text-black
@@ -112,6 +140,8 @@ module.exports = {
         'dust-red': qpdmColors['dust-red'],
         'warm-orange': qpdmColors['warm-orange'],
         'bright-yellow': qpdmColors['bright-yellow'],
+        'geek-blue': qpdmColors['geek-blue'],
+        'sunrise-yellow': qpdmColors['sunrise-yellow'],
         'black': qpdmColors['black'],
         'white': qpdmColors['white'],
         'qct-blue': qpdmColors['qct-blue'],
@@ -122,6 +152,8 @@ module.exports = {
         'success': qpdmColors['polar-green'],
         'error': qpdmColors['dust-red'],
         'warning': qpdmColors['warm-orange'],
+        'login': qpdmColors['geek-blue'],
+        'pending': qpdmColors['sunrise-yellow'],
         // Neutral combines black scale values (used as semantic neutral for general UI)
         'neutral': qpdmColors['black'],
       },
