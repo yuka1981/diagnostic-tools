@@ -9,7 +9,7 @@
     <div class="flex items-center gap-4">
       <h1 class="text-2xl font-bold text-neutral-85"><%= @room.name %></h1>
       <% if @room.at_capacity? %>
-        <span class="inline-flex items-center rounded-sm px-2 py-0.5 text-xs font-medium bg-amber-100 text-amber-800 border border-amber-200">
+        <span class="inline-flex items-center rounded-sm px-2 py-0.5 text-xs font-medium bg-warning-1 text-warning-8 border border-warning-2">
           At Capacity
         </span>
       <% end %>
@@ -152,11 +152,11 @@
               <td class="whitespace-nowrap px-3 py-2">
                 <% case rack.status %>
                 <% when "active" %>
-                  <span class="inline-flex items-center rounded-sm px-2 py-0.5 text-xs font-medium bg-emerald-100 text-emerald-800 border border-emerald-200">
+                  <span class="inline-flex items-center rounded-sm px-2 py-0.5 text-xs font-medium bg-success-1 text-success-8 border border-success-2">
                     Active
                   </span>
                 <% when "planned" %>
-                  <span class="inline-flex items-center rounded-sm px-2 py-0.5 text-xs font-medium bg-blue-100 text-blue-800 border border-blue-200">
+                  <span class="inline-flex items-center rounded-sm px-2 py-0.5 text-xs font-medium bg-primary-1 text-primary-8 border border-primary-2">
                     Planned
                   </span>
                 <% when "decommissioned" %>

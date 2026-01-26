@@ -81,7 +81,7 @@
 
       <% if go_available && go_version %>
         <p class="mt-3 text-xs text-neutral-45">
-          <%= lucide_icon("check", class: "inline h-4 w-4 text-emerald-500 mr-1") %>
+          <%= lucide_icon("check", class: "inline h-4 w-4 text-success-5 mr-1") %>
           <%= go_version %>
         </p>
       <% end %>
@@ -166,7 +166,7 @@
                 <code class="flex-1 block rounded border border-neutral-8 bg-neutral-2 py-1.5 px-3 text-neutral-85 text-sm font-mono">
                   <%= Rails.root.join('agent').to_s %>
                 </code>
-                <span class="inline-flex items-center rounded px-2 py-1 text-xs font-medium bg-emerald-100 text-emerald-800 border border-emerald-200">
+                <span class="inline-flex items-center rounded px-2 py-1 text-xs font-medium bg-success-1 text-success-8 border border-success-2">
                   <%= lucide_icon("check", class: "h-3 w-3 mr-1") %>
                   Detected
                 </span>

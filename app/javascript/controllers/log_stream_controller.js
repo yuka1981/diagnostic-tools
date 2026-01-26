@@ -32,7 +32,7 @@ export default class extends Controller {
       if (stream === "stderr") {
         span.classList.add("text-error-5")
       } else {
-        span.classList.add("text-gray-300")
+        span.classList.add("text-neutral-25")
       }
       this.outputTarget.appendChild(span)
     }

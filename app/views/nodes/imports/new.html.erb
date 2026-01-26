@@ -1,14 +1,14 @@
 <%= turbo_frame_tag "import_modal" do %>
   <%= render "shared/modal", title: "Import Nodes from CSV" do %>
     <div class="space-y-6">
-      <div class="rounded-md bg-blue-50 p-4 border border-blue-200">
+      <div class="rounded-md bg-primary-1 p-4 border border-primary-2">
         <div class="flex">
           <div class="flex-shrink-0">
-            <%= lucide_icon("info", class: "h-5 w-5 text-blue-400") %>
+            <%= lucide_icon("info", class: "h-5 w-5 text-primary-4") %>
           </div>
           <div class="ml-3">
-            <h3 class="text-sm font-bold text-blue-800">CSV Requirements</h3>
-            <div class="mt-2 text-xs text-blue-700 space-y-1">
+            <h3 class="text-sm font-bold text-primary-8">CSV Requirements</h3>
+            <div class="mt-2 text-xs text-primary-7 space-y-1">
               <p>Your CSV file should include the following headers:</p>
               <ul class="list-disc list-inside font-mono">
                 <li>hostname (required)</li>

@@ -3,31 +3,31 @@
 <%# Hero Metrics Cards %>
 <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
   <%# Node Availability %>
-  <div class="card-netbox group transition-all hover:border-emerald-300">
-    <div class="card-header border-emerald-100 bg-emerald-50/50">
-      <h3 class="card-title text-emerald-700">Node Availability</h3>
-      <div class="flex h-6 w-6 items-center justify-center rounded bg-emerald-500 text-white shadow-sm">
+  <div class="card-netbox group transition-all hover:border-success-3">
+    <div class="card-header border-success-1 bg-success-1/50">
+      <h3 class="card-title text-success-7">Node Availability</h3>
+      <div class="flex h-6 w-6 items-center justify-center rounded bg-success-5 text-white shadow-sm">
         <%= lucide_icon("wifi", class: "h-4 w-4") %>
       </div>
     </div>
     <div class="p-4">
       <div class="flex items-baseline justify-between">
         <p class="text-2xl font-black text-neutral-85"><%= @availability_percentage %>%</p>
-        <span class="text-[10px] font-bold text-emerald-600 uppercase">
+        <span class="text-[10px] font-bold text-success-6 uppercase">
           <%= @online_nodes %> / <%= @total_nodes %> UP
         </span>
       </div>
       <div class="mt-3 h-1 rounded-full bg-neutral-4 overflow-hidden">
-        <div class="h-full bg-emerald-500" style="width: <%= @availability_percentage %>%"></div>
+        <div class="h-full bg-success-5" style="width: <%= @availability_percentage %>%"></div>
       </div>
     </div>
   </div>
 
   <%# Benchmark Health (Success Rate) %>
-  <div class="card-netbox group transition-all hover:border-violet-300">
-    <div class="card-header border-violet-100 bg-violet-50/50">
-      <h3 class="card-title text-violet-700">Benchmark Health</h3>
-      <div class="flex h-6 w-6 items-center justify-center rounded bg-violet-500 text-white shadow-sm">
+  <div class="card-netbox group transition-all hover:border-login-3">
+    <div class="card-header border-login-1 bg-login-1/50">
+      <h3 class="card-title text-login-7">Benchmark Health</h3>
+      <div class="flex h-6 w-6 items-center justify-center rounded bg-login-5 text-white shadow-sm">
         <%= lucide_icon("circle-check", class: "h-4 w-4") %>
       </div>
     </div>
@@ -37,16 +37,16 @@
         <span class="text-[10px] font-bold text-neutral-25 uppercase">24H SUCCESS</span>
       </div>
       <div class="mt-3 h-1 rounded-full bg-neutral-4 overflow-hidden">
-        <div class="h-full bg-violet-500" style="width: <%= @success_rate_24h %>%"></div>
+        <div class="h-full bg-login-5" style="width: <%= @success_rate_24h %>%"></div>
       </div>
     </div>
   </div>
 
   <%# Queue Status %>
-  <div class="card-netbox group transition-all hover:border-blue-300">
-    <div class="card-header border-blue-100 bg-blue-50/50">
-      <h3 class="card-title text-blue-700">Queue Status</h3>
-      <div class="flex h-6 w-6 items-center justify-center rounded bg-blue-500 text-white shadow-sm">
+  <div class="card-netbox group transition-all hover:border-primary-3">
+    <div class="card-header border-primary-1 bg-primary-1/50">
+      <h3 class="card-title text-primary-7">Queue Status</h3>
+      <div class="flex h-6 w-6 items-center justify-center rounded bg-primary-5 text-white shadow-sm">
         <%= lucide_icon("clock", class: "h-4 w-4") %>
       </div>
     </div>
@@ -56,7 +56,7 @@
         <span class="text-[10px] font-bold text-neutral-25 uppercase tracking-tighter">Total Tasks</span>
       </div>
       <div class="flex gap-2">
-        <span class="inline-flex items-center rounded-sm bg-blue-100 px-1.5 py-0.5 text-[9px] font-black text-blue-700 border border-blue-200 uppercase">
+        <span class="inline-flex items-center rounded-sm bg-primary-1 px-1.5 py-0.5 text-[9px] font-black text-primary-7 border border-primary-2 uppercase">
           <%= @queue_running %> Active
         </span>
         <span class="inline-flex items-center rounded-sm bg-neutral-4 px-1.5 py-0.5 text-[9px] font-black text-neutral-45 border border-neutral-8 uppercase">
@@ -67,10 +67,10 @@
   </div>
 
   <%# Storage Usage %>
-  <div class="card-netbox group transition-all hover:border-amber-300">
-    <div class="card-header border-amber-100 bg-amber-50/50">
-      <h3 class="card-title text-amber-700">Cluster Storage</h3>
-      <div class="flex h-6 w-6 items-center justify-center rounded bg-amber-500 text-white shadow-sm">
+  <div class="card-netbox group transition-all hover:border-warning-3">
+    <div class="card-header border-warning-1 bg-warning-1/50">
+      <h3 class="card-title text-warning-7">Cluster Storage</h3>
+      <div class="flex h-6 w-6 items-center justify-center rounded bg-warning-5 text-white shadow-sm">
         <%= lucide_icon("inbox", class: "h-4 w-4") %>
       </div>
     </div>
@@ -83,7 +83,7 @@
         </span>
       </div>
       <div class="mt-3 h-1 rounded-full bg-neutral-4 overflow-hidden">
-        <div class="h-full bg-amber-500" style="width: <%= usage_pct %>%"></div>
+        <div class="h-full bg-warning-5" style="width: <%= usage_pct %>%"></div>
       </div>
     </div>
   </div>
@@ -107,24 +107,24 @@
     <div class="p-4">
       <div class="grid grid-cols-2 gap-4">
         <%= link_to nodes_path,
-            class: "group flex flex-col items-center gap-2 rounded border border-neutral-8 bg-neutral-2 p-4 text-center transition-all hover:bg-white hover:border-blue-300 hover:shadow-sm" do %>
-          <div class="flex h-10 w-10 items-center justify-center rounded bg-blue-100 text-blue-600 transition-transform group-hover:scale-110 shadow-sm border border-blue-200">
+            class: "group flex flex-col items-center gap-2 rounded border border-neutral-8 bg-neutral-2 p-4 text-center transition-all hover:bg-white hover:border-primary-3 hover:shadow-sm" do %>
+          <div class="flex h-10 w-10 items-center justify-center rounded bg-primary-1 text-primary-6 transition-transform group-hover:scale-110 shadow-sm border border-primary-2">
             <%= lucide_icon("server", class: "h-5 w-5") %>
           </div>
           <span class="text-xs font-bold text-neutral-85 uppercase tracking-tight">View Nodes</span>
         <% end %>
 
         <%= link_to benchmark_runs_path,
-            class: "group flex flex-col items-center gap-2 rounded border border-neutral-8 bg-neutral-2 p-4 text-center transition-all hover:bg-white hover:border-purple-300 hover:shadow-sm" do %>
-          <div class="flex h-10 w-10 items-center justify-center rounded bg-purple-100 text-purple-600 transition-transform group-hover:scale-110 shadow-sm border border-purple-200">
+            class: "group flex flex-col items-center gap-2 rounded border border-neutral-8 bg-neutral-2 p-4 text-center transition-all hover:bg-white hover:border-login-3 hover:shadow-sm" do %>
+          <div class="flex h-10 w-10 items-center justify-center rounded bg-login-1 text-login-6 transition-transform group-hover:scale-110 shadow-sm border border-login-2">
             <%= lucide_icon("bar-chart-3", class: "h-5 w-5") %>
           </div>
           <span class="text-xs font-bold text-neutral-85 uppercase tracking-tight">View Runs</span>
         <% end %>
 
         <%= link_to benchmark_recipes_path,
-            class: "group flex flex-col items-center gap-2 rounded border border-neutral-8 bg-neutral-2 p-4 text-center transition-all hover:bg-white hover:border-amber-300 hover:shadow-sm" do %>
-          <div class="flex h-10 w-10 items-center justify-center rounded bg-amber-100 text-amber-600 transition-transform group-hover:scale-110 shadow-sm border border-amber-200">
+            class: "group flex flex-col items-center gap-2 rounded border border-neutral-8 bg-neutral-2 p-4 text-center transition-all hover:bg-white hover:border-warning-3 hover:shadow-sm" do %>
+          <div class="flex h-10 w-10 items-center justify-center rounded bg-warning-1 text-warning-6 transition-transform group-hover:scale-110 shadow-sm border border-warning-2">
             <%= lucide_icon("flask-conical", class: "h-5 w-5") %>
           </div>
           <span class="text-xs font-bold text-neutral-85 uppercase tracking-tight">Recipes</span>
@@ -133,7 +133,7 @@
         <button type="button"
                 class="group flex flex-col items-center gap-2 rounded border border-neutral-4 bg-neutral-2/50 p-4 text-center opacity-50 cursor-not-allowed"
                 disabled>
-          <div class="flex h-10 w-10 items-center justify-center rounded bg-emerald-50 text-emerald-600 shadow-none border border-emerald-100">
+          <div class="flex h-10 w-10 items-center justify-center rounded bg-success-1 text-success-6 shadow-none border border-success-1">
             <%= lucide_icon("upload", class: "h-5 w-5") %>
           </div>
           <span class="text-xs font-bold text-neutral-25 uppercase tracking-tight">Import CSV</span>

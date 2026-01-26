@@ -64,8 +64,8 @@
         <p class="text-[10px] text-neutral-45 italic mb-4">Upload the compiled agent binary. The SHA256 checksum will be calculated automatically.</p>
 
         <% if agent_release.binary.attached? %>
-          <div class="mb-3 flex items-center gap-2 text-sm text-neutral-45 bg-emerald-50 border border-emerald-200 rounded-md p-3">
-            <%= lucide_icon("check", class: "h-5 w-5 text-emerald-500") %>
+          <div class="mb-3 flex items-center gap-2 text-sm text-neutral-45 bg-success-1 border border-success-2 rounded-md p-3">
+            <%= lucide_icon("check", class: "h-5 w-5 text-success-5") %>
             <span>Current file: <span class="font-mono font-bold"><%= agent_release.binary_filename %></span></span>
             <span class="text-neutral-25">•</span>
             <span><%= agent_release.formatted_size %></span>

@@ -44,8 +44,8 @@ RSpec.describe "Tasks", type: :system do
     it "shows type badges for benchmark and profiling" do
       visit tasks_path
 
-      expect(page).to have_css(".bg-blue-100", text: "Benchmark")
-      expect(page).to have_css(".bg-purple-100", text: "Profiling")
+      expect(page).to have_css(".bg-primary-1", text: "Benchmark")
+      expect(page).to have_css(".bg-login-1", text: "Profiling")
     end
 
     it "shows status badges with correct colors" do
@@ -97,8 +97,8 @@ RSpec.describe "Tasks", type: :system do
       within("tbody") do
         expect(page).to have_content("compute-001", wait: 5)
         expect(page).not_to have_content("login-001")
-        expect(page).to have_css(".bg-blue-100", text: "Benchmark")
-        expect(page).not_to have_css(".bg-purple-100", text: "Profiling")
+        expect(page).to have_css(".bg-primary-1", text: "Benchmark")
+        expect(page).not_to have_css(".bg-login-1", text: "Profiling")
       end
     end
 
@@ -110,8 +110,8 @@ RSpec.describe "Tasks", type: :system do
       within("tbody") do
         expect(page).to have_content("login-001", wait: 5)
         expect(page).not_to have_content("compute-001")
-        expect(page).to have_css(".bg-purple-100", text: "Profiling")
-        expect(page).not_to have_css(".bg-blue-100", text: "Benchmark")
+        expect(page).to have_css(".bg-login-1", text: "Profiling")
+        expect(page).not_to have_css(".bg-primary-1", text: "Benchmark")
       end
     end
   end
@@ -369,8 +369,8 @@ RSpec.describe "Tasks", type: :system do
         # Use simpler selector to avoid Playwright DOM query issues during Turbo updates
         expect(page).to have_css("tr[data-accordion-target='row']", count: 2, wait: 5)
         # Verify they are benchmark type (blue badge) not profiling (purple badge)
-        expect(page).to have_css(".bg-blue-100", minimum: 2)
-        expect(page).not_to have_css(".bg-purple-100")
+        expect(page).to have_css(".bg-primary-1", minimum: 2)
+        expect(page).not_to have_css(".bg-login-1")
       end
     end
   end
@@ -1114,8 +1114,8 @@ RSpec.describe "Tasks", type: :system do
 
         # Wait for filter to be applied
         within("tbody") do
-          expect(page).to have_css(".bg-purple-100", text: "Profiling", wait: 5)
-          expect(page).not_to have_css(".bg-blue-100", text: "Benchmark")
+          expect(page).to have_css(".bg-login-1", text: "Profiling", wait: 5)
+          expect(page).not_to have_css(".bg-primary-1", text: "Benchmark")
         end
 
         # Get the profiling task row

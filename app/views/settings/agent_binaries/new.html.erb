@@ -98,7 +98,7 @@
 
       <% if @go_available && @go_version %>
         <p class="mt-3 text-xs text-neutral-45">
-          <%= lucide_icon("check", class: "inline h-4 w-4 text-emerald-500 mr-1") %>
+          <%= lucide_icon("check", class: "inline h-4 w-4 text-success-5 mr-1") %>
           <%= @go_version %>
         </p>
       <% end %>
@@ -123,7 +123,7 @@
             <p class="font-medium text-neutral-85">
               <% if @agent_release.agent_binaries.any? %>
                 <% @agent_release.agent_binaries.each do |binary| %>
-                  <span class="inline-flex items-center rounded-sm px-2 py-0.5 text-xs font-mono bg-emerald-100 text-emerald-700 border border-emerald-200 mr-1">
+                  <span class="inline-flex items-center rounded-sm px-2 py-0.5 text-xs font-mono bg-success-1 text-success-7 border border-success-2 mr-1">
                     <%= binary.arch %>
                   </span>
                 <% end %>
@@ -141,11 +141,11 @@
         <p class="text-[10px] text-neutral-45 italic mb-4">Select the architecture for this binary</p>
 
         <% if @available_architectures.empty? %>
-          <div class="rounded-md bg-amber-50 border border-amber-200 p-4">
+          <div class="rounded-md bg-warning-1 border border-warning-2 p-4">
             <div class="flex">
-              <%= lucide_icon("alert-triangle", class: "h-5 w-5 text-amber-400") %>
+              <%= lucide_icon("alert-triangle", class: "h-5 w-5 text-warning-4") %>
               <div class="ml-3">
-                <p class="text-sm text-amber-700">All supported architectures already have binaries for this release.</p>
+                <p class="text-sm text-warning-7">All supported architectures already have binaries for this release.</p>
               </div>
             </div>
           </div>
@@ -215,7 +215,7 @@
                 <code class="flex-1 block rounded border border-neutral-8 bg-neutral-2 py-1.5 px-3 text-neutral-85 text-sm font-mono">
                   <%= Rails.root.join('agent').to_s %>
                 </code>
-                <span class="inline-flex items-center rounded px-2 py-1 text-xs font-medium bg-emerald-100 text-emerald-800 border border-emerald-200">
+                <span class="inline-flex items-center rounded px-2 py-1 text-xs font-medium bg-success-1 text-success-8 border border-success-2">
                   <%= lucide_icon("check", class: "h-3 w-3 mr-1") %>
                   Detected
                 </span>

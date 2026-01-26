@@ -1,12 +1,12 @@
 <%= turbo_frame_tag dom_id(notification) do %>
-  <li id="<%= dom_id(notification) %>" class="px-4 py-4 hover:bg-gray-50 <%= notification.read? ? 'bg-gray-50' : 'bg-white' %>">
+  <li id="<%= dom_id(notification) %>" class="px-4 py-4 hover:bg-neutral-2 <%= notification.read? ? 'bg-neutral-2' : 'bg-white' %>">
     <div class="flex items-start justify-between">
       <div class="flex-1 min-w-0">
         <div class="flex items-center space-x-2">
           <% unless notification.read? %>
             <span class="inline-block w-2 h-2 bg-primary-5 rounded-full"></span>
           <% end %>
-          <p class="text-sm font-medium text-gray-900 truncate">
+          <p class="text-sm font-medium text-neutral-85 truncate">
             <%= notification.title %>
           </p>
           <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium <%= notification_status_badge_class(notification.status) %>">
@@ -15,11 +15,11 @@
           </span>
         </div>
         <% if notification.message.present? %>
-          <p class="mt-1 text-sm text-gray-500">
+          <p class="mt-1 text-sm text-neutral-45">
             <%= notification.message %>
           </p>
         <% end %>
-        <p class="mt-1 text-xs text-gray-400">
+        <p class="mt-1 text-xs text-neutral-35">
           <%= time_ago_in_words(notification.created_at) %> ago
         </p>
       </div>

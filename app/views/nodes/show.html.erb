@@ -52,14 +52,14 @@
         <%= link_to new_node_benchmark_run_path(@node),
             class: "btn-secondary",
             data: { turbo_frame: "modal" } do %>
-          <%= lucide_icon("zap", class: "h-4 w-4 text-purple-500") %>
+          <%= lucide_icon("zap", class: "h-4 w-4 text-login-5") %>
           Benchmark
         <% end %>
 
         <%= link_to new_node_update_path(@node),
             class: "btn-secondary",
             data: { turbo_frame: "update_modal" } do %>
-          <%= lucide_icon("upload", class: "h-4 w-4 text-emerald-500") %>
+          <%= lucide_icon("upload", class: "h-4 w-4 text-success-5") %>
           Update Agent
         <% end %>
       <% end %>
@@ -67,7 +67,7 @@
       <%= link_to edit_node_path(@node),
           class: "btn-secondary",
           data: { turbo_frame: "node_modal" } do %>
-        <%= lucide_icon("square-pen", class: "h-4 w-4 text-amber-500") %>
+        <%= lucide_icon("square-pen", class: "h-4 w-4 text-warning-5") %>
         Edit
       <% end %>
 
