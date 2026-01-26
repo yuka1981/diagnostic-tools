@@ -7,8 +7,11 @@ class Node < ApplicationRecord
 
   # Associations
   has_many :node_states, dependent: :destroy
+  has_many :bmc_inventories, dependent: :destroy
   has_many :benchmark_runs, dependent: :destroy
   has_many :profiling_runs, dependent: :destroy
+  has_many :inventory_discrepancies, dependent: :destroy
+  has_one :bmc_credential, dependent: :destroy
   belongs_to :api_key, optional: true
   belongs_to :server_rack, foreign_key: :rack_id, optional: true
   belongs_to :server_product, optional: true
@@ -117,6 +120,22 @@ class Node < ApplicationRecord
   # Used to prevent agent updates while benchmarks are in progress
   def busy?
     benchmark_runs.where(status: %i[pending running]).exists?
+  end
+
+  # Returns the BMC credential to use for connecting to this node's BMC
+  # Falls back to global default if no node-specific credential exists
+  def bmc_credential_for_connection
+    bmc_credential || BmcCredential.global_default_record
+  end
+
+  # Returns the most recent BMC inventory for this node
+  def latest_bmc_inventory
+    bmc_inventories.order(captured_at: :desc).first
+  end
+
+  # Returns unresolved inventory discrepancies for this node
+  def unresolved_discrepancies
+    inventory_discrepancies.unresolved
   end
 
   # Class method to check if a hostname/IP is localhost

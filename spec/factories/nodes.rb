@@ -81,5 +81,11 @@ FactoryBot.define do
     trait :four_u do
       rack_height { 4 }
     end
+
+    trait :with_bmc_credential do
+      after(:create) do |node|
+        create(:bmc_credential, node: node)
+      end
+    end
   end
 end

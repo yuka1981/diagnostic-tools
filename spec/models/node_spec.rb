@@ -349,6 +349,87 @@ RSpec.describe Node, type: :model do
     it { is_expected.to have_many(:profiling_runs).dependent(:destroy) }
   end
 
+  describe "BMC associations" do
+    it { is_expected.to have_many(:bmc_inventories).dependent(:destroy) }
+    it { is_expected.to have_many(:inventory_discrepancies).dependent(:destroy) }
+    it { is_expected.to have_one(:bmc_credential).dependent(:destroy) }
+  end
+
+  describe "#bmc_credential_for_connection" do
+    context "when node has its own bmc_credential" do
+      it "returns the node's credential" do
+        node = create(:node, :with_bmc_credential)
+        expect(node.bmc_credential_for_connection).to eq(node.bmc_credential)
+      end
+    end
+
+    context "when node has no credential but global default exists" do
+      it "falls back to global default" do
+        global_cred = create(:bmc_credential, :global_default)
+        node = create(:node)
+        expect(node.bmc_credential_for_connection).to eq(global_cred)
+      end
+    end
+
+    context "when no node credential and no global default" do
+      it "returns nil" do
+        node = create(:node)
+        expect(node.bmc_credential_for_connection).to be_nil
+      end
+    end
+  end
+
+  describe "#latest_bmc_inventory" do
+    context "when node has multiple bmc_inventories" do
+      it "returns the most recent by captured_at" do
+        node = create(:node)
+        older_inventory = create(:bmc_inventory, node: node, captured_at: 2.days.ago)
+        newest_inventory = create(:bmc_inventory, node: node, captured_at: 1.hour.ago)
+        middle_inventory = create(:bmc_inventory, node: node, captured_at: 1.day.ago)
+
+        expect(node.latest_bmc_inventory).to eq(newest_inventory)
+      end
+    end
+
+    context "when node has no bmc_inventories" do
+      it "returns nil" do
+        node = create(:node)
+        expect(node.latest_bmc_inventory).to be_nil
+      end
+    end
+  end
+
+  describe "#unresolved_discrepancies" do
+    let(:node) { create(:node) }
+
+    context "when node has both resolved and unresolved discrepancies" do
+      it "returns only unresolved discrepancies" do
+        unresolved1 = create(:inventory_discrepancy, node: node, resolved_at: nil)
+        unresolved2 = create(:inventory_discrepancy, node: node, resolved_at: nil)
+        resolved = create(:inventory_discrepancy, :resolved, node: node)
+
+        result = node.unresolved_discrepancies
+        expect(result).to contain_exactly(unresolved1, unresolved2)
+        expect(result).not_to include(resolved)
+      end
+    end
+
+    context "when all discrepancies are resolved" do
+      it "returns empty collection" do
+        create(:inventory_discrepancy, :resolved, node: node)
+        create(:inventory_discrepancy, :resolved, node: node)
+
+        expect(node.unresolved_discrepancies).to be_empty
+      end
+    end
+
+    context "when node has no discrepancies" do
+      it "returns empty collection" do
+        expect(node.unresolved_discrepancies).to be_empty
+      end
+    end
+  end
+
   describe "rack associations and validations" do
     describe "rack_position validation" do
       let(:site) { create(:site) }

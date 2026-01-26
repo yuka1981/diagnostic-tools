@@ -9,15 +9,16 @@
 
 This document outlines the implementation plan for adding BMC out-of-band management capabilities to the QIS diagnostic tools platform. The plan is organized into 5 phases with 28 tasks.
 
-## Phase 1: Database Foundation (5 tasks)
+## Phase 1: Database Foundation (5 tasks) ✅ COMPLETE
 
-### Task 1.1: Create BmcCredential Migration and Model
+### Task 1.1: Create BmcCredential Migration and Model ✅
 
-**Files to create/modify:**
-- `db/migrate/YYYYMMDD_create_bmc_credentials.rb`
+**Files created:**
+- `db/migrate/20260126234126_create_bmc_credentials.rb`
 - `app/models/bmc_credential.rb`
 - `spec/models/bmc_credential_spec.rb`
 - `spec/factories/bmc_credentials.rb`
+- `config/initializers/active_record_encryption.rb`
 
 **Implementation:**
 ```ruby
@@ -38,18 +39,18 @@ add_index :bmc_credentials, :is_global_default, unique: true, where: 'is_global_
 ```
 
 **Validation criteria:**
-- [ ] Migration runs and rolls back cleanly
-- [ ] Model validates presence of required fields
-- [ ] Encryption works for username and password
-- [ ] Only one global default allowed
-- [ ] RSpec tests pass
+- [x] Migration runs and rolls back cleanly
+- [x] Model validates presence of required fields
+- [x] Encryption works for username and password
+- [x] Only one global default allowed
+- [x] RSpec tests pass (27 examples)
 
 ---
 
-### Task 1.2: Create BmcInventory Migration and Model
+### Task 1.2: Create BmcInventory Migration and Model ✅
 
-**Files to create/modify:**
-- `db/migrate/YYYYMMDD_create_bmc_inventories.rb`
+**Files created:**
+- `db/migrate/20260126234115_create_bmc_inventories.rb`
 - `app/models/bmc_inventory.rb`
 - `spec/models/bmc_inventory_spec.rb`
 - `spec/factories/bmc_inventories.rb`
@@ -75,17 +76,17 @@ add_index :bmc_inventories, :captured_at
 ```
 
 **Validation criteria:**
-- [ ] Migration runs and rolls back cleanly
-- [ ] JSONB columns accept valid data structures
-- [ ] `latest` scope returns most recent inventory per node
-- [ ] RSpec tests pass
+- [x] Migration runs and rolls back cleanly
+- [x] JSONB columns accept valid data structures
+- [x] `latest` scope returns most recent inventory per node
+- [x] RSpec tests pass (21 examples)
 
 ---
 
-### Task 1.3: Create InventoryDiscrepancy Migration and Model
+### Task 1.3: Create InventoryDiscrepancy Migration and Model ✅
 
-**Files to create/modify:**
-- `db/migrate/YYYYMMDD_create_inventory_discrepancies.rb`
+**Files created:**
+- `db/migrate/20260126234055_create_inventory_discrepancies.rb`
 - `app/models/inventory_discrepancy.rb`
 - `spec/models/inventory_discrepancy_spec.rb`
 - `spec/factories/inventory_discrepancies.rb`
@@ -108,39 +109,41 @@ add_index :inventory_discrepancies, [:node_id, :resolved_at]
 ```
 
 **Validation criteria:**
-- [ ] Migration runs and rolls back cleanly
-- [ ] `unresolved` scope filters correctly
-- [ ] Severity enum works as expected
-- [ ] RSpec tests pass
+- [x] Migration runs and rolls back cleanly
+- [x] `unresolved` scope filters correctly
+- [x] Severity enum works as expected
+- [x] RSpec tests pass (20 examples)
 
 ---
 
-### Task 1.4: Add BMC Settings to Application Configuration
+### Task 1.4: Add BMC Settings to Application Configuration ✅
 
-**Files to create/modify:**
-- `db/migrate/YYYYMMDD_add_bmc_settings.rb`
-- `app/models/setting.rb` (modify if exists, or create)
-- `config/settings.yml` (default values)
+**Files created/modified:**
+- `db/migrate/20260126234127_add_bmc_settings_to_ssh_settings.rb`
+- `app/models/ssh_setting.rb` (modified - added BMC fields)
+- `spec/models/ssh_setting_spec.rb` (modified - added BMC tests)
 
 **Implementation:**
-Add global settings for:
+Added to SshSetting model:
 - `bmc_sensor_polling_interval`: 1, 3, or 5 minutes (default: 5)
 - `bmc_collection_enabled`: boolean (default: false)
 - `prometheus_pushgateway_url`: string
 - `prometheus_url`: string
 
 **Validation criteria:**
-- [ ] Settings can be read and written
-- [ ] Defaults are applied correctly
-- [ ] Settings persist across restarts
+- [x] Settings can be read and written
+- [x] Defaults are applied correctly
+- [x] Settings persist across restarts
+- [x] RSpec tests pass (22 examples)
 
 ---
 
-### Task 1.5: Add Node BMC Associations
+### Task 1.5: Add Node BMC Associations ✅
 
-**Files to modify:**
+**Files modified:**
 - `app/models/node.rb`
 - `spec/models/node_spec.rb`
+- `spec/factories/nodes.rb`
 
 **Implementation:**
 ```ruby
@@ -150,7 +153,7 @@ has_many :bmc_inventories, dependent: :destroy
 has_many :inventory_discrepancies, dependent: :destroy
 
 def bmc_credential_for_connection
-  bmc_credential || BmcCredential.global_default
+  bmc_credential || BmcCredential.global_default_record
 end
 
 def latest_bmc_inventory
@@ -163,139 +166,152 @@ end
 ```
 
 **Validation criteria:**
-- [ ] Associations work correctly
-- [ ] `bmc_credential_for_connection` falls back to global
-- [ ] Existing node tests still pass
+- [x] Associations work correctly
+- [x] `bmc_credential_for_connection` falls back to global
+- [x] Existing node tests still pass (92 examples)
 
 ---
 
-## Phase 2: Go BMC Collector (7 tasks)
+## Phase 2: Go BMC Collector (7 tasks) ✅ COMPLETE
 
-### Task 2.1: Create BMC Models and Interfaces
+### Task 2.1: Create BMC Models and Interfaces ✅
 
-**Files to create:**
+**Files created:**
 - `agent/core/model/bmc.go`
+- `agent/core/model/bmc_test.go`
 - `agent/core/ports/bmc_client.go`
+- `agent/core/ports/bmc_client_test.go`
 
 **Implementation:**
-Define data structures for:
-- `Processor` (socket, model, cores, freq_base, freq_max, serial)
-- `MemoryModule` (slot, size_gb, speed_mhz, manufacturer, serial, type)
-- `StorageDrive` (name, capacity, model, serial, interface, health)
-- `NetworkAdapter` (name, mac, model, speed, firmware)
-- `InfinibandAdapter` (hca, port_state, firmware, guid)
-- `BIOSInfo` (vendor, version, release_date)
-- `BMCInfo` (model, firmware, ip)
-- `SensorReading` (name, value, unit, status)
-- `HealthSummary` (components map)
+Defined data structures (prefixed with BMC to avoid conflicts):
+- `BMCProcessor` (socket, model, cores, freq_base, freq_max, serial)
+- `BMCMemoryModule` (slot, size_gb, speed_mhz, manufacturer, serial, type)
+- `BMCStorageDrive` (name, capacity, model, serial, interface, health)
+- `BMCNetworkAdapter` (name, mac, model, speed, firmware)
+- `BMCInfinibandAdapter` (hca, port_state, firmware, guid)
+- `BMCBIOSInfo` (vendor, version, release_date)
+- `BMCControllerInfo` (model, firmware, ip)
+- `BMCSensorReading` (name, value, unit, status)
+- `BMCHealthSummary` (components map)
+- `BMCInventory` (aggregates all components)
 
-Define `BMCClient` interface with all methods.
+Defined `BMCClient` interface with 10 methods + `BMCConfig` struct.
 
 **Validation criteria:**
-- [ ] All structs have proper JSON tags
-- [ ] Interface is comprehensive
-- [ ] Unit tests pass
+- [x] All structs have proper JSON tags
+- [x] Interface is comprehensive
+- [x] Unit tests pass
 
 ---
 
-### Task 2.2: Implement Redfish Client
+### Task 2.2: Implement Redfish Client ✅
 
-**Files to create:**
+**Files created:**
 - `agent/bmc/redfish/client.go`
 - `agent/bmc/redfish/client_test.go`
 
 **Dependencies:**
-- `github.com/stmcginnis/gofish`
+- `github.com/stmcginnis/gofish v0.20.0`
 
 **Implementation:**
-- Connect to Redfish service with credentials
+- Connect to Redfish service with credentials and optional SSL verification
 - Implement all `BMCClient` interface methods
 - Map Redfish resources to internal models
 - Handle connection errors gracefully
+- Detect Infiniband adapters by name/model keywords
 
 **Validation criteria:**
-- [ ] Can connect to Redfish-enabled BMC
-- [ ] All inventory methods return valid data
-- [ ] All sensor methods return readings
-- [ ] Error handling is robust
-- [ ] Unit tests with mocked responses pass
+- [x] Can connect to Redfish-enabled BMC (mocked)
+- [x] All inventory methods return valid data
+- [x] All sensor methods return readings
+- [x] Error handling is robust
+- [x] Unit tests with mocked responses pass (21 tests)
 
 ---
 
-### Task 2.3: Implement IPMI Client
+### Task 2.3: Implement IPMI Client ✅
 
-**Files to create:**
+**Files created:**
 - `agent/bmc/ipmi/client.go`
 - `agent/bmc/ipmi/client_test.go`
+- `agent/bmc/ipmi/parser.go`
+- `agent/bmc/ipmi/parser_test.go`
 
 **Implementation:**
-- Wrapper around `ipmitool` CLI
-- Parse `ipmitool` output into structured data
+- Wrapper around `ipmitool` CLI with `CommandExecutor` interface for testing
+- Parse `ipmitool` output into structured data (sensor, FRU, mc info, chassis status)
 - Implement `BMCClient` interface methods
-- Handle command execution errors
+- Handle command execution errors gracefully
+- Derive health from sensors and chassis status
 
 **Validation criteria:**
-- [ ] Can execute ipmitool commands
-- [ ] Output parsing is reliable
-- [ ] Graceful fallback when ipmitool unavailable
-- [ ] Unit tests pass
+- [x] Can execute ipmitool commands (mocked)
+- [x] Output parsing is reliable
+- [x] Graceful fallback when ipmitool unavailable
+- [x] Unit tests pass (55+ tests, 90.1% coverage)
 
 ---
 
-### Task 2.4: Implement Auto-Detect Client Factory
+### Task 2.4: Implement Auto-Detect Client Factory ✅
 
-**Files to create:**
+**Files created:**
 - `agent/bmc/client.go`
 - `agent/bmc/client_test.go`
 
 **Implementation:**
 ```go
 func NewClient(ctx context.Context, config BMCConfig) (BMCClient, error) {
-    if config.Protocol == "redfish" || config.Protocol == "auto" {
-        client, err := redfish.NewClient(ctx, config)
+    // Uses ClientFactory interface for testability
+    switch config.Protocol {
+    case ProtocolRedfish:
+        return newRedfishClient(ctx, config)
+    case ProtocolIPMI:
+        return newIPMIClient(ctx, config)
+    case ProtocolAuto, "":
+        // Try Redfish first, fall back to IPMI
+        client, err := newRedfishClient(ctx, config)
         if err == nil {
             return client, nil
         }
-        if config.Protocol == "redfish" {
-            return nil, err
-        }
+        return newIPMIClient(ctx, config)
     }
-    return ipmi.NewClient(ctx, config)
 }
 ```
 
 **Validation criteria:**
-- [ ] Auto-detect tries Redfish first
-- [ ] Falls back to IPMI on Redfish failure
-- [ ] Explicit protocol selection works
-- [ ] Unit tests pass
+- [x] Auto-detect tries Redfish first
+- [x] Falls back to IPMI on Redfish failure
+- [x] Explicit protocol selection works
+- [x] Unit tests pass (17 tests)
 
 ---
 
-### Task 2.5: Implement Prometheus Pushgateway Client
+### Task 2.5: Implement Prometheus Pushgateway Client ✅
 
-**Files to create:**
+**Files created:**
 - `agent/bmc/metrics/prometheus.go`
 - `agent/bmc/metrics/prometheus_test.go`
 
 **Implementation:**
 - Format metrics in Prometheus exposition format
-- Push to Pushgateway with node labels
-- Batch multiple sensor readings
-- Handle push failures with retry
+- Push to Pushgateway with node labels (job=qis_bmc_collector, instance=nodeName)
+- Map sensor units to metric names (temperature, fan, power, voltage, current)
+- Convert status to numeric (OK=0, Warning=1, Critical=2)
+- Handle push failures gracefully
 
 **Validation criteria:**
-- [ ] Metrics formatted correctly
-- [ ] Push to Pushgateway succeeds
-- [ ] Node labels applied correctly
-- [ ] Unit tests pass
+- [x] Metrics formatted correctly
+- [x] Push to Pushgateway succeeds (mocked)
+- [x] Node labels applied correctly
+- [x] Unit tests pass (21 tests)
 
 ---
 
-### Task 2.6: Create BMC Collector CLI Commands
+### Task 2.6: Create BMC Collector CLI Commands ✅
 
-**Files to create:**
+**Files created:**
 - `agent/cmd/bmc-collector/main.go`
+- `agent/cmd/bmc-collector/config.go`
 - `agent/cmd/bmc-collector/sensors.go`
 - `agent/cmd/bmc-collector/inventory.go`
 - `agent/cmd/bmc-collector/health.go`
@@ -305,41 +321,50 @@ func NewClient(ctx context.Context, config BMCConfig) (BMCClient, error) {
 # Commands
 qis-bmc-collector sensors --config /etc/qis/bmc-collector.yml
 qis-bmc-collector inventory --config /etc/qis/bmc-collector.yml
-qis-bmc-collector health
+qis-bmc-collector inventory --node node01 --config /etc/qis/bmc-collector.yml
+qis-bmc-collector health --address 192.168.1.100 --user admin --password secret
 ```
 
-- Load configuration from YAML
-- Fetch node list from Rails API
+- Load configuration from YAML (server_url, api_token, prometheus_url)
+- Fetch node list from Rails API (/api/v1/bmc/nodes)
 - Collect data from each node's BMC
 - Push results to appropriate destination
 
 **Validation criteria:**
-- [ ] CLI commands execute correctly
-- [ ] Configuration loading works
-- [ ] Node list fetched from API
-- [ ] Data collected and pushed
-- [ ] Error handling with proper exit codes
+- [x] CLI commands execute correctly
+- [x] Configuration loading works
+- [x] Node list fetched from API
+- [x] Data collected and pushed
+- [x] Error handling with proper exit codes
 
 ---
 
-### Task 2.7: Add BMC Collector Build Target
+### Task 2.7: Add BMC Collector Build Target ✅
 
-**Files to modify:**
-- `agent/Makefile` (or create if not exists)
-- `agent/go.mod` (add dependencies)
+**Files created:**
+- `agent/Makefile`
+
+**Files modified:**
+- `agent/go.mod` (added gopkg.in/yaml.v3, github.com/stmcginnis/gofish)
 
 **Implementation:**
 ```makefile
 build-bmc-collector:
-	go build -o qis-bmc-collector ./cmd/bmc-collector
+	go build -ldflags="-s -w" -o build/qis-bmc-collector ./cmd/bmc-collector
 
-build-all: build-agent build-bmc-collector
+build: build-agent build-bmc-collector
+
+test:
+	go test ./...
+
+lint:
+	golangci-lint run
 ```
 
 **Validation criteria:**
-- [ ] Binary builds successfully
-- [ ] All tests pass
-- [ ] golangci-lint passes
+- [x] Binary builds successfully (7.4 MB)
+- [x] All tests pass
+- [x] golangci-lint passes for cmd/bmc-collector
 
 ---
 
