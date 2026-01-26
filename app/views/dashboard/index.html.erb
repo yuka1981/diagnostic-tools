@@ -90,12 +90,12 @@
 </div>
 
 <%# Node Heatmap Section %>
-<div class="mt-8">
+<div class="mt-6">
   <%= render "dashboard/heatmap", nodes: @nodes %>
 </div>
 
 <%# Recent Activity Section %>
-<div class="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
+<div class="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
   <%# Filtered Benchmark Runs (Turbo Frame) %>
   <%= render "dashboard/filtered_runs", runs: @filtered_runs, selected_node: @selected_node %>
 
