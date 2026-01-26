@@ -3,6 +3,10 @@
 require "rails_helper"
 
 RSpec.describe "Api::ServerProducts", type: :request do
+  let(:user) { create(:user) }
+
+  before { sign_in user }
+
   describe "GET /api/server_products/search" do
     let!(:product1) { create(:server_product, name: "QuantaGrid D54Q-2U") }
     let!(:product2) { create(:server_product, name: "QuantaPlex T42S-2U") }

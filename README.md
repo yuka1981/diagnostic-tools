@@ -389,6 +389,19 @@ This script:
 
 ## Development
 
+### Troubleshooting
+
+**CSS Styles Missing / Tailwind Classes Not Working**
+
+If CSS styles appear broken or Tailwind classes like `bg-neutral-2` don't apply, the precompiled assets in `public/assets/` may be stale. This happens when `tailwind.config.js` is updated but assets aren't recompiled.
+
+```bash
+# Recompile assets
+bin/rails assets:precompile
+
+# Then restart the dev server and hard refresh (Ctrl+Shift+R)
+```
+
 ### Running Tests
 
 ```bash

@@ -3,6 +3,10 @@
 require "rails_helper"
 
 RSpec.describe "Api::Nodes", type: :request do
+  let(:user) { create(:user) }
+
+  before { sign_in user }
+
   describe "GET /api/nodes/hostname_suggestions" do
     describe "single hostname prefix" do
       context "when there are existing hostnames matching the prefix" do

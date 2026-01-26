@@ -1,51 +1,90 @@
-<div class="flex min-h-full flex-col justify-center px-6 py-12 lg:px-8">
-  <div class="sm:mx-auto sm:w-full sm:max-w-md">
-    <div class="card-netbox shadow-xl">
-      <div class="card-header justify-center py-4">
-        <h2 class="text-lg font-black text-neutral-85 uppercase tracking-tight">Sign in to your account</h2>
-      </div>
+<% content_for(:title) { "Sign In - QCT InfraScope" } %>
 
-      <div class="p-6">
-        <%= form_for(resource, as: resource_name, url: session_path(resource_name), html: { class: "space-y-5" }) do |f| %>
-          <div>
-            <%= f.label :email, class: "block text-xs font-bold text-neutral-85 uppercase mb-1" %>
-            <%= f.email_field :email, autofocus: true, autocomplete: "email", 
-                class: "block w-full rounded border border-neutral-15 py-1.5 px-3 text-neutral-85 shadow-sm focus:ring-2 focus:ring-primary-5 focus:border-primary-5 sm:text-sm" %>
-          </div>
+<div class="w-full max-w-[472px] bg-white p-9 shadow-lg" data-controller="tabs">
+  <%# QCT Logo %>
+  <div class="flex justify-center py-4">
+    <%= image_tag "qct_logo_login.svg", alt: "QCT", class: "h-[94px] w-[340px]" %>
+  </div>
 
-          <div>
-            <%= f.label :password, class: "block text-xs font-bold text-neutral-85 uppercase mb-1" %>
-            <%= f.password_field :password, autocomplete: "current-password",
-                class: "block w-full rounded border border-neutral-15 py-1.5 px-3 text-neutral-85 shadow-sm focus:ring-2 focus:ring-primary-5 focus:border-primary-5 sm:text-sm" %>
-          </div>
+  <%# Subtitle %>
+  <div class="flex justify-center mt-4 mb-6">
+    <span class="text-2xl font-bold text-neutral-60">InfraScope</span>
+  </div>
 
-          <div class="flex items-center justify-between">
-            <% if devise_mapping.rememberable? %>
-              <div class="flex items-center">
-                <%= f.check_box :remember_me, class: "h-4 w-4 rounded border-neutral-15 text-primary-6 focus:ring-primary-5" %>
-                <%= f.label :remember_me, class: "ml-2 block text-xs font-bold text-neutral-45 uppercase" %>
-              </div>
-            <% end %>
+  <%# Login / Sign Up Tabs %>
+  <div class="flex items-center justify-center gap-2 mb-6">
+    <%= link_to "Login", new_user_session_path,
+        class: "px-3 py-2 text-sm font-medium text-primary-6 border-b-[3px] border-primary-6 transition-all duration-200" %>
+    <%= link_to "Sign Up", new_user_registration_path,
+        class: "px-3 py-2 text-sm font-normal text-neutral-60 hover:text-primary-6 border-b-[3px] border-transparent transition-all duration-200" %>
+  </div>
 
-            <% if devise_mapping.recoverable? && controller_name != 'passwords' %>
-              <div class="text-xs">
-                <%= link_to "Forgot password?", new_password_path(resource_name), class: "font-bold text-primary-6 hover:text-primary-7" %>
-              </div>
-            <% end %>
-          </div>
+  <%# Flash Alert for failed login %>
+  <% if flash[:alert].present? %>
+    <div class="bg-error-1 border border-error-3 text-error-8 px-4 py-3 rounded-[5px] text-sm mb-6">
+      <%= flash[:alert] %>
+    </div>
+  <% end %>
 
-          <div class="pt-2">
-            <%= f.submit "Sign in", class: "btn-primary w-full justify-center py-2 text-sm" %>
-          </div>
-        <% end %>
+  <%= form_for(resource, as: resource_name, url: session_path(resource_name), html: { class: "space-y-6" }) do |f| %>
+    <%= render "devise/shared/error_messages", resource: resource %>
 
-        <div class="mt-6 border-t border-neutral-4 pt-6 text-center">
-          <p class="text-xs text-neutral-45">
-            Not a member?
-            <%= link_to "Create an account", new_registration_path(resource_name), class: "font-bold text-primary-6 hover:text-primary-7" %>
-          </p>
-        </div>
+    <%# Account Field %>
+    <div class="space-y-2">
+      <label class="block text-sm font-medium text-neutral-60">Account</label>
+      <%= f.email_field :email,
+          autofocus: true,
+          autocomplete: "email",
+          placeholder: "Enter account",
+          class: "w-full bg-neutral-2 border border-neutral-8 rounded-[5px] p-3 text-sm text-neutral-60 placeholder:text-neutral-60 focus:outline-none focus:ring-2 focus:ring-primary-5 focus:border-primary-5" %>
+    </div>
+
+    <%# Password Field %>
+    <div class="space-y-2" data-controller="password-visibility">
+      <label class="block text-sm font-medium text-neutral-60">Password</label>
+      <div class="relative">
+        <%= f.password_field :password,
+            autocomplete: "current-password",
+            placeholder: "Enter password",
+            data: { password_visibility_target: "input" },
+            class: "w-full h-10 bg-neutral-2 border border-neutral-8 rounded-[5px] pl-3 pr-10 text-sm text-neutral-60 placeholder:text-neutral-60 focus:outline-none focus:ring-2 focus:ring-primary-5 focus:border-primary-5" %>
+        <button type="button"
+                data-action="click->password-visibility#toggle"
+                class="absolute right-0 top-0 h-10 w-10 flex items-center justify-center bg-primary-6 rounded-r-[5px] hover:bg-primary-7 focus:outline-none">
+          <%# Eye open icon (show password) %>
+          <svg data-password-visibility-target="showIcon" class="w-4 h-4 text-white" viewBox="0 0 16 16" fill="currentColor">
+            <path d="M8 3C4.364 3 1.258 5.073 0 8c1.258 2.927 4.364 5 8 5s6.742-2.073 8-5c-1.258-2.927-4.364-5-8-5zm0 8.5a3.5 3.5 0 110-7 3.5 3.5 0 010 7zm0-5.5a2 2 0 100 4 2 2 0 000-4z"/>
+          </svg>
+          <%# Eye closed icon (hide password) %>
+          <svg data-password-visibility-target="hideIcon" class="w-4 h-4 text-white hidden" viewBox="0 0 16 16" fill="currentColor">
+            <path d="M13.359 11.238C15.06 9.72 16 8 16 8s-3-5.5-8-5.5a7.028 7.028 0 00-2.79.588l.77.771A5.944 5.944 0 018 3.5c2.12 0 3.879 1.168 5.168 2.457A13.134 13.134 0 0114.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755-.165.165-.337.328-.517.486l.708.709z"/>
+            <path d="M11.297 9.176a3.5 3.5 0 00-4.474-4.474l.823.823a2.5 2.5 0 012.829 2.829l.822.822zm-2.943 1.299l.822.822a3.5 3.5 0 01-4.474-4.474l.823.823a2.5 2.5 0 002.829 2.829z"/>
+            <path d="M3.35 5.47c-.18.16-.353.322-.518.487A13.134 13.134 0 001.172 8l.195.288c.335.48.83 1.12 1.465 1.755C4.121 11.332 5.881 12.5 8 12.5c.716 0 1.39-.133 2.02-.36l.77.772A7.029 7.029 0 018 13.5C3 13.5 0 8 0 8s.939-1.72 2.641-3.238l.708.709z"/>
+            <path fill-rule="evenodd" d="M13.646 14.354l-12-12 .708-.708 12 12-.708.708z" clip-rule="evenodd"/>
+          </svg>
+        </button>
       </div>
     </div>
+
+    <%# Login Button %>
+    <div>
+      <%= f.submit "Login",
+          class: "w-full h-10 bg-primary-6 hover:bg-primary-7 text-white text-sm font-medium rounded-[5px] transition-colors focus:outline-none focus:ring-2 focus:ring-primary-5 focus:ring-offset-2 cursor-pointer" %>
+    </div>
+  <% end %>
+
+  <%# Links %>
+  <div class="flex items-center justify-center gap-0 mt-6">
+    <% if devise_mapping.recoverable? %>
+      <%= link_to "Forgot Your Password?", new_password_path(resource_name),
+          class: "px-2 text-sm text-primary-6 hover:text-primary-7 border-r border-neutral-8" %>
+    <% end %>
+    <%= link_to "Create an Account!", new_registration_path(resource_name),
+        class: "px-2 text-sm text-primary-6 hover:text-primary-7" %>
+  </div>
+
+  <div class="flex items-center justify-center mt-4">
+    <%= link_to "Need Help?", "#",
+        class: "text-sm text-primary-6 hover:text-primary-7" %>
   </div>
 </div>
