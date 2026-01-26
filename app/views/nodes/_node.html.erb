@@ -82,6 +82,7 @@
         <%# Collect Action %>
         <%= button_to collect_node_path(node),
             method: :post,
+            form: { class: "inline-flex" },
             class: "text-neutral-25 hover:text-primary-6 transition-colors",
             title: "Collect Info",
             data: { turbo_submits_with: "..." } do %>
@@ -99,6 +100,7 @@
       <% if current_user.approver? %>
         <%= button_to node_path(node),
             method: :delete,
+            form: { class: "inline-flex" },
             class: "text-neutral-25 hover:text-primary-6 transition-colors",
             title: "Delete",
             data: { turbo_confirm: "Are you sure you want to delete this node?" } do %>
