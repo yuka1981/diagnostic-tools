@@ -47,6 +47,6 @@
   - `Explore`: For codebase exploration and understanding structure.
   - `Plan`: For designing implementation strategies.
   - `Bash`: For git operations and command execution.
-  - `general-purpose`: For complex multi-step tasks.
+  - `general-purpose`: For orchestrating multi-step workflows that may involve other subagent types.
 - Provide clear, detailed prompts so subagents can work autonomously.
 - Review subagent results and summarize findings for the user.
