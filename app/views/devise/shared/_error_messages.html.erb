@@ -1,18 +1,18 @@
 <% if resource.errors.any? %>
   <div id="error_explanation"
        data-turbo-cache="false"
-       class="rounded-none bg-error-1 p-4 dark:bg-error-9/50">
+       class="rounded-none bg-error-1 p-4">
     <div class="flex">
       <div class="flex-shrink-0">
         <%= lucide_icon("circle-x", class: "h-5 w-5 text-error-5") %>
       </div>
       <div class="ml-3">
-        <h3 class="text-sm font-medium text-error-8 dark:text-error-2">
+        <h3 class="text-sm font-medium text-error-8">
           <%= I18n.t("errors.messages.not_saved",
                      count: resource.errors.count,
                      resource: resource.class.model_name.human.downcase) %>
         </h3>
-        <div class="mt-2 text-sm text-error-7 dark:text-error-3">
+        <div class="mt-2 text-sm text-error-7">
           <ul class="list-disc space-y-1 pl-5">
             <% resource.errors.full_messages.each do |message| %>
               <li><%= message %></li>

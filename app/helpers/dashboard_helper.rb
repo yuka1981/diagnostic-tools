@@ -122,42 +122,42 @@ module DashboardHelper
   private
 
   def success_icon
-    content_tag(:svg, class: "h-5 w-5 text-success-6 dark:text-success-4", fill: "none", stroke: "currentColor", viewBox: "0 0 24 24") do
+    content_tag(:svg, class: "h-5 w-5 text-success-6", fill: "none", stroke: "currentColor", viewBox: "0 0 24 24") do
       content_tag(:path, nil, "stroke-linecap": "round", "stroke-linejoin": "round", "stroke-width": "2",
         d: "M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z")
     end
   end
 
   def failed_icon
-    content_tag(:svg, class: "h-5 w-5 text-error-6 dark:text-error-4", fill: "none", stroke: "currentColor", viewBox: "0 0 24 24") do
+    content_tag(:svg, class: "h-5 w-5 text-error-6", fill: "none", stroke: "currentColor", viewBox: "0 0 24 24") do
       content_tag(:path, nil, "stroke-linecap": "round", "stroke-linejoin": "round", "stroke-width": "2",
         d: "M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z")
     end
   end
 
   def running_icon
-    content_tag(:svg, class: "h-5 w-5 text-primary-6 dark:text-primary-4 animate-spin", fill: "none", stroke: "currentColor", viewBox: "0 0 24 24") do
+    content_tag(:svg, class: "h-5 w-5 text-primary-6 animate-spin", fill: "none", stroke: "currentColor", viewBox: "0 0 24 24") do
       content_tag(:path, nil, "stroke-linecap": "round", "stroke-linejoin": "round", "stroke-width": "2",
         d: "M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15")
     end
   end
 
   def pending_icon
-    content_tag(:svg, class: "h-5 w-5 text-pending-6 dark:text-pending-4", fill: "none", stroke: "currentColor", viewBox: "0 0 24 24") do
+    content_tag(:svg, class: "h-5 w-5 text-pending-6", fill: "none", stroke: "currentColor", viewBox: "0 0 24 24") do
       content_tag(:path, nil, "stroke-linecap": "round", "stroke-linejoin": "round", "stroke-width": "2",
         d: "M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z")
     end
   end
 
   def cancelled_icon
-    content_tag(:svg, class: "h-5 w-5 text-neutral-45 dark:text-neutral-25", fill: "none", stroke: "currentColor", viewBox: "0 0 24 24") do
+    content_tag(:svg, class: "h-5 w-5 text-neutral-45", fill: "none", stroke: "currentColor", viewBox: "0 0 24 24") do
       content_tag(:path, nil, "stroke-linecap": "round", "stroke-linejoin": "round", "stroke-width": "2",
         d: "M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636")
     end
   end
 
   def unknown_icon
-    content_tag(:svg, class: "h-5 w-5 text-neutral-45 dark:text-neutral-25", fill: "none", stroke: "currentColor", viewBox: "0 0 24 24") do
+    content_tag(:svg, class: "h-5 w-5 text-neutral-45", fill: "none", stroke: "currentColor", viewBox: "0 0 24 24") do
       content_tag(:path, nil, "stroke-linecap": "round", "stroke-linejoin": "round", "stroke-width": "2",
         d: "M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z")
     end

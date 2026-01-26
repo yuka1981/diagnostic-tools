@@ -1,17 +1,17 @@
 <% if notice.present? %>
-  <div class="rounded-none bg-success-1 p-4 dark:bg-success-5/10">
+  <div class="rounded-none bg-success-1 p-4">
     <div class="flex items-center gap-3">
       <%= lucide_icon("circle-check", class: "h-5 w-5 text-success-5") %>
-      <p class="text-sm font-medium text-success-8 dark:text-success-2"><%= notice %></p>
+      <p class="text-sm font-medium text-success-8"><%= notice %></p>
     </div>
   </div>
 <% end %>
 
 <% if alert.present? %>
-  <div class="rounded-none bg-error-1 p-4 dark:bg-error-5/10">
+  <div class="rounded-none bg-error-1 p-4">
     <div class="flex items-center gap-3">
       <%= lucide_icon("alert-circle", class: "h-5 w-5 text-error-5") %>
-      <p class="text-sm font-medium text-error-8 dark:text-error-2"><%= alert %></p>
+      <p class="text-sm font-medium text-error-8"><%= alert %></p>
     </div>
   </div>
 <% end %>
