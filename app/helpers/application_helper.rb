@@ -32,9 +32,9 @@ module ApplicationHelper
     when "offline", "failed", "error"
       "bg-error-1 text-error-7 border border-error-2"
     when "running"
-      "bg-blue-100 text-blue-800 border border-blue-200 animate-pulse"
+      "bg-primary-1 text-primary-7 border border-primary-2 animate-pulse"
     when "unknown", "warning"
-      "bg-yellow-100 text-yellow-800 border border-yellow-200"
+      "bg-warning-1 text-warning-7 border border-warning-2"
     else
       "bg-neutral-4 text-neutral-85 border border-neutral-8"
     end
@@ -52,9 +52,9 @@ module ApplicationHelper
     if percentage > 90
       "bg-error-5"
     elsif percentage > 75
-      "bg-amber-500"
+      "bg-warning-5"
     else
-      "bg-blue-500"
+      "bg-primary-5"
     end
   end
 
@@ -100,11 +100,11 @@ module ApplicationHelper
     when "failed"
       "bg-error-1 text-error-7"
     when "running"
-      "bg-blue-100 text-blue-800"
+      "bg-primary-1 text-primary-7"
     when "pending"
-      "bg-yellow-100 text-yellow-800"
+      "bg-pending-1 text-pending-7"
     else
-      "bg-gray-100 text-gray-800"
+      "bg-neutral-4 text-neutral-45"
     end
   end
 
@@ -135,7 +135,7 @@ module ApplicationHelper
     when "failed"
       lucide_icon("circle-x", class: "h-6 w-6 text-error-5")
     when "running"
-      lucide_icon("loader-2", class: "h-6 w-6 text-blue-500 animate-spin")
+      lucide_icon("loader-2", class: "h-6 w-6 text-primary-5 animate-spin")
     when "pending"
       lucide_icon("clock", class: "h-6 w-6 text-neutral-25")
     else
@@ -149,7 +149,7 @@ module ApplicationHelper
     when "pending"
       "bg-neutral-4 text-neutral-85"
     when "running"
-      "bg-blue-100 text-blue-700"
+      "bg-primary-1 text-primary-7"
     when "success"
       "bg-success-2 text-success-7"
     when "failed"

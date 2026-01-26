@@ -25,11 +25,11 @@ RSpec.describe DashboardHelper, type: :helper do
     end
 
     it "returns running colors for running status" do
-      expect(helper.status_badge_class("running")).to include("blue")
+      expect(helper.status_badge_class("running")).to include("primary")
     end
 
     it "returns warning colors for pending status" do
-      expect(helper.status_badge_class("pending")).to include("yellow")
+      expect(helper.status_badge_class("pending")).to include("warning")
     end
 
     it "returns muted colors for cancelled status" do
@@ -38,7 +38,7 @@ RSpec.describe DashboardHelper, type: :helper do
 
     it "returns warning colors for unknown status" do
       # "unknown" maps to :warning in STATUS_COLORS
-      expect(helper.status_badge_class("unknown")).to include("yellow")
+      expect(helper.status_badge_class("unknown")).to include("warning")
     end
 
     it "returns default muted colors for unrecognized status" do
@@ -61,8 +61,8 @@ RSpec.describe DashboardHelper, type: :helper do
     end
 
     it "returns warning background for unknown status" do
-      # "unknown" maps to :warning which uses yellow color
-      expect(helper.status_bg_class("unknown")).to include("yellow")
+      # "unknown" maps to :warning which uses QPDM warning color
+      expect(helper.status_bg_class("unknown")).to include("warning")
     end
 
     it "returns default background for unrecognized status" do
@@ -80,8 +80,8 @@ RSpec.describe DashboardHelper, type: :helper do
     end
 
     it "returns warning text color for unknown status" do
-      # "unknown" maps to :warning which uses yellow color
-      expect(helper.status_text_color("unknown")).to include("yellow")
+      # "unknown" maps to :warning which uses QPDM warning color
+      expect(helper.status_text_color("unknown")).to include("warning")
     end
 
     it "returns default text color for unrecognized status" do
@@ -90,16 +90,16 @@ RSpec.describe DashboardHelper, type: :helper do
   end
 
   describe "#role_badge_class" do
-    it "returns blue for compute role" do
-      expect(helper.role_badge_class("compute")).to include("blue")
+    it "returns primary for compute role" do
+      expect(helper.role_badge_class("compute")).to include("primary")
     end
 
-    it "returns purple for login role" do
-      expect(helper.role_badge_class("login")).to include("purple")
+    it "returns login for login role" do
+      expect(helper.role_badge_class("login")).to include("login")
     end
 
-    it "returns amber for admin role" do
-      expect(helper.role_badge_class("admin")).to include("amber")
+    it "returns warning for admin role" do
+      expect(helper.role_badge_class("admin")).to include("warning")
     end
 
     it "returns default for unknown role" do
@@ -107,7 +107,7 @@ RSpec.describe DashboardHelper, type: :helper do
     end
 
     it "handles symbol role" do
-      expect(helper.role_badge_class(:compute)).to include("blue")
+      expect(helper.role_badge_class(:compute)).to include("primary")
     end
   end
 
@@ -118,20 +118,20 @@ RSpec.describe DashboardHelper, type: :helper do
     let(:online_login_node) { build(:node, role: :login, last_heartbeat_at: 1.minute.ago) }
     let(:online_admin_node) { build(:node, role: :admin, last_heartbeat_at: 1.minute.ago) }
 
-    it "returns emerald for online compute nodes" do
-      expect(helper.node_heatmap_class(online_compute_node)).to include("emerald")
+    it "returns success for online compute nodes" do
+      expect(helper.node_heatmap_class(online_compute_node)).to include("success")
     end
 
     it "returns neutral for offline compute nodes" do
       expect(helper.node_heatmap_class(offline_compute_node)).to include("neutral")
     end
 
-    it "returns blue for online login nodes" do
-      expect(helper.node_heatmap_class(online_login_node)).to include("blue")
+    it "returns login for online login nodes" do
+      expect(helper.node_heatmap_class(online_login_node)).to include("login")
     end
 
-    it "returns amber for online admin nodes" do
-      expect(helper.node_heatmap_class(online_admin_node)).to include("amber")
+    it "returns warning for online admin nodes" do
+      expect(helper.node_heatmap_class(online_admin_node)).to include("warning")
     end
   end
 
@@ -153,7 +153,7 @@ RSpec.describe DashboardHelper, type: :helper do
 
     it "returns running icon for running status" do
       result = helper.status_icon("running")
-      expect(result).to include("blue")
+      expect(result).to include("primary")
       expect(result).to include("animate-spin")
     end
 

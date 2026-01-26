@@ -95,10 +95,10 @@ RSpec.describe NodesHelper, type: :helper do
       expect(result).to include("primary")
     end
 
-    it "returns amber for downgraded slots" do
+    it "returns warning for downgraded slots" do
       slot = { "size" => "8 GB", "speed" => "3200 MT/s", "configured_speed" => "2400 MT/s" }
       result = helper.memory_slot_status_classes(slot)
-      expect(result).to include("amber")
+      expect(result).to include("warning")
     end
 
     it "handles nil speeds" do
