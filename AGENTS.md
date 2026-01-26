@@ -39,3 +39,14 @@
 ## Security & Configuration Tips
 - SSH settings live in Rails credentials or env vars (`SSH_USER`, `SSH_KEY_PATH`, etc.).
 - Avoid committing secrets; use `bin/rails credentials:edit` for updates.
+
+## Task Implementation with Subagents
+- Always use subagents (Task tool) when implementing tasks.
+- Launch multiple subagents in parallel for independent tasks to maximize efficiency.
+- Use appropriate subagent types:
+  - `Explore`: For codebase exploration and understanding structure.
+  - `Plan`: For designing implementation strategies.
+  - `Bash`: For git operations and command execution.
+  - `general-purpose`: For complex multi-step tasks.
+- Provide clear, detailed prompts so subagents can work autonomously.
+- Review subagent results and summarize findings for the user.
