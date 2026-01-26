@@ -14,9 +14,9 @@
                   <dt class="text-neutral-45">Finished:</dt>
                   <dd class="font-medium text-neutral-85"><%= task.finished_at&.strftime("%b %d, %H:%M") || "-" %></dd>
                 </div>
-                <div class="flex justify-between">
-                  <dt class="text-neutral-45">UUID:</dt>
-                  <dd class="font-mono text-xs text-neutral-85"><%= task.uuid[0..7] %>...</dd>
+                <div class="flex justify-between gap-4">
+                  <dt class="text-neutral-45 shrink-0">UUID:</dt>
+                  <dd class="font-mono text-xs text-neutral-85 break-all"><%= task.uuid %></dd>
                 </div>
                 <div class="flex justify-between">
                   <dt class="text-neutral-45">Recipe:</dt>
