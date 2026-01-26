@@ -1,7 +1,7 @@
 <tr id="<%= task.dom_id %>_details" class="bg-neutral-2 hidden" data-accordion-target="details">
   <td colspan="8" class="p-0">
     <div class="px-6 py-4">
-          <div class="grid grid-cols-3 gap-6">
+          <div class="grid grid-cols-2 gap-6">
             <%# Details Column %>
             <div>
               <h4 class="text-xs font-bold text-neutral-45 uppercase mb-2">Details</h4>
@@ -42,45 +42,6 @@
               <% else %>
                 <p class="text-sm text-neutral-25 italic">No metrics available</p>
               <% end %>
-            </div>
-
-            <%# Actions Column %>
-            <div>
-              <h4 class="text-xs font-bold text-neutral-45 uppercase mb-2">Actions</h4>
-              <div class="space-y-2">
-                <%= button_to rerun_task_path(task.to_param),
-                    method: :post,
-                    data: { turbo_confirm: "Re-run this task with the same configuration?" },
-                    class: "w-full btn-secondary text-sm justify-center" do %>
-                  <%= lucide_icon("refresh-cw", class: "h-4 w-4 mr-1") %>
-                  Re-run
-                <% end %>
-
-                <%= link_to node_path(task.node),
-                    data: { turbo_frame: "_top" },
-                    class: "w-full btn-secondary text-sm justify-center" do %>
-                  <%= lucide_icon("arrow-right", class: "h-4 w-4 mr-1") %>
-                  View Node
-                <% end %>
-
-                <% if task.pending? || task.running? %>
-                  <%= button_to cancel_task_path(task.to_param),
-                      method: :post,
-                      data: { turbo_confirm: "Cancel this task?" },
-                      class: "w-full btn-danger text-sm justify-center" do %>
-                    <%= lucide_icon("x", class: "h-4 w-4 mr-1") %>
-                    Cancel
-                  <% end %>
-                <% end %>
-
-                <%= button_to task_path(task.to_param),
-                    method: :delete,
-                    data: { turbo_confirm: "Delete this task permanently?" },
-                    class: "w-full btn-danger text-sm justify-center" do %>
-                  <%= lucide_icon("trash-2", class: "h-4 w-4 mr-1") %>
-                  Delete
-                <% end %>
-              </div>
             </div>
           </div>
 
