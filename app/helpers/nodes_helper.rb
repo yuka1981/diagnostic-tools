@@ -36,7 +36,7 @@ module NodesHelper
     if !installed
       "bg-neutral-2 border-dashed border-2 border-neutral-8 text-neutral-15"
     elsif downgraded
-      "bg-amber-50 border-2 border-amber-400 text-amber-800"
+      "bg-warning-1 border-2 border-warning-4 text-warning-7"
     else
       "bg-primary-6 border-2 border-primary-7 text-white shadow-sm"
     end

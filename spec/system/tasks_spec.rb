@@ -44,8 +44,8 @@ RSpec.describe "Tasks", type: :system do
     it "shows type badges for benchmark and profiling" do
       visit tasks_path
 
-      expect(page).to have_css(".bg-blue-100", text: "Benchmark")
-      expect(page).to have_css(".bg-purple-100", text: "Profiling")
+      expect(page).to have_css(".bg-primary-1", text: "Benchmark")
+      expect(page).to have_css(".bg-login-1", text: "Profiling")
     end
 
     it "shows status badges with correct colors" do
@@ -97,8 +97,8 @@ RSpec.describe "Tasks", type: :system do
       within("tbody") do
         expect(page).to have_content("compute-001", wait: 5)
         expect(page).not_to have_content("login-001")
-        expect(page).to have_css(".bg-blue-100", text: "Benchmark")
-        expect(page).not_to have_css(".bg-purple-100", text: "Profiling")
+        expect(page).to have_css(".bg-primary-1", text: "Benchmark")
+        expect(page).not_to have_css(".bg-login-1", text: "Profiling")
       end
     end
 
@@ -110,8 +110,8 @@ RSpec.describe "Tasks", type: :system do
       within("tbody") do
         expect(page).to have_content("login-001", wait: 5)
         expect(page).not_to have_content("compute-001")
-        expect(page).to have_css(".bg-purple-100", text: "Profiling")
-        expect(page).not_to have_css(".bg-blue-100", text: "Benchmark")
+        expect(page).to have_css(".bg-login-1", text: "Profiling")
+        expect(page).not_to have_css(".bg-primary-1", text: "Benchmark")
       end
     end
   end
@@ -369,8 +369,8 @@ RSpec.describe "Tasks", type: :system do
         # Use simpler selector to avoid Playwright DOM query issues during Turbo updates
         expect(page).to have_css("tr[data-accordion-target='row']", count: 2, wait: 5)
         # Verify they are benchmark type (blue badge) not profiling (purple badge)
-        expect(page).to have_css(".bg-blue-100", minimum: 2)
-        expect(page).not_to have_css(".bg-purple-100")
+        expect(page).to have_css(".bg-primary-1", minimum: 2)
+        expect(page).not_to have_css(".bg-login-1")
       end
     end
   end
@@ -536,13 +536,11 @@ RSpec.describe "Tasks", type: :system do
         expect(pending_run.reload.status).to eq("cancelled")
       end
 
-      it "shows cancel button in expanded details for pending tasks" do
+      it "shows cancel button in task row for pending tasks" do
         visit tasks_path
 
-        find("#task_benchmark_#{pending_run.id}").click
-
-        within("#task_benchmark_#{pending_run.id}_details") do
-          expect(page).to have_button("Cancel")
+        within("#task_benchmark_#{pending_run.id}") do
+          expect(page).to have_css("[title='Cancel']")
         end
       end
     end
@@ -607,13 +605,11 @@ RSpec.describe "Tasks", type: :system do
       expect(BenchmarkRun.exists?(benchmark_run.id)).to be false
     end
 
-    it "shows delete button in expanded details" do
+    it "shows delete button in task row" do
       visit tasks_path
 
-      find("#task_benchmark_#{benchmark_run.id}").click
-
-      within("#task_benchmark_#{benchmark_run.id}_details") do
-        expect(page).to have_button("Delete")
+      within("#task_benchmark_#{benchmark_run.id}") do
+        expect(page).to have_css("[title='Delete']")
       end
     end
   end
@@ -621,25 +617,20 @@ RSpec.describe "Tasks", type: :system do
   describe "re-run action", :js do
     let!(:benchmark_run) { create(:benchmark_run, :success, node: node1, benchmark_recipe: benchmark_recipe) }
 
-    it "shows re-run button in expanded details" do
+    it "shows re-run button in task row" do
       visit tasks_path
 
-      find("#task_benchmark_#{benchmark_run.id}").click
-
-      within("#task_benchmark_#{benchmark_run.id}_details") do
-        expect(page).to have_button("Re-run")
+      within("#task_benchmark_#{benchmark_run.id}") do
+        expect(page).to have_css("[title='Re-run']")
       end
     end
 
     it "creates a new task when clicking re-run" do
       visit tasks_path
 
-      find("#task_benchmark_#{benchmark_run.id}").click
-      expect(page).to have_css("#task_benchmark_#{benchmark_run.id}_details", visible: true, wait: 5)
-
-      within("#task_benchmark_#{benchmark_run.id}_details") do
+      within("#task_benchmark_#{benchmark_run.id}") do
         accept_confirm do
-          click_button "Re-run"
+          find("[title='Re-run']").click
         end
       end
 
@@ -653,24 +644,19 @@ RSpec.describe "Tasks", type: :system do
   describe "view node action", :js do
     let!(:benchmark_run) { create(:benchmark_run, :success, node: node1, benchmark_recipe: benchmark_recipe) }
 
-    it "shows view node link in expanded details" do
+    it "shows view node link in task row" do
       visit tasks_path
 
-      find("#task_benchmark_#{benchmark_run.id}").click
-
-      within("#task_benchmark_#{benchmark_run.id}_details") do
-        expect(page).to have_link("View Node", href: node_path(node1))
+      within("#task_benchmark_#{benchmark_run.id}") do
+        expect(page).to have_css("[title='View Node']")
       end
     end
 
     it "navigates to node page when clicking view node" do
       visit tasks_path
 
-      find("#task_benchmark_#{benchmark_run.id}").click
-      expect(page).to have_css("#task_benchmark_#{benchmark_run.id}_details", visible: true, wait: 5)
-
-      # Find the View Node link and use visit instead to ensure navigation
-      link_href = find("#task_benchmark_#{benchmark_run.id}_details a", text: "View Node")[:href]
+      # Find the View Node link in the row
+      link_href = find("#task_benchmark_#{benchmark_run.id} [title='View Node']")[:href]
       visit link_href
 
       # Wait for navigation to complete - check for node page content
@@ -1114,8 +1100,8 @@ RSpec.describe "Tasks", type: :system do
 
         # Wait for filter to be applied
         within("tbody") do
-          expect(page).to have_css(".bg-purple-100", text: "Profiling", wait: 5)
-          expect(page).not_to have_css(".bg-blue-100", text: "Benchmark")
+          expect(page).to have_css(".bg-login-1", text: "Profiling", wait: 5)
+          expect(page).not_to have_css(".bg-primary-1", text: "Benchmark")
         end
 
         # Get the profiling task row

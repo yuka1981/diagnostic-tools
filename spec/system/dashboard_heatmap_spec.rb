@@ -48,13 +48,13 @@ RSpec.describe "Dashboard Heatmap", type: :system do
         end
       end
 
-      it "displays node information in cell title/tooltip" do
+      it "displays node information in cell aria-label" do
         visit dashboard_path
 
         cell = find("[data-node-id='#{compute_node.id}']")
-        expect(cell["title"]).to include("compute-001")
-        expect(cell["title"]).to include("Compute")
-        expect(cell["title"]).to include("Online")
+        expect(cell["aria-label"]).to include("compute-001")
+        expect(cell["aria-label"]).to include("compute")
+        expect(cell["aria-label"]).to include("online")
       end
     end
   end
@@ -116,19 +116,19 @@ RSpec.describe "Dashboard Heatmap", type: :system do
 
   describe "helper methods" do
     context "node_heatmap_class" do
-      it "returns amber classes for online admin nodes" do
+      it "returns warning classes for online admin nodes" do
         node = create(:node, role: :admin, last_heartbeat_at: 1.minute.ago)
-        expect(ApplicationController.helpers.node_heatmap_class(node)).to include("bg-amber-500")
+        expect(ApplicationController.helpers.node_heatmap_class(node)).to include("bg-warning-5")
       end
 
-      it "returns emerald classes for online compute nodes" do
+      it "returns success classes for online compute nodes" do
         node = create(:node, role: :compute, last_heartbeat_at: 1.minute.ago)
-        expect(ApplicationController.helpers.node_heatmap_class(node)).to include("bg-emerald-500")
+        expect(ApplicationController.helpers.node_heatmap_class(node)).to include("bg-success-5")
       end
 
-            it "returns blue classes for online login nodes" do
+            it "returns login classes for online login nodes" do
               node = create(:node, role: :login, last_heartbeat_at: 1.minute.ago)
-              expect(ApplicationController.helpers.node_heatmap_class(node)).to include("bg-blue-500")
+              expect(ApplicationController.helpers.node_heatmap_class(node)).to include("bg-login-5")
             end
             it "returns gray classes for offline nodes" do
         node = create(:node, role: :compute, last_heartbeat_at: 10.minutes.ago)
@@ -232,7 +232,7 @@ RSpec.describe "Dashboard Heatmap", type: :system do
 
       # Stimulus adds these selection classes (not focus: prefixed)
       expect(updated_classes).to include("ring-2")
-      expect(updated_classes).to include("ring-cyan-500")
+      expect(updated_classes).to include("ring-primary-5")
       expect(updated_classes).to include("ring-offset-2")
     end
   end

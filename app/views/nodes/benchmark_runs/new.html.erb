@@ -14,9 +14,9 @@
               <td class="px-3 py-1 text-right">
                 <% case @preflight.config[:work_dir_source] %>
                 <% when :node %>
-                  <span class="inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-medium text-blue-700">Node</span>
+                  <span class="inline-flex items-center rounded-full bg-primary-1 px-2 py-0.5 text-[10px] font-medium text-primary-7">Node</span>
                 <% when :global %>
-                  <span class="inline-flex items-center rounded-full bg-purple-50 px-2 py-0.5 text-[10px] font-medium text-purple-700">Global</span>
+                  <span class="inline-flex items-center rounded-full bg-login-1 px-2 py-0.5 text-[10px] font-medium text-login-7">Global</span>
                 <% else %>
                   <span class="inline-flex items-center rounded-full bg-neutral-4 px-2 py-0.5 text-[10px] font-medium text-neutral-45">Default</span>
                 <% end %>
@@ -41,15 +41,15 @@
                 <% when :global %>
                   <span class="text-success-6">Using global</span>
                 <% else %>
-                  <span class="text-amber-600">Not configured</span>
+                  <span class="text-warning-6">Not configured</span>
                 <% end %>
               </td>
               <td class="px-3 py-1 text-right">
                 <% case @preflight.config[:token_source] %>
                 <% when :node %>
-                  <span class="inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-medium text-blue-700">Node</span>
+                  <span class="inline-flex items-center rounded-full bg-primary-1 px-2 py-0.5 text-[10px] font-medium text-primary-7">Node</span>
                 <% when :global %>
-                  <span class="inline-flex items-center rounded-full bg-purple-50 px-2 py-0.5 text-[10px] font-medium text-purple-700">Global</span>
+                  <span class="inline-flex items-center rounded-full bg-login-1 px-2 py-0.5 text-[10px] font-medium text-login-7">Global</span>
                 <% end %>
               </td>
             </tr>
@@ -84,23 +84,23 @@
 
       <%# Error with Quick Fix Links %>
       <% if @preflight.failed_checks.any? %>
-        <div class="rounded-md bg-amber-50 p-4 border border-amber-200">
+        <div class="rounded-md bg-warning-1 p-4 border border-warning-2">
           <div class="flex">
-            <%= lucide_icon("alert-triangle", class: "h-5 w-5 text-amber-400 flex-shrink-0") %>
+            <%= lucide_icon("alert-triangle", class: "h-5 w-5 text-warning-5 flex-shrink-0") %>
             <div class="ml-3">
-              <h3 class="text-sm font-bold text-amber-800">Configuration issues detected</h3>
-              <div class="mt-2 text-xs text-amber-700">
+              <h3 class="text-sm font-bold text-warning-8">Configuration issues detected</h3>
+              <div class="mt-2 text-xs text-warning-7">
                 <p>Please fix the issues above before running the benchmark.</p>
               </div>
               <div class="mt-3 flex flex-wrap gap-2">
                 <%= link_to "Edit Node Settings", edit_node_path(@node),
-                    class: "inline-flex items-center rounded-md bg-amber-100 px-2.5 py-1.5 text-xs font-semibold text-amber-800 hover:bg-amber-200",
+                    class: "inline-flex items-center rounded-md bg-warning-1 px-2.5 py-1.5 text-xs font-semibold text-warning-8 hover:bg-warning-2",
                     data: { turbo_frame: "_top" } %>
                 <%= link_to "Global Settings", settings_agent_path,
-                    class: "inline-flex items-center rounded-md bg-amber-100 px-2.5 py-1.5 text-xs font-semibold text-amber-800 hover:bg-amber-200",
+                    class: "inline-flex items-center rounded-md bg-warning-1 px-2.5 py-1.5 text-xs font-semibold text-warning-8 hover:bg-warning-2",
                     data: { turbo_frame: "_top" } %>
                 <%= link_to "API Keys", api_keys_path,
-                    class: "inline-flex items-center rounded-md bg-amber-100 px-2.5 py-1.5 text-xs font-semibold text-amber-800 hover:bg-amber-200",
+                    class: "inline-flex items-center rounded-md bg-warning-1 px-2.5 py-1.5 text-xs font-semibold text-warning-8 hover:bg-warning-2",
                     data: { turbo_frame: "_top" } %>
               </div>
             </div>

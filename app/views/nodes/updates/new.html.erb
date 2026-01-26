@@ -5,7 +5,7 @@
         <div class="rounded-md bg-error-1 p-4 border border-error-2 mb-6">
           <div class="flex">
             <div class="flex-shrink-0">
-              <%= lucide_icon("circle-x", class: "h-5 w-5 text-error-4") %>
+              <%= lucide_icon("circle-x", class: "h-5 w-5 text-error-5") %>
             </div>
             <div class="ml-3">
               <h3 class="text-sm font-bold text-error-8">Node is Busy</h3>
@@ -20,7 +20,7 @@
         <div class="rounded-md bg-primary-1 p-4 border border-primary-2 mb-6">
           <div class="flex">
             <div class="flex-shrink-0">
-              <%= lucide_icon("circle-check", class: "h-5 w-5 text-primary-4") %>
+              <%= lucide_icon("circle-check", class: "h-5 w-5 text-primary-5") %>
             </div>
             <div class="ml-3">
               <h3 class="text-sm font-bold text-primary-8">Credentials Configured</h3>
@@ -31,14 +31,14 @@
           </div>
         </div>
       <% else %>
-        <div class="rounded-md bg-blue-50 p-4 border border-blue-200 mb-6">
+        <div class="rounded-md bg-primary-1 p-4 border border-primary-2 mb-6">
           <div class="flex">
             <div class="flex-shrink-0">
-              <%= lucide_icon("info", class: "h-5 w-5 text-blue-400") %>
+              <%= lucide_icon("info", class: "h-5 w-5 text-primary-5") %>
             </div>
             <div class="ml-3">
-              <h3 class="text-sm font-bold text-blue-800">Agent Update</h3>
-              <p class="mt-1 text-xs text-blue-700">
+              <h3 class="text-sm font-bold text-primary-8">Agent Update</h3>
+              <p class="mt-1 text-xs text-primary-7">
                 Select a release version to deploy to this node. The agent service will be stopped during the update.
               </p>
             </div>
@@ -94,7 +94,7 @@
                         </span>
                       <% end %>
                       <% if release.deprecated? %>
-                        <span class="inline-flex items-center rounded-sm px-1.5 py-0.5 text-xs font-medium bg-amber-100 text-amber-800">
+                        <span class="inline-flex items-center rounded-sm px-1.5 py-0.5 text-xs font-medium bg-warning-1 text-warning-8">
                           Deprecated
                         </span>
                       <% end %>

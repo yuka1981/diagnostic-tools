@@ -1,9 +1,9 @@
 <% if release.active? %>
-  <span class="inline-flex items-center rounded-sm px-2 py-0.5 text-xs font-medium bg-emerald-100 text-emerald-800 border border-emerald-200">
+  <span class="inline-flex items-center rounded-sm px-2 py-0.5 text-xs font-medium bg-success-1 text-success-8 border border-success-2">
     Active
   </span>
 <% elsif release.deprecated? %>
-  <span class="inline-flex items-center rounded-sm px-2 py-0.5 text-xs font-medium bg-amber-100 text-amber-800 border border-amber-200">
+  <span class="inline-flex items-center rounded-sm px-2 py-0.5 text-xs font-medium bg-warning-1 text-warning-8 border border-warning-2">
     Deprecated
   </span>
 <% elsif release.recalled? %>

@@ -27,51 +27,103 @@
     <%# Legend %>
     <div class="flex items-center gap-4 mb-4 text-[10px] font-bold uppercase tracking-tight">
       <div class="flex items-center gap-1.5">
-        <div class="h-3 w-3 rounded-sm bg-emerald-500"></div>
+        <div class="h-3 w-3 rounded-full bg-success-5"></div>
         <span class="text-neutral-45">Online</span>
       </div>
       <div class="flex items-center gap-1.5">
-        <div class="h-3 w-3 rounded-sm bg-neutral-15"></div>
+        <div class="h-3 w-3 rounded-full bg-neutral-15"></div>
         <span class="text-neutral-45">Offline</span>
-      </div>
-      <div class="flex items-center gap-1.5">
-        <div class="h-3 w-3 rounded-sm bg-blue-500"></div>
-        <span class="text-neutral-45">Login</span>
-      </div>
-      <div class="flex items-center gap-1.5">
-        <div class="h-3 w-3 rounded-sm bg-amber-500"></div>
-        <span class="text-neutral-45">Admin</span>
       </div>
     </div>
 
     <% if nodes.any? %>
-      <%# Heatmap Grid %>
-      <div class="grid grid-cols-8 sm:grid-cols-10 md:grid-cols-12 lg:grid-cols-16 gap-1.5" role="grid" aria-label="Node heatmap">
-        <% nodes.each do |node| %>
-          <button type="button"
-                  data-heatmap-target="cell"
-                  data-action="click->heatmap#filter"
-                  data-node-id="<%= node.id %>"
-                  data-hostname="<%= node.hostname %>"
-                  class="group relative aspect-square rounded-sm transition-all duration-150 cursor-pointer hover:scale-105 focus:outline-none focus:ring-2 focus:ring-primary-5 focus:ring-offset-2 <%= node_heatmap_class(node) %> border border-black/5"
-                  title="<%= node.hostname %> (<%= node.role.humanize %>) - <%= node.online? ? 'Online' : 'Offline' %>"
-                  aria-label="<%= node.hostname %>, <%= node.role %>, <%= node.online? ? 'online' : 'offline' %>">
-            <%# Tooltip on hover %>
-            <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block z-50 pointer-events-none">
-              <div class="whitespace-nowrap rounded bg-neutral-85 px-2 py-1.5 text-[10px] font-bold text-white shadow-xl border border-neutral-85 backdrop-blur-sm">
-                <p class="text-primary-4 uppercase tracking-widest"><%= node.hostname %></p>
-                <p class="text-neutral-15 font-medium tracking-tight"><%= node.role.humanize %> · <%= node.online? ? 'Online' : 'Offline' %></p>
-                <% if node.last_seen_at %>
-                  <p class="text-neutral-25 font-normal text-[9px] mt-0.5 border-t border-neutral-85 pt-0.5">Last seen: <%= time_ago_in_words(node.last_seen_at) %> ago</p>
-                <% end %>
-              </div>
-              <%# Tooltip arrow %>
-              <div class="absolute left-1/2 -translate-x-1/2 -top-1 h-2 w-2 rotate-45 bg-neutral-85 border-r border-b border-neutral-85"></div>
+      <%# Group nodes by role %>
+      <% grouped_nodes = nodes.group_by(&:role) %>
+      <% role_order = %w[admin login compute k8s_worker] %>
+      <% role_labels = { "admin" => "Admin", "login" => "Login", "compute" => "Compute", "k8s_worker" => "K8s Worker" } %>
+
+      <div class="space-y-4" role="grid" aria-label="Node heatmap">
+        <% role_order.each do |role| %>
+          <% role_nodes = grouped_nodes[role] %>
+          <% next if role_nodes.blank? %>
+
+          <%# Role Group %>
+          <div class="flex items-center gap-3">
+            <%# Role Label %>
+            <div class="w-20 shrink-0">
+              <span class="text-[10px] font-bold text-neutral-45 uppercase tracking-tight"><%= role_labels[role] || role.humanize %></span>
+              <span class="text-[9px] text-neutral-25 ml-1">(<%= role_nodes.size %>)</span>
             </div>
-          </button>
+
+            <%# Nodes in horizontal row %>
+            <div class="flex flex-wrap items-center gap-1.5">
+              <% role_nodes.each do |node| %>
+                <button type="button"
+                        data-heatmap-target="cell"
+                        data-action="click->heatmap#filter"
+                        data-node-id="<%= node.id %>"
+                        data-hostname="<%= node.hostname %>"
+                        class="group relative h-4 w-4 rounded-full transition-all duration-150 cursor-pointer hover:scale-105 focus:outline-none focus:ring-2 focus:ring-primary-5 focus:ring-offset-2 <%= node_heatmap_class(node) %> border border-black/5"
+                        aria-label="<%= node.hostname %>, <%= node.role %>, <%= node.online? ? 'online' : 'offline' %>">
+                  <%# Tooltip on hover %>
+                  <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 hidden group-hover:block z-50 pointer-events-none">
+                    <div class="whitespace-nowrap rounded-lg bg-white px-3 py-2.5 shadow-[0_4px_20px_rgba(0,0,0,0.15)] ring-1 ring-neutral-8">
+                      <%# Header with hostname and status indicator %>
+                      <div class="flex items-center gap-2 mb-1.5">
+                        <%# Status indicator dot %>
+                        <div class="relative flex items-center justify-center">
+                          <% if node.online? %>
+                            <span class="absolute h-2.5 w-2.5 rounded-full bg-success-5 animate-ping opacity-75"></span>
+                            <span class="relative h-2 w-2 rounded-full bg-success-5"></span>
+                          <% else %>
+                            <span class="relative h-2 w-2 rounded-full bg-neutral-25"></span>
+                          <% end %>
+                        </div>
+                        <%# Hostname %>
+                        <span class="text-[11px] font-bold text-neutral-85 tracking-wide"><%= node.hostname %></span>
+                      </div>
+
+                      <%# Role and status row %>
+                      <div class="flex items-center gap-3 text-[10px]">
+                        <%# Role badge %>
+                        <div class="flex items-center gap-1">
+                          <%= lucide_icon("server", class: "h-3 w-3 text-neutral-25") %>
+                          <span class="font-medium <%= node.role == 'login' ? 'text-login-6' : node.role == 'admin' ? 'text-warning-6' : 'text-primary-6' %>"><%= node.role.humanize %></span>
+                        </div>
+                        <%# Status %>
+                        <div class="flex items-center gap-1">
+                          <% if node.online? %>
+                            <%= lucide_icon("wifi", class: "h-3 w-3 text-success-6") %>
+                            <span class="font-medium text-success-6">Online</span>
+                          <% else %>
+                            <%= lucide_icon("wifi-off", class: "h-3 w-3 text-neutral-45") %>
+                            <span class="font-medium text-neutral-45">Offline</span>
+                          <% end %>
+                        </div>
+                      </div>
+
+                      <% if node.last_seen_at %>
+                        <%# Divider %>
+                        <div class="my-2 border-t border-neutral-8"></div>
+                        <%# Last seen %>
+                        <div class="flex items-center gap-1.5 text-[9px]">
+                          <%= lucide_icon("clock", class: "h-3 w-3 text-neutral-25") %>
+                          <span class="text-neutral-45 font-normal">Last seen <%= time_ago_in_words(node.last_seen_at) %> ago</span>
+                        </div>
+                      <% end %>
+                    </div>
+                    <%# Tooltip arrow %>
+                    <div class="absolute left-1/2 -translate-x-1/2 top-full -mt-1.5">
+                      <div class="h-3 w-3 rotate-45 bg-white ring-1 ring-neutral-8"></div>
+                    </div>
+                  </div>
+                </button>
+              <% end %>
+            </div>
+          </div>
         <% end %>
       </div>
-      
+
       <%# Node count summary %>
       <% online_count = nodes.count(&:online?) %>
       <div class="mt-4 flex items-center justify-between text-[10px] font-bold uppercase tracking-widest text-neutral-25">

@@ -87,11 +87,11 @@
               <td class="whitespace-nowrap px-3 py-2">
                 <% case rack.status %>
                 <% when "active" %>
-                  <span class="inline-flex items-center rounded-sm px-2 py-0.5 text-xs font-medium bg-emerald-100 text-emerald-800 border border-emerald-200">
+                  <span class="inline-flex items-center rounded-sm px-2 py-0.5 text-xs font-medium bg-success-1 text-success-8 border border-success-2">
                     Active
                   </span>
                 <% when "planned" %>
-                  <span class="inline-flex items-center rounded-sm px-2 py-0.5 text-xs font-medium bg-blue-100 text-blue-800 border border-blue-200">
+                  <span class="inline-flex items-center rounded-sm px-2 py-0.5 text-xs font-medium bg-primary-1 text-primary-8 border border-primary-2">
                     Planned
                   </span>
                 <% when "decommissioned" %>
@@ -100,12 +100,19 @@
                   </span>
                 <% end %>
               </td>
-              <td class="whitespace-nowrap px-3 py-2 text-right text-sm">
-                <%= link_to "View", server_rack_path(rack), class: "text-primary-6 hover:text-primary-7 font-medium" %>
-                <% if current_user.approver? %>
-                  <span class="text-neutral-15 mx-1">|</span>
-                  <%= link_to "Edit", edit_server_rack_path(rack), class: "text-neutral-45 hover:text-neutral-85 font-medium" %>
-                <% end %>
+              <td class="whitespace-nowrap px-3 py-2">
+                <div class="flex items-center justify-end gap-2">
+                  <%= link_to server_rack_path(rack), class: "inline-flex items-center text-primary-6 hover:text-primary-7", title: "View" do %>
+                    <%= lucide_icon("eye", class: "h-4 w-4") %>
+                    <span class="sr-only">View</span>
+                  <% end %>
+                  <% if current_user.approver? %>
+                    <%= link_to edit_server_rack_path(rack), class: "inline-flex items-center text-neutral-45 hover:text-neutral-85", title: "Edit" do %>
+                      <%= lucide_icon("square-pen", class: "h-4 w-4") %>
+                      <span class="sr-only">Edit</span>
+                    <% end %>
+                  <% end %>
+                </div>
               </td>
             </tr>
           <% end %>

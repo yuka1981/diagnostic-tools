@@ -40,10 +40,10 @@ export default class extends Controller {
     this.cellTargets.forEach(cell => {
       const cellNodeId = parseInt(cell.dataset.nodeId, 10)
       if (selectedId && cellNodeId === selectedId) {
-        cell.classList.add("ring-2", "ring-cyan-500", "ring-offset-2", "dark:ring-offset-neutral-85")
+        cell.classList.add("ring-2", "ring-primary-5", "ring-offset-2")
         cell.classList.remove("hover:scale-105")
       } else {
-        cell.classList.remove("ring-2", "ring-cyan-500", "ring-offset-2", "dark:ring-offset-neutral-85")
+        cell.classList.remove("ring-2", "ring-primary-5", "ring-offset-2")
         cell.classList.add("hover:scale-105")
       }
     })

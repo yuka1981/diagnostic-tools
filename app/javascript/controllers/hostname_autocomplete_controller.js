@@ -106,7 +106,7 @@ export default class extends Controller {
     const count = hostnames ? hostnames.length : 0
     const valid = !conflicts || conflicts.length === 0
 
-    let html = `<span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${valid ? "bg-primary-1 text-primary-8" : "bg-amber-100 text-amber-800"}">
+    let html = `<span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${valid ? "bg-primary-1 text-primary-8" : "bg-warning-1 text-warning-8"}">
                   ${count} node${count !== 1 ? "s" : ""} will be created`
 
     if (!valid && conflicts.length > 0) {

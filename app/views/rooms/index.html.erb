@@ -75,12 +75,19 @@
                   <span class="text-xs text-neutral-45"><%= room.utilization_percentage %>%</span>
                 </div>
               </td>
-              <td class="whitespace-nowrap px-3 py-2 text-right text-sm">
-                <%= link_to "View", room_path(room), class: "text-primary-6 hover:text-primary-7 font-medium" %>
-                <% if current_user.approver? %>
-                  <span class="text-neutral-15 mx-1">|</span>
-                  <%= link_to "Edit", edit_room_path(room), class: "text-neutral-45 hover:text-neutral-85 font-medium" %>
-                <% end %>
+              <td class="whitespace-nowrap px-3 py-2">
+                <div class="flex items-center justify-end gap-2">
+                  <%= link_to room_path(room), class: "inline-flex items-center text-primary-6 hover:text-primary-7", title: "View" do %>
+                    <%= lucide_icon("eye", class: "h-4 w-4") %>
+                    <span class="sr-only">View</span>
+                  <% end %>
+                  <% if current_user.approver? %>
+                    <%= link_to edit_room_path(room), class: "inline-flex items-center text-neutral-45 hover:text-neutral-85", title: "Edit" do %>
+                      <%= lucide_icon("square-pen", class: "h-4 w-4") %>
+                      <span class="sr-only">Edit</span>
+                    <% end %>
+                  <% end %>
+                </div>
               </td>
             </tr>
           <% end %>

@@ -39,13 +39,13 @@ export default class extends Controller {
   }
 
   highlight() {
-    this.zoneTarget.classList.add("border-emerald-400", "bg-emerald-50", "dark:border-emerald-500/50", "dark:bg-emerald-500/10")
-    this.zoneTarget.classList.remove("border-gray-300", "bg-gray-50", "dark:border-white/10", "dark:bg-white/5")
+    this.zoneTarget.classList.add("border-success-4", "bg-success-1")
+    this.zoneTarget.classList.remove("border-neutral-15", "bg-neutral-2")
   }
 
   unhighlight() {
-    this.zoneTarget.classList.remove("border-emerald-400", "bg-emerald-50", "dark:border-emerald-500/50", "dark:bg-emerald-500/10")
-    this.zoneTarget.classList.add("border-gray-300", "bg-gray-50", "dark:border-white/10", "dark:bg-white/5")
+    this.zoneTarget.classList.remove("border-success-4", "bg-success-1")
+    this.zoneTarget.classList.add("border-neutral-15", "bg-neutral-2")
   }
 
   updateLabel(file) {
@@ -53,11 +53,11 @@ export default class extends Controller {
       this.labelTarget.innerHTML = "" // Clear existing content
 
       const nameSpan = document.createElement("span")
-      nameSpan.className = "text-emerald-600 dark:text-emerald-400"
+      nameSpan.className = "text-success-6"
       nameSpan.textContent = file.name
 
       const sizeSpan = document.createElement("span")
-      sizeSpan.className = "text-gray-400 dark:text-neutral-45"
+      sizeSpan.className = "text-neutral-25"
       sizeSpan.textContent = ` (${this.formatFileSize(file.size)})`
 
       this.labelTarget.appendChild(nameSpan)

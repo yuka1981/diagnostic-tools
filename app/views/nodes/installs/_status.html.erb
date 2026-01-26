@@ -1,8 +1,8 @@
 <div class="px-2 py-8 text-center" id="agent_install_status_<%= target_host.parameterize %>">
   <div class="flex flex-col items-center justify-center">
     <% if status == "success" %>
-      <div class="h-12 w-12 rounded bg-emerald-100 flex items-center justify-center mb-4 border border-emerald-200 shadow-sm">
-        <%= lucide_icon("check", class: "h-6 w-6 text-emerald-600") %>
+      <div class="h-12 w-12 rounded bg-success-1 flex items-center justify-center mb-4 border border-success-2 shadow-sm">
+        <%= lucide_icon("check", class: "h-6 w-6 text-success-6") %>
       </div>
       <h4 class="text-sm font-black text-neutral-85 uppercase tracking-tight">Installation Successful</h4>
       <p class="text-[10px] text-neutral-45 font-medium mt-2 italic"><%= message %></p>

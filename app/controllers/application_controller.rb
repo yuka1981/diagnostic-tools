@@ -1,13 +1,19 @@
 # frozen_string_literal: true
 
 class ApplicationController < ActionController::Base
+  before_action :authenticate_user!
   layout :set_layout
 
   private
 
   def set_layout
     return false if turbo_frame_request?
-    "dashboard"
+
+    if devise_controller?
+      "auth"
+    else
+      "dashboard"
+    end
   end
 
   # Only allow modern browsers supporting webp images, web push, badges, import maps, CSS nesting, and CSS :has.

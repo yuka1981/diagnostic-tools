@@ -34,12 +34,12 @@
       </button>
 
       <div data-notifications-target="dropdown"
-           class="hidden absolute right-0 mt-2 w-96 bg-white dark:bg-neutral-85
-                  rounded-lg shadow-lg border border-neutral-8 dark:border-neutral-85 z-50">
-        <div class="p-3 border-b border-neutral-8 dark:border-neutral-85 flex justify-between items-center">
-          <span class="font-semibold text-neutral-85 dark:text-neutral-4">Notifications</span>
+           class="hidden absolute right-0 mt-2 w-96 bg-white
+                  rounded-lg shadow-lg border border-neutral-8 z-50">
+        <div class="p-3 border-b border-neutral-8 flex justify-between items-center">
+          <span class="font-semibold text-neutral-85">Notifications</span>
           <button data-action="click->notifications#markAllRead"
-                  class="text-sm text-primary-6 hover:text-primary-7 dark:text-primary-4">
+                  class="text-sm text-primary-6 hover:text-primary-7">
             Mark all read
           </button>
         </div>
@@ -49,7 +49,7 @@
             <%= turbo_stream_from "notifications_user_#{current_user.id}" %>
             <%= turbo_frame_tag "notifications_list",
                 data: { notifications_target: "frame" } do %>
-              <div class="p-4 text-center text-gray-500 text-sm">
+              <div class="p-4 text-center text-neutral-45 text-sm">
                 <%= lucide_icon("loader-2", class: "h-5 w-5 animate-spin inline-block mr-2") %>
                 Loading...
               </div>
@@ -57,9 +57,9 @@
           <% end %>
         </div>
 
-        <div class="p-3 border-t border-neutral-8 dark:border-neutral-85 text-center">
+        <div class="p-3 border-t border-neutral-8 text-center">
           <%= link_to "View all notifications", notifications_path,
-              class: "text-sm text-primary-6 hover:text-primary-7 dark:text-primary-4" %>
+              class: "text-sm text-primary-6 hover:text-primary-7" %>
         </div>
       </div>
     </div>

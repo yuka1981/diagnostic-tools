@@ -24,7 +24,7 @@ export default class extends Controller {
     if (stream === "meta") {
       const div = document.createElement("div")
       div.textContent = log
-      div.classList.add("text-indigo-400", "font-bold", "mt-4", "mb-1")
+      div.classList.add("text-primary-5", "font-bold", "mt-4", "mb-1")
       this.outputTarget.appendChild(div)
     } else {
       const span = document.createElement("span")
@@ -32,7 +32,7 @@ export default class extends Controller {
       if (stream === "stderr") {
         span.classList.add("text-error-5")
       } else {
-        span.classList.add("text-gray-300")
+        span.classList.add("text-neutral-25")
       }
       this.outputTarget.appendChild(span)
     }

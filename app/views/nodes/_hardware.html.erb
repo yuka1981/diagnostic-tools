@@ -298,8 +298,8 @@
           <tbody class="divide-y divide-neutral-4">
             <% (dmi["memory"] || []).each do |slot| %>
               <% installed = slot["size"] && slot["size"] != "No Module Installed" %>
-              <tr class="hover:bg-blue-50 transition-colors">
-                <td class="px-4 py-2 font-bold text-blue-600 font-mono text-xs"><%= slot["locator"] %></td>
+              <tr class="hover:bg-primary-1 transition-colors">
+                <td class="px-4 py-2 font-bold text-primary-6 font-mono text-xs"><%= slot["locator"] %></td>
                 <td class="px-4 py-2 text-neutral-45 text-xs"><%= slot["bank_locator"] %></td>
                 <td class="px-4 py-2">
                   <% if installed %>
@@ -315,7 +315,7 @@
                     <span class="text-neutral-85"><%= slot["configured_speed"] %></span>
                   <% else %>
                     <div class="flex flex-col">
-                      <span class="text-amber-700 font-bold"><%= slot["configured_speed"] %></span>
+                      <span class="text-warning-7 font-bold"><%= slot["configured_speed"] %></span>
                       <span class="text-[10px] text-neutral-25 line-through"><%= slot["speed"] %></span>
                     </div>
                   <% end %>

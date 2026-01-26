@@ -7,7 +7,7 @@ RSpec.describe "Users::Registrations", type: :request do
     it "renders the registration page" do
       get new_user_registration_path
       expect(response).to have_http_status(:ok)
-      expect(response.body).to include("Sign up")
+      expect(response.body).to include("Sign Up")
     end
   end
 

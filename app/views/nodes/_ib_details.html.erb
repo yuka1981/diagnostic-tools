@@ -2,7 +2,7 @@
   <% if interface %>
     <div class="space-y-6">
       <div class="flex items-center gap-3 pb-4 border-b border-neutral-4">
-        <div class="p-2 rounded bg-blue-50 text-blue-600">
+        <div class="p-2 rounded bg-primary-1 text-primary-6">
           <%= lucide_icon("zap", class: "w-6 h-6") %>
         </div>
         <div>
@@ -30,7 +30,7 @@
               <tr>
                 <th class="px-4 py-3 text-left font-bold text-neutral-45">LID</th>
                 <td class="px-4 py-3">
-                  <span class="px-2 py-1 rounded bg-blue-50 text-blue-700 font-bold font-mono">
+                  <span class="px-2 py-1 rounded bg-primary-1 text-primary-7 font-bold font-mono">
                     <%= ib["lid"] %>
                   </span>
                 </td>
@@ -64,7 +64,7 @@
           <tbody class="divide-y divide-neutral-4">
             <tr>
               <th class="px-4 py-3 text-left font-bold text-neutral-45 w-1/3">PCI Address</th>
-              <td class="px-4 py-3 text-blue-600 font-mono"><%= interface["pci_address"] || "—" %></td>
+              <td class="px-4 py-3 text-primary-6 font-mono"><%= interface["pci_address"] || "—" %></td>
             </tr>
             <tr>
               <th class="px-4 py-3 text-left font-bold text-neutral-45">Vendor</th>
