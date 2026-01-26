@@ -232,7 +232,7 @@ RSpec.describe "Dashboard Heatmap", type: :system do
 
       # Stimulus adds these selection classes (not focus: prefixed)
       expect(updated_classes).to include("ring-2")
-      expect(updated_classes).to include("ring-cyan-500")
+      expect(updated_classes).to include("ring-primary-5")
       expect(updated_classes).to include("ring-offset-2")
     end
   end
