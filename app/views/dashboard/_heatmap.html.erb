@@ -67,7 +67,7 @@
                         aria-label="<%= node.hostname %>, <%= node.role %>, <%= node.online? ? 'online' : 'offline' %>">
                   <%# Tooltip on hover %>
                   <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 hidden group-hover:block z-50 pointer-events-none">
-                    <div class="whitespace-nowrap rounded-lg bg-white-8 px-3 py-2.5 shadow-[0_4px_20px_rgba(0,0,0,0.25)] ring-1 ring-white-12">
+                    <div class="whitespace-nowrap rounded-lg bg-white px-3 py-2.5 shadow-[0_4px_20px_rgba(0,0,0,0.15)] ring-1 ring-neutral-8">
                       <%# Header with hostname and status indicator %>
                       <div class="flex items-center gap-2 mb-1.5">
                         <%# Status indicator dot %>
@@ -80,23 +80,23 @@
                           <% end %>
                         </div>
                         <%# Hostname %>
-                        <span class="text-[11px] font-bold text-white-100 tracking-wide"><%= node.hostname %></span>
+                        <span class="text-[11px] font-bold text-neutral-85 tracking-wide"><%= node.hostname %></span>
                       </div>
 
                       <%# Role and status row %>
                       <div class="flex items-center gap-3 text-[10px]">
                         <%# Role badge %>
                         <div class="flex items-center gap-1">
-                          <%= lucide_icon("server", class: "h-3 w-3 text-white-45") %>
-                          <span class="font-medium <%= node.role == 'login' ? 'text-login-4' : node.role == 'admin' ? 'text-warning-4' : 'text-primary-4' %>"><%= node.role.humanize %></span>
+                          <%= lucide_icon("server", class: "h-3 w-3 text-neutral-25") %>
+                          <span class="font-medium <%= node.role == 'login' ? 'text-login-6' : node.role == 'admin' ? 'text-warning-6' : 'text-primary-6' %>"><%= node.role.humanize %></span>
                         </div>
                         <%# Status %>
                         <div class="flex items-center gap-1">
                           <% if node.online? %>
-                            <%= lucide_icon("wifi", class: "h-3 w-3 text-success-4") %>
-                            <span class="font-medium text-success-4">Online</span>
+                            <%= lucide_icon("wifi", class: "h-3 w-3 text-success-6") %>
+                            <span class="font-medium text-success-6">Online</span>
                           <% else %>
-                            <%= lucide_icon("wifi", class: "h-3 w-3 text-neutral-45") %>
+                            <%= lucide_icon("wifi-off", class: "h-3 w-3 text-neutral-45") %>
                             <span class="font-medium text-neutral-45">Offline</span>
                           <% end %>
                         </div>
@@ -104,17 +104,17 @@
 
                       <% if node.last_seen_at %>
                         <%# Divider %>
-                        <div class="my-2 border-t border-white-12"></div>
+                        <div class="my-2 border-t border-neutral-8"></div>
                         <%# Last seen %>
                         <div class="flex items-center gap-1.5 text-[9px]">
-                          <%= lucide_icon("clock", class: "h-3 w-3 text-white-45") %>
-                          <span class="text-white-45 font-normal">Last seen <%= time_ago_in_words(node.last_seen_at) %> ago</span>
+                          <%= lucide_icon("clock", class: "h-3 w-3 text-neutral-25") %>
+                          <span class="text-neutral-45 font-normal">Last seen <%= time_ago_in_words(node.last_seen_at) %> ago</span>
                         </div>
                       <% end %>
                     </div>
-                    <%# Tooltip arrow with shadow %>
+                    <%# Tooltip arrow %>
                     <div class="absolute left-1/2 -translate-x-1/2 top-full -mt-1.5">
-                      <div class="h-3 w-3 rotate-45 bg-white-8 ring-1 ring-white-12 shadow-[2px_2px_4px_rgba(0,0,0,0.15)]"></div>
+                      <div class="h-3 w-3 rotate-45 bg-white ring-1 ring-neutral-8"></div>
                     </div>
                   </div>
                 </button>
