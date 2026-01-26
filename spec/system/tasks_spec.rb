@@ -536,13 +536,11 @@ RSpec.describe "Tasks", type: :system do
         expect(pending_run.reload.status).to eq("cancelled")
       end
 
-      it "shows cancel button in expanded details for pending tasks" do
+      it "shows cancel button in task row for pending tasks" do
         visit tasks_path
 
-        find("#task_benchmark_#{pending_run.id}").click
-
-        within("#task_benchmark_#{pending_run.id}_details") do
-          expect(page).to have_button("Cancel")
+        within("#task_benchmark_#{pending_run.id}") do
+          expect(page).to have_css("[title='Cancel']")
         end
       end
     end
@@ -607,13 +605,11 @@ RSpec.describe "Tasks", type: :system do
       expect(BenchmarkRun.exists?(benchmark_run.id)).to be false
     end
 
-    it "shows delete button in expanded details" do
+    it "shows delete button in task row" do
       visit tasks_path
 
-      find("#task_benchmark_#{benchmark_run.id}").click
-
-      within("#task_benchmark_#{benchmark_run.id}_details") do
-        expect(page).to have_button("Delete")
+      within("#task_benchmark_#{benchmark_run.id}") do
+        expect(page).to have_css("[title='Delete']")
       end
     end
   end
@@ -621,25 +617,20 @@ RSpec.describe "Tasks", type: :system do
   describe "re-run action", :js do
     let!(:benchmark_run) { create(:benchmark_run, :success, node: node1, benchmark_recipe: benchmark_recipe) }
 
-    it "shows re-run button in expanded details" do
+    it "shows re-run button in task row" do
       visit tasks_path
 
-      find("#task_benchmark_#{benchmark_run.id}").click
-
-      within("#task_benchmark_#{benchmark_run.id}_details") do
-        expect(page).to have_button("Re-run")
+      within("#task_benchmark_#{benchmark_run.id}") do
+        expect(page).to have_css("[title='Re-run']")
       end
     end
 
     it "creates a new task when clicking re-run" do
       visit tasks_path
 
-      find("#task_benchmark_#{benchmark_run.id}").click
-      expect(page).to have_css("#task_benchmark_#{benchmark_run.id}_details", visible: true, wait: 5)
-
-      within("#task_benchmark_#{benchmark_run.id}_details") do
+      within("#task_benchmark_#{benchmark_run.id}") do
         accept_confirm do
-          click_button "Re-run"
+          find("[title='Re-run']").click
         end
       end
 
@@ -653,24 +644,19 @@ RSpec.describe "Tasks", type: :system do
   describe "view node action", :js do
     let!(:benchmark_run) { create(:benchmark_run, :success, node: node1, benchmark_recipe: benchmark_recipe) }
 
-    it "shows view node link in expanded details" do
+    it "shows view node link in task row" do
       visit tasks_path
 
-      find("#task_benchmark_#{benchmark_run.id}").click
-
-      within("#task_benchmark_#{benchmark_run.id}_details") do
-        expect(page).to have_link("View Node", href: node_path(node1))
+      within("#task_benchmark_#{benchmark_run.id}") do
+        expect(page).to have_css("[title='View Node']")
       end
     end
 
     it "navigates to node page when clicking view node" do
       visit tasks_path
 
-      find("#task_benchmark_#{benchmark_run.id}").click
-      expect(page).to have_css("#task_benchmark_#{benchmark_run.id}_details", visible: true, wait: 5)
-
-      # Find the View Node link and use visit instead to ensure navigation
-      link_href = find("#task_benchmark_#{benchmark_run.id}_details a", text: "View Node")[:href]
+      # Find the View Node link in the row
+      link_href = find("#task_benchmark_#{benchmark_run.id} [title='View Node']")[:href]
       visit link_href
 
       # Wait for navigation to complete - check for node page content

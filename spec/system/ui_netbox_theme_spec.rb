@@ -12,8 +12,8 @@ RSpec.describe 'UI NetBox Theme Migration', type: :system do
     it 'has the correct theme colors and structure' do
       visit dashboard_path
 
-      # Sidebar
-      expect(page).to have_selector('aside.bg-neutral-85')
+      # Sidebar (light mode)
+      expect(page).to have_selector('aside.bg-white')
 
       # Top Header
       expect(page).to have_selector('header.bg-white.border-neutral-8')

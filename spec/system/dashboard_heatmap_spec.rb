@@ -48,13 +48,13 @@ RSpec.describe "Dashboard Heatmap", type: :system do
         end
       end
 
-      it "displays node information in cell title/tooltip" do
+      it "displays node information in cell aria-label" do
         visit dashboard_path
 
         cell = find("[data-node-id='#{compute_node.id}']")
-        expect(cell["title"]).to include("compute-001")
-        expect(cell["title"]).to include("Compute")
-        expect(cell["title"]).to include("Online")
+        expect(cell["aria-label"]).to include("compute-001")
+        expect(cell["aria-label"]).to include("compute")
+        expect(cell["aria-label"]).to include("online")
       end
     end
   end

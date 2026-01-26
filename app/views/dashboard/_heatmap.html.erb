@@ -63,7 +63,7 @@
                         data-action="click->heatmap#filter"
                         data-node-id="<%= node.id %>"
                         data-hostname="<%= node.hostname %>"
-                        class="group relative h-8 w-8 rounded-full transition-all duration-150 cursor-pointer hover:scale-105 focus:outline-none focus:ring-2 focus:ring-primary-5 focus:ring-offset-2 <%= node_heatmap_class(node) %> border border-black/5"
+                        class="group relative h-4 w-4 rounded-full transition-all duration-150 cursor-pointer hover:scale-105 focus:outline-none focus:ring-2 focus:ring-primary-5 focus:ring-offset-2 <%= node_heatmap_class(node) %> border border-black/5"
                         aria-label="<%= node.hostname %>, <%= node.role %>, <%= node.online? ? 'online' : 'offline' %>">
                   <%# Tooltip on hover %>
                   <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 hidden group-hover:block z-50 pointer-events-none">
