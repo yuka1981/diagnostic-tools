@@ -1,4 +1,7 @@
-<div class="card-netbox" data-controller="<%= 'bulk-select' if selectable? %>">
+<div class="card-netbox"
+     <%= "data-controller=bulk-select" if selectable? %>
+     <%= "data-bulk-select-item-name-value=#{item_name}" if selectable? %>
+     <%= "data-bulk-select-param-name-value=#{param_name}" if selectable? %>>
   <% if selectable? && bulk_actions.any? %>
     <div data-bulk-select-target="actionBar"
          class="grid transition-[grid-template-rows] duration-300 ease-in-out"

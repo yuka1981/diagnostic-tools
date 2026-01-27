@@ -1,5 +1,5 @@
 <div>
-  <label for="<%= form.field_id(attribute) %>" class="block text-sm font-bold text-neutral-85 mb-1">
+  <label for="<%= field_id %>" class="block text-sm font-bold text-neutral-85 mb-1">
     <%= label %>
     <% if required %>
       <span class="text-error-5">*</span>
@@ -11,14 +11,17 @@
   <% else %>
     <%= form.text_field attribute,
         placeholder: placeholder,
-        class: input_classes %>
+        class: input_classes,
+        "aria-describedby": aria_describedby %>
   <% end %>
 
   <% if errors? %>
-    <% error_messages.each do |message| %>
-      <p class="mt-1 text-xs text-error-6"><%= message %></p>
-    <% end %>
+    <div id="<%= error_id %>" role="alert">
+      <% error_messages.each do |message| %>
+        <p class="mt-1 text-xs text-error-6"><%= message %></p>
+      <% end %>
+    </div>
   <% elsif hint.present? %>
-    <p class="mt-1 text-xs text-neutral-45"><%= hint %></p>
+    <p id="<%= hint_id %>" class="mt-1 text-xs text-neutral-45"><%= hint %></p>
   <% end %>
 </div>

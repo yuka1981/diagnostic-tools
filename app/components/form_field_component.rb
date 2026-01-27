@@ -29,6 +29,26 @@ class FormFieldComponent < ViewComponent::Base
     form.object&.errors&.[](attribute) || []
   end
 
+  def field_id
+    form.field_id(attribute)
+  end
+
+  def hint_id
+    "#{field_id}-hint"
+  end
+
+  def error_id
+    "#{field_id}-error"
+  end
+
+  def aria_describedby
+    if errors?
+      error_id
+    elsif hint.present?
+      hint_id
+    end
+  end
+
   private
 
   attr_reader :form, :attribute, :label, :hint, :placeholder, :required

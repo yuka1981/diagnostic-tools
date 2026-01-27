@@ -9,11 +9,13 @@ class TableComponent < ViewComponent::Base
   }
   renders_one :empty
 
-  def initialize(collection:, selectable: false, bulk_action_path: nil, id_method: :id)
+  def initialize(collection:, selectable: false, bulk_action_path: nil, id_method: :id, item_name: "item", param_name: "ids")
     @collection = collection
     @selectable = selectable
     @bulk_action_path = bulk_action_path
     @id_method = id_method
+    @item_name = item_name
+    @param_name = param_name
   end
 
   def selectable?
@@ -26,7 +28,7 @@ class TableComponent < ViewComponent::Base
 
   private
 
-  attr_reader :collection, :bulk_action_path, :id_method
+  attr_reader :collection, :bulk_action_path, :id_method, :item_name, :param_name
 
   class TableColumnComponent < ViewComponent::Base
     attr_reader :header, :block
