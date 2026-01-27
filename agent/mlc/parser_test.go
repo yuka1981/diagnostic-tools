@@ -74,3 +74,36 @@ func TestParseMLCOutput(t *testing.T) {
 		})
 	}
 }
+
+func TestParseLatencyMatrix(t *testing.T) {
+	data, err := os.ReadFile(filepath.Join("testdata", "latency_matrix.txt"))
+	if err != nil {
+		t.Fatalf("failed to read test data: %v", err)
+	}
+
+	metrics, err := ParseMLCOutput(string(data))
+	if err != nil {
+		t.Fatalf("ParseMLCOutput failed: %v", err)
+	}
+
+	if metrics.NumaNodeCount != 4 {
+		t.Errorf("NumaNodeCount = %v, want 4", metrics.NumaNodeCount)
+	}
+
+	if len(metrics.LatencyMatrix) != 4 {
+		t.Fatalf("LatencyMatrix rows = %v, want 4", len(metrics.LatencyMatrix))
+	}
+
+	// Check diagonal (local access) values
+	expectedDiagonal := []float64{78.2, 79.0, 78.5, 78.9}
+	for i, expected := range expectedDiagonal {
+		if metrics.LatencyMatrix[i][i] != expected {
+			t.Errorf("LatencyMatrix[%d][%d] = %v, want %v", i, i, metrics.LatencyMatrix[i][i], expected)
+		}
+	}
+
+	// Check a remote access value
+	if metrics.LatencyMatrix[0][3] != 178.3 {
+		t.Errorf("LatencyMatrix[0][3] = %v, want 178.3", metrics.LatencyMatrix[0][3])
+	}
+}
