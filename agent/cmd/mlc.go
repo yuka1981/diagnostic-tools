@@ -22,6 +22,7 @@ type mlcOptions struct {
 	server     string
 	token      string
 	configDir  string
+	logDir     string
 	runID      string
 	tests      []string
 	modules    []string
@@ -36,6 +37,7 @@ func (o *mlcOptions) addFlags(cmd *cobra.Command) {
 	cmd.Flags().StringVar(&o.server, "server", getEnvOrDefault("QIS_AGENT_SERVER", "http://localhost:3000"), "Server URL")
 	cmd.Flags().StringVar(&o.token, "token", os.Getenv("AGENT_TOKEN"), "Authentication token")
 	cmd.Flags().StringVar(&o.configDir, "config", "/etc/hpc-agent", "Configuration directory")
+	cmd.Flags().StringVar(&o.logDir, "log-dir", "/tmp/hpc-agent-log", "Directory to store log files")
 	cmd.Flags().BoolVar(&o.dryRun, "dry-run", false, "Print what would run without executing")
 	cmd.Flags().StringVar(&o.runID, "id", "mlc-run", "Run ID")
 }
@@ -100,7 +102,9 @@ func runMLC(cmd *cobra.Command, opts *mlcOptions) error {
 		return fmt.Errorf("MLC workflow failed: %w", err)
 	}
 
-	outputMLCResult(cmd, result)
+	if err := outputMLCResult(cmd, result); err != nil {
+		return err
+	}
 	return uploadMLCFinalResult(ctx, cmd, opts, nodeID, result)
 }
 
@@ -134,7 +138,7 @@ func buildMLCRunParams(opts *mlcOptions) mlc.RunParams {
 		RunID:      opts.runID,
 		Profile:    opts.profile,
 		BinaryPath: opts.binaryPath,
-		LogDir:     "/tmp/qis-agent-log",
+		LogDir:     opts.logDir,
 		Tests:      opts.tests,
 		Modules:    opts.modules,
 	}
@@ -215,9 +219,13 @@ func notifyMLCFailure(ctx context.Context, opts *mlcOptions, nodeID string) {
 	}
 }
 
-func outputMLCResult(cmd *cobra.Command, result *model.BenchmarkRun) {
-	output, _ := json.MarshalIndent(result, "", "  ")
+func outputMLCResult(cmd *cobra.Command, result *model.BenchmarkRun) error {
+	output, err := json.MarshalIndent(result, "", "  ")
+	if err != nil {
+		return fmt.Errorf("failed to marshal MLC result: %w", err)
+	}
 	fmt.Fprintln(cmd.OutOrStdout(), string(output))
+	return nil
 }
 
 func uploadMLCFinalResult(
