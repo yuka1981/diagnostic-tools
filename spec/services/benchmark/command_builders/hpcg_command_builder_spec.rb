@@ -185,7 +185,7 @@ RSpec.describe Benchmark::CommandBuilders::HpcgCommandBuilder do
 
         command = builder.build
 
-        expect(command).to include("--nx 256")
+        expect(command).to include("--nx=256")
       end
 
       it "includes --ny when provided" do
@@ -198,7 +198,7 @@ RSpec.describe Benchmark::CommandBuilders::HpcgCommandBuilder do
 
         command = builder.build
 
-        expect(command).to include("--ny 256")
+        expect(command).to include("--ny=256")
       end
 
       it "includes --nz when provided" do
@@ -211,7 +211,7 @@ RSpec.describe Benchmark::CommandBuilders::HpcgCommandBuilder do
 
         command = builder.build
 
-        expect(command).to include("--nz 256")
+        expect(command).to include("--nz=256")
       end
 
       it "includes all dimension flags when provided" do
@@ -224,9 +224,9 @@ RSpec.describe Benchmark::CommandBuilders::HpcgCommandBuilder do
 
         command = builder.build
 
-        expect(command).to include("--nx 128")
-        expect(command).to include("--ny 256")
-        expect(command).to include("--nz 512")
+        expect(command).to include("--nx=128")
+        expect(command).to include("--ny=256")
+        expect(command).to include("--nz=512")
       end
     end
 
@@ -313,9 +313,9 @@ RSpec.describe Benchmark::CommandBuilders::HpcgCommandBuilder do
         expect(command).to include('--build "make arch=Linux_MPI"')
         expect(command).to include('--run "./bin/xhpcg-mpi"')
         expect(command).to include("--rt 300")
-        expect(command).to include("--nx 128")
-        expect(command).to include("--ny 256")
-        expect(command).to include("--nz 512")
+        expect(command).to include("--nx=128")
+        expect(command).to include("--ny=256")
+        expect(command).to include("--nz=512")
         expect(command).to include("--log-path /var/log/hpcg")
         expect(command).to include("--server #{server_url}")
         expect(command).to include("--token #{token}")

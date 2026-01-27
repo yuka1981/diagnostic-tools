@@ -460,4 +460,41 @@ RSpec.describe Benchmark::TriggerRunService do
       end
     end
   end
+
+  describe "#command_builder_class" do
+    context "with HPCG recipe" do
+      let(:hpcg_recipe) { create(:benchmark_recipe, command: "hpcg") }
+      let(:service) { described_class.new(node, run_id: run_id, benchmark_recipe: hpcg_recipe) }
+
+      it "returns HpcgCommandBuilder" do
+        expect(service.send(:command_builder_class)).to eq(Benchmark::CommandBuilders::HpcgCommandBuilder)
+      end
+    end
+
+    context "with MLC recipe" do
+      let(:mlc_recipe) { create(:benchmark_recipe, command: "mlc") }
+      let(:service) { described_class.new(node, run_id: run_id, benchmark_recipe: mlc_recipe) }
+
+      it "returns MlcCommandBuilder" do
+        expect(service.send(:command_builder_class)).to eq(Benchmark::CommandBuilders::MlcCommandBuilder)
+      end
+    end
+
+    context "without recipe" do
+      let(:service) { described_class.new(node, run_id: run_id) }
+
+      it "defaults to HpcgCommandBuilder for backward compatibility" do
+        expect(service.send(:command_builder_class)).to eq(Benchmark::CommandBuilders::HpcgCommandBuilder)
+      end
+    end
+
+    context "with unknown command" do
+      let(:unknown_recipe) { create(:benchmark_recipe, command: "unknown_benchmark") }
+      let(:service) { described_class.new(node, run_id: run_id, benchmark_recipe: unknown_recipe) }
+
+      it "raises ArgumentError" do
+        expect { service.send(:command_builder_class) }.to raise_error(ArgumentError, /Unknown benchmark command: unknown_benchmark/)
+      end
+    end
+  end
 end

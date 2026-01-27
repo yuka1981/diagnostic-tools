@@ -58,15 +58,15 @@ module Benchmark
       end
 
       def nx_flag
-        "--nx #{nx}" if nx.present?
+        "--nx=#{nx}" if nx.present?
       end
 
       def ny_flag
-        "--ny #{ny}" if ny.present?
+        "--ny=#{ny}" if ny.present?
       end
 
       def nz_flag
-        "--nz #{nz}" if nz.present?
+        "--nz=#{nz}" if nz.present?
       end
 
       def log_path
