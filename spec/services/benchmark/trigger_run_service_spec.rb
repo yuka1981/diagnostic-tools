@@ -460,4 +460,129 @@ RSpec.describe Benchmark::TriggerRunService do
       end
     end
   end
+
+  describe "#command_builder_class" do
+    context "with HPCG recipe" do
+      let(:hpcg_recipe) { create(:benchmark_recipe, command: "hpcg") }
+      let(:service) { described_class.new(node, run_id: run_id, benchmark_recipe: hpcg_recipe) }
+
+      it "returns HpcgCommandBuilder" do
+        expect(service.send(:command_builder_class)).to eq(Benchmark::CommandBuilders::HpcgCommandBuilder)
+      end
+    end
+
+    context "with MLC recipe" do
+      let(:mlc_recipe) { create(:benchmark_recipe, command: "mlc") }
+      let(:service) { described_class.new(node, run_id: run_id, benchmark_recipe: mlc_recipe) }
+
+      it "returns MlcCommandBuilder" do
+        expect(service.send(:command_builder_class)).to eq(Benchmark::CommandBuilders::MlcCommandBuilder)
+      end
+    end
+
+    context "without recipe" do
+      let(:service) { described_class.new(node, run_id: run_id) }
+
+      it "defaults to HpcgCommandBuilder for backward compatibility" do
+        expect(service.send(:command_builder_class)).to eq(Benchmark::CommandBuilders::HpcgCommandBuilder)
+      end
+    end
+
+    context "with unknown command" do
+      let(:unknown_recipe) { create(:benchmark_recipe, command: "unknown_benchmark") }
+      let(:service) { described_class.new(node, run_id: run_id, benchmark_recipe: unknown_recipe) }
+
+      it "raises ArgumentError" do
+        expect { service.send(:command_builder_class) }.to raise_error(ArgumentError, /Unknown benchmark command: unknown_benchmark/)
+      end
+    end
+  end
+
+  describe "Integration: MLC benchmark command generation" do
+    let(:mlc_recipe) do
+      create(:benchmark_recipe,
+        command: "mlc",
+        name: "Intel MLC",
+        default_profile: {
+          "profile" => "quick",
+          "modules" => [ "intel-mlc" ]
+        })
+    end
+    let(:argument_overrides) do
+      {
+        "profile" => "full",
+        "modules" => [ "intel-mlc" ]
+      }
+    end
+    let(:service) do
+      described_class.new(node,
+        run_id: run_id,
+        benchmark_recipe: mlc_recipe,
+        argument_overrides: argument_overrides)
+    end
+
+    it "generates MLC command with correct flags" do
+      cmd = service.send(:build_agent_command, "/usr/bin/qis-agent")
+
+      # Should include MLC subcommand
+      expect(cmd).to include("mlc")
+
+      # Should include MLC-specific flags
+      expect(cmd).to include("--profile full")
+      expect(cmd).to include("--module intel-mlc")
+
+      # Should NOT include HPCG-specific flags
+      expect(cmd).not_to include("--build")
+      expect(cmd).not_to include("--run")
+      expect(cmd).not_to match(/--rt(?!\w)/) # --rt as standalone flag, not part of other words
+      expect(cmd).not_to include("--nx")
+      expect(cmd).not_to include("--ny")
+      expect(cmd).not_to include("--nz")
+    end
+  end
+
+  describe "Integration: HPCG benchmark command generation" do
+    let(:hpcg_recipe) do
+      create(:benchmark_recipe,
+        command: "hpcg",
+        name: "HPCG",
+        timeout_seconds: 3600,
+        default_profile: {
+          "nx" => 104,
+          "ny" => 104,
+          "nz" => 104
+        })
+    end
+    let(:argument_overrides) do
+      {
+        "nx" => 104,
+        "ny" => 104,
+        "nz" => 104
+      }
+    end
+    let(:service) do
+      described_class.new(node,
+        run_id: run_id,
+        benchmark_recipe: hpcg_recipe,
+        argument_overrides: argument_overrides)
+    end
+
+    it "generates HPCG command with correct flags" do
+      cmd = service.send(:build_agent_command, "/usr/bin/qis-agent")
+
+      # Should include HPCG subcommand
+      expect(cmd).to include("hpcg")
+
+      # Should include HPCG-specific flags
+      expect(cmd).to include("--build")
+      expect(cmd).to include("--run")
+      expect(cmd).to include("--rt")
+      expect(cmd).to include("--nx")
+      expect(cmd).to include("104") # nx value
+
+      # Should NOT include MLC-specific flags
+      expect(cmd).not_to include("--profile")
+      expect(cmd).not_to include("--module")
+    end
+  end
 end

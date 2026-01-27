@@ -104,6 +104,8 @@ Rails.application.routes.draw do
     end
   end
 
+  resources :mlc_benchmarks, only: %i[new create]
+
   resources :tasks, only: [ :index, :destroy ] do
     member do
       post :cancel

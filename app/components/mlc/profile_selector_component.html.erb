@@ -1,0 +1,9 @@
+<div data-controller="mlc-profile">
+  <label class="block text-sm font-bold text-neutral-85 mb-3">Select Profile</label>
+
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3" data-mlc-profile-target="container">
+    <% profiles.each do |key, profile| %>
+      <%= render Mlc::ProfileCardComponent.new(key: key, profile: profile, selected: selected?(key)) %>
+    <% end %>
+  </div>
+</div>
