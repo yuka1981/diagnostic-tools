@@ -96,16 +96,31 @@ func runMLC(cmd *cobra.Command, opts *mlcOptions) error {
 	warnIfNoMLCToken(opts.token)
 	sendMLCInitialStatus(ctx, cmd, opts, nodeID)
 
+	// Run workflow - always returns a result (with error message on failure)
 	result, err := orchestrator.Run(ctx, &params)
 	if err != nil {
+		// This should rarely happen now since workflow captures errors in result
+		fmt.Fprintf(os.Stderr, "Unexpected workflow error: %v\n", err)
 		notifyMLCFailure(ctx, opts, nodeID)
 		return fmt.Errorf("MLC workflow failed: %w", err)
 	}
 
+	// Output result (includes status and any error message)
 	if err := outputMLCResult(cmd, result); err != nil {
 		return err
 	}
-	return uploadMLCFinalResult(ctx, cmd, opts, nodeID, result)
+
+	// Always upload result - server will see the error message if failed
+	if err := uploadMLCFinalResult(ctx, cmd, opts, nodeID, result); err != nil {
+		return err
+	}
+
+	// Return error if benchmark failed (for CLI exit code)
+	if result.Status == model.BenchmarkStatusFail {
+		return fmt.Errorf("benchmark failed: %s", result.ErrorMessage)
+	}
+
+	return nil
 }
 
 func getEnvOrDefault(key, defaultValue string) string {

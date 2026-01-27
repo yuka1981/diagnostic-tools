@@ -46,18 +46,20 @@ var testToFlag = map[string]string{
 }
 
 // Run executes the MLC workflow.
+// Unlike returning errors, this always returns a BenchmarkRun with appropriate status and error message.
+// This ensures failure details are always sent to the server for debugging.
 func (w *WorkflowOrchestrator) Run(ctx context.Context, params *RunParams) (*model.BenchmarkRun, error) {
 	start := time.Now()
 
 	// Load environment modules if specified
 	if err := w.setupEnvironment(ctx, params.Modules); err != nil {
-		return nil, err
+		return w.buildFailedRun(params.RunID, start, "", fmt.Sprintf("Failed to load modules: %v", err)), nil
 	}
 
 	// Determine which tests to run
 	tests, err := w.resolveTests(params)
 	if err != nil {
-		return nil, err
+		return w.buildFailedRun(params.RunID, start, "", fmt.Sprintf("Failed to resolve tests: %v", err)), nil
 	}
 
 	// Determine binary path
@@ -68,31 +70,39 @@ func (w *WorkflowOrchestrator) Run(ctx context.Context, params *RunParams) (*mod
 
 	// Run all tests and aggregate output
 	var allOutput string
+	var execError string
 	for _, test := range tests {
 		flag, ok := testToFlag[test]
 		if !ok {
-			return nil, fmt.Errorf("unknown test: %s", test)
+			return w.buildFailedRun(params.RunID, start, allOutput, fmt.Sprintf("Unknown test: %s", test)), nil
 		}
 
 		output, runErr := w.Runner.Run(ctx, "", binaryPath, flag)
-		if runErr != nil {
-			return nil, fmt.Errorf("test %s failed: %w", test, runErr)
-		}
 		allOutput += string(output) + "\n"
+		if runErr != nil {
+			execError = fmt.Sprintf("Test '%s' failed: %v", test, runErr)
+			// Continue to capture any partial output, but mark as failed
+			break
+		}
 	}
 
 	end := time.Now()
 
+	// If execution failed, return result with error message
+	if execError != "" {
+		return w.buildFailedRun(params.RunID, start, allOutput, execError), nil
+	}
+
 	// Parse metrics from combined output
 	metrics, parseErr := ParseMLCOutput(allOutput)
 	if parseErr != nil {
-		return nil, fmt.Errorf("failed to parse MLC output: %w", parseErr)
+		return w.buildFailedRun(params.RunID, start, allOutput, fmt.Sprintf("Failed to parse MLC output: %v", parseErr)), nil
 	}
 
 	// Marshal metrics to JSON
 	metricsJSON, marshalErr := json.Marshal(metrics)
 	if marshalErr != nil {
-		return nil, fmt.Errorf("failed to marshal metrics: %w", marshalErr)
+		return w.buildFailedRun(params.RunID, start, allOutput, fmt.Sprintf("Failed to marshal metrics: %v", marshalErr)), nil
 	}
 
 	return &model.BenchmarkRun{
@@ -104,6 +114,19 @@ func (w *WorkflowOrchestrator) Run(ctx context.Context, params *RunParams) (*mod
 		Metrics:    metricsJSON,
 		LogContent: allOutput,
 	}, nil
+}
+
+// buildFailedRun creates a BenchmarkRun with FAIL status and error message.
+func (w *WorkflowOrchestrator) buildFailedRun(runID string, start time.Time, logContent, errorMsg string) *model.BenchmarkRun {
+	return &model.BenchmarkRun{
+		RunID:        runID,
+		RecipeID:     "mlc",
+		StartTime:    start,
+		EndTime:      time.Now(),
+		Status:       model.BenchmarkStatusFail,
+		ErrorMessage: errorMsg,
+		LogContent:   logContent,
+	}
 }
 
 // resolveTests determines which tests to run based on params.

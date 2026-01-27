@@ -148,13 +148,17 @@ func TestWorkflowOrchestrator_Run_UnknownTest(t *testing.T) {
 		Tests: []string{"nonexistent_test"},
 	}
 
-	_, err := w.Run(context.Background(), params)
-	if err == nil {
-		t.Fatal("expected error for unknown test, got nil")
+	result, err := w.Run(context.Background(), params)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
 	}
 
-	if !strings.Contains(err.Error(), "unknown test") {
-		t.Errorf("expected 'unknown test' error, got: %v", err)
+	if result.Status != model.BenchmarkStatusFail {
+		t.Errorf("Status = %s, want %s", result.Status, model.BenchmarkStatusFail)
+	}
+
+	if !strings.Contains(result.ErrorMessage, "Unknown test") {
+		t.Errorf("expected 'Unknown test' in error message, got: %s", result.ErrorMessage)
 	}
 }
 
@@ -173,13 +177,17 @@ func TestWorkflowOrchestrator_Run_UnknownProfile(t *testing.T) {
 		Profile: "nonexistent_profile",
 	}
 
-	_, err := w.Run(context.Background(), params)
-	if err == nil {
-		t.Fatal("expected error for unknown profile, got nil")
+	result, err := w.Run(context.Background(), params)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
 	}
 
-	if !strings.Contains(err.Error(), "unknown profile") {
-		t.Errorf("expected 'unknown profile' error, got: %v", err)
+	if result.Status != model.BenchmarkStatusFail {
+		t.Errorf("Status = %s, want %s", result.Status, model.BenchmarkStatusFail)
+	}
+
+	if !strings.Contains(result.ErrorMessage, "unknown profile") {
+		t.Errorf("expected 'unknown profile' in error message, got: %s", result.ErrorMessage)
 	}
 }
 
