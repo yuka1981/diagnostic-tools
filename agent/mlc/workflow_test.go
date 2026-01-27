@@ -2,6 +2,7 @@ package mlc
 
 import (
 	"context"
+	"os"
 	"strings"
 	"testing"
 
@@ -11,6 +12,14 @@ import (
 type mockRunner struct {
 	outputs map[string]string
 	cmds    []string
+}
+
+// skipHugepagesCheck sets hugepagesPath to a non-existent path to skip the check.
+// Returns a cleanup function to restore the original path.
+func skipHugepagesCheck() func() {
+	oldPath := hugepagesPath
+	hugepagesPath = "/nonexistent/path/nr_hugepages"
+	return func() { hugepagesPath = oldPath }
 }
 
 func (m *mockRunner) Run(ctx context.Context, dir, name string, args ...string) ([]byte, error) {
@@ -27,6 +36,8 @@ func (m *mockRunner) Run(ctx context.Context, dir, name string, args ...string) 
 }
 
 func TestWorkflowOrchestrator_Run(t *testing.T) {
+	defer skipHugepagesCheck()()
+
 	runner := &mockRunner{
 		outputs: map[string]string{
 			"--idle_latency": `Intel(R) Memory Latency Checker - v3.12
@@ -67,6 +78,8 @@ ALL Reads        :	298450.0`,
 }
 
 func TestWorkflowOrchestrator_Run_CustomTests(t *testing.T) {
+	defer skipHugepagesCheck()()
+
 	runner := &mockRunner{
 		outputs: map[string]string{
 			"--idle_latency": `Intel(R) Memory Latency Checker - v3.12
@@ -100,6 +113,8 @@ Each iteration took 186.5 core clocks ( 78.2    ns)`,
 }
 
 func TestWorkflowOrchestrator_Run_BinaryPathOverride(t *testing.T) {
+	defer skipHugepagesCheck()()
+
 	runner := &mockRunner{
 		outputs: map[string]string{
 			"--idle_latency": `Intel(R) Memory Latency Checker - v3.12
@@ -134,6 +149,8 @@ Each iteration took 186.5 core clocks ( 78.2    ns)`,
 }
 
 func TestWorkflowOrchestrator_Run_UnknownTest(t *testing.T) {
+	defer skipHugepagesCheck()()
+
 	runner := &mockRunner{
 		outputs: map[string]string{},
 	}
@@ -163,6 +180,8 @@ func TestWorkflowOrchestrator_Run_UnknownTest(t *testing.T) {
 }
 
 func TestWorkflowOrchestrator_Run_UnknownProfile(t *testing.T) {
+	defer skipHugepagesCheck()()
+
 	runner := &mockRunner{
 		outputs: map[string]string{},
 	}
@@ -192,6 +211,8 @@ func TestWorkflowOrchestrator_Run_UnknownProfile(t *testing.T) {
 }
 
 func TestWorkflowOrchestrator_Run_DefaultProfile(t *testing.T) {
+	defer skipHugepagesCheck()()
+
 	runner := &mockRunner{
 		outputs: map[string]string{
 			"--idle_latency": `Intel(R) Memory Latency Checker - v3.12
@@ -224,5 +245,56 @@ ALL Reads        :	298450.0`,
 	// Quick profile has 2 tests: idle_latency and peak_injection_bandwidth
 	if len(runner.cmds) != 2 {
 		t.Errorf("expected 2 commands for default (quick) profile, got %d: %v", len(runner.cmds), runner.cmds)
+	}
+}
+
+func TestWorkflowOrchestrator_Run_HugepagesCheckFails(t *testing.T) {
+	// Create temp file with insufficient hugepages (0)
+	tmpDir := t.TempDir()
+	tmpFile := tmpDir + "/nr_hugepages"
+	if err := os.WriteFile(tmpFile, []byte("0\n"), 0644); err != nil {
+		t.Fatalf("failed to create temp file: %v", err)
+	}
+
+	// Override hugepages path for testing
+	oldPath := hugepagesPath
+	hugepagesPath = tmpFile
+	defer func() { hugepagesPath = oldPath }()
+
+	runner := &mockRunner{
+		outputs: map[string]string{
+			"--idle_latency": `Intel(R) Memory Latency Checker - v3.12
+Each iteration took 186.5 core clocks ( 78.2    ns)`,
+		},
+	}
+
+	w := &WorkflowOrchestrator{
+		Runner:     runner,
+		BinaryPath: "/opt/intel/mlc/mlc",
+	}
+
+	params := &RunParams{
+		RunID: "test-run-hugepages-fail",
+		Tests: []string{"idle_latency"},
+	}
+
+	result, err := w.Run(context.Background(), params)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	// Verify workflow returns failed run
+	if result.Status != model.BenchmarkStatusFail {
+		t.Errorf("Status = %s, want %s", result.Status, model.BenchmarkStatusFail)
+	}
+
+	// Verify error message mentions hugepages
+	if !strings.Contains(result.ErrorMessage, "Hugepages") {
+		t.Errorf("expected error message to mention 'Hugepages', got: %s", result.ErrorMessage)
+	}
+
+	// Verify no commands were executed (pre-flight failed before tests)
+	if len(runner.cmds) != 0 {
+		t.Errorf("expected 0 commands (pre-flight should fail first), got %d: %v", len(runner.cmds), runner.cmds)
 	}
 }

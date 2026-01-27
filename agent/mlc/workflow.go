@@ -51,6 +51,11 @@ var testToFlag = map[string]string{
 func (w *WorkflowOrchestrator) Run(ctx context.Context, params *RunParams) (*model.BenchmarkRun, error) {
 	start := time.Now()
 
+	// Pre-flight check: verify hugepages are configured
+	if err := CheckHugepages(MinHugepages); err != nil {
+		return w.buildFailedRun(params.RunID, start, "", err.Error()), nil
+	}
+
 	// Load environment modules if specified
 	if err := w.setupEnvironment(ctx, params.Modules); err != nil {
 		return w.buildFailedRun(params.RunID, start, "", fmt.Sprintf("Failed to load modules: %v", err)), nil
