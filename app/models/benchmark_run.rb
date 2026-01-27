@@ -5,6 +5,7 @@ class BenchmarkRun < ApplicationRecord
   belongs_to :node
   belongs_to :benchmark_recipe
   has_many :artifact_indices, dependent: :destroy
+  has_many :mlc_baselines, dependent: :destroy
 
   # Enums
   enum :status, {
