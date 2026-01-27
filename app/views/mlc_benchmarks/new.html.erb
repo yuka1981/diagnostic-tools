@@ -1,4 +1,4 @@
-<% content_for(:page_title) { "Run MLC Benchmark" } %>
+<% content_for(:page_title) { "MLC Benchmark" } %>
 <% content_for(:breadcrumbs) do %>
   <span class="mx-2">/</span>
   <%= link_to "Benchmarks", benchmark_runs_path, class: "hover:text-primary-6 font-bold" %>
@@ -6,53 +6,57 @@
   <span class="text-neutral-85">MLC</span>
 <% end %>
 
-<div class="px-4 py-6 sm:px-6 lg:px-8">
-  <div class="max-w-4xl mx-auto">
-    <h1 class="text-2xl font-semibold text-gray-900">Run MLC Benchmark</h1>
-    <p class="mt-1 text-sm text-gray-600">
-      Memory Latency Checker for measuring memory subsystem performance.
-    </p>
+<div class="max-w-4xl mx-auto">
+  <div class="mb-6">
+    <h1 class="text-2xl font-bold text-neutral-85">MLC Benchmark</h1>
+    <p class="text-sm text-neutral-45 mt-1">Run Intel Memory Latency Checker on a cluster node</p>
+  </div>
 
-    <%= form_with model: @form, url: mlc_benchmarks_path, method: :post, local: true do |f| %>
-      <% if @form.errors.any? %>
-        <div class="mt-4 p-4 bg-red-50 border border-red-200 rounded-md">
-          <ul class="list-disc list-inside text-red-700 text-sm">
-            <% @form.errors.full_messages.each do |message| %>
-              <li><%= message %></li>
+  <%= form_with model: @form, url: mlc_benchmarks_path, method: :post, class: "space-y-6" do |f| %>
+    <% if @form.errors.any? %>
+      <div class="rounded-md bg-error-1 p-4 border border-error-2">
+        <h3 class="text-sm font-bold text-error-8">Please correct the errors below</h3>
+        <div class="mt-2 text-xs text-error-7">
+          <ul role="list" class="list-disc pl-5 space-y-1">
+            <% @form.errors.full_messages.each do |msg| %>
+              <li><%= msg %></li>
             <% end %>
           </ul>
         </div>
-      <% end %>
-
-      <div class="mt-6">
-        <h2 class="text-lg font-medium text-gray-900">Select Profile</h2>
-        <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          <% Mlc::PROFILES.each do |key, profile| %>
-            <label class="relative flex cursor-pointer rounded-lg border bg-white p-4 shadow-sm focus:outline-none">
-              <%= f.radio_button :profile, key.to_s, class: "sr-only", checked: @form.profile == key.to_s %>
-              <span class="flex flex-1">
-                <span class="flex flex-col">
-                  <span class="block text-sm font-medium text-gray-900"><%= profile[:name] %></span>
-                  <span class="mt-1 flex items-center text-sm text-gray-500"><%= profile[:runtime] %></span>
-                  <span class="mt-1 text-sm text-gray-500"><%= profile[:description] %></span>
-                </span>
-              </span>
-            </label>
-          <% end %>
-        </div>
-      </div>
-
-      <div class="mt-6">
-        <h2 class="text-lg font-medium text-gray-900">Target Node</h2>
-        <div class="mt-2">
-          <%= f.select :node_id, @nodes.map { |n| [n.hostname, n.id] }, { prompt: "Select a node..." }, class: "block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" %>
-        </div>
-      </div>
-
-      <div class="mt-6 flex justify-end gap-3">
-        <%= link_to "Cancel", root_path, class: "rounded-md bg-white px-3.5 py-2.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50" %>
-        <%= f.submit "Run Benchmark", class: "rounded-md bg-teal-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-teal-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600" %>
       </div>
     <% end %>
-  </div>
+
+    <%# Target Node %>
+    <div class="card-netbox">
+      <div class="card-header">
+        <h3 class="card-title">Target Node</h3>
+      </div>
+      <div class="p-4">
+        <%= f.label :node_id, "Select Node", class: "block text-sm font-bold text-neutral-85 mb-1" %>
+        <%= f.select :node_id,
+            options_from_collection_for_select(@nodes, :id, :hostname, @form.node_id),
+            { prompt: "Select a node..." },
+            { class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm" } %>
+      </div>
+    </div>
+
+    <%# Profile Selector %>
+    <div class="card-netbox">
+      <div class="card-header">
+        <h3 class="card-title">Benchmark Profile</h3>
+      </div>
+      <div class="p-4">
+        <%= render Mlc::ProfileSelectorComponent.new(selected: @form.profile || "quick") %>
+      </div>
+    </div>
+
+    <%# Advanced Options %>
+    <%= render Mlc::AdvancedOptionsComponent.new(form: @form) %>
+
+    <%# Actions %>
+    <div class="flex items-center justify-end gap-3">
+      <%= link_to "Cancel", :back, class: "btn-secondary" %>
+      <%= f.submit "Run MLC Benchmark", class: "btn-primary" %>
+    </div>
+  <% end %>
 </div>
