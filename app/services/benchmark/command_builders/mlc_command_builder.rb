@@ -26,7 +26,7 @@ module Benchmark
         flags << "--binary #{esc(binary_path)}" if binary_path.present?
         flags.concat(modules_flags) if modules.present?
         flags << tests_flags if tests.present?
-        flags << "--log-dir #{esc(arguments[:log_dir])}" if arguments[:log_dir].present?
+        flags << "--log-dir #{esc(arguments["log_dir"])}" if arguments["log_dir"].present?
 
         return command if flags.empty?
 
@@ -34,19 +34,19 @@ module Benchmark
       end
 
       def profile
-        arguments[:profile].presence || DEFAULT_PROFILE
+        arguments["profile"].presence || DEFAULT_PROFILE
       end
 
       def binary_path
-        arguments[:binary_path]
+        arguments["binary_path"]
       end
 
       def modules
-        arguments[:modules]
+        arguments["modules"]
       end
 
       def tests
-        arguments[:tests]
+        arguments["tests"]
       end
 
       def modules_flags
