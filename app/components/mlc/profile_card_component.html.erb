@@ -1,0 +1,29 @@
+<label class="<%= card_classes %>"
+       data-action="click->mlc-profile#select"
+       data-mlc-profile-key-param="<%= key %>">
+  <input type="radio"
+         name="mlc_run_form[profile]"
+         value="<%= key %>"
+         class="sr-only"
+         <%= "checked" if selected %>>
+
+  <div class="flex items-start justify-between mb-2">
+    <span class="text-sm font-bold text-neutral-85"><%= profile[:name] %></span>
+    <span class="inline-flex items-center rounded-full bg-neutral-4 px-2 py-0.5 text-[10px] font-medium text-neutral-65">
+      <%= profile[:runtime] %>
+    </span>
+  </div>
+
+  <p class="text-xs text-neutral-45 mb-3"><%= profile[:description] %></p>
+
+  <div class="text-[10px] text-neutral-45">
+    <span class="font-medium">Tests:</span>
+    <%= profile[:tests].join(", ") %>
+  </div>
+
+  <% if selected %>
+    <div class="absolute top-2 right-2">
+      <%= helpers.lucide_icon("circle-check", class: "h-5 w-5 text-primary-5") %>
+    </div>
+  <% end %>
+</label>
