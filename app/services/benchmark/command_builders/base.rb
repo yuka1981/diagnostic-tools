@@ -12,7 +12,7 @@ module Benchmark
         @run_id = run_id
         @node_uuid = node_uuid
         @agent_bin = agent_bin
-        @arguments = arguments || {}
+        @arguments = (arguments || {}).with_indifferent_access
         @server_url = server_url
         @token = token
         @log_path = log_path
