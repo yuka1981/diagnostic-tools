@@ -1,0 +1,10 @@
+Intel(R) Memory Latency Checker - v3.12
+Command line parameters: --latency_matrix
+
+Measuring idle latencies (in ns)...
+		Numa node
+Numa node	     0	     1	     2	     3
+       0	  78.2	 112.4	 156.8	 178.3
+       1	 113.1	  79.0	 179.2	 155.4
+       2	 157.2	 178.9	  78.5	 112.8
+       3	 177.8	 156.1	 113.3	  78.9
