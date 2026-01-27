@@ -7,9 +7,7 @@
     <p class="text-xs text-neutral-45"><%= run.benchmark_recipe&.version %></p>
   </td>
   <td class="whitespace-nowrap px-3 py-2">
-    <span class="inline-flex items-center rounded-sm px-2 py-0.5 text-xs font-medium <%= status_badge_class(run.status) %>">
-      <%= run.status.humanize %>
-    </span>
+    <%= render StatusBadgeComponent.new(status: run.status) %>
   </td>
   <td class="whitespace-nowrap px-3 py-2 text-sm text-neutral-45 font-mono">
     <%= run.metrics&.dig("gflops") ? number_with_precision(run.metrics["gflops"], precision: 2, strip_insignificant_zeros: true) : "-" %>
