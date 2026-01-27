@@ -107,3 +107,38 @@ func TestParseLatencyMatrix(t *testing.T) {
 		t.Errorf("LatencyMatrix[0][3] = %v, want 178.3", metrics.LatencyMatrix[0][3])
 	}
 }
+
+func TestParsePeakBandwidth(t *testing.T) {
+	data, err := os.ReadFile(filepath.Join("testdata", "peak_bandwidth.txt"))
+	if err != nil {
+		t.Fatalf("failed to read test data: %v", err)
+	}
+
+	metrics, err := ParseMLCOutput(string(data))
+	if err != nil {
+		t.Fatalf("ParseMLCOutput failed: %v", err)
+	}
+
+	if metrics.PeakBandwidth == nil {
+		t.Fatal("PeakBandwidth is nil")
+	}
+
+	tests := []struct {
+		key      string
+		expected float64
+	}{
+		{"all_reads", 298450.0},
+		{"3:1", 276230.5},
+		{"2:1", 258100.2},
+		{"1:1", 198750.8},
+		{"stream_triad", 251300.3},
+	}
+
+	for _, tc := range tests {
+		if val, ok := metrics.PeakBandwidth[tc.key]; !ok {
+			t.Errorf("PeakBandwidth[%s] missing", tc.key)
+		} else if val != tc.expected {
+			t.Errorf("PeakBandwidth[%s] = %v, want %v", tc.key, val, tc.expected)
+		}
+	}
+}
