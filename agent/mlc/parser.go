@@ -18,6 +18,9 @@ var (
 
 	// Matches latency matrix row: "       0   78.2  112.4  156.8  178.3"
 	reMatrixRow = regexp.MustCompile(`^\s*(\d+)\s+([\d.\s]+)$`)
+
+	// Matches bandwidth lines: "ALL Reads        :	298450.0"
+	reBandwidth = regexp.MustCompile(`^(ALL Reads|[\d:]+\s*Reads-Writes|Stream-triad like)\s*:\s*([\d.]+)`)
 )
 
 // ParseMLCOutput parses Intel MLC output and extracts metrics.
@@ -38,6 +41,11 @@ func ParseMLCOutput(output string) (*model.MLCMetrics, error) {
 
 	// Parse latency matrix
 	if err := parseLatencyMatrix(output, metrics); err != nil {
+		return nil, err
+	}
+
+	// Parse peak bandwidth
+	if err := parsePeakBandwidth(output, metrics); err != nil {
 		return nil, err
 	}
 
@@ -107,4 +115,60 @@ func parseLatencyMatrix(output string, metrics *model.MLCMetrics) error {
 	}
 
 	return nil
+}
+
+// parsePeakBandwidth parses the peak injection bandwidth from MLC output.
+// The bandwidth section appears after "Measuring Peak Injection Memory Bandwidths" and has format:
+//
+//	ALL Reads        :	298450.0
+//	3:1 Reads-Writes :	276230.5
+//	...
+func parsePeakBandwidth(output string, metrics *model.MLCMetrics) error {
+	// Check for the peak bandwidth marker
+	if !strings.Contains(output, "Measuring Peak Injection Memory Bandwidths") {
+		return nil
+	}
+
+	bandwidth := make(map[string]float64)
+	lines := strings.Split(output, "\n")
+
+	for _, line := range lines {
+		if matches := reBandwidth.FindStringSubmatch(line); len(matches) > 2 {
+			key := normalizeRatioKey(matches[1])
+			val, err := strconv.ParseFloat(matches[2], 64)
+			if err != nil {
+				return fmt.Errorf("failed to parse bandwidth value '%s': %w", matches[2], err)
+			}
+			bandwidth[key] = val
+		}
+	}
+
+	if len(bandwidth) > 0 {
+		metrics.PeakBandwidth = bandwidth
+	}
+
+	return nil
+}
+
+// normalizeRatioKey normalizes bandwidth ratio keys to consistent format.
+// "ALL Reads" -> "all_reads"
+// "3:1 Reads-Writes" -> "3:1"
+// "Stream-triad like" -> "stream_triad"
+func normalizeRatioKey(key string) string {
+	key = strings.TrimSpace(key)
+
+	switch {
+	case strings.EqualFold(key, "ALL Reads"):
+		return "all_reads"
+	case strings.EqualFold(key, "Stream-triad like"):
+		return "stream_triad"
+	case strings.Contains(key, "Reads-Writes"):
+		// Extract just the ratio part (e.g., "3:1" from "3:1 Reads-Writes")
+		parts := strings.Fields(key)
+		if len(parts) > 0 {
+			return parts[0]
+		}
+	}
+
+	return key
 }
