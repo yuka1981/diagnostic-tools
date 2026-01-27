@@ -1,0 +1,57 @@
+<div class="border border-neutral-15 rounded-lg" data-controller="collapsible">
+  <button type="button"
+          class="flex items-center justify-between w-full px-4 py-3 text-sm font-bold text-neutral-85 hover:bg-neutral-2"
+          data-action="click->collapsible#toggle">
+    <span>Advanced Options</span>
+    <span data-collapsible-target="icon">
+      <%= helpers.lucide_icon("chevron-down", class: "h-4 w-4 transition-transform") %>
+    </span>
+  </button>
+
+  <div class="hidden px-4 pb-4 space-y-4" data-collapsible-target="content">
+    <div>
+      <label for="mlc_run_form_binary_path" class="block text-sm font-medium text-neutral-85 mb-1">
+        MLC Binary Path <span class="text-neutral-45 font-normal">(optional)</span>
+      </label>
+      <input type="text"
+             name="mlc_run_form[binary_path]"
+             id="mlc_run_form_binary_path"
+             value="<%= form.binary_path %>"
+             placeholder="/opt/intel/mlc/mlc"
+             class="block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm font-mono">
+      <p class="mt-1 text-[10px] text-neutral-45 italic">
+        Leave empty to use PATH or module-loaded binary
+      </p>
+    </div>
+
+    <div>
+      <label for="mlc_run_form_modules" class="block text-sm font-medium text-neutral-85 mb-1">
+        Lmod Modules <span class="text-neutral-45 font-normal">(optional)</span>
+      </label>
+      <input type="text"
+             name="mlc_run_form[modules]"
+             id="mlc_run_form_modules"
+             value="<%= form.modules %>"
+             placeholder="intel-mlc/3.12, gcc/11.2"
+             class="block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm font-mono">
+      <p class="mt-1 text-[10px] text-neutral-45 italic">
+        Comma-separated module names to load before running
+      </p>
+    </div>
+
+    <div>
+      <label for="mlc_run_form_log_path" class="block text-sm font-medium text-neutral-85 mb-1">
+        Custom Log Path <span class="text-neutral-45 font-normal">(optional)</span>
+      </label>
+      <input type="text"
+             name="mlc_run_form[log_path]"
+             id="mlc_run_form_log_path"
+             value="<%= form.log_path %>"
+             placeholder="/shared/logs/mlc"
+             class="block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm font-mono">
+      <p class="mt-1 text-[10px] text-neutral-45 italic">
+        Leave empty to use the default log location
+      </p>
+    </div>
+  </div>
+</div>
