@@ -21,9 +21,7 @@
     <%= profile[:tests].join(", ") %>
   </div>
 
-  <% if selected %>
-    <div class="absolute top-2 right-2">
-      <%= helpers.lucide_icon("circle-check", class: "h-5 w-5 text-primary-5") %>
-    </div>
-  <% end %>
+  <div class="absolute top-2 right-2 <%= 'hidden' unless selected %>" data-check-icon>
+    <%= helpers.lucide_icon("circle-check", class: "h-5 w-5 text-primary-5") %>
+  </div>
 </label>
