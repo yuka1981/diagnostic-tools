@@ -34,8 +34,8 @@ module Benchmark
 
       def append_common_flags(command)
         flags = []
-        flags << "--server #{esc(server_url)}" if server_url
-        flags << "--token #{esc(token)}" if token
+        flags << "--server #{esc(server_url)}" if server_url.present?
+        flags << "--token #{esc(token)}" if token.present?
         return command if flags.empty?
 
         "#{command} #{flags.join(' ')}"
