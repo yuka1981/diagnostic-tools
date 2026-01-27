@@ -35,7 +35,7 @@ func (o *mlcOptions) addFlags(cmd *cobra.Command) {
 	cmd.Flags().StringSliceVar(&o.modules, "module", nil, "Lmod modules to load")
 	cmd.Flags().StringVar(&o.server, "server", getEnvOrDefault("QIS_AGENT_SERVER", "http://localhost:3000"), "Server URL")
 	cmd.Flags().StringVar(&o.token, "token", os.Getenv("AGENT_TOKEN"), "Authentication token")
-	cmd.Flags().StringVar(&o.configDir, "config", "/etc/qis-agent", "Configuration directory")
+	cmd.Flags().StringVar(&o.configDir, "config", "/etc/hpc-agent", "Configuration directory")
 	cmd.Flags().BoolVar(&o.dryRun, "dry-run", false, "Print what would run without executing")
 	cmd.Flags().StringVar(&o.runID, "id", "mlc-run", "Run ID")
 }
