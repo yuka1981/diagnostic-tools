@@ -31,6 +31,36 @@
   <td class="whitespace-nowrap px-3 py-2">
     <%= node_status_badge(node.status) %>
   </td>
+  <%# BMC Status Indicator %>
+  <td class="whitespace-nowrap px-3 py-2 text-center">
+    <% if node.bmc_address.present? %>
+      <% bmc_health = node.respond_to?(:latest_bmc_health) ? node.latest_bmc_health : node.latest_bmc_inventory&.bmc_info&.dig("health") %>
+      <span class="inline-flex items-center gap-1.5" title="<%= bmc_health&.humanize || 'Unknown' %>">
+        <span class="h-2.5 w-2.5 rounded-full <%= bmc_status_color(bmc_health) %>"></span>
+        <span class="text-xs text-neutral-45">BMC</span>
+      </span>
+    <% else %>
+      <span class="inline-flex items-center gap-1.5" title="No BMC configured">
+        <span class="h-2.5 w-2.5 rounded-full bg-neutral-15"></span>
+        <span class="text-xs text-neutral-35">-</span>
+      </span>
+    <% end %>
+  </td>
+  <%# Discrepancy Count Badge %>
+  <td class="whitespace-nowrap px-3 py-2 text-center">
+    <% discrepancy_count = node.respond_to?(:unresolved_discrepancy_count) ? node.unresolved_discrepancy_count.to_i : node.inventory_discrepancies.unresolved.count %>
+    <% if discrepancy_count > 0 %>
+      <%= link_to node_path(node, anchor: "discrepancies"),
+          class: "inline-flex items-center",
+          title: "#{discrepancy_count} unresolved discrepanc#{discrepancy_count == 1 ? 'y' : 'ies'}" do %>
+        <span class="px-1.5 py-0.5 text-xs font-bold rounded-full bg-warning-1 text-warning-7 border border-warning-2">
+          <%= discrepancy_count %>
+        </span>
+      <% end %>
+    <% else %>
+      <span class="text-xs text-neutral-25">-</span>
+    <% end %>
+  </td>
   <td class="whitespace-nowrap px-3 py-2 text-sm text-neutral-45">
     <%= node.last_seen_at ? time_ago_in_words(node.last_seen_at) + " ago" : "Never" %>
   </td>

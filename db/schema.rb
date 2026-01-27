@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_01_26_234127) do
+ActiveRecord::Schema[7.2].define(version: 2026_01_27_021056) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -221,6 +221,9 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_26_234127) do
     t.datetime "updated_at", null: false
     t.integer "ssh_port", default: 22, null: false
     t.string "ssh_user"
+    t.string "jump_host"
+    t.string "jump_user"
+    t.integer "jump_port"
     t.string "agent_path"
     t.string "uuid"
     t.integer "ssh_connect_method"
@@ -238,18 +241,23 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_26_234127) do
     t.integer "rack_height", default: 1
     t.integer "rack_face", default: 0
     t.bigint "server_product_id"
+    t.bigint "ssh_profile_id"
+    t.boolean "ssh_profile_override", default: false, null: false
     t.boolean "ssh_user_override", default: false
     t.boolean "ssh_port_override", default: false
     t.boolean "ssh_key_override", default: false
     t.boolean "ssh_password_override", default: false
     t.boolean "sudo_credential_override", default: false
     t.boolean "ssh_connect_method_override", default: false
+    t.string "bmc_address"
     t.index ["api_key_id"], name: "index_nodes_on_api_key_id"
     t.index ["hostname"], name: "index_nodes_on_hostname", unique: true
+    t.index ["rack_id", "rack_face", "rack_position"], name: "index_nodes_on_rack_id_and_rack_face_and_rack_position"
     t.index ["rack_id"], name: "index_nodes_on_rack_id"
     t.index ["role"], name: "index_nodes_on_role"
     t.index ["server_product_id"], name: "index_nodes_on_server_product_id"
     t.index ["source"], name: "index_nodes_on_source"
+    t.index ["ssh_profile_id"], name: "index_nodes_on_ssh_profile_id"
     t.index ["uuid"], name: "index_nodes_on_uuid"
   end
 
@@ -398,6 +406,22 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_26_234127) do
     t.index ["name"], name: "index_sites_on_name", unique: true
   end
 
+  create_table "ssh_profiles", force: :cascade do |t|
+    t.string "name", limit: 255, null: false
+    t.integer "ssh_connect_method", default: 0, null: false
+    t.integer "ssh_port", default: 22, null: false
+    t.string "ssh_user", limit: 255
+    t.string "ssh_password"
+    t.text "ssh_key"
+    t.string "sudo_credential"
+    t.string "jump_host", limit: 255
+    t.string "jump_user", limit: 255
+    t.integer "jump_port"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["name"], name: "index_ssh_profiles_on_name", unique: true
+  end
+
   create_table "ssh_settings", force: :cascade do |t|
     t.string "bastion_host"
     t.string "bastion_user"
@@ -442,7 +466,6 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_26_234127) do
     t.integer "role", default: 0, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.string "rack_node_preview_fields", default: ["cpu", "ram", "storage", "network"], array: true
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
   end
@@ -463,6 +486,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_26_234127) do
   add_foreign_key "nodes", "api_keys"
   add_foreign_key "nodes", "racks"
   add_foreign_key "nodes", "server_products"
+  add_foreign_key "nodes", "ssh_profiles"
   add_foreign_key "notifications", "users"
   add_foreign_key "profiling_artifacts", "profiling_runs"
   add_foreign_key "profiling_runs", "nodes"

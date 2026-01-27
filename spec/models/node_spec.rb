@@ -539,5 +539,64 @@ RSpec.describe Node, type: :model do
         expect(Node.racked).to eq([ racked_node ])
       end
     end
+
+    describe ".with_bmc_status" do
+      let!(:node_with_bmc) { create(:node, bmc_address: "192.168.1.100") }
+      let!(:node_without_bmc) { create(:node, bmc_address: nil) }
+
+      context "when node has BMC inventory" do
+        before do
+          create(:bmc_inventory, node: node_with_bmc, captured_at: 2.hours.ago, bmc_info: { "health" => "warning" })
+          create(:bmc_inventory, node: node_with_bmc, captured_at: 1.hour.ago, bmc_info: { "health" => "ok" })
+        end
+
+        it "returns the latest BMC health status" do
+          nodes = Node.with_bmc_status.where(id: node_with_bmc.id)
+          expect(nodes.first.latest_bmc_health).to eq("ok")
+        end
+
+        it "indicates BMC inventory exists" do
+          nodes = Node.with_bmc_status.where(id: node_with_bmc.id)
+          expect(nodes.first.has_bmc_inventory).to be true
+        end
+      end
+
+      context "when node has no BMC inventory" do
+        it "returns nil for latest_bmc_health" do
+          nodes = Node.with_bmc_status.where(id: node_without_bmc.id)
+          expect(nodes.first.latest_bmc_health).to be_nil
+        end
+
+        it "indicates no BMC inventory" do
+          nodes = Node.with_bmc_status.where(id: node_without_bmc.id)
+          expect(nodes.first.has_bmc_inventory).to be false
+        end
+      end
+
+      context "with discrepancies" do
+        before do
+          create(:inventory_discrepancy, node: node_with_bmc, resolved_at: nil)
+          create(:inventory_discrepancy, node: node_with_bmc, resolved_at: nil)
+          create(:inventory_discrepancy, :resolved, node: node_with_bmc)
+        end
+
+        it "counts only unresolved discrepancies" do
+          nodes = Node.with_bmc_status.where(id: node_with_bmc.id)
+          expect(nodes.first.unresolved_discrepancy_count).to eq(2)
+        end
+      end
+
+      context "with no discrepancies" do
+        it "returns zero for unresolved_discrepancy_count" do
+          nodes = Node.with_bmc_status.where(id: node_without_bmc.id)
+          expect(nodes.first.unresolved_discrepancy_count).to eq(0)
+        end
+      end
+
+      it "returns all nodes" do
+        nodes = Node.with_bmc_status
+        expect(nodes).to include(node_with_bmc, node_without_bmc)
+      end
+    end
   end
 end

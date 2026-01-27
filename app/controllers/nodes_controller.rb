@@ -7,7 +7,9 @@ class NodesController < ApplicationController
   before_action :authorize_approver!, only: %i[new create edit update destroy bulk_destroy test_connection collect run_benchmark]
 
   def index
-    @nodes = Node.order(:hostname)
+    @nodes = Node.includes(:bmc_credential)
+                 .with_bmc_status
+                 .order(:hostname)
   end
 
   def show
@@ -152,7 +154,7 @@ class NodesController < ApplicationController
   private
 
   def set_node
-    @node = Node.find(params[:id])
+    @node = Node.includes(:bmc_credential, :inventory_discrepancies).find(params[:id])
   end
 
   def node_params

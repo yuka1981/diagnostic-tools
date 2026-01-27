@@ -118,6 +118,18 @@
          class="border-transparent text-neutral-45 hover:border-neutral-15 hover:text-neutral-85 whitespace-nowrap border-b-2 py-4 px-1 text-sm font-bold uppercase transition-colors">
         Profiling
       </a>
+      <a href="#"
+         data-tabs-target="tab"
+         data-action="click->tabs#select"
+         class="border-transparent text-neutral-45 hover:border-neutral-15 hover:text-neutral-85 whitespace-nowrap border-b-2 py-4 px-1 text-sm font-bold uppercase transition-colors">
+        BMC Sensors
+      </a>
+      <a href="#"
+         data-tabs-target="tab"
+         data-action="click->tabs#select"
+         class="border-transparent text-neutral-45 hover:border-neutral-15 hover:text-neutral-85 whitespace-nowrap border-b-2 py-4 px-1 text-sm font-bold uppercase transition-colors">
+        BMC Inventory
+      </a>
     </nav>
   </div>
 
@@ -157,6 +169,21 @@
     <%# Panel 5: Profiling %>
     <div data-tabs-target="panel" class="hidden col-span-12 outline-none" role="tabpanel" tabindex="0">
       <%= render "nodes/profiling", node: @node %>
+    </div>
+
+    <%# Panel 6: BMC Sensors %>
+    <div data-tabs-target="panel" class="hidden col-span-12 outline-none" role="tabpanel" tabindex="0">
+      <div class="space-y-6">
+        <%= render Bmc::DiscrepancyPanelComponent.new(node: @node) %>
+        <%= turbo_frame_tag "sensor_charts" do %>
+          <%= render Bmc::SensorChartsComponent.new(node: @node, range: params[:range] || "24h") %>
+        <% end %>
+      </div>
+    </div>
+
+    <%# Panel 7: BMC Inventory %>
+    <div data-tabs-target="panel" class="hidden col-span-12 outline-none" role="tabpanel" tabindex="0">
+      <%= render Bmc::InventoryComponent.new(node: @node) %>
     </div>
   </div>
 </div>

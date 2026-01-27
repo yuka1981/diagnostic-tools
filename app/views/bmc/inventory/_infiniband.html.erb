@@ -1,0 +1,31 @@
+<% if infiniband.any? %>
+  <div class="overflow-x-auto">
+    <table class="min-w-full divide-y divide-neutral-8 text-sm">
+      <thead class="bg-neutral-2">
+        <tr>
+          <th class="px-3 py-2 text-left text-xs font-bold uppercase text-neutral-45">HCA</th>
+          <th class="px-3 py-2 text-left text-xs font-bold uppercase text-neutral-45">Port State</th>
+          <th class="px-3 py-2 text-left text-xs font-bold uppercase text-neutral-45">Firmware</th>
+          <th class="px-3 py-2 text-left text-xs font-bold uppercase text-neutral-45">GUID</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-neutral-4 bg-white">
+        <% infiniband.each do |ib| %>
+          <tr class="hover:bg-neutral-2">
+            <td class="px-3 py-2 font-medium text-neutral-85"><%= ib["hca"] %></td>
+            <td class="px-3 py-2">
+              <% state = ib["port_state"]&.downcase %>
+              <span class="px-2 py-0.5 rounded text-xs font-bold <%= state == 'active' ? 'bg-success-2 text-success-7' : 'bg-neutral-4 text-neutral-45' %>">
+                <%= ib["port_state"] || "Unknown" %>
+              </span>
+            </td>
+            <td class="px-3 py-2 text-neutral-85"><%= ib["firmware"] %></td>
+            <td class="px-3 py-2 font-mono text-xs text-neutral-45"><%= ib["guid"] %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+<% else %>
+  <p class="text-neutral-45 text-sm text-center py-4">No InfiniBand adapter data available</p>
+<% end %>

@@ -1,0 +1,31 @@
+[Unit]
+Description=QIS BMC Out-of-Band Collector
+Documentation=file:///opt/qis/docs/bmc-collector.md
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/qis-bmc-collector sensors --config /etc/qis/bmc-collector.yml
+ExecStartPost=/usr/local/bin/qis-bmc-collector inventory --config /etc/qis/bmc-collector.yml
+
+# Environment
+Environment=PATH=/usr/local/bin:/usr/bin:/bin
+Environment=HOME=/root
+
+# Logging
+StandardOutput=append:/var/log/qis/bmc-collector/collector.log
+StandardError=append:/var/log/qis/bmc-collector/collector.log
+
+# Timeouts
+TimeoutStartSec=600
+
+# Security
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=read-only
+ReadOnlyPaths=/etc/qis
+PrivateTmp=yes
+
+[Install]
+WantedBy=multi-user.target

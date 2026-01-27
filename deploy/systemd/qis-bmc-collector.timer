@@ -1,0 +1,20 @@
+[Unit]
+Description=QIS BMC Collector Timer
+Documentation=file:///opt/qis/docs/bmc-collector.md
+
+[Timer]
+# Run every 5 minutes
+OnBootSec=2min
+OnUnitActiveSec=5min
+
+# Randomize start time by up to 30 seconds to avoid thundering herd
+RandomizedDelaySec=30
+
+# Persist timer state across reboots
+Persistent=true
+
+# Accuracy
+AccuracySec=1min
+
+[Install]
+WantedBy=timers.target

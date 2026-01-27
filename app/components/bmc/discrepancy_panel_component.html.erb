@@ -1,0 +1,54 @@
+<% if has_discrepancies? %>
+  <div class="card-netbox border-warning-2">
+    <div class="card-header bg-warning-1">
+      <h3 class="card-title flex items-center gap-2 text-warning-7">
+        <%= helpers.lucide_icon("alert-triangle", class: "h-4 w-4") %>
+        Inventory Discrepancies
+        <span class="px-1.5 py-0.5 text-xs rounded-full bg-warning-2 text-warning-7">
+          <%= discrepancies.count %>
+        </span>
+      </h3>
+    </div>
+
+    <div class="divide-y divide-neutral-8">
+      <% discrepancies.each do |discrepancy| %>
+        <div class="p-4" id="<%= dom_id(discrepancy) %>">
+          <div class="flex items-start justify-between gap-4">
+            <div class="flex-1">
+              <div class="flex items-center gap-2 mb-2">
+                <%= helpers.lucide_icon(severity_icon(discrepancy.severity), class: "h-4 w-4 #{discrepancy.critical? ? 'text-error-6' : discrepancy.warning? ? 'text-warning-6' : 'text-primary-6'}") %>
+                <span class="<%= severity_badge_classes(discrepancy.severity) %>">
+                  <%= discrepancy.severity.humanize %>
+                </span>
+                <span class="text-sm font-medium text-neutral-85"><%= discrepancy.field_path %></span>
+              </div>
+
+              <div class="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <span class="text-neutral-45">In-band:</span>
+                  <span class="ml-2 font-mono text-neutral-85"><%= discrepancy.inband_value || "(none)" %></span>
+                </div>
+                <div>
+                  <span class="text-neutral-45">BMC:</span>
+                  <span class="ml-2 font-mono text-neutral-85"><%= discrepancy.bmc_value || "(none)" %></span>
+                </div>
+              </div>
+
+              <div class="mt-2 text-xs text-neutral-35">
+                Detected <%= time_ago_in_words(discrepancy.created_at) %> ago
+              </div>
+            </div>
+
+            <div class="flex-shrink-0">
+              <%= button_to "Resolve",
+                  resolve_node_inventory_discrepancy_path(@node, discrepancy),
+                  method: :patch,
+                  class: "btn-secondary text-xs",
+                  form: { data: { turbo: true, turbo_confirm: "Mark this discrepancy as resolved?" } } %>
+            </div>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </div>
+<% end %>

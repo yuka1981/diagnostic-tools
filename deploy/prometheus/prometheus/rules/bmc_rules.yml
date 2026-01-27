@@ -1,0 +1,76 @@
+groups:
+  - name: bmc_alerts
+    interval: 1m
+    rules:
+      # Temperature Alerts
+      - alert: BMCHighTemperature
+        expr: qis_bmc_temperature_celsius > 85
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High temperature on {{ $labels.node }}"
+          description: "Sensor {{ $labels.sensor }} reports {{ $value }}°C (threshold: 85°C)"
+
+      - alert: BMCCriticalTemperature
+        expr: qis_bmc_temperature_celsius > 95
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Critical temperature on {{ $labels.node }}"
+          description: "Sensor {{ $labels.sensor }} reports {{ $value }}°C (threshold: 95°C)"
+
+      # Fan Alerts
+      - alert: BMCFanFailure
+        expr: qis_bmc_fan_rpm == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Fan failure on {{ $labels.node }}"
+          description: "Fan {{ $labels.sensor }} reports 0 RPM"
+
+      - alert: BMCFanLowSpeed
+        expr: qis_bmc_fan_rpm > 0 and qis_bmc_fan_rpm < 1000
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Low fan speed on {{ $labels.node }}"
+          description: "Fan {{ $labels.sensor }} reports {{ $value }} RPM"
+
+      # Power Alerts
+      - alert: BMCHighPowerConsumption
+        expr: qis_bmc_power_watts > 1000
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High power consumption on {{ $labels.node }}"
+          description: "Power consumption is {{ $value }}W"
+
+      # Sensor Status Alerts
+      - alert: BMCSensorCritical
+        expr: qis_bmc_sensor_status{status="Critical"} == 2
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Critical sensor status on {{ $labels.node }}"
+          description: "Sensor {{ $labels.sensor }} reports critical status"
+
+  - name: bmc_recording_rules
+    interval: 1m
+    rules:
+      # Average temperature per node
+      - record: qis_bmc:avg_temperature:by_node
+        expr: avg by (node) (qis_bmc_temperature_celsius)
+
+      # Max temperature per node
+      - record: qis_bmc:max_temperature:by_node
+        expr: max by (node) (qis_bmc_temperature_celsius)
+
+      # Total power per node
+      - record: qis_bmc:total_power:by_node
+        expr: sum by (node) (qis_bmc_power_watts)

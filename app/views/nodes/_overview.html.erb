@@ -1,8 +1,13 @@
 <%= turbo_frame_tag "node_overview", data: { turbo_frame: "_top" } do %>
+<%# Discrepancy Panel - shown prominently at top when discrepancies exist %>
+<div class="mb-6">
+  <%= render Bmc::DiscrepancyPanelComponent.new(node: node) %>
+</div>
+
 <div class="grid grid-cols-12 gap-6 mb-6">
   <!-- Left Column: Info Panel -->
-  <div class="col-span-12 lg:col-span-6">
-        <div class="card-netbox">
+  <div class="col-span-12 lg:col-span-4">
+    <div class="card-netbox h-full">
       <div class="card-header">
         <h3 class="card-title text-xs font-bold text-neutral-45 uppercase">Node Details</h3>
       </div>
@@ -35,8 +40,8 @@
     </div>
   </div>
 
-  <!-- Right Column: Operating System -->
-  <div class="col-span-12 lg:col-span-6">
+  <!-- Middle Column: Operating System -->
+  <div class="col-span-12 lg:col-span-4">
     <div class="card-netbox h-full">
       <div class="card-header">
         <h3 class="card-title text-xs font-bold text-neutral-45 uppercase">Operating System</h3>
@@ -65,6 +70,11 @@
         <div class="p-4 text-center text-sm text-neutral-45">No system information available.</div>
       <% end %>
     </div>
+  </div>
+
+  <!-- Right Column: BMC Status -->
+  <div class="col-span-12 lg:col-span-4">
+    <%= render Bmc::StatusCardComponent.new(node: node) %>
   </div>
 </div>
 

@@ -59,4 +59,18 @@ module NodesHelper
       content_tag :span, status.to_s.upcase, class: "inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-neutral-45 text-white shadow-sm uppercase tracking-wider"
     end
   end
+
+  # Returns the CSS background color class for a BMC health status indicator dot
+  def bmc_status_color(health)
+    case health&.to_s&.downcase
+    when "ok", "healthy"
+      "bg-success-5"
+    when "warning"
+      "bg-warning-5"
+    when "critical", "error"
+      "bg-error-5"
+    else
+      "bg-neutral-25"
+    end
+  end
 end

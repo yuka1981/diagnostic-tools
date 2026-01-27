@@ -1,0 +1,28 @@
+<% if network.any? %>
+  <div class="overflow-x-auto">
+    <table class="min-w-full divide-y divide-neutral-8 text-sm">
+      <thead class="bg-neutral-2">
+        <tr>
+          <th class="px-3 py-2 text-left text-xs font-bold uppercase text-neutral-45">Name</th>
+          <th class="px-3 py-2 text-left text-xs font-bold uppercase text-neutral-45">MAC Address</th>
+          <th class="px-3 py-2 text-left text-xs font-bold uppercase text-neutral-45">Model</th>
+          <th class="px-3 py-2 text-left text-xs font-bold uppercase text-neutral-45">Speed</th>
+          <th class="px-3 py-2 text-left text-xs font-bold uppercase text-neutral-45">Firmware</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-neutral-4 bg-white">
+        <% network.each do |nic| %>
+          <tr class="hover:bg-neutral-2">
+            <td class="px-3 py-2 font-medium text-neutral-85"><%= nic["name"] %></td>
+            <td class="px-3 py-2 font-mono text-xs text-neutral-85"><%= nic["mac"] %></td>
+            <td class="px-3 py-2 text-neutral-85"><%= nic["model"] %></td>
+            <td class="px-3 py-2 text-neutral-85"><%= nic["speed"] %></td>
+            <td class="px-3 py-2 text-neutral-45"><%= nic["firmware"] %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+<% else %>
+  <p class="text-neutral-45 text-sm text-center py-4">No network adapter data available</p>
+<% end %>

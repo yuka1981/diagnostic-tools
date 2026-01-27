@@ -76,6 +76,9 @@ application.register("release-mode", ReleaseModeController)
 import ServerProductSearchController from "./server_product_search_controller"
 application.register("server-product-search", ServerProductSearchController)
 
+import SensorChartController from "./sensor_chart_controller"
+application.register("sensor-chart", SensorChartController)
+
 import SidebarController from "./sidebar_controller"
 application.register("sidebar", SidebarController)
 

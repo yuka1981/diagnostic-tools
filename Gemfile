@@ -49,6 +49,9 @@ gem "net-scp", "~> 4.0"
 # Pagination [https://github.com/kaminari/kaminari]
 gem "kaminari", "~> 1.2"
 
+# Charts [https://github.com/ankane/chartkick]
+gem "chartkick", "~> 5.1"
+
 group :development, :test do
   gem "dotenv-rails"
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem

@@ -59,6 +59,39 @@ class Node < ApplicationRecord
   scope :unracked, -> { where(rack_id: nil) }
   scope :racked, -> { where.not(rack_id: nil) }
 
+  # Scope that adds BMC status counts for efficient node list display
+  # Adds virtual attributes: has_bmc_inventory, unresolved_discrepancy_count, latest_bmc_health
+  scope :with_bmc_status, lambda {
+    # Subquery for latest BMC inventory per node
+    latest_bmc_subquery = <<~SQL.squish
+      LEFT JOIN LATERAL (
+        SELECT bmc_inventories.id AS bmc_id, bmc_inventories.bmc_info
+        FROM bmc_inventories
+        WHERE bmc_inventories.node_id = nodes.id
+        ORDER BY bmc_inventories.captured_at DESC
+        LIMIT 1
+      ) AS latest_bmc ON true
+    SQL
+
+    # Subquery for unresolved discrepancy counts
+    discrepancy_count_subquery = <<~SQL.squish
+      LEFT JOIN (
+        SELECT node_id, COUNT(*) AS unresolved_count
+        FROM inventory_discrepancies
+        WHERE resolved_at IS NULL
+        GROUP BY node_id
+      ) AS discrepancy_counts ON discrepancy_counts.node_id = nodes.id
+    SQL
+
+    from("nodes #{latest_bmc_subquery} #{discrepancy_count_subquery}")
+      .select(
+        "nodes.*",
+        "latest_bmc.bmc_id IS NOT NULL AS has_bmc_inventory",
+        "latest_bmc.bmc_info->>'health' AS latest_bmc_health",
+        "COALESCE(discrepancy_counts.unresolved_count, 0) AS unresolved_discrepancy_count"
+      )
+  }
+
   # Instance methods
   def online?
     return false if last_heartbeat_at.nil?

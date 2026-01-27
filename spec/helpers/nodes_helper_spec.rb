@@ -160,4 +160,45 @@ RSpec.describe NodesHelper, type: :helper do
       expect(result).to include("success")
     end
   end
+
+  describe "#bmc_status_color" do
+    it "returns success color for ok status" do
+      expect(helper.bmc_status_color("ok")).to eq("bg-success-5")
+    end
+
+    it "returns success color for healthy status" do
+      expect(helper.bmc_status_color("healthy")).to eq("bg-success-5")
+    end
+
+    it "returns warning color for warning status" do
+      expect(helper.bmc_status_color("warning")).to eq("bg-warning-5")
+    end
+
+    it "returns error color for critical status" do
+      expect(helper.bmc_status_color("critical")).to eq("bg-error-5")
+    end
+
+    it "returns error color for error status" do
+      expect(helper.bmc_status_color("error")).to eq("bg-error-5")
+    end
+
+    it "returns neutral color for unknown status" do
+      expect(helper.bmc_status_color("unknown")).to eq("bg-neutral-25")
+    end
+
+    it "returns neutral color for nil" do
+      expect(helper.bmc_status_color(nil)).to eq("bg-neutral-25")
+    end
+
+    it "handles case insensitive status" do
+      expect(helper.bmc_status_color("OK")).to eq("bg-success-5")
+      expect(helper.bmc_status_color("Warning")).to eq("bg-warning-5")
+      expect(helper.bmc_status_color("CRITICAL")).to eq("bg-error-5")
+    end
+
+    it "handles symbol status" do
+      expect(helper.bmc_status_color(:ok)).to eq("bg-success-5")
+      expect(helper.bmc_status_color(:warning)).to eq("bg-warning-5")
+    end
+  end
 end

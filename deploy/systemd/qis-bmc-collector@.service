@@ -1,0 +1,16 @@
+[Unit]
+Description=QIS BMC Collector for %i
+After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/qis-bmc-collector inventory --node %i --config /etc/qis/bmc-collector.yml
+
+# Logging
+StandardOutput=append:/var/log/qis/bmc-collector/collector-%i.log
+StandardError=append:/var/log/qis/bmc-collector/collector-%i.log
+
+TimeoutStartSec=120
+
+[Install]
+WantedBy=multi-user.target

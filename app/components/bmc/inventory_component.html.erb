@@ -1,0 +1,63 @@
+<div class="card-netbox">
+  <div class="card-header">
+    <h3 class="card-title flex items-center gap-2">
+      <%= helpers.lucide_icon("package", class: "h-4 w-4") %>
+      BMC Inventory
+    </h3>
+    <% if has_inventory? %>
+      <span class="text-xs text-neutral-45">
+        via <%= collection_method %> · <%= helpers.time_ago_in_words(captured_at) %> ago
+      </span>
+    <% end %>
+  </div>
+
+  <% if has_inventory? %>
+    <div data-controller="tabs" data-tabs-active-index-value="0">
+      <!-- Tab Navigation -->
+      <div class="border-b border-neutral-8 bg-neutral-2">
+        <nav class="flex gap-0 overflow-x-auto" aria-label="Inventory tabs">
+          <% tabs.each_with_index do |tab, index| %>
+            <button type="button"
+                    data-tabs-target="tab"
+                    data-action="click->tabs#select"
+                    class="flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap <%= tab[:active] ? 'border-primary-6 text-primary-6' : 'border-transparent text-neutral-45 hover:text-neutral-85 hover:border-neutral-15' %>">
+              <%= helpers.lucide_icon(tab[:icon], class: "h-4 w-4") %>
+              <%= tab[:label] %>
+              <% if tab[:count] && tab[:count] > 0 %>
+                <span class="px-1.5 py-0.5 text-xs rounded-full bg-neutral-8 text-neutral-45"><%= tab[:count] %></span>
+              <% end %>
+            </button>
+          <% end %>
+        </nav>
+      </div>
+
+      <!-- Tab Panels -->
+      <div class="p-4">
+        <div data-tabs-target="panel">
+          <%= render "bmc/inventory/processors", processors: processors %>
+        </div>
+        <div data-tabs-target="panel" class="hidden">
+          <%= render "bmc/inventory/memory", memory: memory %>
+        </div>
+        <div data-tabs-target="panel" class="hidden">
+          <%= render "bmc/inventory/storage", storage: storage %>
+        </div>
+        <div data-tabs-target="panel" class="hidden">
+          <%= render "bmc/inventory/network", network: network %>
+        </div>
+        <div data-tabs-target="panel" class="hidden">
+          <%= render "bmc/inventory/infiniband", infiniband: infiniband %>
+        </div>
+        <div data-tabs-target="panel" class="hidden">
+          <%= render "bmc/inventory/bios", bios: bios %>
+        </div>
+      </div>
+    </div>
+  <% else %>
+    <div class="p-8 text-center text-neutral-45">
+      <%= helpers.lucide_icon("package-x", class: "h-8 w-8 mx-auto mb-2 opacity-50") %>
+      <p class="text-sm">No BMC inventory collected</p>
+      <p class="text-xs mt-1">Click "Collect Now" to gather inventory data</p>
+    </div>
+  <% end %>
+</div>

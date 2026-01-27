@@ -241,6 +241,7 @@ RSpec.describe Notification, type: :model do
         "agent_update",
         "agent_uninstall",
         "benchmark",
+        "bmc_inventory_collect",
         "inventory_collect",
         "product_sync",
         "profiling"

@@ -1,0 +1,30 @@
+[Unit]
+Description=QIS Prometheus Monitoring Stack
+Documentation=https://prometheus.io/docs/
+After=network-online.target
+Wants=network-online.target
+Requires=podman.socket
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/qis/prometheus
+ExecStartPre=/usr/bin/podman-compose -f podman-compose.prometheus.yml pull
+ExecStart=/usr/bin/podman-compose -f podman-compose.prometheus.yml up
+ExecStop=/usr/bin/podman-compose -f podman-compose.prometheus.yml down
+Restart=on-failure
+RestartSec=30
+TimeoutStartSec=300
+TimeoutStopSec=60
+
+# Logging
+StandardOutput=append:/var/log/qis/prometheus/prometheus.log
+StandardError=append:/var/log/qis/prometheus/prometheus.log
+
+# Security
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+ReadWritePaths=/opt/qis/prometheus /var/log/qis/prometheus
+
+[Install]
+WantedBy=multi-user.target

@@ -27,6 +27,13 @@ Rails.application.routes.draw do
           post :complete
         end
       end
+
+      namespace :bmc do
+        resources :nodes, only: [ :index ]
+        post "inventory", to: "inventory#push"
+        post "sensors", to: "sensors#push"
+        post "collect/inventory", to: "collect#inventory"
+      end
     end
   end
 
@@ -84,6 +91,11 @@ Rails.application.routes.draw do
       get :ib_details
     end
     resource :update, only: %i[new create], controller: "nodes/updates"
+    resources :inventory_discrepancies, only: [], controller: "nodes/inventory_discrepancies" do
+      member do
+        patch :resolve
+      end
+    end
     collection do
       delete :bulk_destroy
       resources :imports, only: %i[new create], controller: "nodes/imports", as: :node_import

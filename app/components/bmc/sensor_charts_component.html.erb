@@ -1,0 +1,89 @@
+<div class="card-netbox" data-controller="sensor-chart">
+  <div class="card-header">
+    <h3 class="card-title flex items-center gap-2">
+      <%= helpers.lucide_icon("activity", class: "h-4 w-4") %>
+      Sensor Data
+    </h3>
+    <div class="flex items-center gap-2">
+      <% range_options.each do |label, value| %>
+        <%= link_to label,
+            helpers.node_path(@node, range: value, anchor: "sensors"),
+            class: "px-2 py-1 text-xs font-medium rounded transition-colors #{@range == value ? 'bg-primary-6 text-white' : 'bg-neutral-4 text-neutral-45 hover:bg-neutral-8'}",
+            data: { turbo_frame: "sensor_charts" } %>
+      <% end %>
+    </div>
+  </div>
+
+  <div class="p-4">
+    <% if !prometheus_configured? %>
+      <div class="text-center py-8 text-neutral-45">
+        <%= helpers.lucide_icon("database-off", class: "h-8 w-8 mx-auto mb-2 opacity-50") %>
+        <p class="text-sm">Prometheus not configured</p>
+        <p class="text-xs mt-1">Configure Prometheus URL in settings to view sensor data</p>
+      </div>
+    <% elsif !has_bmc_data? %>
+      <div class="text-center py-8 text-neutral-45">
+        <%= helpers.lucide_icon("chart-no-axes-column", class: "h-8 w-8 mx-auto mb-2 opacity-50") %>
+        <p class="text-sm">No sensor data available</p>
+        <p class="text-xs mt-1">Collect BMC inventory to start gathering sensor data</p>
+      </div>
+    <% else %>
+      <div class="space-y-6">
+        <!-- Temperature Chart -->
+        <div>
+          <h4 class="text-sm font-bold text-neutral-85 mb-2">Temperature</h4>
+          <div class="h-48 bg-neutral-2 rounded p-2">
+            <% if temperature_data.any? %>
+              <%= helpers.line_chart temperature_data,
+                  colors: ["#ef4444", "#f97316", "#eab308"],
+                  suffix: " C",
+                  legend: "bottom",
+                  library: {
+                    scales: { y: { min: 0, max: 100 } },
+                    plugins: { legend: { display: true } }
+                  } %>
+            <% else %>
+              <div class="flex items-center justify-center h-full text-neutral-35 text-sm">
+                No temperature data
+              </div>
+            <% end %>
+          </div>
+        </div>
+
+        <!-- Fan Speed Chart -->
+        <div>
+          <h4 class="text-sm font-bold text-neutral-85 mb-2">Fan Speed</h4>
+          <div class="h-48 bg-neutral-2 rounded p-2">
+            <% if fan_data.any? %>
+              <%= helpers.line_chart fan_data,
+                  colors: ["#3b82f6", "#6366f1", "#8b5cf6"],
+                  suffix: " RPM",
+                  legend: "bottom" %>
+            <% else %>
+              <div class="flex items-center justify-center h-full text-neutral-35 text-sm">
+                No fan speed data
+              </div>
+            <% end %>
+          </div>
+        </div>
+
+        <!-- Power Chart -->
+        <div>
+          <h4 class="text-sm font-bold text-neutral-85 mb-2">Power Consumption</h4>
+          <div class="h-48 bg-neutral-2 rounded p-2">
+            <% if power_data.any? %>
+              <%= helpers.area_chart power_data,
+                  colors: ["#10b981"],
+                  suffix: " W",
+                  legend: "bottom" %>
+            <% else %>
+              <div class="flex items-center justify-center h-full text-neutral-35 text-sm">
+                No power data
+              </div>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    <% end %>
+  </div>
+</div>
