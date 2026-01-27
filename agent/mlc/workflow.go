@@ -13,6 +13,11 @@ import (
 // defaultProfileName is the profile used when no profile is specified.
 const defaultProfileName = "quick"
 
+// ModuleLoader defines interface for loading environment modules.
+type ModuleLoader interface {
+	Load(ctx context.Context, modules []string) error
+}
+
 // RunParams defines parameters for the MLC workflow.
 type RunParams struct {
 	RunID      string
@@ -25,8 +30,9 @@ type RunParams struct {
 
 // WorkflowOrchestrator manages the MLC benchmark workflow.
 type WorkflowOrchestrator struct {
-	Runner     ports.CommandRunner
-	BinaryPath string // Default binary path
+	Runner       ports.CommandRunner
+	ModuleLoader ModuleLoader
+	BinaryPath   string // Default binary path
 }
 
 // testToFlag maps test names to MLC command-line flags.
@@ -42,6 +48,11 @@ var testToFlag = map[string]string{
 // Run executes the MLC workflow.
 func (w *WorkflowOrchestrator) Run(ctx context.Context, params *RunParams) (*model.BenchmarkRun, error) {
 	start := time.Now()
+
+	// Load environment modules if specified
+	if err := w.setupEnvironment(ctx, params.Modules); err != nil {
+		return nil, err
+	}
 
 	// Determine which tests to run
 	tests, err := w.resolveTests(params)
@@ -114,4 +125,14 @@ func (w *WorkflowOrchestrator) resolveTests(params *RunParams) ([]string, error)
 	}
 
 	return profile.Tests, nil
+}
+
+// setupEnvironment loads environment modules if a ModuleLoader is configured.
+func (w *WorkflowOrchestrator) setupEnvironment(ctx context.Context, modules []string) error {
+	if w.ModuleLoader != nil && len(modules) > 0 {
+		if err := w.ModuleLoader.Load(ctx, modules); err != nil {
+			return fmt.Errorf("failed to load modules: %w", err)
+		}
+	}
+	return nil
 }
