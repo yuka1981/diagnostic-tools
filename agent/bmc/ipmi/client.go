@@ -52,15 +52,15 @@ func (r *RealCommandExecutor) CommandContext(ctx context.Context, name string, a
 
 // Client implements ports.BMCClient using ipmitool CLI.
 type Client struct {
-	config   ports.BMCConfig
-	ipmitool string          // path to ipmitool binary
 	executor CommandExecutor // command executor (can be mocked for tests)
+	ipmitool string          // path to ipmitool binary
+	config   ports.BMCConfig // BMC configuration
 }
 
 // NewClient creates a new IPMI client with the given configuration.
-func NewClient(config ports.BMCConfig) *Client {
+func NewClient(config *ports.BMCConfig) *Client {
 	return &Client{
-		config:   config,
+		config:   *config,
 		ipmitool: "ipmitool",
 		executor: &RealCommandExecutor{},
 	}
@@ -68,9 +68,9 @@ func NewClient(config ports.BMCConfig) *Client {
 
 // NewClientWithExecutor creates a new IPMI client with a custom command executor.
 // This is primarily used for testing.
-func NewClientWithExecutor(config ports.BMCConfig, executor CommandExecutor) *Client {
+func NewClientWithExecutor(config *ports.BMCConfig, executor CommandExecutor) *Client {
 	return &Client{
-		config:   config,
+		config:   *config,
 		ipmitool: "ipmitool",
 		executor: executor,
 	}
@@ -106,9 +106,9 @@ func (c *Client) Close() error {
 // runCommand executes an ipmitool command and returns output.
 func (c *Client) runCommand(ctx context.Context, args ...string) (string, error) {
 	baseArgs := c.buildBaseArgs()
-	allArgs := append(baseArgs, args...)
+	baseArgs = append(baseArgs, args...)
 
-	output, err := c.executor.CommandContext(ctx, c.ipmitool, allArgs...)
+	output, err := c.executor.CommandContext(ctx, c.ipmitool, baseArgs...)
 	if err != nil {
 		return "", fmt.Errorf("ipmitool %s: %w", strings.Join(args, " "), err)
 	}

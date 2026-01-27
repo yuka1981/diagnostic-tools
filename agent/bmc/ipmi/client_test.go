@@ -1,3 +1,4 @@
+//nolint:govet // fieldalignment: test structs don't need optimal alignment
 package ipmi
 
 import (
@@ -7,6 +8,21 @@ import (
 	"testing"
 
 	"github.com/yuka1981/diagnostic-tools/agent/core/ports"
+)
+
+// Test constants for IPMI commands and values.
+const (
+	testCmdMC        = "mc"
+	testCmdSensor    = "sensor"
+	testCmdChassis   = "chassis"
+	testCmdFRU       = "fru"
+	testCmdLAN       = "lan"
+	testSubcmdInfo   = "info"
+	testSubcmdList   = "list"
+	testSubcmdPrint  = "print"
+	testSubcmdStatus = "status"
+	testFirmware     = "2.60"
+	testFRUOutput    = "Board Mfg : Supermicro\n"
 )
 
 // MockCommandExecutor implements CommandExecutor for testing.
@@ -39,7 +55,7 @@ func TestNewClient(t *testing.T) {
 		Port:     623,
 	}
 
-	client := NewClient(config)
+	client := NewClient(&config)
 
 	if client.config.Address != config.Address {
 		t.Errorf("expected Address %q, got %q", config.Address, client.config.Address)
@@ -97,7 +113,7 @@ func TestClient_Connect(t *testing.T) {
 				},
 			}
 
-			client := NewClientWithExecutor(ports.BMCConfig{
+			client := NewClientWithExecutor(&ports.BMCConfig{
 				Address:  "192.168.1.100",
 				Username: "admin",
 				Password: "password",
@@ -121,7 +137,7 @@ func TestClient_Connect(t *testing.T) {
 }
 
 func TestClient_Close(t *testing.T) {
-	client := NewClient(ports.BMCConfig{})
+	client := NewClient(&ports.BMCConfig{})
 	err := client.Close()
 	if err != nil {
 		t.Errorf("Close() should always return nil, got %v", err)
@@ -129,7 +145,7 @@ func TestClient_Close(t *testing.T) {
 }
 
 func TestClient_SetIPMIToolPath(t *testing.T) {
-	client := NewClient(ports.BMCConfig{})
+	client := NewClient(&ports.BMCConfig{})
 	customPath := "/custom/path/ipmitool"
 	client.SetIPMIToolPath(customPath)
 
@@ -167,7 +183,7 @@ func TestClient_buildBaseArgs(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			client := NewClient(tt.config)
+			client := NewClient(&tt.config)
 			args := client.buildBaseArgs()
 
 			if len(args) != len(tt.expected) {
@@ -197,7 +213,7 @@ Product Name              : Super Server`
 		CommandFunc: func(ctx context.Context, name string, args ...string) (string, error) {
 			// Check that we're calling mc info
 			for i, arg := range args {
-				if arg == "mc" && i < len(args)-1 && args[i+1] == "info" {
+				if arg == testCmdMC && i < len(args)-1 && args[i+1] == testSubcmdInfo {
 					return mcInfoOutput, nil
 				}
 			}
@@ -205,7 +221,7 @@ Product Name              : Super Server`
 		},
 	}
 
-	client := NewClientWithExecutor(ports.BMCConfig{
+	client := NewClientWithExecutor(&ports.BMCConfig{
 		Address:  "192.168.1.100",
 		Username: "admin",
 		Password: "password",
@@ -216,7 +232,7 @@ Product Name              : Super Server`
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	if info.Firmware != "2.60" {
+	if info.Firmware != testFirmware {
 		t.Errorf("expected Firmware %q, got %q", "2.60", info.Firmware)
 	}
 	if info.Model != "Supermicro Super Server" {
@@ -235,7 +251,7 @@ Fan1             | 3500.000   | RPM        | ok    | na        | 500.000   | 100
 	mock := &MockCommandExecutor{
 		CommandFunc: func(ctx context.Context, name string, args ...string) (string, error) {
 			for i, arg := range args {
-				if arg == "sensor" && i < len(args)-1 && args[i+1] == "list" {
+				if arg == testCmdSensor && i < len(args)-1 && args[i+1] == testSubcmdList {
 					return sensorOutput, nil
 				}
 			}
@@ -243,7 +259,7 @@ Fan1             | 3500.000   | RPM        | ok    | na        | 500.000   | 100
 		},
 	}
 
-	client := NewClientWithExecutor(ports.BMCConfig{
+	client := NewClientWithExecutor(&ports.BMCConfig{
 		Address:  "192.168.1.100",
 		Username: "admin",
 		Password: "password",
@@ -276,7 +292,7 @@ Fan1             | 3500 RPM          | ok`
 	mock := &MockCommandExecutor{
 		CommandFunc: func(ctx context.Context, name string, args ...string) (string, error) {
 			for i, arg := range args {
-				if arg == "sensor" && i < len(args)-1 && args[i+1] == "list" {
+				if arg == testCmdSensor && i < len(args)-1 && args[i+1] == testSubcmdList {
 					return "", errors.New("sensor list failed")
 				}
 				if arg == "sdr" {
@@ -287,7 +303,7 @@ Fan1             | 3500 RPM          | ok`
 		},
 	}
 
-	client := NewClientWithExecutor(ports.BMCConfig{
+	client := NewClientWithExecutor(&ports.BMCConfig{
 		Address:  "192.168.1.100",
 		Username: "admin",
 		Password: "password",
@@ -318,10 +334,10 @@ Chassis Intrusion    : inactive`
 	mock := &MockCommandExecutor{
 		CommandFunc: func(ctx context.Context, name string, args ...string) (string, error) {
 			for i, arg := range args {
-				if arg == "sensor" && i < len(args)-1 && args[i+1] == "list" {
+				if arg == testCmdSensor && i < len(args)-1 && args[i+1] == testSubcmdList {
 					return sensorOutput, nil
 				}
-				if arg == "chassis" && i < len(args)-1 && args[i+1] == "status" {
+				if arg == testCmdChassis && i < len(args)-1 && args[i+1] == testSubcmdStatus {
 					return chassisOutput, nil
 				}
 			}
@@ -329,7 +345,7 @@ Chassis Intrusion    : inactive`
 		},
 	}
 
-	client := NewClientWithExecutor(ports.BMCConfig{
+	client := NewClientWithExecutor(&ports.BMCConfig{
 		Address:  "192.168.1.100",
 		Username: "admin",
 		Password: "password",
@@ -340,7 +356,7 @@ Chassis Intrusion    : inactive`
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	if health.Overall != "OK" {
+	if health.Overall != statusOK {
 		t.Errorf("expected Overall %q, got %q", "OK", health.Overall)
 	}
 
@@ -360,10 +376,10 @@ Cooling/Fan Fault    : false`
 	mock := &MockCommandExecutor{
 		CommandFunc: func(ctx context.Context, name string, args ...string) (string, error) {
 			for i, arg := range args {
-				if arg == "sensor" && i < len(args)-1 && args[i+1] == "list" {
+				if arg == testCmdSensor && i < len(args)-1 && args[i+1] == testSubcmdList {
 					return sensorOutput, nil
 				}
-				if arg == "chassis" && i < len(args)-1 && args[i+1] == "status" {
+				if arg == testCmdChassis && i < len(args)-1 && args[i+1] == testSubcmdStatus {
 					return chassisOutput, nil
 				}
 			}
@@ -371,7 +387,7 @@ Cooling/Fan Fault    : false`
 		},
 	}
 
-	client := NewClientWithExecutor(ports.BMCConfig{
+	client := NewClientWithExecutor(&ports.BMCConfig{
 		Address:  "192.168.1.100",
 		Username: "admin",
 		Password: "password",
@@ -398,7 +414,7 @@ Default Gateway IP      : 192.168.1.1`
 	mock := &MockCommandExecutor{
 		CommandFunc: func(ctx context.Context, name string, args ...string) (string, error) {
 			for i, arg := range args {
-				if arg == "lan" && i < len(args)-1 && args[i+1] == "print" {
+				if arg == testCmdLAN && i < len(args)-1 && args[i+1] == testSubcmdPrint {
 					return lanOutput, nil
 				}
 			}
@@ -406,7 +422,7 @@ Default Gateway IP      : 192.168.1.1`
 		},
 	}
 
-	client := NewClientWithExecutor(ports.BMCConfig{
+	client := NewClientWithExecutor(&ports.BMCConfig{
 		Address:  "192.168.1.100",
 		Username: "admin",
 		Password: "password",
@@ -439,7 +455,7 @@ func TestClient_GetBIOS(t *testing.T) {
 	mock := &MockCommandExecutor{
 		CommandFunc: func(ctx context.Context, name string, args ...string) (string, error) {
 			for i, arg := range args {
-				if arg == "fru" && i < len(args)-1 && args[i+1] == "print" {
+				if arg == testCmdFRU && i < len(args)-1 && args[i+1] == testSubcmdPrint {
 					return fruOutput, nil
 				}
 			}
@@ -447,7 +463,7 @@ func TestClient_GetBIOS(t *testing.T) {
 		},
 	}
 
-	client := NewClientWithExecutor(ports.BMCConfig{
+	client := NewClientWithExecutor(&ports.BMCConfig{
 		Address:  "192.168.1.100",
 		Username: "admin",
 		Password: "password",
@@ -468,13 +484,13 @@ func TestClient_GetInventory(t *testing.T) {
 	mock := &MockCommandExecutor{
 		CommandFunc: func(ctx context.Context, name string, args ...string) (string, error) {
 			for i, arg := range args {
-				if arg == "fru" && i < len(args)-1 && args[i+1] == "print" {
-					return "Board Mfg : Supermicro\n", nil
+				if arg == testCmdFRU && i < len(args)-1 && args[i+1] == testSubcmdPrint {
+					return testFRUOutput, nil
 				}
-				if arg == "mc" && i < len(args)-1 && args[i+1] == "info" {
+				if arg == testCmdMC && i < len(args)-1 && args[i+1] == testSubcmdInfo {
 					return "Firmware Revision : 2.60\nManufacturer Name : Supermicro\n", nil
 				}
-				if arg == "lan" && i < len(args)-1 && args[i+1] == "print" {
+				if arg == testCmdLAN && i < len(args)-1 && args[i+1] == testSubcmdPrint {
 					return "MAC Address : 3c:ec:ef:12:34:56\n", nil
 				}
 			}
@@ -482,7 +498,7 @@ func TestClient_GetInventory(t *testing.T) {
 		},
 	}
 
-	client := NewClientWithExecutor(ports.BMCConfig{
+	client := NewClientWithExecutor(&ports.BMCConfig{
 		Address:  "192.168.1.100",
 		Username: "admin",
 		Password: "password",
@@ -506,11 +522,11 @@ func TestClient_GetProcessors(t *testing.T) {
 	// IPMI typically doesn't return processor info, so this should return empty
 	mock := &MockCommandExecutor{
 		CommandFunc: func(ctx context.Context, name string, args ...string) (string, error) {
-			return "Board Mfg : Supermicro\n", nil
+			return testFRUOutput, nil
 		},
 	}
 
-	client := NewClientWithExecutor(ports.BMCConfig{
+	client := NewClientWithExecutor(&ports.BMCConfig{
 		Address:  "192.168.1.100",
 		Username: "admin",
 		Password: "password",
@@ -530,7 +546,7 @@ func TestClient_GetProcessors(t *testing.T) {
 func TestClient_GetStorage(t *testing.T) {
 	mock := &MockCommandExecutor{}
 
-	client := NewClientWithExecutor(ports.BMCConfig{
+	client := NewClientWithExecutor(&ports.BMCConfig{
 		Address:  "192.168.1.100",
 		Username: "admin",
 		Password: "password",
@@ -550,7 +566,7 @@ func TestClient_GetStorage(t *testing.T) {
 func TestClient_GetInfiniband(t *testing.T) {
 	mock := &MockCommandExecutor{}
 
-	client := NewClientWithExecutor(ports.BMCConfig{
+	client := NewClientWithExecutor(&ports.BMCConfig{
 		Address:  "192.168.1.100",
 		Username: "admin",
 		Password: "password",
@@ -570,11 +586,11 @@ func TestClient_GetInfiniband(t *testing.T) {
 func TestClient_GetMemory(t *testing.T) {
 	mock := &MockCommandExecutor{
 		CommandFunc: func(ctx context.Context, name string, args ...string) (string, error) {
-			return "Board Mfg : Supermicro\n", nil
+			return testFRUOutput, nil
 		},
 	}
 
-	client := NewClientWithExecutor(ports.BMCConfig{
+	client := NewClientWithExecutor(&ports.BMCConfig{
 		Address:  "192.168.1.100",
 		Username: "admin",
 		Password: "password",
@@ -603,7 +619,7 @@ func TestClient_CommandArgsPassedCorrectly(t *testing.T) {
 		},
 	}
 
-	client := NewClientWithExecutor(ports.BMCConfig{
+	client := NewClientWithExecutor(&ports.BMCConfig{
 		Address:  "10.0.0.1",
 		Username: "testuser",
 		Password: "testpass",

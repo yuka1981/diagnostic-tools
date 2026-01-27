@@ -42,7 +42,7 @@ func (f *DefaultClientFactory) NewRedfishClient(config ports.BMCConfig) ports.BM
 //
 //nolint:gocritic // config passed by value to match existing API
 func (f *DefaultClientFactory) NewIPMIClient(config ports.BMCConfig) ports.BMCClient {
-	return ipmi.NewClient(config)
+	return ipmi.NewClient(&config)
 }
 
 // defaultFactory is the global default factory instance.

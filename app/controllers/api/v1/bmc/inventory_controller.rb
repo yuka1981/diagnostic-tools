@@ -23,9 +23,9 @@ module Api
 
         def inventory_params
           params.permit(
-            processors: [ :socket, :model, :cores, :freq_base, :freq_max, :serial ],
+            processors: [ :socket, :model, :cores, :freq_base_mhz, :freq_max_mhz, :serial ],
             memory: [ :slot, :size_gb, :speed_mhz, :manufacturer, :serial, :type ],
-            storage: [ :name, :capacity, :model, :serial, :interface, :health ],
+            storage: [ :name, :capacity_bytes, :model, :serial, :interface, :health ],
             network: [ :name, :mac, :model, :speed, :firmware ],
             infiniband: [ :hca, :port_state, :firmware, :guid ],
             bios: [ :vendor, :version, :release_date ],

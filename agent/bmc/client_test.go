@@ -448,7 +448,7 @@ func TestDetectedProtocol_Redfish(t *testing.T) {
 }
 
 func TestDetectedProtocol_IPMI(t *testing.T) {
-	client := ipmi.NewClient(ports.BMCConfig{Address: "192.168.1.100"})
+	client := ipmi.NewClient(&ports.BMCConfig{Address: "192.168.1.100"})
 	protocol := DetectedProtocol(client)
 	if protocol != ProtocolIPMI {
 		t.Errorf("expected %q, got %q", ProtocolIPMI, protocol)

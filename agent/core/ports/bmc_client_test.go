@@ -8,6 +8,9 @@ import (
 	"github.com/yuka1981/diagnostic-tools/agent/core/model"
 )
 
+// Test constants.
+const testStatusWarning = "Warning"
+
 func TestBMCConfig_JSON(t *testing.T) {
 	original := BMCConfig{
 		Address:   "192.168.1.100",
@@ -326,11 +329,11 @@ func TestMockBMCClient(t *testing.T) {
 
 	t.Run("CustomHealth", func(t *testing.T) {
 		expectedHealth := &model.BMCHealthSummary{
-			Overall: "Warning",
+			Overall: testStatusWarning,
 			Components: map[string]string{
 				"CPU":     "OK",
 				"Memory":  "OK",
-				"Storage": "Warning",
+				"Storage": testStatusWarning,
 			},
 		}
 
@@ -344,10 +347,10 @@ func TestMockBMCClient(t *testing.T) {
 		if err != nil {
 			t.Errorf("expected no error, got %v", err)
 		}
-		if health.Overall != "Warning" {
+		if health.Overall != testStatusWarning {
 			t.Errorf("expected Overall 'Warning', got %q", health.Overall)
 		}
-		if health.Components["Storage"] != "Warning" {
+		if health.Components["Storage"] != testStatusWarning {
 			t.Errorf("expected Storage 'Warning', got %q", health.Components["Storage"])
 		}
 	})

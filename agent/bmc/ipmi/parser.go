@@ -9,6 +9,33 @@ import (
 	"github.com/yuka1981/diagnostic-tools/agent/core/model"
 )
 
+// Sensor status constants.
+const (
+	statusOK       = "OK"
+	statusWarning  = "Warning"
+	statusCritical = "Critical"
+	statusNA       = "N/A"
+	statusUnknown  = "Unknown"
+)
+
+// Sensor value constants.
+const (
+	valueNA       = "na"
+	valueDisabled = "disabled"
+	valueNoRead   = "no reading"
+	valueTrue     = "true"
+)
+
+// Unit constants.
+const (
+	unitCelsius    = "Celsius"
+	unitFahrenheit = "Fahrenheit"
+	unitRPM        = "RPM"
+	unitVolts      = "Volts"
+	unitWatts      = "Watts"
+	unitAmps       = "Amps"
+)
+
 // ParseSensorList parses `ipmitool sensor list` output into sensor readings.
 // Example output format:
 // CPU0 Temp        | 45.000     | degrees C  | ok    | na        | 0.000     | 5.000     | 90.000    | 95.000    | na
@@ -41,7 +68,7 @@ func ParseSensorList(output string) []model.BMCSensorReading {
 
 		// Parse value
 		var value float64
-		if valueStr != "na" && valueStr != "" {
+		if valueStr != valueNA && valueStr != "" {
 			if v, err := strconv.ParseFloat(valueStr, 64); err == nil {
 				value = v
 			}
@@ -109,15 +136,16 @@ func ParseMCInfo(output string) *model.BMCControllerInfo {
 
 // ParseFRU parses `ipmitool fru print` output into a key-value map.
 // Example output format:
-// FRU Device Description : Builtin FRU Device (ID 0)
-//  Chassis Type          : Rack Mount Chassis
-//  Board Mfg Date        : Mon Jan  1 00:00:00 1996
-//  Board Mfg             : Supermicro
-//  Board Product         : X11SPL-F
-//  Board Serial          : VM190S012345
-//  Product Manufacturer  : Supermicro
-//  Product Name          : Super Server
-//  Product Serial        : A12345678901234
+//
+//	FRU Device Description : Builtin FRU Device (ID 0)
+//	 Chassis Type          : Rack Mount Chassis
+//	 Board Mfg Date        : Mon Jan  1 00:00:00 1996
+//	 Board Mfg             : Supermicro
+//	 Board Product         : X11SPL-F
+//	 Board Serial          : VM190S012345
+//	 Product Manufacturer  : Supermicro
+//	 Product Name          : Super Server
+//	 Product Serial        : A12345678901234
 func ParseFRU(output string) map[string]string {
 	fru := make(map[string]string)
 
@@ -261,9 +289,9 @@ func ParseSDR(output string) []model.BMCSensorReading {
 }
 
 // parseValueWithUnit extracts numeric value and unit from strings like "45 degrees C" or "3500 RPM".
-func parseValueWithUnit(s string) (float64, string) {
+func parseValueWithUnit(s string) (value float64, unit string) {
 	s = strings.TrimSpace(s)
-	if s == "" || s == "disabled" || s == "no reading" {
+	if s == "" || s == valueDisabled || s == valueNoRead {
 		return 0, ""
 	}
 
@@ -279,7 +307,7 @@ func parseValueWithUnit(s string) (float64, string) {
 		return 0, s
 	}
 
-	unit := normalizeUnit(strings.TrimSpace(matches[2]))
+	unit = normalizeUnit(strings.TrimSpace(matches[2]))
 	return value, unit
 }
 
@@ -290,18 +318,18 @@ func normalizeUnit(unit string) string {
 
 	switch {
 	case strings.Contains(lowerUnit, "degrees c"):
-		return "Celsius"
+		return unitCelsius
 	case strings.Contains(lowerUnit, "degrees f"):
-		return "Fahrenheit"
+		return unitFahrenheit
 	case strings.Contains(lowerUnit, "rpm"):
-		return "RPM"
+		return unitRPM
 	case strings.Contains(lowerUnit, "volts"):
-		return "Volts"
+		return unitVolts
 	case strings.Contains(lowerUnit, "watts"):
-		return "Watts"
+		return unitWatts
 	case strings.Contains(lowerUnit, "amps"):
-		return "Amps"
-	case lowerUnit == "na" || lowerUnit == "":
+		return unitAmps
+	case lowerUnit == valueNA || lowerUnit == "":
 		return ""
 	default:
 		return unit
@@ -314,16 +342,16 @@ func normalizeStatus(status string) string {
 
 	switch status {
 	case "ok", "nominal":
-		return "OK"
+		return statusOK
 	case "nc", "non-critical", "lnc", "unc":
-		return "Warning"
+		return statusWarning
 	case "cr", "critical", "lcr", "ucr", "nr", "non-recoverable", "lnr", "unr":
-		return "Critical"
+		return statusCritical
 	case "na", "no reading", "disabled", "not present":
-		return "N/A"
+		return statusNA
 	default:
 		if status == "" {
-			return "Unknown"
+			return statusUnknown
 		}
 		// Capitalize first letter
 		return strings.ToUpper(status[:1]) + status[1:]
@@ -375,7 +403,7 @@ func ExtractMemoryFromFRU(fru map[string]string) []model.BMCMemoryModule {
 // DeriveHealthFromSensors derives overall health status from sensor readings.
 func DeriveHealthFromSensors(sensors []model.BMCSensorReading) *model.BMCHealthSummary {
 	health := &model.BMCHealthSummary{
-		Overall:    "OK",
+		Overall:    statusOK,
 		Components: make(map[string]string),
 	}
 
@@ -395,7 +423,7 @@ func DeriveHealthFromSensors(sensors []model.BMCSensorReading) *model.BMCHealthS
 	}
 
 	// Determine overall status
-	overallStatus := "OK"
+	overallStatus := statusOK
 	for component, status := range componentStatus {
 		health.Components[component] = status
 		overallStatus = worstStatus(overallStatus, status)
@@ -405,40 +433,50 @@ func DeriveHealthFromSensors(sensors []model.BMCSensorReading) *model.BMCHealthS
 	return health
 }
 
+// sensorCategory maps keywords to component categories.
+//
+//nolint:govet // fieldalignment: intentional order for readability
+var sensorCategories = []struct {
+	keywords []string
+	category string
+}{
+	{[]string{"cpu", "processor"}, "CPU"},
+	{[]string{"mem", "dimm"}, "Memory"},
+	{[]string{"fan"}, "Fans"},
+	{[]string{"psu", "power"}, "Power"},
+	{[]string{"volt", "vcore", "12v", "5v", "3.3v"}, "Voltage"},
+	{[]string{"disk", "hdd", "ssd"}, "Storage"},
+	{[]string{"temp", "thermal"}, "Thermal"},
+}
+
 // categorizeSensor determines the component category based on sensor name.
 func categorizeSensor(name string) string {
 	lowerName := strings.ToLower(name)
 
-	switch {
-	case strings.Contains(lowerName, "cpu") || strings.Contains(lowerName, "processor"):
-		return "CPU"
-	case strings.Contains(lowerName, "mem") || strings.Contains(lowerName, "dimm"):
-		return "Memory"
-	case strings.Contains(lowerName, "fan"):
-		return "Fans"
-	case strings.Contains(lowerName, "psu") || strings.Contains(lowerName, "power"):
-		return "Power"
-	case strings.Contains(lowerName, "volt") || strings.Contains(lowerName, "vcore") ||
-		strings.HasSuffix(lowerName, "v") || strings.Contains(lowerName, "12v") ||
-		strings.Contains(lowerName, "5v") || strings.Contains(lowerName, "3.3v"):
-		return "Voltage"
-	case strings.Contains(lowerName, "disk") || strings.Contains(lowerName, "hdd") || strings.Contains(lowerName, "ssd"):
-		return "Storage"
-	case strings.Contains(lowerName, "temp") || strings.Contains(lowerName, "thermal"):
-		return "Thermal"
-	default:
-		return "Other"
+	for _, sc := range sensorCategories {
+		for _, keyword := range sc.keywords {
+			if strings.Contains(lowerName, keyword) {
+				return sc.category
+			}
+		}
 	}
+
+	// Check voltage suffix separately
+	if strings.HasSuffix(lowerName, "v") {
+		return "Voltage"
+	}
+
+	return "Other"
 }
 
 // worstStatus returns the more severe of two status values.
 func worstStatus(a, b string) string {
 	statusPriority := map[string]int{
-		"Critical": 3,
-		"Warning":  2,
-		"OK":       1,
-		"N/A":      0,
-		"Unknown":  0,
+		statusCritical: 3,
+		statusWarning:  2,
+		statusOK:       1,
+		statusNA:       0,
+		statusUnknown:  0,
 	}
 
 	priorityA := statusPriority[a]
@@ -455,31 +493,31 @@ func DeriveHealthFromChassisStatus(status map[string]string) map[string]string {
 	components := make(map[string]string)
 
 	// Check power-related faults
-	if status["Main Power Fault"] == "true" || status["Power Overload"] == "true" {
-		components["Power"] = "Critical"
+	if status["Main Power Fault"] == valueTrue || status["Power Overload"] == valueTrue {
+		components["Power"] = statusCritical
 	} else {
-		components["Power"] = "OK"
+		components["Power"] = statusOK
 	}
 
 	// Check cooling/fan fault
-	if status["Cooling/Fan Fault"] == "true" {
-		components["Fans"] = "Critical"
+	if status["Cooling/Fan Fault"] == valueTrue {
+		components["Fans"] = statusCritical
 	} else {
-		components["Fans"] = "OK"
+		components["Fans"] = statusOK
 	}
 
 	// Check drive fault
-	if status["Drive Fault"] == "true" {
-		components["Storage"] = "Critical"
+	if status["Drive Fault"] == valueTrue {
+		components["Storage"] = statusCritical
 	} else {
-		components["Storage"] = "OK"
+		components["Storage"] = statusOK
 	}
 
 	// Check chassis intrusion
 	if status["Chassis Intrusion"] == "active" {
-		components["Chassis"] = "Warning"
+		components["Chassis"] = statusWarning
 	} else {
-		components["Chassis"] = "OK"
+		components["Chassis"] = statusOK
 	}
 
 	return components

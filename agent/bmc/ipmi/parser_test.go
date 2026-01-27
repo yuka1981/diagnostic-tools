@@ -1,3 +1,4 @@
+//nolint:govet // fieldalignment: test structs don't need optimal alignment
 package ipmi
 
 import (
@@ -621,7 +622,7 @@ func TestCategorizeSensor(t *testing.T) {
 		{"Power Supply", "Power"},
 		{"Vcore", "Voltage"},
 		{"12V Rail", "Voltage"},
-		{"HDD0 Status", "Storage"},  // "Temp" would categorize as Thermal due to keyword priority
+		{"HDD0 Status", "Storage"}, // "Temp" would categorize as Thermal due to keyword priority
 		{"SSD Status", "Storage"},
 		{"Inlet Temp", "Thermal"},
 		{"Unknown Sensor", "Other"},
