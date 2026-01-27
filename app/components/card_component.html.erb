@@ -1,0 +1,13 @@
+<div class="<%= card_classes %>">
+  <% if header? %>
+    <div class="card-header">
+      <h3 class="card-title"><%= title %></h3>
+      <% if action? %>
+        <div><%= action %></div>
+      <% end %>
+    </div>
+  <% end %>
+  <div class="<%= body_classes %>">
+    <%= content %>
+  </div>
+</div>

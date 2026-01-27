@@ -4,6 +4,10 @@ import { Controller } from "@hotwired/stimulus"
 // Handles multi-select functionality for table rows
 export default class extends Controller {
   static targets = ["actionBar", "count", "checkbox", "selectAll", "form", "hiddenInputs"]
+  static values = {
+    itemName: { type: String, default: "item" },
+    paramName: { type: String, default: "ids" }
+  }
 
   connect() {
     this.selectedIds = new Set()
@@ -61,7 +65,8 @@ export default class extends Controller {
 
     // Update confirm message with actual count
     const count = this.selectedIds.size
-    const confirmMessage = `Are you sure you want to delete ${count} node(s)? This action cannot be undone.`
+    const itemName = this.itemNameValue
+    const confirmMessage = `Are you sure you want to delete ${count} ${itemName}(s)? This action cannot be undone.`
     this.formTarget.dataset.turboConfirm = confirmMessage
 
     // Populate hidden inputs
@@ -69,7 +74,7 @@ export default class extends Controller {
     this.selectedIds.forEach(id => {
       const input = document.createElement("input")
       input.type = "hidden"
-      input.name = "node_ids[]"
+      input.name = `${this.paramNameValue}[]`
       input.value = id
       this.hiddenInputsTarget.appendChild(input)
     })
@@ -131,7 +136,8 @@ export default class extends Controller {
     if (!this.hasCountTarget) return
 
     const count = this.selectedIds.size
-    this.countTarget.textContent = `${count} node(s) selected`
+    const itemName = this.itemNameValue
+    this.countTarget.textContent = `${count} ${itemName}(s) selected`
   }
 
   updateSelectAllState() {
