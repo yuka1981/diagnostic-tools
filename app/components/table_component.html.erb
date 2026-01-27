@@ -1,0 +1,89 @@
+<div class="card-netbox"
+     <%= "data-controller=bulk-select" if selectable? %>
+     <%= "data-bulk-select-item-name-value=#{item_name}" if selectable? %>
+     <%= "data-bulk-select-param-name-value=#{param_name}" if selectable? %>>
+  <% if selectable? && bulk_actions.any? %>
+    <div data-bulk-select-target="actionBar"
+         class="grid transition-[grid-template-rows] duration-300 ease-in-out"
+         style="grid-template-rows: 0fr;"
+         data-expanded-style="grid-template-rows: 1fr;"
+         data-collapsed-style="grid-template-rows: 0fr;">
+      <div class="overflow-hidden min-h-0">
+        <div class="bg-neutral-4 border-b border-neutral-8 px-4 py-3 flex items-center justify-between">
+          <span class="text-sm text-neutral-85 font-bold" data-bulk-select-target="count">0 item(s) selected</span>
+          <div class="flex items-center gap-3">
+            <button type="button"
+                    data-action="click->bulk-select#clearAll"
+                    class="text-sm text-neutral-45 hover:text-neutral-85">
+              Clear
+            </button>
+            <% bulk_actions.each do |action| %>
+              <%= form_with url: bulk_action_path,
+                            method: action.http_method,
+                            data: {
+                              bulk_select_target: "form",
+                              turbo_confirm: action.confirm
+                            },
+                            class: "inline" do |f| %>
+                <div data-bulk-select-target="hiddenInputs"></div>
+                <button type="submit" class="btn-danger text-sm">
+                  <%= action.label %>
+                </button>
+              <% end %>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    </div>
+  <% end %>
+
+  <div class="overflow-x-auto">
+    <% if empty? %>
+      <%= empty %>
+    <% else %>
+      <table class="min-w-full divide-y divide-neutral-8 text-sm">
+        <thead class="bg-neutral-2">
+          <tr>
+            <% if selectable? %>
+              <th scope="col" class="w-10 border-b">
+                <div class="flex items-center justify-center h-full py-2">
+                  <input type="checkbox"
+                         data-bulk-select-target="selectAll"
+                         data-action="change->bulk-select#toggleAll"
+                         class="rounded border-neutral-15 text-primary-6 focus:ring-primary-5">
+                </div>
+              </th>
+            <% end %>
+            <% columns.each do |column| %>
+              <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-neutral-45 border-b">
+                <%= column.header %>
+              </th>
+            <% end %>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-neutral-8 bg-white">
+          <% collection.each do |item| %>
+            <tr class="hover:bg-neutral-2">
+              <% if selectable? %>
+                <td class="w-10">
+                  <div class="flex items-center justify-center h-full py-2">
+                    <input type="checkbox"
+                           value="<%= item.send(id_method) %>"
+                           data-bulk-select-target="checkbox"
+                           data-action="change->bulk-select#toggle"
+                           class="rounded border-neutral-15 text-primary-6 focus:ring-primary-5">
+                  </div>
+                </td>
+              <% end %>
+              <% columns.each do |column| %>
+                <td class="px-3 py-2">
+                  <%= column.cell_content(item) %>
+                </td>
+              <% end %>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    <% end %>
+  </div>
+</div>

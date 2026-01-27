@@ -1,0 +1,62 @@
+<% content_for(:page_title) { "MLC Benchmark" } %>
+<% content_for(:breadcrumbs) do %>
+  <span class="mx-2">/</span>
+  <%= link_to "Benchmarks", benchmark_runs_path, class: "hover:text-primary-6 font-bold" %>
+  <span class="mx-2">/</span>
+  <span class="text-neutral-85">MLC</span>
+<% end %>
+
+<div class="max-w-4xl mx-auto">
+  <div class="mb-6">
+    <h1 class="text-2xl font-bold text-neutral-85">MLC Benchmark</h1>
+    <p class="text-sm text-neutral-45 mt-1">Run Intel Memory Latency Checker on a cluster node</p>
+  </div>
+
+  <%= form_with model: @form, url: mlc_benchmarks_path, method: :post, class: "space-y-6" do |f| %>
+    <% if @form.errors.any? %>
+      <div class="rounded-md bg-error-1 p-4 border border-error-2">
+        <h3 class="text-sm font-bold text-error-8">Please correct the errors below</h3>
+        <div class="mt-2 text-xs text-error-7">
+          <ul role="list" class="list-disc pl-5 space-y-1">
+            <% @form.errors.full_messages.each do |msg| %>
+              <li><%= msg %></li>
+            <% end %>
+          </ul>
+        </div>
+      </div>
+    <% end %>
+
+    <%# Target Node %>
+    <div class="card-netbox">
+      <div class="card-header">
+        <h3 class="card-title">Target Node</h3>
+      </div>
+      <div class="p-4">
+        <%= f.label :node_id, "Select Node", class: "block text-sm font-bold text-neutral-85 mb-1" %>
+        <%= f.select :node_id,
+            options_from_collection_for_select(@nodes, :id, :hostname, @form.node_id),
+            { prompt: "Select a node..." },
+            { class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm" } %>
+      </div>
+    </div>
+
+    <%# Profile Selector %>
+    <div class="card-netbox">
+      <div class="card-header">
+        <h3 class="card-title">Benchmark Profile</h3>
+      </div>
+      <div class="p-4">
+        <%= render Mlc::ProfileSelectorComponent.new(selected: @form.profile || "quick") %>
+      </div>
+    </div>
+
+    <%# Advanced Options %>
+    <%= render Mlc::AdvancedOptionsComponent.new(form: @form) %>
+
+    <%# Actions %>
+    <div class="flex items-center justify-end gap-3">
+      <%= link_to "Cancel", :back, class: "btn-secondary" %>
+      <%= f.submit "Run MLC Benchmark", class: "btn-primary" %>
+    </div>
+  <% end %>
+</div>

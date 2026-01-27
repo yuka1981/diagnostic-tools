@@ -1,4 +1,4 @@
-<div class="card-netbox" data-controller="bulk-select">
+<div class="card-netbox" data-controller="bulk-select" data-bulk-select-item-name-value="node" data-bulk-select-param-name-value="node_ids">
   <%# Action bar for bulk operations (approvers only) - uses grid for smooth height animation %>
   <% if current_user.approver? %>
     <div data-bulk-select-target="actionBar"
@@ -67,14 +67,12 @@
         </tbody>
       </table>
     <% else %>
-      <div class="flex flex-col items-center justify-center py-12 text-center">
-        <div class="h-12 w-12 rounded-full bg-neutral-4 flex items-center justify-center mb-4">
-          <%= lucide_icon("server", class: "h-6 w-6 text-neutral-25") %>
-        </div>
-        <h3 class="text-sm font-semibold text-neutral-85">No nodes found</h3>
-        <p class="mt-1 text-sm text-neutral-45">Get started by creating a new node.</p>
-
-        <div class="mt-6 flex gap-3">
+      <%= render EmptyStateComponent.new(
+        icon: "server",
+        title: "No nodes found",
+        description: "Get started by creating a new node."
+      ) do |empty| %>
+        <% empty.with_action do %>
           <% if current_user.approver? %>
             <%= link_to new_node_path,
                 class: "btn-primary",
@@ -83,15 +81,14 @@
               Add Node
             <% end %>
           <% end %>
-
           <%= link_to new_node_import_path,
               class: "btn-secondary",
               data: { turbo_frame: "import_modal" } do %>
             <%= lucide_icon("upload", class: "h-4 w-4") %>
             Import CSV
           <% end %>
-        </div>
-      </div>
+        <% end %>
+      <% end %>
     <% end %>
   </div>
 </div>

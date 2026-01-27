@@ -173,35 +173,48 @@ module Benchmark
     end
 
     def build_agent_command(agent_bin)
-      # Set OMP_NUM_THREADS to use all physical cores for OpenMP parallelization
-      # nproc returns the number of available processing units
-      #
-      # Command structure: hpc-agent [global-flags] <subcommand> [subcommand-flags]
-      # The --node-uuid flag is a global persistent flag that must come before the subcommand
-      cmd = "env OMP_NUM_THREADS=$(nproc) #{Shellwords.escape(agent_bin)}"
+      builder = command_builder_for(agent_bin)
+      builder.build
+    end
 
-      # Inject node UUID to ensure identity consistency between Rails and Agent
-      # This prevents the agent from generating a new UUID that doesn't match the node in Rails
-      cmd += " --node-uuid #{Shellwords.escape(@target_node.uuid)}" if @target_node&.uuid.present?
+    def command_builder_for(agent_bin)
+      builder_class = command_builder_class
+      builder_class.new(
+        agent_bin: agent_bin,
+        run_id: @run_id || generate_run_id,
+        node_uuid: @target_node&.uuid,
+        arguments: builder_arguments,
+        server_url: @server_url,
+        token: @agent_token
+      )
+    end
 
-      # Subcommand from recipe (defaults to hpcg for backwards compatibility)
+    def command_builder_class
       subcommand = @benchmark_recipe&.command || "hpcg"
-      cmd += " #{Shellwords.escape(subcommand)}"
-      cmd += " --id #{Shellwords.escape(@run_id || generate_run_id)}"
-      cmd += " --build #{Shellwords.escape('make arch=Linux_OpenMP')}"
-      cmd += " --run #{Shellwords.escape('./bin/xhpcg')}"
+      case subcommand
+      when "hpcg"
+        CommandBuilders::HpcgCommandBuilder
+      when "mlc"
+        CommandBuilders::MlcCommandBuilder
+      else
+        raise ArgumentError, "Unknown benchmark command: #{subcommand}"
+      end
+    end
 
-      # Add timeout from recipe (or default)
-      timeout = @benchmark_recipe&.timeout_seconds || 60
-      cmd += " --rt #{timeout}"
+    def builder_arguments
+      # For HPCG, we need to pass: nx, ny, nz, rt (timeout), log_path
+      # For MLC, we need to pass: profile, binary_path, modules, tests, log_dir
+      args = argument_builder.merged_arguments.dup
 
-      # Add merged arguments from recipe defaults + overrides
-      cmd += " #{argument_builder.call}" if @benchmark_recipe
+      # Add timeout from recipe for HPCG
+      if @benchmark_recipe&.timeout_seconds.present?
+        args["rt"] = @benchmark_recipe.timeout_seconds
+      end
 
-      cmd += " --log-path #{Shellwords.escape(@log_path)}" if @log_path.present?
-      cmd += " --server #{Shellwords.escape(@server_url)}" if @server_url.present?
-      cmd += " --token #{Shellwords.escape(@agent_token)}" if @agent_token.present?
-      cmd
+      # Add log_path if provided
+      args["log_path"] = @log_path if @log_path.present?
+
+      args
     end
 
     def argument_builder
