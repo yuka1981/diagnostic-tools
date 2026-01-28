@@ -27,6 +27,12 @@ Rails.application.routes.draw do
           post :complete
         end
       end
+      resources :mlc_installations, param: :uuid, only: [] do
+        member do
+          post :progress
+          post :complete
+        end
+      end
     end
   end
 
