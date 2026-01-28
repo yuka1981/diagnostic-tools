@@ -2,7 +2,7 @@
 
 module Benchmark
   class CancelRunService < ::SshExecutionService
-    DEFAULT_AGENT_PATH = "hpc-agent"
+    DEFAULT_AGENT_PATH = "qis-agent"
 
     # Initialize the service
     # @param benchmark_run [BenchmarkRun] The benchmark run to cancel

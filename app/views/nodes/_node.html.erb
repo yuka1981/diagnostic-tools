@@ -40,7 +40,7 @@
       <div class="flex items-center justify-center gap-2">
         <%# Install Action %>
         <% if node.agent_push? %>
-          <span class="inline-flex items-center text-neutral-15 cursor-not-allowed" title="hpc-agent is already installed">
+          <span class="inline-flex items-center text-neutral-15 cursor-not-allowed" title="qis-agent is already installed">
             <%= lucide_icon("download", class: "h-4 w-4") %>
           </span>
         <% else %>
@@ -61,7 +61,7 @@
             <%= lucide_icon("upload", class: "h-4 w-4") %>
           <% end %>
         <% else %>
-          <span class="inline-flex items-center text-neutral-15 cursor-not-allowed" title="hpc-agent is not installed">
+          <span class="inline-flex items-center text-neutral-15 cursor-not-allowed" title="qis-agent is not installed">
             <%= lucide_icon("upload", class: "h-4 w-4") %>
           </span>
         <% end %>
@@ -75,7 +75,7 @@
             <%= lucide_icon("circle-x", class: "h-4 w-4") %>
           <% end %>
         <% else %>
-          <span class="inline-flex items-center text-neutral-15 cursor-not-allowed" title="hpc-agent is not installed">
+          <span class="inline-flex items-center text-neutral-15 cursor-not-allowed" title="qis-agent is not installed">
             <%= lucide_icon("circle-x", class: "h-4 w-4") %>
           </span>
         <% end %>

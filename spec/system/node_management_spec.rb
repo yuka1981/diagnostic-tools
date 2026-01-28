@@ -115,7 +115,7 @@ RSpec.describe "Node Management", type: :system, js: true do
     visit nodes_path
 
     within "tr", text: "already-installed" do
-      expect(page).to have_css("span[title='hpc-agent is already installed']")
+      expect(page).to have_css("span[title='qis-agent is already installed']")
       expect(page).not_to have_link(title: "Install Agent")
     end
   end
@@ -125,7 +125,7 @@ RSpec.describe "Node Management", type: :system, js: true do
     visit nodes_path
 
     within "tr", text: "not-installed" do
-      expect(page).to have_css("span[title='hpc-agent is not installed']")
+      expect(page).to have_css("span[title='qis-agent is not installed']")
       expect(page).not_to have_link(title: "Uninstall Agent")
     end
   end

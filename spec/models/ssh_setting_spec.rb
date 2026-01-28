@@ -13,7 +13,7 @@ RSpec.describe SshSetting, type: :model do
     it "sets default values" do
       setting = described_class.current
       expect(setting.bastion_port).to eq(22)
-      expect(setting.default_agent_path).to eq("/usr/local/bin/hpc-agent")
+      expect(setting.default_agent_path).to eq("/usr/local/bin/qis-agent")
     end
   end
 

@@ -2,7 +2,7 @@
 
 module Inventory
   class TriggerCollectService < ::SshExecutionService
-    DEFAULT_AGENT_PATH = "hpc-agent"
+    DEFAULT_AGENT_PATH = "qis-agent"
     DEFAULT_TIMEOUT = 30
 
     # Initialize the service

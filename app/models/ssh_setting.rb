@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class SshSetting < ApplicationRecord
-  DEFAULT_AGENT_PATH = "/usr/local/bin/hpc-agent"
+  DEFAULT_AGENT_PATH = "/usr/local/bin/qis-agent"
 
   validates :bastion_port, numericality: { only_integer: true, greater_than: 0, less_than: 65536 }, allow_blank: true
   validates :ssh_port, numericality: { only_integer: true, greater_than: 0, less_than: 65536 }, allow_blank: true

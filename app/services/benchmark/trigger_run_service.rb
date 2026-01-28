@@ -2,7 +2,7 @@
 
 module Benchmark
   class TriggerRunService < ::SshExecutionService
-    DEFAULT_AGENT_PATH = "hpc-agent"
+    DEFAULT_AGENT_PATH = "qis-agent"
     DEFAULT_TIMEOUT = 300 # Longer timeout for benchmarks
 
     # Initialize the service

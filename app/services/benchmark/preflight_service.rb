@@ -199,7 +199,7 @@ module Benchmark
           name: "Agent Binary",
           passed: false,
           message: "Agent not found at: #{agent_bin}",
-          details: "Ensure hpc-agent is installed and the path is correct"
+          details: "Ensure qis-agent is installed and the path is correct"
         )
       end
     end

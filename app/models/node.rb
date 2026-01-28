@@ -50,7 +50,7 @@ class Node < ApplicationRecord
 
   # Constants
   HEARTBEAT_ONLINE_THRESHOLD = 2.minutes
-  DEFAULT_AGENT_PATH = "hpc-agent"
+  DEFAULT_AGENT_PATH = "qis-agent"
 
   # Scopes
   scope :online, -> { where(last_heartbeat_at: HEARTBEAT_ONLINE_THRESHOLD.ago..) }
