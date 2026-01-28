@@ -39,6 +39,7 @@
 
 # Ignore coverage reports
 /coverage/
+/test-results/
 
 # Ignore RSpec examples file
 /spec/examples.txt
