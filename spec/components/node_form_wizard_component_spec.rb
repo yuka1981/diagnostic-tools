@@ -192,4 +192,43 @@ RSpec.describe NodeFormWizardComponent, type: :component do
       end
     end
   end
+
+  describe "test IDs" do
+    let(:node) { Node.new }
+
+    it "renders data-testid on wizard container" do
+      render_inline(NodeFormWizardComponent.new(node: node, testid: "nodes-wizard"))
+
+      expect(page).to have_css("[data-testid='nodes-wizard-container']")
+    end
+
+    it "renders data-testid on form" do
+      render_inline(NodeFormWizardComponent.new(node: node, testid: "nodes-wizard"))
+
+      expect(page).to have_css("form[data-testid='nodes-wizard-form']")
+    end
+
+    it "renders data-testid on step indicators" do
+      render_inline(NodeFormWizardComponent.new(node: node, testid: "nodes-wizard"))
+
+      expect(page).to have_css("[data-testid='nodes-wizard-step-1']")
+      expect(page).to have_css("[data-testid='nodes-wizard-step-2']")
+      expect(page).to have_css("[data-testid='nodes-wizard-step-3']")
+    end
+
+    it "renders data-testid on navigation buttons" do
+      render_inline(NodeFormWizardComponent.new(node: node, testid: "nodes-wizard"))
+
+      expect(page).to have_css("[data-testid='nodes-wizard-button-back']")
+      expect(page).to have_css("[data-testid='nodes-wizard-button-next']")
+      expect(page).to have_css("[data-testid='nodes-wizard-button-submit']")
+      expect(page).to have_css("[data-testid='nodes-wizard-button-cancel']")
+    end
+
+    it "does not render data-testid when testid is not provided" do
+      render_inline(NodeFormWizardComponent.new(node: node))
+
+      expect(page).not_to have_css("[data-testid]")
+    end
+  end
 end
