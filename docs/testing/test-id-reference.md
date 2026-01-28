@@ -1383,3 +1383,225 @@ await page.getByTestId('api-keys-button-delete-cluster-alpha').click();
 await page.getByTestId('api-keys-input-name').fill('Compute Cluster Alpha');
 await page.getByTestId('api-keys-button-generate').click();
 ```
+
+---
+
+## Supporting Features Module
+
+The Supporting Features module covers Tasks, Notifications, and Profiling views.
+
+### Tasks Index Page
+
+| Test ID | Element |
+|---------|---------|
+| `tasks-page-container` | Page container |
+| `tasks-auto-refresh` | Auto-refresh control |
+| `tasks-filter-frame` | Filter bar frame |
+| `tasks-list-frame` | Tasks list turbo frame |
+| `tasks-filter-summary` | Filter summary text |
+| `tasks-table` | Main table element |
+| `tasks-table-header` | Table header (thead) |
+| `tasks-table-body` | Table body (tbody) |
+| `tasks-table-empty` | Empty state container |
+| `tasks-pagination` | Pagination controls |
+| `tasks-per-page` | Per-page selector |
+
+### Tasks Filter Bar
+
+| Test ID | Element |
+|---------|---------|
+| `tasks-filter-form` | Filter form |
+| `tasks-filter-search` | Search input |
+| `tasks-filter-type` | Type filter select |
+| `tasks-filter-status` | Status filter select |
+| `tasks-filter-node` | Node filter select |
+| `tasks-filter-recipe` | Recipe filter select |
+| `tasks-filter-date` | Date range filter select |
+| `tasks-button-search` | Search button |
+| `tasks-button-clear` | Clear filters button |
+
+**Playwright Example:**
+```typescript
+// Filter tasks by status
+await page.getByTestId('tasks-filter-status').selectOption('running');
+
+// Search for a task
+await page.getByTestId('tasks-filter-search').fill('hpcg');
+await page.getByTestId('tasks-button-search').click();
+
+// Clear all filters
+await page.getByTestId('tasks-button-clear').click();
+```
+
+### Task Row (dynamic with task ID)
+
+| Test ID Pattern | Element |
+|-----------------|---------|
+| `tasks-row-{id}` | Table row |
+| `tasks-expand-{id}` | Expand toggle |
+| `tasks-type-{id}` | Type badge |
+| `tasks-hostname-{id}` | Hostname link |
+| `tasks-recipe-{id}` | Recipe name |
+| `tasks-status-{id}` | Status badge |
+| `tasks-started-{id}` | Started time |
+| `tasks-duration-{id}` | Duration |
+| `tasks-button-rerun-{id}` | Re-run button |
+| `tasks-button-view-node-{id}` | View node button |
+| `tasks-button-cancel-{id}` | Cancel button |
+| `tasks-button-delete-{id}` | Delete button |
+
+**Playwright Example:**
+```typescript
+// Expand a task row
+await page.getByTestId('tasks-expand-42').click();
+
+// Check task status
+await expect(page.getByTestId('tasks-status-42')).toContainText('Running');
+
+// Cancel a running task
+await page.getByTestId('tasks-button-cancel-42').click();
+```
+
+### Task Details (dynamic with task ID)
+
+| Test ID Pattern | Element |
+|-----------------|---------|
+| `tasks-details-{id}` | Details container |
+| `tasks-details-table-{id}` | Details table |
+| `tasks-details-error-{id}` | Error message |
+| `tasks-details-output-{id}` | Output/artifacts section |
+
+**Playwright Example:**
+```typescript
+// Expand task and check details
+await page.getByTestId('tasks-expand-42').click();
+await page.getByTestId('tasks-details-42').waitFor();
+
+// Check for error
+await expect(page.getByTestId('tasks-details-error-42')).toContainText('timeout');
+```
+
+---
+
+### Notifications Index Page
+
+| Test ID | Element |
+|---------|---------|
+| `notifications-container` | Page container |
+| `notifications-button-mark-read` | Mark all read button |
+| `notifications-button-archive` | Archive read button |
+| `notifications-list` | List container |
+| `notifications-empty` | Empty state |
+| `notifications-pagination` | Pagination controls |
+
+### Notifications List Partial
+
+| Test ID | Element |
+|---------|---------|
+| `notifications-list-frame` | List turbo frame |
+| `notifications-list-container` | List container |
+
+### Notification Item (dynamic with notification ID)
+
+| Test ID Pattern | Element |
+|-----------------|---------|
+| `notifications-item-{id}` | Item container |
+| `notifications-icon-{id}` | Icon |
+| `notifications-message-{id}` | Message text |
+| `notifications-time-{id}` | Timestamp |
+| `notifications-button-dismiss-{id}` | Dismiss button |
+| `notifications-link-{id}` | Link (if present) |
+
+**Playwright Example:**
+```typescript
+// Dismiss a notification
+await page.getByTestId('notifications-button-dismiss-5').click();
+
+// Click notification link
+await page.getByTestId('notifications-link-5').click();
+
+// Mark all as read
+await page.getByTestId('notifications-button-mark-read').click();
+```
+
+### Notifications Badge
+
+| Test ID | Element |
+|---------|---------|
+| `notifications-badge` | Badge element |
+| `notifications-unread-count` | Unread count |
+
+**Playwright Example:**
+```typescript
+// Check unread count
+await expect(page.getByTestId('notifications-unread-count')).toContainText('3');
+```
+
+---
+
+### Profiling Run Modal (New)
+
+| Test ID | Element |
+|---------|---------|
+| `profiling-modal` | Modal container |
+| `profiling-form` | Form element |
+| `profiling-radio-report` | Report radio |
+| `profiling-radio-telemetry` | Telemetry radio |
+| `profiling-radio-flame` | Flame graph radio |
+| `profiling-input-module` | Module name field |
+| `profiling-input-duration` | Duration field |
+| `profiling-button-cancel` | Cancel button |
+| `profiling-button-submit` | Submit button |
+
+**Playwright Example:**
+```typescript
+// Start a profiling run
+await page.getByTestId('profiling-radio-flame').click();
+await page.getByTestId('profiling-input-duration').fill('30');
+await page.getByTestId('profiling-button-submit').click();
+```
+
+### Profiling Run Show Page
+
+| Test ID | Element |
+|---------|---------|
+| `profiling-show-container` | Page container |
+| `profiling-show-type` | Run type heading |
+| `profiling-show-status` | Status badge |
+| `profiling-show-details` | Details card |
+| `profiling-show-output` | Output card |
+| `profiling-show-artifacts` | Artifacts card |
+| `profiling-show-artifacts-table` | Artifacts table |
+| `profiling-show-error` | Error display |
+
+**Playwright Example:**
+```typescript
+// Check profiling run status
+await page.getByTestId('profiling-show-container').waitFor();
+await expect(page.getByTestId('profiling-show-status')).toContainText('Completed');
+
+// Check artifacts
+await expect(page.getByTestId('profiling-show-artifacts-table')).toBeVisible();
+```
+
+### Profiling Run Row (dynamic with run ID)
+
+| Test ID Pattern | Element |
+|-----------------|---------|
+| `profiling-row-{id}` | Row |
+| `profiling-type-{id}` | Type cell |
+| `profiling-recipe-{id}` | Recipe cell |
+| `profiling-status-{id}` | Status badge |
+| `profiling-started-{id}` | Started time |
+| `profiling-duration-{id}` | Duration |
+| `profiling-link-view-{id}` | View link |
+| `profiling-artifacts-{id}` | Artifacts count |
+
+**Playwright Example:**
+```typescript
+// Check profiling run status
+await expect(page.getByTestId('profiling-status-7')).toContainText('Running');
+
+// View a profiling run
+await page.getByTestId('profiling-link-view-7').click();
+```
