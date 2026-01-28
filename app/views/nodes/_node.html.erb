@@ -1,4 +1,4 @@
-<tr id="<%= dom_id(node) %>" class="bg-white hover:bg-primary-1 border-b border-neutral-8 transition-colors group">
+<tr id="<%= dom_id(node) %>" class="bg-white hover:bg-primary-1 border-b border-neutral-8 transition-colors group" data-testid="nodes-row-<%= node.hostname %>">
   <% if current_user.approver? %>
     <td class="whitespace-nowrap">
       <div class="flex items-center justify-center h-full py-2">
@@ -6,6 +6,7 @@
                value="<%= node.id %>"
                data-bulk-select-target="checkbox"
                data-action="change->bulk-select#toggle"
+               data-testid="nodes-checkbox-<%= node.hostname %>"
                class="rounded border-neutral-15 text-primary-6 focus:ring-primary-5">
       </div>
     </td>
@@ -13,25 +14,25 @@
   <td class="whitespace-nowrap px-3 py-2">
     <div class="flex items-center gap-3">
       <div>
-        <p class="text-sm font-bold text-primary-6 hover:underline"><%= link_to node.hostname, node_path(node) %></p>
+        <p class="text-sm font-bold text-primary-6 hover:underline"><%= link_to node.hostname, node_path(node), data: { testid: "nodes-link-#{node.hostname}" } %></p>
         <% if node.ip.present? %>
-          <p class="text-xs text-neutral-45 font-mono"><%= node.ip %></p>
+          <p class="text-xs text-neutral-45 font-mono" data-testid="nodes-ip-<%= node.hostname %>"><%= node.ip %></p>
         <% end %>
       </div>
     </div>
   </td>
   <td class="whitespace-nowrap px-3 py-2">
-    <span class="inline-flex items-center rounded-sm px-2 py-0.5 text-xs font-bold <%= role_badge_class(node.role) %>">
+    <span class="inline-flex items-center rounded-sm px-2 py-0.5 text-xs font-bold <%= role_badge_class(node.role) %>" data-testid="nodes-role-<%= node.hostname %>">
       <%= node.role.humanize %>
     </span>
   </td>
-  <td class="whitespace-nowrap px-3 py-2 text-sm text-neutral-85">
+  <td class="whitespace-nowrap px-3 py-2 text-sm text-neutral-85" data-testid="nodes-arch-<%= node.hostname %>">
     <%= node.arch.presence || "—" %>
   </td>
-  <td class="whitespace-nowrap px-3 py-2">
+  <td class="whitespace-nowrap px-3 py-2" data-testid="nodes-status-<%= node.hostname %>">
     <%= node_status_badge(node.status) %>
   </td>
-  <td class="whitespace-nowrap px-3 py-2 text-sm text-neutral-45">
+  <td class="whitespace-nowrap px-3 py-2 text-sm text-neutral-45" data-testid="nodes-last-seen-<%= node.hostname %>">
     <%= node.last_seen_at ? time_ago_in_words(node.last_seen_at) + " ago" : "Never" %>
   </td>
   <%# Agent Actions Column (approvers only) %>
@@ -40,14 +41,14 @@
       <div class="flex items-center justify-center gap-2">
         <%# Install Action %>
         <% if node.agent_push? %>
-          <span class="inline-flex items-center text-neutral-15 cursor-not-allowed" title="hpc-agent is already installed">
+          <span class="inline-flex items-center text-neutral-15 cursor-not-allowed" title="hpc-agent is already installed" data-testid="nodes-button-install-<%= node.hostname %>">
             <%= lucide_icon("download", class: "h-4 w-4") %>
           </span>
         <% else %>
           <%= link_to new_node_install_path(hostname: node.hostname, arch: node.arch),
               class: "inline-flex items-center text-neutral-45 hover:text-neutral-85",
               title: "Install Agent",
-              data: { turbo_frame: "install_modal" } do %>
+              data: { turbo_frame: "install_modal", testid: "nodes-button-install-#{node.hostname}" } do %>
             <%= lucide_icon("download", class: "h-4 w-4") %>
           <% end %>
         <% end %>
@@ -57,11 +58,11 @@
           <%= link_to new_node_update_path(node),
               class: "inline-flex items-center text-neutral-45 hover:text-neutral-85",
               title: "Update Agent",
-              data: { turbo_frame: "update_modal" } do %>
+              data: { turbo_frame: "update_modal", testid: "nodes-button-update-#{node.hostname}" } do %>
             <%= lucide_icon("upload", class: "h-4 w-4") %>
           <% end %>
         <% else %>
-          <span class="inline-flex items-center text-neutral-15 cursor-not-allowed" title="hpc-agent is not installed">
+          <span class="inline-flex items-center text-neutral-15 cursor-not-allowed" title="hpc-agent is not installed" data-testid="nodes-button-update-<%= node.hostname %>">
             <%= lucide_icon("upload", class: "h-4 w-4") %>
           </span>
         <% end %>
@@ -71,11 +72,11 @@
           <%= link_to new_node_uninstall_path(hostname: node.hostname),
               class: "inline-flex items-center text-error-6 hover:text-error-7",
               title: "Uninstall Agent",
-              data: { turbo_frame: "uninstall_modal" } do %>
+              data: { turbo_frame: "uninstall_modal", testid: "nodes-button-uninstall-#{node.hostname}" } do %>
             <%= lucide_icon("circle-x", class: "h-4 w-4") %>
           <% end %>
         <% else %>
-          <span class="inline-flex items-center text-neutral-15 cursor-not-allowed" title="hpc-agent is not installed">
+          <span class="inline-flex items-center text-neutral-15 cursor-not-allowed" title="hpc-agent is not installed" data-testid="nodes-button-uninstall-<%= node.hostname %>">
             <%= lucide_icon("circle-x", class: "h-4 w-4") %>
           </span>
         <% end %>
@@ -86,7 +87,7 @@
             form: { class: "inline-flex" },
             class: "inline-flex items-center text-primary-6 hover:text-primary-7",
             title: "Collect Info",
-            data: { turbo_submits_with: "..." } do %>
+            data: { turbo_submits_with: "...", testid: "nodes-button-collect-#{node.hostname}" } do %>
           <%= lucide_icon("refresh-cw", class: "h-4 w-4") %>
         <% end %>
       </div>
@@ -99,7 +100,7 @@
       <%= link_to edit_node_path(node),
           class: "inline-flex items-center text-neutral-45 hover:text-neutral-85",
           title: "Edit",
-          data: { turbo_frame: "node_modal" } do %>
+          data: { turbo_frame: "node_modal", testid: "nodes-button-edit-#{node.hostname}" } do %>
         <%= lucide_icon("square-pen", class: "h-4 w-4") %>
       <% end %>
 
@@ -109,7 +110,7 @@
             form: { class: "inline-flex" },
             class: "inline-flex items-center text-error-6 hover:text-error-7",
             title: "Delete",
-            data: { turbo_confirm: "Are you sure you want to delete this node?" } do %>
+            data: { turbo_confirm: "Are you sure you want to delete this node?", testid: "nodes-button-delete-#{node.hostname}" } do %>
           <%= lucide_icon("trash-2", class: "h-4 w-4") %>
         <% end %>
       <% end %>
