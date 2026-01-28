@@ -1,23 +1,24 @@
 <% content_for(:page_title) { "Edit #{resource_name.to_s.humanize}" } %>
 
 <div class="space-y-6 max-w-2xl">
-  <div class="card-netbox">
+  <div class="card-netbox" data-testid="auth-container">
     <div class="card-header">
       <h2 class="card-title">Edit Profile</h2>
     </div>
 
     <div class="p-4">
-      <%= form_for(resource, as: resource_name, url: registration_path(resource_name), html: { method: :put, class: "space-y-5" }) do |f| %>
+      <%= form_for(resource, as: resource_name, url: registration_path(resource_name), html: { method: :put, class: "space-y-5", data: { testid: "auth-form-edit-profile" } }) do |f| %>
         <%= render "devise/shared/error_messages", resource: resource %>
 
         <div>
           <%= f.label :email, class: "block text-xs font-bold text-neutral-85 uppercase mb-1" %>
           <%= f.email_field :email, autofocus: true, autocomplete: "email",
+              data: { testid: "auth-input-email" },
               class: "block w-full rounded border border-neutral-15 py-1.5 px-3 text-neutral-85 shadow-sm focus:ring-2 focus:ring-primary-5 focus:border-primary-5 sm:text-sm" %>
         </div>
 
         <% if devise_mapping.confirmable? && resource.pending_reconfirmation? %>
-          <div class="p-2 bg-primary-1 border border-primary-1 rounded text-xs text-primary-7">
+          <div class="p-2 bg-primary-1 border border-primary-1 rounded text-xs text-primary-7" data-testid="auth-notice-pending-confirmation">
             Currently waiting confirmation for: <strong><%= resource.unconfirmed_email %></strong>
           </div>
         <% end %>
@@ -26,6 +27,7 @@
           <%= f.label :password, class: "block text-xs font-bold text-neutral-85 uppercase mb-1" %>
           <p class="text-[10px] text-neutral-45 italic mb-2">Leave blank if you don't want to change it</p>
           <%= f.password_field :password, autocomplete: "new-password",
+              data: { testid: "auth-input-password" },
               class: "block w-full rounded border border-neutral-15 py-1.5 px-3 text-neutral-85 shadow-sm focus:ring-2 focus:ring-primary-5 focus:border-primary-5 sm:text-sm" %>
           <% if @minimum_password_length %>
             <p class="mt-1 text-[10px] text-neutral-45"><%= @minimum_password_length %> characters minimum</p>
@@ -35,6 +37,7 @@
         <div>
           <%= f.label :password_confirmation, class: "block text-xs font-bold text-neutral-85 uppercase mb-1" %>
           <%= f.password_field :password_confirmation, autocomplete: "new-password",
+              data: { testid: "auth-input-password-confirmation" },
               class: "block w-full rounded border border-neutral-15 py-1.5 px-3 text-neutral-85 shadow-sm focus:ring-2 focus:ring-primary-5 focus:border-primary-5 sm:text-sm" %>
         </div>
 
@@ -42,18 +45,19 @@
           <%= f.label :current_password, class: "block text-xs font-bold text-neutral-85 uppercase mb-1" %>
           <p class="text-[10px] text-neutral-45 italic mb-2">Required to confirm your changes</p>
           <%= f.password_field :current_password, autocomplete: "current-password",
+              data: { testid: "auth-input-current-password" },
               class: "block w-full rounded border border-neutral-15 py-1.5 px-3 text-neutral-85 shadow-sm focus:ring-2 focus:ring-primary-5 focus:border-primary-5 sm:text-sm" %>
         </div>
 
         <div class="flex items-center justify-end gap-3 pt-4 border-t border-neutral-4">
-          <%= link_to "Back", :back, class: "btn-secondary" %>
-          <%= f.submit "Update Profile", class: "btn-primary" %>
+          <%= link_to "Back", :back, class: "btn-secondary", data: { testid: "auth-link-back" } %>
+          <%= f.submit "Update Profile", data: { testid: "auth-button-submit" }, class: "btn-primary" %>
         </div>
       <% end %>
     </div>
   </div>
 
-  <div class="card-netbox border-error-2">
+  <div class="card-netbox border-error-2" data-testid="auth-danger-zone">
     <div class="card-header bg-error-1 border-error-2">
       <h3 class="card-title text-error-8">Danger Zone</h3>
     </div>
@@ -62,8 +66,8 @@
         <p class="text-xs font-bold text-neutral-85">Cancel Account</p>
         <p class="text-[10px] text-neutral-45">Once deleted, your account cannot be recovered.</p>
       </div>
-      <%= button_to "Cancel my account", registration_path(resource_name), 
-          data: { confirm: "Are you sure?", turbo_confirm: "Are you sure?" }, 
+      <%= button_to "Cancel my account", registration_path(resource_name),
+          data: { confirm: "Are you sure?", turbo_confirm: "Are you sure?", testid: "auth-button-cancel-account" },
           method: :delete,
           class: "btn-danger" %>
     </div>
