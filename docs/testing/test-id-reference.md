@@ -149,3 +149,117 @@ data-testid="nodes-row-<%= node.hostname %>"
 <%# Avoid: database ID changes %>
 data-testid="nodes-row-<%= node.id %>"
 ```
+
+---
+
+## Auth Module (Phase 2)
+
+Auth views use static test IDs since they don't need dynamic prefixes.
+
+### Login View
+
+| Test ID | Element |
+|---------|---------|
+| `auth-container` | Main container |
+| `auth-logo` | Logo image |
+| `auth-tab-login` | Login tab link |
+| `auth-tab-signup` | Sign up tab link |
+| `auth-flash-alert` | Flash alert message |
+| `auth-form-login` | Login form |
+| `auth-input-email` | Email input |
+| `auth-input-password` | Password input |
+| `auth-button-password-toggle` | Password visibility toggle |
+| `auth-button-submit` | Submit button |
+| `auth-link-forgot-password` | Forgot password link |
+| `auth-link-sign-up` | Create account link |
+| `auth-link-help` | Need help link |
+
+**Playwright Example:**
+```typescript
+// Login flow
+await page.getByTestId('auth-input-email').fill('user@example.com');
+await page.getByTestId('auth-input-password').fill('password123');
+await page.getByTestId('auth-button-submit').click();
+
+// Check for error
+await expect(page.getByTestId('auth-flash-alert')).toBeVisible();
+```
+
+### Registration View
+
+| Test ID | Element |
+|---------|---------|
+| `auth-container` | Main container |
+| `auth-form-register` | Registration form |
+| `auth-input-name` | Name input |
+| `auth-input-email` | Email input |
+| `auth-input-password` | Password input |
+| `auth-input-password-confirmation` | Password confirmation input |
+| `auth-button-submit` | Submit button |
+| `auth-link-sign-in` | Sign in link |
+
+### Forgot Password View
+
+| Test ID | Element |
+|---------|---------|
+| `auth-container` | Main container |
+| `auth-form-forgot-password` | Forgot password form |
+| `auth-input-email` | Email input |
+| `auth-button-submit` | Submit button |
+| `auth-link-sign-in` | Back to login link |
+| `auth-link-sign-up` | Create account link |
+
+### Reset Password View
+
+| Test ID | Element |
+|---------|---------|
+| `auth-container` | Main container |
+| `auth-form-reset-password` | Reset password form |
+| `auth-input-password` | New password input |
+| `auth-input-password-confirmation` | Password confirmation input |
+| `auth-button-submit` | Submit button |
+
+### Edit Profile View
+
+| Test ID | Element |
+|---------|---------|
+| `auth-container` | Main container |
+| `auth-form-edit-profile` | Edit profile form |
+| `auth-input-email` | Email input |
+| `auth-input-password` | New password input |
+| `auth-input-password-confirmation` | Password confirmation input |
+| `auth-input-current-password` | Current password input |
+| `auth-link-back` | Back link |
+| `auth-button-submit` | Submit button |
+| `auth-danger-zone` | Danger zone card |
+| `auth-button-cancel-account` | Cancel account button |
+
+### Confirmation View
+
+| Test ID | Element |
+|---------|---------|
+| `auth-container` | Main container |
+| `auth-form-resend-confirmation` | Resend confirmation form |
+| `auth-input-email` | Email input |
+| `auth-button-submit` | Submit button |
+
+### Unlock View
+
+| Test ID | Element |
+|---------|---------|
+| `auth-container` | Main container |
+| `auth-form-resend-unlock` | Resend unlock form |
+| `auth-input-email` | Email input |
+| `auth-button-submit` | Submit button |
+
+### Shared Elements
+
+| Test ID | Element |
+|---------|---------|
+| `auth-error-message` | Error message container |
+| `auth-link-sign-in` | Log in link (shared partial) |
+| `auth-link-sign-up` | Sign up link (shared partial) |
+| `auth-link-forgot-password` | Forgot password link (shared partial) |
+| `auth-link-resend-confirmation` | Resend confirmation link |
+| `auth-link-resend-unlock` | Resend unlock link |
+| `auth-button-oauth-{provider}` | OmniAuth provider button |
