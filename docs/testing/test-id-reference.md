@@ -263,3 +263,223 @@ await expect(page.getByTestId('auth-flash-alert')).toBeVisible();
 | `auth-link-resend-confirmation` | Resend confirmation link |
 | `auth-link-resend-unlock` | Resend unlock link |
 | `auth-button-oauth-{provider}` | OmniAuth provider button |
+
+---
+
+## Nodes Module
+
+The Nodes module provides node inventory management, monitoring, and benchmark execution.
+
+### Nodes Index Page
+
+| Test ID | Element |
+|---------|---------|
+| `nodes-page-container` | Page container |
+| `nodes-button-new` | New node button |
+| `nodes-button-import` | Import nodes button |
+| `nodes-table-frame` | Turbo frame for nodes table |
+
+### Nodes Table
+
+| Test ID | Element |
+|---------|---------|
+| `nodes-bulk-actions` | Bulk actions bar |
+| `nodes-bulk-count` | Selected count display |
+| `nodes-bulk-clear` | Clear selection button |
+| `nodes-bulk-delete` | Bulk delete button |
+| `nodes-table` | Main table element |
+| `nodes-table-header` | Table header (thead) |
+| `nodes-table-body` | Table body (tbody) |
+| `nodes-table-empty` | Empty state container |
+| `nodes-empty-add` | Empty state add button |
+| `nodes-empty-import` | Empty state import button |
+
+### Node Row (dynamic with hostname)
+
+| Test ID Pattern | Element |
+|-----------------|---------|
+| `nodes-row-{hostname}` | Table row |
+| `nodes-checkbox-{hostname}` | Selection checkbox |
+| `nodes-link-{hostname}` | Hostname link |
+| `nodes-ip-{hostname}` | IP address cell |
+| `nodes-role-{hostname}` | Role badge |
+| `nodes-arch-{hostname}` | Architecture cell |
+| `nodes-status-{hostname}` | Status badge |
+| `nodes-last-seen-{hostname}` | Last seen timestamp |
+| `nodes-button-install-{hostname}` | Install agent button |
+| `nodes-button-update-{hostname}` | Update agent button |
+| `nodes-button-uninstall-{hostname}` | Uninstall agent button |
+| `nodes-button-collect-{hostname}` | Collect data button |
+| `nodes-button-edit-{hostname}` | Edit node button |
+| `nodes-button-delete-{hostname}` | Delete node button |
+
+**Playwright Example:**
+```typescript
+// Select a specific node
+await page.getByTestId('nodes-checkbox-compute-001').click();
+
+// Check node status
+await expect(page.getByTestId('nodes-status-compute-001')).toContainText('Online');
+
+// Perform action on node
+await page.getByTestId('nodes-button-collect-compute-001').click();
+```
+
+### Node Show Page
+
+| Test ID | Element |
+|---------|---------|
+| `nodes-show-container` | Page container |
+| `nodes-show-hostname` | Hostname heading |
+| `nodes-show-status` | Status badge |
+| `nodes-show-button-collect` | Collect data button |
+| `nodes-show-button-benchmark` | Run benchmark button |
+| `nodes-show-button-update` | Update agent button |
+| `nodes-show-button-edit` | Edit node button |
+| `nodes-show-button-delete` | Delete node button |
+| `nodes-tab-overview` | Overview tab |
+| `nodes-tab-hardware` | Hardware tab |
+| `nodes-tab-benchmarks` | Benchmarks tab |
+| `nodes-tab-logs` | Logs tab |
+| `nodes-tab-profiling` | Profiling tab |
+| `nodes-panel-overview` | Overview panel |
+| `nodes-panel-hardware` | Hardware panel |
+| `nodes-panel-benchmarks` | Benchmarks panel |
+| `nodes-panel-logs` | Logs panel |
+| `nodes-panel-profiling` | Profiling panel |
+
+### Node Overview
+
+| Test ID | Element |
+|---------|---------|
+| `nodes-overview-details` | Node details card |
+| `nodes-overview-os` | OS information card |
+| `nodes-overview-product` | Product information card |
+| `nodes-overview-runs` | Recent runs card |
+| `nodes-overview-runs-tbody` | Runs table body |
+| `nodes-overview-runs-link` | Run detail link |
+
+### Node Hardware
+
+| Test ID | Element |
+|---------|---------|
+| `nodes-hardware-system` | System information card |
+| `nodes-hardware-bios` | BIOS information card |
+| `nodes-hardware-cpu` | CPU information card |
+| `nodes-hardware-memory-os` | OS memory card |
+| `nodes-hardware-memory-topology` | Memory topology card |
+| `nodes-hardware-memory-toggle` | Memory devices toggle |
+| `nodes-hardware-memory-devices` | Memory devices table |
+| `nodes-hardware-network` | Network interfaces card |
+| `nodes-hardware-storage` | Storage devices card |
+
+### Node Logs
+
+| Test ID | Element |
+|---------|---------|
+| `nodes-logs-card` | Logs container card |
+| `nodes-logs-live-indicator` | Live streaming indicator |
+| `nodes-logs-output` | Log output container |
+
+### Node Profiling
+
+| Test ID | Element |
+|---------|---------|
+| `nodes-profiling-quick` | Quick actions card |
+| `nodes-profiling-button-report` | Generate report button |
+| `nodes-profiling-button-telemetry` | View telemetry button |
+| `nodes-profiling-button-flame` | Flame graph button |
+| `nodes-profiling-link-custom` | Custom profiling link |
+| `nodes-profiling-runs` | Profiling runs card |
+| `nodes-profiling-runs-tbody` | Profiling runs table body |
+
+### Node Form (New/Edit)
+
+| Test ID | Element |
+|---------|---------|
+| `nodes-form-modal` | Form modal container |
+| `nodes-form-title` | Modal title |
+
+### Import Modal
+
+| Test ID | Element |
+|---------|---------|
+| `nodes-import-modal` | Import modal container |
+| `nodes-import-requirements` | Requirements section |
+| `nodes-import-errors` | Error messages container |
+| `nodes-import-dropzone` | File drop zone |
+| `nodes-import-file` | File input |
+| `nodes-import-submit` | Submit button |
+| `nodes-import-cancel` | Cancel button |
+
+### Install Agent Modal
+
+| Test ID | Element |
+|---------|---------|
+| `nodes-install-modal` | Install modal container |
+| `nodes-install-requirements` | Requirements section |
+| `nodes-install-security` | Security information |
+| `nodes-install-form` | Install form |
+| `nodes-install-sudo-password` | Sudo password input |
+| `nodes-install-ssh-password` | SSH password input |
+| `nodes-install-api-key` | API key input |
+| `nodes-install-server-url` | Server URL input |
+| `nodes-install-submit` | Submit button |
+
+### Update Agent Modal
+
+| Test ID | Element |
+|---------|---------|
+| `nodes-update-modal` | Update modal container |
+| `nodes-update-status` | Current status display |
+| `nodes-update-form` | Update form |
+| `nodes-update-ssh-password` | SSH password input |
+| `nodes-update-sudo-password` | Sudo password input |
+| `nodes-update-releases` | Available releases list |
+| `nodes-update-release-{version}` | Release version option |
+| `nodes-update-force` | Force update checkbox |
+| `nodes-update-submit` | Submit button |
+
+### Uninstall Agent Modal
+
+| Test ID | Element |
+|---------|---------|
+| `nodes-uninstall-modal` | Uninstall modal container |
+| `nodes-uninstall-alert` | Warning alert |
+| `nodes-uninstall-credentials` | Credentials section |
+| `nodes-uninstall-form` | Uninstall form |
+| `nodes-uninstall-sudo-password` | Sudo password input |
+| `nodes-uninstall-ssh-password` | SSH password input |
+| `nodes-uninstall-submit` | Submit button |
+
+### Node Benchmark Runs Index
+
+| Test ID | Element |
+|---------|---------|
+| `nodes-benchmarks-container` | Benchmarks page container |
+| `nodes-benchmarks-button-run` | Run benchmark button |
+| `nodes-benchmarks-table` | Benchmark runs table |
+| `nodes-benchmarks-tbody` | Benchmark runs table body |
+| `nodes-benchmarks-pagination` | Pagination controls |
+| `nodes-benchmarks-empty` | Empty state container |
+
+### Node Benchmark Run Modal
+
+| Test ID | Element |
+|---------|---------|
+| `nodes-benchmark-modal` | Benchmark modal container |
+| `nodes-benchmark-config` | Configuration section |
+| `nodes-benchmark-workdir` | Working directory display |
+| `nodes-benchmark-agentpath` | Agent path display |
+| `nodes-benchmark-token-status` | Token status indicator |
+| `nodes-benchmark-preflight` | Preflight check section |
+| `nodes-benchmark-preflight-alert` | Preflight alert |
+| `nodes-benchmark-link-settings` | Settings link |
+| `nodes-benchmark-form` | Benchmark form |
+| `nodes-benchmark-recipe` | Recipe selector |
+| `nodes-benchmark-defaults` | Default parameters section |
+| `nodes-benchmark-copy-defaults` | Copy defaults button |
+| `nodes-benchmark-overrides` | Parameter overrides input |
+| `nodes-benchmark-logpath` | Log path input |
+| `nodes-benchmark-cancel` | Cancel button |
+| `nodes-benchmark-submit` | Submit button |
