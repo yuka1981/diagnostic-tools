@@ -33,13 +33,13 @@ type InstallParams struct {
 
 // InstallResult contains the result of installation.
 type InstallResult struct {
-	Success        bool
 	Version        string
 	InstallPath    string
 	ModulePath     string
 	ErrorMessage   string
-	FailedAtStep   int
 	FailedStepName string
+	FailedAtStep   int
+	Success        bool
 }
 
 // InstallWorkflow manages the MLC installation process.
@@ -100,10 +100,10 @@ func (w *InstallWorkflow) Run(ctx context.Context, params *InstallParams) *Insta
 		}
 	}
 
-	// Step 6: Update symlink
+	// Step 6: Update symlink (best effort, ignore errors)
 	latestLink := filepath.Join(params.InstallDir, "mlc-latest")
-	os.Remove(latestLink) // Remove old symlink if exists
-	os.Symlink(installPath, latestLink)
+	_ = os.Remove(latestLink) // Remove old symlink if exists
+	_ = os.Symlink(installPath, latestLink)
 
 	return &InstallResult{
 		Success:     true,
@@ -133,17 +133,24 @@ func (w *InstallWorkflow) extractTarball(tarballPath string) (string, error) {
 		return "", err
 	}
 
-	file, err := os.Open(tarballPath)
-	if err != nil {
+	if err := w.doExtract(tarballPath, extractDir); err != nil {
 		os.RemoveAll(extractDir)
 		return "", err
+	}
+
+	return extractDir, nil
+}
+
+func (w *InstallWorkflow) doExtract(tarballPath, extractDir string) error {
+	file, err := os.Open(tarballPath)
+	if err != nil {
+		return err
 	}
 	defer file.Close()
 
 	gzr, err := gzip.NewReader(file)
 	if err != nil {
-		os.RemoveAll(extractDir)
-		return "", err
+		return err
 	}
 	defer gzr.Close()
 
@@ -154,43 +161,44 @@ func (w *InstallWorkflow) extractTarball(tarballPath string) (string, error) {
 			break
 		}
 		if err != nil {
-			os.RemoveAll(extractDir)
-			return "", err
+			return err
 		}
 
-		target := filepath.Join(extractDir, header.Name)
-
-		// Security: prevent path traversal
-		if !strings.HasPrefix(target, filepath.Clean(extractDir)+string(os.PathSeparator)) {
-			continue
-		}
-
-		switch header.Typeflag {
-		case tar.TypeDir:
-			if err := os.MkdirAll(target, 0755); err != nil {
-				os.RemoveAll(extractDir)
-				return "", err
-			}
-		case tar.TypeReg:
-			if err := os.MkdirAll(filepath.Dir(target), 0755); err != nil {
-				os.RemoveAll(extractDir)
-				return "", err
-			}
-			f, err := os.OpenFile(target, os.O_CREATE|os.O_RDWR, os.FileMode(header.Mode))
-			if err != nil {
-				os.RemoveAll(extractDir)
-				return "", err
-			}
-			if _, err := io.Copy(f, tr); err != nil {
-				f.Close()
-				os.RemoveAll(extractDir)
-				return "", err
-			}
-			f.Close()
+		if err := w.extractEntry(header, tr, extractDir); err != nil {
+			return err
 		}
 	}
+	return nil
+}
 
-	return extractDir, nil
+func (w *InstallWorkflow) extractEntry(header *tar.Header, tr *tar.Reader, extractDir string) error {
+	target := filepath.Join(extractDir, header.Name) //nolint:gosec // G305: path traversal checked below
+
+	// Security: prevent path traversal
+	if !strings.HasPrefix(target, filepath.Clean(extractDir)+string(os.PathSeparator)) {
+		return nil
+	}
+
+	switch header.Typeflag {
+	case tar.TypeDir:
+		return os.MkdirAll(target, 0755)
+	case tar.TypeReg:
+		return w.extractFile(header, tr, target)
+	}
+	return nil
+}
+
+func (w *InstallWorkflow) extractFile(header *tar.Header, tr *tar.Reader, target string) error {
+	if err := os.MkdirAll(filepath.Dir(target), 0755); err != nil {
+		return err
+	}
+	f, err := os.OpenFile(target, os.O_CREATE|os.O_RDWR, os.FileMode(header.Mode)) //nolint:gosec // G115: tar header mode is safe
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	_, err = io.Copy(f, tr)
+	return err
 }
 
 func (w *InstallWorkflow) detectVersion(binaryPath string) (string, error) {
@@ -198,8 +206,8 @@ func (w *InstallWorkflow) detectVersion(binaryPath string) (string, error) {
 		return "", fmt.Errorf("binary not found at: %s", binaryPath)
 	}
 
-	// Make binary executable
-	os.Chmod(binaryPath, 0755)
+	// Make binary executable (best effort)
+	_ = os.Chmod(binaryPath, 0755)
 
 	cmd := exec.Command(binaryPath, "--version")
 	output, err := cmd.CombinedOutput()
@@ -259,7 +267,7 @@ func (w *InstallWorkflow) writeModulefile(version, installDir, modulePath string
 
 	content := w.generateModulefile(version, installDir)
 
-	return os.WriteFile(modulePath, []byte(content), 0644)
+	return os.WriteFile(modulePath, []byte(content), 0644) //nolint:gosec // G306: modulefile needs to be readable by all users
 }
 
 func (w *InstallWorkflow) generateModulefile(version, installDir string) string {

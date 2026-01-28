@@ -9,7 +9,7 @@ RSpec.describe MlcInstallationNode, type: :model do
   describe "enums" do
     it do
       is_expected.to define_enum_for(:status)
-        .with_values(pending: 0, running: 1, success: 2, failed: 3, skipped: 4)
+        .with_values(pending: 0, running: 1, success: 2, failed: 3, skipped: 4, cancelled: 5)
         .with_default(:pending)
     end
   end

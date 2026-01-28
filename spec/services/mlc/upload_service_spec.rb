@@ -1,7 +1,7 @@
 require "rails_helper"
 
 RSpec.describe Mlc::UploadService do
-  let(:tempfile) { Tempfile.new(["mlc", ".tgz"]) }
+  let(:tempfile) { Tempfile.new([ "mlc", ".tgz" ]) }
   let(:uploaded_file) do
     ActionDispatch::Http::UploadedFile.new(
       tempfile: tempfile,

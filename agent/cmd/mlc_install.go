@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
+
 	"github.com/yuka1981/diagnostic-tools/agent/mlc"
 )
 
@@ -29,8 +30,8 @@ func (o *mlcInstallOptions) addFlags(cmd *cobra.Command) {
 	cmd.Flags().StringVar(&o.installID, "id", "", "Installation job ID")
 	cmd.Flags().BoolVar(&o.dryRun, "dry-run", false, "Print what would be done without executing")
 
-	cmd.MarkFlagRequired("tarball")
-	cmd.MarkFlagRequired("binary-path")
+	_ = cmd.MarkFlagRequired("tarball")
+	_ = cmd.MarkFlagRequired("binary-path")
 }
 
 // NewMLCInstallCmd creates the mlc-install command.

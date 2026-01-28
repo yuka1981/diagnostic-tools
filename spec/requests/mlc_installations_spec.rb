@@ -45,7 +45,7 @@ RSpec.describe "MlcInstallations", type: :request do
         mlc_installation: {
           source_type: "upload",
           binary_path: "Linux/mlc",
-          node_ids: [node.id],
+          node_ids: [ node.id ],
           failure_mode: "stop_on_first"
         },
         tarball: tarball
@@ -67,7 +67,7 @@ RSpec.describe "MlcInstallations", type: :request do
         mlc_installation: {
           source_type: "upload",
           binary_path: "Linux/mlc",
-          node_ids: [node.id],
+          node_ids: [ node.id ],
           failure_mode: "stop_on_first"
         },
         tarball: tarball

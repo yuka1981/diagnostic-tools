@@ -135,8 +135,6 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_28_021750) do
     t.datetime "updated_at", null: false
     t.string "log_path"
     t.uuid "uuid", default: -> { "gen_random_uuid()" }, null: false
-    t.datetime "last_heartbeat_at"
-    t.string "current_phase"
     t.text "log_content"
     t.jsonb "arguments", default: {}
     t.index ["benchmark_recipe_id"], name: "index_benchmark_runs_on_benchmark_recipe_id"
@@ -145,52 +143,6 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_28_021750) do
     t.index ["started_at"], name: "index_benchmark_runs_on_started_at"
     t.index ["status"], name: "index_benchmark_runs_on_status"
     t.index ["uuid"], name: "index_benchmark_runs_on_uuid", unique: true
-  end
-
-  create_table "bmc_credentials", force: :cascade do |t|
-    t.bigint "node_id"
-    t.string "bmc_address", null: false
-    t.string "username", null: false
-    t.string "password", null: false
-    t.integer "protocol", default: 0
-    t.integer "port"
-    t.boolean "verify_ssl", default: true
-    t.boolean "is_global_default", default: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["is_global_default"], name: "index_bmc_credentials_on_is_global_default", unique: true, where: "(is_global_default = true)"
-    t.index ["node_id"], name: "index_bmc_credentials_on_node_id", unique: true, where: "(node_id IS NOT NULL)"
-  end
-
-  create_table "bmc_inventories", force: :cascade do |t|
-    t.bigint "node_id", null: false
-    t.jsonb "processors", default: []
-    t.jsonb "memory", default: []
-    t.jsonb "storage", default: []
-    t.jsonb "network", default: []
-    t.jsonb "infiniband", default: []
-    t.jsonb "bios", default: {}
-    t.jsonb "bmc_info", default: {}
-    t.integer "collection_method"
-    t.datetime "captured_at", null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["captured_at"], name: "index_bmc_inventories_on_captured_at"
-    t.index ["node_id"], name: "index_bmc_inventories_on_node_id"
-  end
-
-  create_table "inventory_discrepancies", force: :cascade do |t|
-    t.bigint "node_id", null: false
-    t.string "field_path", null: false
-    t.string "inband_value"
-    t.string "bmc_value"
-    t.integer "severity", default: 0
-    t.datetime "resolved_at"
-    t.text "resolution_note"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["node_id", "resolved_at"], name: "index_inventory_discrepancies_on_node_id_and_resolved_at"
-    t.index ["node_id"], name: "index_inventory_discrepancies_on_node_id"
   end
 
   create_table "mlc_baselines", force: :cascade do |t|
@@ -300,7 +252,6 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_28_021750) do
     t.boolean "ssh_password_override", default: false
     t.boolean "sudo_credential_override", default: false
     t.boolean "ssh_connect_method_override", default: false
-    t.string "bmc_address"
     t.index ["api_key_id"], name: "index_nodes_on_api_key_id"
     t.index ["hostname"], name: "index_nodes_on_hostname", unique: true
     t.index ["rack_id", "rack_face", "rack_position"], name: "index_nodes_on_rack_id_and_rack_face_and_rack_position"
@@ -489,10 +440,6 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_28_021750) do
     t.string "sudo_credential"
     t.integer "timeout", default: 30
     t.boolean "verify_host_key", default: false
-    t.integer "bmc_sensor_polling_interval", default: 5
-    t.boolean "bmc_collection_enabled", default: false
-    t.string "prometheus_pushgateway_url"
-    t.string "prometheus_url"
   end
 
   create_table "sync_logs", force: :cascade do |t|
@@ -530,9 +477,6 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_28_021750) do
   add_foreign_key "artifact_indices", "benchmark_runs"
   add_foreign_key "benchmark_runs", "benchmark_recipes"
   add_foreign_key "benchmark_runs", "nodes"
-  add_foreign_key "bmc_credentials", "nodes"
-  add_foreign_key "bmc_inventories", "nodes"
-  add_foreign_key "inventory_discrepancies", "nodes"
   add_foreign_key "mlc_baselines", "benchmark_runs"
   add_foreign_key "mlc_baselines", "nodes"
   add_foreign_key "mlc_installation_nodes", "mlc_installations"
