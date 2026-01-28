@@ -43,7 +43,7 @@ func (o *hpcgOptions) addFlags(cmd *cobra.Command) {
 
 	cmd.Flags().StringVar(&o.pushServer, "server", "http://localhost:3000", "Server URL")
 	cmd.Flags().StringVar(&o.pushToken, "token", os.Getenv("AGENT_TOKEN"), "Authentication token")
-	cmd.Flags().StringVar(&o.configDir, "config", "/etc/hpc-agent", "Configuration directory")
+	cmd.Flags().StringVar(&o.configDir, "config", "/etc/qis-agent", "Configuration directory")
 }
 
 // NewHPCGCmd creates the hpcg command.

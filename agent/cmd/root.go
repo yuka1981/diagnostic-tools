@@ -26,9 +26,9 @@ func GetVersion() string {
 }
 
 var rootCmd = &cobra.Command{
-	Use:   "hpc-agent",
-	Short: "HPC Agent",
-	Long:  `HPC System Detection & Benchmark Agent`,
+	Use:   "qis-agent",
+	Short: "QIS Agent",
+	Long:  `QIS System Detection & Benchmark Agent`,
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
 		// If node-uuid is provided via CLI, set it as the forced identity
 		// This ensures the agent uses the server-known UUID instead of generating a new one

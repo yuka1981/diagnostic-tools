@@ -74,7 +74,7 @@ func NewPushCmd(col ports.InventoryCollector, upFactory func(url, token string) 
 
 	cmd.Flags().StringVar(&pushServer, "server", "http://localhost:3000", "Server URL")
 	cmd.Flags().StringVar(&pushToken, "token", os.Getenv("AGENT_TOKEN"), "Authentication token")
-	cmd.Flags().StringVar(&configDir, "config", "/etc/hpc-agent", "Configuration directory")
+	cmd.Flags().StringVar(&configDir, "config", "/etc/qis-agent", "Configuration directory")
 
 	return cmd
 }

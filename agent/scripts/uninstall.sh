@@ -1,7 +1,7 @@
 #!/bin/bash
 #
-# HPC Agent Uninstallation Script
-# Removes the hpc-agent binary, service, and configuration
+# QIS Agent Uninstallation Script
+# Removes the qis-agent binary, service, and configuration
 #
 # Usage:
 #   ./uninstall.sh [--keep-config]
@@ -11,8 +11,8 @@ set -euo pipefail
 
 # Default values
 INSTALL_DIR="/usr/local/bin"
-CONFIG_DIR="/etc/hpc-agent"
-SERVICE_NAME="hpc-agent"
+CONFIG_DIR="/etc/qis-agent"
+SERVICE_NAME="qis-agent"
 KEEP_CONFIG=false
 
 # Colors for output
@@ -72,7 +72,7 @@ if [[ -f "$service_file" ]]; then
 fi
 
 # Remove binary
-binary_path="$INSTALL_DIR/hpc-agent"
+binary_path="$INSTALL_DIR/qis-agent"
 if [[ -f "$binary_path" ]]; then
     log_info "Removing binary: $binary_path"
     rm -f "$binary_path"
@@ -94,4 +94,4 @@ else
     log_info "Keeping configuration in: $CONFIG_DIR"
 fi
 
-log_info "HPC Agent uninstalled successfully"
+log_info "QIS Agent uninstalled successfully"
