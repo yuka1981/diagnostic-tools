@@ -23,33 +23,57 @@
           Dashboard
         <% end %>
 
-        <%= link_to sites_path,
-            data: { turbo_prefetch: false },
-            class: "flex items-center gap-3 px-5 py-2 text-sm font-bold rounded transition-colors #{request.path.start_with?('/sites') ? 'bg-primary-1 text-primary-6' : 'hover:bg-neutral-4 hover:text-primary-6'}" do %>
-          <%= lucide_icon("building-2", class: "h-5 w-5 opacity-75") %>
-          Sites
-        <% end %>
+        <%# Inventory collapsible section %>
+        <% inventory_paths = %w[/sites /rooms /racks /nodes] %>
+        <% inventory_expanded = inventory_paths.any? { |p| request.path.start_with?(p) } %>
+        <% inventory_active = inventory_expanded %>
 
-        <%= link_to rooms_path,
-            data: { turbo_prefetch: false },
-            class: "flex items-center gap-3 px-5 py-2 text-sm font-bold rounded transition-colors #{request.path.start_with?('/rooms') ? 'bg-primary-1 text-primary-6' : 'hover:bg-neutral-4 hover:text-primary-6'}" do %>
-          <%= lucide_icon("warehouse", class: "h-5 w-5 opacity-75") %>
-          Rooms
-        <% end %>
+        <div data-controller="collapsible"
+             data-collapsible-open-value="<%= inventory_expanded %>"
+             data-collapsible-rotate-class-value="rotate-90">
 
-        <%= link_to server_racks_path,
-            data: { turbo_prefetch: false },
-            class: "flex items-center gap-3 px-5 py-2 text-sm font-bold rounded transition-colors #{request.path.start_with?('/racks') ? 'bg-primary-1 text-primary-6' : 'hover:bg-neutral-4 hover:text-primary-6'}" do %>
-          <%= lucide_icon("server", class: "h-5 w-5 opacity-75") %>
-          Racks
-        <% end %>
+          <%# Inventory toggle button %>
+          <button type="button"
+                  data-action="click->collapsible#toggle"
+                  class="w-full flex items-center gap-3 px-5 py-2 text-sm font-bold rounded transition-colors <%= inventory_active ? 'text-primary-6' : 'hover:bg-neutral-4 hover:text-primary-6' %>">
+            <%= lucide_icon("chevron-right",
+                class: "h-4 w-4 opacity-75 transition-transform duration-200",
+                data: { collapsible_target: "icon" }) %>
+            <%= lucide_icon("archive", class: "h-5 w-5 opacity-75") %>
+            <span>Inventory</span>
+          </button>
 
-        <%= link_to nodes_path,
-            data: { turbo_prefetch: false },
-            class: "flex items-center gap-3 px-5 py-2 text-sm font-bold rounded transition-colors #{request.path.start_with?('/nodes') ? 'bg-primary-1 text-primary-6' : 'hover:bg-neutral-4 hover:text-primary-6'}" do %>
-          <%= lucide_icon("hard-drive", class: "h-5 w-5 opacity-75") %>
-          Nodes
-        <% end %>
+          <%# Inventory child items %>
+          <div data-collapsible-target="content" class="space-y-0.5">
+            <%= link_to sites_path,
+                data: { turbo_prefetch: false },
+                class: "flex items-center gap-3 pl-12 pr-5 py-2 text-sm font-bold rounded transition-colors #{request.path.start_with?('/sites') ? 'bg-primary-1 text-primary-6' : 'hover:bg-neutral-4 hover:text-primary-6'}" do %>
+              <%= lucide_icon("building-2", class: "h-5 w-5 opacity-75") %>
+              Sites
+            <% end %>
+
+            <%= link_to rooms_path,
+                data: { turbo_prefetch: false },
+                class: "flex items-center gap-3 pl-12 pr-5 py-2 text-sm font-bold rounded transition-colors #{request.path.start_with?('/rooms') ? 'bg-primary-1 text-primary-6' : 'hover:bg-neutral-4 hover:text-primary-6'}" do %>
+              <%= lucide_icon("warehouse", class: "h-5 w-5 opacity-75") %>
+              Rooms
+            <% end %>
+
+            <%= link_to server_racks_path,
+                data: { turbo_prefetch: false },
+                class: "flex items-center gap-3 pl-12 pr-5 py-2 text-sm font-bold rounded transition-colors #{request.path.start_with?('/racks') ? 'bg-primary-1 text-primary-6' : 'hover:bg-neutral-4 hover:text-primary-6'}" do %>
+              <%= lucide_icon("server", class: "h-5 w-5 opacity-75") %>
+              Racks
+            <% end %>
+
+            <%= link_to nodes_path,
+                data: { turbo_prefetch: false },
+                class: "flex items-center gap-3 pl-12 pr-5 py-2 text-sm font-bold rounded transition-colors #{request.path.start_with?('/nodes') ? 'bg-primary-1 text-primary-6' : 'hover:bg-neutral-4 hover:text-primary-6'}" do %>
+              <%= lucide_icon("hard-drive", class: "h-5 w-5 opacity-75") %>
+              Nodes
+            <% end %>
+          </div>
+        </div>
 
         <%= link_to tasks_path,
             data: { turbo_prefetch: false },
