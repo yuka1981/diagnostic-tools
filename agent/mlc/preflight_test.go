@@ -84,7 +84,7 @@ func TestCheckHugepages_Zero(t *testing.T) {
 func TestCheckHugepages_MissingFile(t *testing.T) {
 	// Point to non-existent file (simulates non-Linux or missing procfs)
 	oldPath := hugepagesPath
-	hugepagesPath = "/nonexistent/path/nr_hugepages"
+	hugepagesPath = "/nonexistent/path/nr_hugepages" //nolint:goconst // test path, intentionally repeated
 	defer func() { hugepagesPath = oldPath }()
 
 	err := CheckHugepages(MinHugepages)

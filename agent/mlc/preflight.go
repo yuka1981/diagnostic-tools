@@ -37,7 +37,10 @@ func CheckHugepages(minRequired int) error {
 
 	// Check if sufficient
 	if count < minRequired {
-		return fmt.Errorf("Hugepages not configured (found: %d, required: %d)\n\nFix: echo 4000 > /proc/sys/vm/nr_hugepages (requires root)", count, minRequired)
+		return fmt.Errorf(
+			"hugepages not configured (found: %d, required: %d)\n\n"+
+				"fix: echo 4000 > /proc/sys/vm/nr_hugepages (requires root)",
+			count, minRequired)
 	}
 
 	return nil

@@ -74,23 +74,7 @@ func (w *WorkflowOrchestrator) Run(ctx context.Context, params *RunParams) (*mod
 	}
 
 	// Run all tests and aggregate output
-	var allOutput string
-	var execError string
-	for _, test := range tests {
-		flag, ok := testToFlag[test]
-		if !ok {
-			return w.buildFailedRun(params.RunID, start, allOutput, fmt.Sprintf("Unknown test: %s", test)), nil
-		}
-
-		output, runErr := w.Runner.Run(ctx, "", binaryPath, flag)
-		allOutput += string(output) + "\n"
-		if runErr != nil {
-			execError = fmt.Sprintf("Test '%s' failed: %v", test, runErr)
-			// Continue to capture any partial output, but mark as failed
-			break
-		}
-	}
-
+	allOutput, execError := w.executeTests(ctx, tests, binaryPath)
 	end := time.Now()
 
 	// If execution failed, return result with error message
@@ -132,6 +116,24 @@ func (w *WorkflowOrchestrator) buildFailedRun(runID string, start time.Time, log
 		ErrorMessage: errorMsg,
 		LogContent:   logContent,
 	}
+}
+
+// executeTests runs all specified tests and returns aggregated output and any error.
+func (w *WorkflowOrchestrator) executeTests(ctx context.Context, tests []string, binaryPath string) (output, errMsg string) {
+	var allOutput string
+	for _, test := range tests {
+		flag, ok := testToFlag[test]
+		if !ok {
+			return allOutput, fmt.Sprintf("Unknown test: %s", test)
+		}
+
+		output, runErr := w.Runner.Run(ctx, "", binaryPath, flag)
+		allOutput += string(output) + "\n"
+		if runErr != nil {
+			return allOutput, fmt.Sprintf("Test '%s' failed: %v", test, runErr)
+		}
+	}
+	return allOutput, ""
 }
 
 // resolveTests determines which tests to run based on params.

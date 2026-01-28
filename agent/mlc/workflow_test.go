@@ -289,8 +289,8 @@ Each iteration took 186.5 core clocks ( 78.2    ns)`,
 	}
 
 	// Verify error message mentions hugepages
-	if !strings.Contains(result.ErrorMessage, "Hugepages") {
-		t.Errorf("expected error message to mention 'Hugepages', got: %s", result.ErrorMessage)
+	if !strings.Contains(result.ErrorMessage, "hugepages") {
+		t.Errorf("expected error message to mention 'hugepages', got: %s", result.ErrorMessage)
 	}
 
 	// Verify no commands were executed (pre-flight failed before tests)
