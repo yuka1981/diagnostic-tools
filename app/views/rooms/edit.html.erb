@@ -5,8 +5,8 @@
   { title: "Edit" }
 ]) %>
 
-<div class="mb-6">
-  <h1 class="text-2xl font-bold text-neutral-85">Edit <%= @room.name %></h1>
+<div class="mb-6" data-testid="rooms-edit-container">
+  <h1 class="text-2xl font-bold text-neutral-85" data-testid="rooms-edit-title">Edit <%= @room.name %></h1>
   <p class="text-sm text-neutral-45 mt-1">Modify room information</p>
 </div>
 
