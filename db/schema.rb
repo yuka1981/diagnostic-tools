@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_01_27_052641) do
+ActiveRecord::Schema[7.2].define(version: 2026_01_28_021721) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -203,6 +203,28 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_27_052641) do
     t.index ["benchmark_run_id"], name: "index_mlc_baselines_on_benchmark_run_id"
     t.index ["node_id", "metric_type"], name: "index_mlc_baselines_on_node_id_and_metric_type", unique: true
     t.index ["node_id"], name: "index_mlc_baselines_on_node_id"
+  end
+
+  create_table "mlc_installations", force: :cascade do |t|
+    t.string "uuid", null: false
+    t.integer "status", default: 0, null: false
+    t.integer "source_type", default: 0, null: false
+    t.string "source_path"
+    t.string "binary_path"
+    t.string "checksum_algorithm"
+    t.string "checksum_value"
+    t.boolean "checksum_verified", default: false
+    t.string "detected_version"
+    t.string "install_dir", default: "/opt/qct/utils/qis/software"
+    t.string "module_dir", default: "/opt/qct/utils/qis/modulefiles"
+    t.integer "failure_mode", default: 0, null: false
+    t.bigint "created_by_id"
+    t.datetime "started_at"
+    t.datetime "completed_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["created_by_id"], name: "index_mlc_installations_on_created_by_id"
+    t.index ["uuid"], name: "index_mlc_installations_on_uuid", unique: true
   end
 
   create_table "node_states", force: :cascade do |t|
@@ -496,6 +518,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_27_052641) do
   add_foreign_key "inventory_discrepancies", "nodes"
   add_foreign_key "mlc_baselines", "benchmark_runs"
   add_foreign_key "mlc_baselines", "nodes"
+  add_foreign_key "mlc_installations", "users", column: "created_by_id"
   add_foreign_key "node_states", "nodes"
   add_foreign_key "nodes", "api_keys"
   add_foreign_key "nodes", "racks"
