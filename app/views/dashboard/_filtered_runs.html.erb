@@ -46,9 +46,7 @@
                   <% end %>
                 </p>
               </div>
-              <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[9px] font-black uppercase border <%= status_badge_class(run.status) %>">
-                <%= run.status %>
-              </span>
+              <%= render StatusBadgeComponent.new(status: run.status, size: :small) %>
             </div>
           <% end %>
         </div>
