@@ -1,22 +1,22 @@
 <%# Slide-over Content - Loaded via Turbo Frame %>
-<%= turbo_frame_tag "slide_over_content" do %>
+<%= turbo_frame_tag "slide_over_content", data: { testid: "benchmark-runs-slideover-content-frame" } do %>
   <div data-controller="tabs">
     <%# Run Header with Status %>
-    <div class="border-b border-neutral-8 px-6 py-4 bg-neutral-2">
+    <div class="border-b border-neutral-8 px-6 py-4 bg-neutral-2" data-testid="benchmark-runs-slideover-header">
       <div class="flex items-start gap-4">
         <div class="flex h-12 w-12 items-center justify-center rounded-lg bg-white border border-neutral-15 shadow-sm">
           <%= status_icon(benchmark_run.status) %>
         </div>
         <div class="flex-1 min-w-0">
           <div class="flex items-center gap-2">
-            <h3 class="text-base font-bold text-neutral-85 truncate">
+            <h3 class="text-base font-bold text-neutral-85 truncate" data-testid="benchmark-runs-slideover-recipe">
               <%= benchmark_run.benchmark_recipe.display_name %>
             </h3>
-            <%= node_status_badge(benchmark_run.status) %>
+            <%= node_status_badge(benchmark_run.status, data: { testid: "benchmark-runs-slideover-status" }) %>
             <% if benchmark_run.pending? || benchmark_run.running? %>
               <%= button_to cancel_benchmark_run_path(benchmark_run),
                   method: :post,
-                  data: { turbo_confirm: "Are you sure you want to cancel this benchmark run?" },
+                  data: { turbo_confirm: "Are you sure you want to cancel this benchmark run?", testid: "benchmark-runs-slideover-cancel" },
                   class: "inline-flex items-center gap-1 px-2 py-1 text-xs font-bold text-error-6 bg-white border border-error-3 rounded hover:bg-error-1 hover:border-error-4 transition-colors" do %>
                 <%= lucide_icon("x", class: "h-3 w-3") %>
                 Cancel
@@ -31,7 +31,7 @@
     </div>
 
     <%# Tabs Navigation %>
-    <div class="border-b border-neutral-8 bg-white">
+    <div class="border-b border-neutral-8 bg-white" data-testid="benchmark-runs-slideover-tabs">
       <nav class="flex px-6 tabs nav-tabs" aria-label="Tabs" role="tablist" data-action="keydown->tabs#handleKeydown">
         <button type="button"
                 id="tab-summary"
@@ -40,6 +40,7 @@
                 aria-controls="tab-panel-summary"
                 data-tabs-target="tab"
                 data-action="click->tabs#select"
+                data-testid="benchmark-runs-tab-summary"
                 class="border-b-2 border-primary-6 px-4 py-3 text-sm font-bold uppercase text-primary-6 focus:outline-none transition-colors">
           Summary
         </button>
@@ -51,6 +52,7 @@
                 tabindex="-1"
                 data-tabs-target="tab"
                 data-action="click->tabs#select"
+                data-testid="benchmark-runs-tab-metrics"
                 class="border-b-2 border-transparent px-4 py-3 text-sm font-bold uppercase text-neutral-45 hover:text-neutral-85 hover:border-neutral-15 focus:outline-none transition-colors">
           Metrics
         </button>
@@ -62,6 +64,7 @@
                 tabindex="-1"
                 data-tabs-target="tab"
                 data-action="click->tabs#select"
+                data-testid="benchmark-runs-tab-logs"
                 class="border-b-2 border-transparent px-4 py-3 text-sm font-bold uppercase text-neutral-45 hover:text-neutral-85 hover:border-neutral-15 focus:outline-none transition-colors">
           Logs
         </button>
@@ -73,6 +76,7 @@
                 tabindex="-1"
                 data-tabs-target="tab"
                 data-action="click->tabs#select"
+                data-testid="benchmark-runs-tab-artifacts"
                 class="border-b-2 border-transparent px-4 py-3 text-sm font-bold uppercase text-neutral-45 hover:text-neutral-85 hover:border-neutral-15 focus:outline-none transition-colors">
           Artifacts
         </button>
@@ -86,11 +90,12 @@
            role="tabpanel"
            aria-labelledby="tab-summary"
            aria-hidden="false"
-           data-tabs-target="panel">
+           data-tabs-target="panel"
+           data-testid="benchmark-runs-panel-summary">
         
         <%# Error Message (if any) %>
         <% if benchmark_run.error_message.present? %>
-          <div class="mb-6 card-netbox border-error-3">
+          <div class="mb-6 card-netbox border-error-3" data-testid="benchmark-runs-slideover-error">
             <div class="card-header bg-error-1 border-error-3">
               <h3 class="card-title text-error-8">Error</h3>
             </div>
@@ -101,7 +106,7 @@
         <% end %>
 
         <%# Details List %>
-        <div class="card-netbox">
+        <div class="card-netbox" data-testid="benchmark-runs-slideover-details">
           <table class="w-full text-sm text-left">
             <tbody class="divide-y divide-neutral-4">
               <tr class="hover:bg-neutral-2">
@@ -127,7 +132,7 @@
         <%# Quick Actions %>
         <div class="mt-6">
           <%= link_to benchmark_run_path(benchmark_run),
-              data: { turbo_frame: "_top" },
+              data: { turbo_frame: "_top", testid: "benchmark-runs-slideover-view-full" },
               class: "btn-primary w-full justify-center" do %>
             <%= lucide_icon("external-link", class: "h-4 w-4") %>
             View Full Details
@@ -141,10 +146,11 @@
            aria-labelledby="tab-metrics"
            aria-hidden="true"
            class="hidden"
-           data-tabs-target="panel">
+           data-tabs-target="panel"
+           data-testid="benchmark-runs-panel-metrics">
         
         <% if benchmark_run.metrics.present? %>
-          <div class="card-netbox">
+          <div class="card-netbox" data-testid="benchmark-runs-slideover-metrics">
             <table class="w-full text-sm text-left">
               <tbody class="divide-y divide-neutral-4">
                 <% benchmark_run.metrics.each do |key, value| %>
@@ -171,10 +177,11 @@
            aria-labelledby="tab-logs"
            aria-hidden="true"
            class="hidden"
-           data-tabs-target="panel">
+           data-tabs-target="panel"
+           data-testid="benchmark-runs-panel-logs">
 
         <% if benchmark_run.log_content.present? %>
-          <div class="card-netbox overflow-hidden">
+          <div class="card-netbox overflow-hidden" data-testid="benchmark-runs-slideover-logs">
             <pre class="p-4 text-xs font-mono text-neutral-85 bg-neutral-2 overflow-x-auto max-h-96 whitespace-pre-wrap break-words"><%= benchmark_run.log_content %></pre>
           </div>
         <% else %>
@@ -190,10 +197,11 @@
            aria-labelledby="tab-artifacts"
            aria-hidden="true"
            class="hidden"
-           data-tabs-target="panel">
+           data-tabs-target="panel"
+           data-testid="benchmark-runs-panel-artifacts">
         
         <% if benchmark_run.artifact_indices.any? %>
-          <div class="card-netbox">
+          <div class="card-netbox" data-testid="benchmark-runs-slideover-artifacts">
             <table class="min-w-full divide-y divide-neutral-8 text-sm">
               <thead class="bg-neutral-2">
                 <tr>
