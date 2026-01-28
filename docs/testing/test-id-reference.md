@@ -853,3 +853,246 @@ await page.getByTestId('dashboard-run-123').click();
 // Navigate to all runs
 await page.getByTestId('dashboard-runs-view-all').click();
 ```
+
+---
+
+## Infrastructure Module
+
+The Infrastructure module manages physical locations (Sites and Rooms) for organizing HPC cluster resources.
+
+### Sites Index Page
+
+#### Static Elements
+
+| Test ID | Element |
+|---------|---------|
+| `sites-page-container` | Page container |
+| `sites-button-new` | New site button |
+| `sites-table` | Main table element |
+| `sites-table-header` | Table header (thead) |
+| `sites-table-body` | Table body (tbody) |
+| `sites-table-empty` | Empty state container |
+| `sites-empty-add` | Empty state add button |
+
+#### Dynamic Elements (by name)
+
+| Test ID Pattern | Element |
+|-----------------|---------|
+| `sites-row-{name}` | Table row |
+| `sites-link-{name}` | Site name link |
+| `sites-rooms-{name}` | Rooms count cell |
+| `sites-nodes-{name}` | Nodes count cell |
+| `sites-button-view-{name}` | View site button |
+| `sites-button-edit-{name}` | Edit site button |
+
+**Playwright Example:**
+```typescript
+// Click on a specific site
+await page.getByTestId('sites-link-datacenter-west').click();
+
+// Check site rooms count
+await expect(page.getByTestId('sites-rooms-datacenter-west')).toContainText('5');
+
+// Edit a site
+await page.getByTestId('sites-button-edit-datacenter-west').click();
+```
+
+### Sites Show Page
+
+| Test ID | Element |
+|---------|---------|
+| `sites-show-container` | Page container |
+| `sites-show-name` | Site name heading |
+| `sites-show-button-edit` | Edit site button |
+| `sites-show-button-add-room` | Add room button |
+| `sites-show-overview` | Overview section card |
+| `sites-show-statistics` | Statistics section card |
+| `sites-show-rooms` | Rooms section card |
+| `sites-show-rooms-table` | Rooms table element |
+| `sites-show-rooms-tbody` | Rooms table body |
+| `sites-show-rooms-empty` | Empty state when no rooms |
+| `sites-show-danger-zone` | Danger zone card |
+| `sites-show-button-delete` | Delete site button |
+
+#### Dynamic Elements (by name)
+
+| Test ID Pattern | Element |
+|-----------------|---------|
+| `sites-room-row-{name}` | Room table row |
+| `sites-room-link-{name}` | Room name link |
+
+**Playwright Example:**
+```typescript
+// View site details
+await page.getByTestId('sites-show-container').waitFor();
+await expect(page.getByTestId('sites-show-name')).toContainText('Datacenter West');
+
+// Add a new room
+await page.getByTestId('sites-show-button-add-room').click();
+
+// Click on a room
+await page.getByTestId('sites-room-link-server-room-a').click();
+```
+
+### Sites Form
+
+| Test ID | Element |
+|---------|---------|
+| `sites-form` | Form element |
+| `sites-form-errors` | Form errors container |
+| `sites-input-name` | Name input |
+| `sites-input-description` | Description textarea |
+| `sites-button-cancel` | Cancel button |
+| `sites-button-submit` | Submit button |
+
+**Playwright Example:**
+```typescript
+// Fill out site form
+await page.getByTestId('sites-input-name').fill('Datacenter East');
+await page.getByTestId('sites-input-description').fill('Primary east coast facility');
+await page.getByTestId('sites-button-submit').click();
+```
+
+### Sites New Page
+
+| Test ID | Element |
+|---------|---------|
+| `sites-new-container` | Page container |
+| `sites-new-title` | Page title |
+
+### Sites Edit Page
+
+| Test ID | Element |
+|---------|---------|
+| `sites-edit-container` | Page container |
+| `sites-edit-title` | Page title |
+
+---
+
+### Rooms Index Page
+
+#### Static Elements
+
+| Test ID | Element |
+|---------|---------|
+| `rooms-page-container` | Page container |
+| `rooms-button-new` | New room button |
+| `rooms-filter-site` | Site filter select |
+| `rooms-filter-clear` | Clear filter button |
+| `rooms-table` | Main table element |
+| `rooms-table-header` | Table header (thead) |
+| `rooms-table-body` | Table body (tbody) |
+| `rooms-table-empty` | Empty state container |
+| `rooms-empty-add` | Empty state add button |
+
+#### Dynamic Elements (by name)
+
+| Test ID Pattern | Element |
+|-----------------|---------|
+| `rooms-row-{name}` | Table row |
+| `rooms-link-{name}` | Room name link |
+| `rooms-site-{name}` | Site name cell |
+| `rooms-racks-{name}` | Racks count cell |
+| `rooms-utilization-{name}` | Utilization percentage cell |
+| `rooms-button-view-{name}` | View room button |
+| `rooms-button-edit-{name}` | Edit room button |
+
+**Playwright Example:**
+```typescript
+// Filter rooms by site
+await page.getByTestId('rooms-filter-site').selectOption('datacenter-west');
+
+// Click on a specific room
+await page.getByTestId('rooms-link-server-room-a').click();
+
+// Check room utilization
+await expect(page.getByTestId('rooms-utilization-server-room-a')).toContainText('%');
+
+// Clear filter
+await page.getByTestId('rooms-filter-clear').click();
+```
+
+### Rooms Show Page
+
+| Test ID | Element |
+|---------|---------|
+| `rooms-show-container` | Page container |
+| `rooms-show-name` | Room name heading |
+| `rooms-show-capacity-badge` | Capacity badge |
+| `rooms-show-button-edit` | Edit room button |
+| `rooms-show-button-add-rack` | Add rack button |
+| `rooms-show-overview` | Overview section card |
+| `rooms-show-capacity` | Capacity section card |
+| `rooms-show-racks` | Racks section card |
+| `rooms-show-racks-table` | Racks table element |
+| `rooms-show-racks-tbody` | Racks table body |
+| `rooms-show-racks-empty` | Empty state when no racks |
+| `rooms-show-danger-zone` | Danger zone card |
+| `rooms-show-button-delete` | Delete room button |
+
+#### Dynamic Elements (by name)
+
+| Test ID Pattern | Element |
+|-----------------|---------|
+| `rooms-rack-row-{name}` | Rack table row |
+| `rooms-rack-link-{name}` | Rack name link |
+
+**Playwright Example:**
+```typescript
+// View room details
+await page.getByTestId('rooms-show-container').waitFor();
+await expect(page.getByTestId('rooms-show-name')).toContainText('Server Room A');
+
+// Check capacity badge
+await expect(page.getByTestId('rooms-show-capacity-badge')).toBeVisible();
+
+// Add a new rack
+await page.getByTestId('rooms-show-button-add-rack').click();
+
+// Click on a rack
+await page.getByTestId('rooms-rack-link-rack-01').click();
+```
+
+### Rooms Form
+
+| Test ID | Element |
+|---------|---------|
+| `rooms-form` | Form element |
+| `rooms-form-errors` | Form errors container |
+| `rooms-select-site` | Site select dropdown |
+| `rooms-input-name` | Name input |
+| `rooms-input-description` | Description textarea |
+| `rooms-input-floor` | Floor input |
+| `rooms-input-wing` | Wing input |
+| `rooms-input-grid` | Grid reference input |
+| `rooms-input-area` | Area (sq ft) input |
+| `rooms-input-max-racks` | Max racks input |
+| `rooms-input-power` | Power capacity input |
+| `rooms-input-cooling` | Cooling capacity input |
+| `rooms-button-cancel` | Cancel button |
+| `rooms-button-submit` | Submit button |
+
+**Playwright Example:**
+```typescript
+// Fill out room form
+await page.getByTestId('rooms-select-site').selectOption('datacenter-west');
+await page.getByTestId('rooms-input-name').fill('Server Room B');
+await page.getByTestId('rooms-input-floor').fill('2');
+await page.getByTestId('rooms-input-max-racks').fill('50');
+await page.getByTestId('rooms-input-power').fill('500');
+await page.getByTestId('rooms-button-submit').click();
+```
+
+### Rooms New Page
+
+| Test ID | Element |
+|---------|---------|
+| `rooms-new-container` | Page container |
+| `rooms-new-title` | Page title |
+
+### Rooms Edit Page
+
+| Test ID | Element |
+|---------|---------|
+| `rooms-edit-container` | Page container |
+| `rooms-edit-title` | Page title |
