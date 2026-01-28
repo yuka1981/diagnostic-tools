@@ -738,3 +738,118 @@ await expect(page.getByTestId('benchmark-runs-panel-logs')).toBeVisible();
 // Close slide-over
 await page.getByTestId('benchmark-runs-slideover-close').click();
 ```
+
+---
+
+## Dashboard Module
+
+The Dashboard module provides an overview of the HPC cluster with availability stats, a node heatmap, and recent benchmark runs.
+
+### Dashboard Index Page
+
+| Test ID | Element |
+|---------|---------|
+| `dashboard-page-container` | Main page container |
+| `dashboard-stat-availability` | Availability stat card |
+| `dashboard-stat-availability-value` | Availability percentage value |
+| `dashboard-stat-availability-bar` | Availability progress bar |
+| `dashboard-stat-health` | Health stat card |
+| `dashboard-stat-health-value` | Health percentage value |
+| `dashboard-stat-health-bar` | Health progress bar |
+| `dashboard-stat-queue` | Queue stat card |
+| `dashboard-stat-queue-total` | Total queue count |
+| `dashboard-stat-queue-active` | Active queue count |
+| `dashboard-stat-queue-pending` | Pending queue count |
+| `dashboard-stat-storage` | Storage stat card |
+| `dashboard-stat-storage-value` | Storage usage value |
+| `dashboard-stat-storage-bar` | Storage usage bar |
+| `dashboard-quick-actions` | Quick actions section |
+| `dashboard-action-nodes` | Nodes quick action button |
+| `dashboard-action-runs` | Runs quick action button |
+| `dashboard-action-recipes` | Recipes quick action button |
+| `dashboard-action-import` | Import quick action button |
+
+**Playwright Example:**
+```typescript
+// Check dashboard stats
+await page.getByTestId('dashboard-page-container').waitFor();
+await expect(page.getByTestId('dashboard-stat-availability-value')).toContainText('%');
+
+// Navigate via quick actions
+await page.getByTestId('dashboard-action-nodes').click();
+```
+
+### Heatmap
+
+#### Static Elements
+
+| Test ID | Element |
+|---------|---------|
+| `dashboard-heatmap-container` | Heatmap container |
+| `dashboard-heatmap-title` | Heatmap section title |
+| `dashboard-heatmap-selected` | Selected nodes count display |
+| `dashboard-heatmap-clear` | Clear selection button |
+| `dashboard-heatmap-grid` | Heatmap grid container |
+| `dashboard-heatmap-summary` | Heatmap summary section |
+| `dashboard-heatmap-empty` | Empty state when no nodes |
+
+#### Dynamic Elements
+
+| Test ID Pattern | Element |
+|-----------------|---------|
+| `dashboard-heatmap-role-{role}` | Role section container |
+| `dashboard-heatmap-role-label-{role}` | Role section label |
+| `dashboard-heatmap-node-{hostname}` | Individual node cell |
+
+**Playwright Example:**
+```typescript
+// Check heatmap loads
+await page.getByTestId('dashboard-heatmap-container').waitFor();
+
+// Click on a specific node
+await page.getByTestId('dashboard-heatmap-node-compute-001').click();
+
+// Check selection count
+await expect(page.getByTestId('dashboard-heatmap-selected')).toContainText('1');
+
+// Clear selection
+await page.getByTestId('dashboard-heatmap-clear').click();
+```
+
+### Filtered Runs
+
+#### Static Elements
+
+| Test ID | Element |
+|---------|---------|
+| `dashboard-runs-frame` | Runs section turbo frame |
+| `dashboard-runs-heading` | Runs section heading |
+| `dashboard-runs-view-all` | View all runs link |
+| `dashboard-runs-list` | Runs list container |
+| `dashboard-runs-empty` | Empty state when no runs |
+
+#### Dynamic Elements
+
+| Test ID Pattern | Element |
+|-----------------|---------|
+| `dashboard-run-{id}` | Run row container |
+| `dashboard-run-status-{id}` | Run status badge |
+| `dashboard-run-recipe-{id}` | Run recipe name |
+| `dashboard-run-hostname-{id}` | Run hostname |
+| `dashboard-run-time-{id}` | Run timestamp |
+| `dashboard-run-badge-{id}` | Run result badge |
+
+**Playwright Example:**
+```typescript
+// Wait for runs to load
+await page.getByTestId('dashboard-runs-frame').waitFor();
+
+// Check specific run
+await expect(page.getByTestId('dashboard-run-status-123')).toContainText('Completed');
+
+// Click on a run
+await page.getByTestId('dashboard-run-123').click();
+
+// Navigate to all runs
+await page.getByTestId('dashboard-runs-view-all').click();
+```
