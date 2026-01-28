@@ -49,4 +49,34 @@ RSpec.describe EmptyStateComponent, type: :component do
 
     expect(page).to have_css("svg.text-error-5") | have_css("[data-lucide='alert-circle']")
   end
+
+  describe "test IDs" do
+    it "renders data-testid on container when testid is provided" do
+      render_inline(EmptyStateComponent.new(
+        icon: "inbox",
+        title: "No items",
+        testid: "nodes-empty-state"
+      ))
+
+      expect(page).to have_css("[data-testid='nodes-empty-state']")
+    end
+
+    it "renders data-testid on action when present" do
+      render_inline(EmptyStateComponent.new(
+        icon: "inbox",
+        title: "No items",
+        testid: "nodes-empty-state"
+      )) do |c|
+        c.with_action { "<button>Add</button>".html_safe }
+      end
+
+      expect(page).to have_css("[data-testid='nodes-empty-state-action']")
+    end
+
+    it "does not render data-testid when testid is not provided" do
+      render_inline(EmptyStateComponent.new(icon: "inbox", title: "No items"))
+
+      expect(page).not_to have_css("[data-testid]")
+    end
+  end
 end
