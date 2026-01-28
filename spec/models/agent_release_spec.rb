@@ -115,7 +115,7 @@ RSpec.describe AgentRelease, type: :model do
       # Use the setter method to trigger @binary_updated flag
       release.binary = {
         io: new_file,
-        filename: "hpc-agent-new",
+        filename: "qis-agent-new",
         content_type: "application/octet-stream"
       }
       release.save!
@@ -194,7 +194,7 @@ RSpec.describe AgentRelease, type: :model do
 
     describe "#binary_filename" do
       it "returns the filename when binary is attached" do
-        expect(release.binary_filename).to eq("hpc-agent")
+        expect(release.binary_filename).to eq("qis-agent")
       end
 
       it "returns nil when binary is not attached" do

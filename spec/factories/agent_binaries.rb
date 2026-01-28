@@ -8,14 +8,14 @@ FactoryBot.define do
     after(:build) do |agent_binary|
       # Create a real file for the attachment
       file_content = "#!/bin/bash\necho 'mock agent #{agent_binary.arch}'"
-      file = Tempfile.new([ "hpc-agent-#{agent_binary.arch}", "" ])
+      file = Tempfile.new([ "qis-agent-#{agent_binary.arch}", "" ])
       file.binmode
       file.write(file_content)
       file.rewind
 
       agent_binary.binary.attach(
         io: file,
-        filename: "hpc-agent-#{agent_binary.arch}",
+        filename: "qis-agent-#{agent_binary.arch}",
         content_type: "application/octet-stream"
       )
     end

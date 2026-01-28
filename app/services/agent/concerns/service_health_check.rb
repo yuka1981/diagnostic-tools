@@ -5,7 +5,7 @@ module Agent
     # Shared service health check methods for agent lifecycle services
     # Handles systemd service status verification with sudo prompt filtering
     module ServiceHealthCheck
-      SERVICE_NAME = "hpc-agent"
+      SERVICE_NAME = "qis-agent"
 
       def verify_service_running(ssh)
         max_retries = 10

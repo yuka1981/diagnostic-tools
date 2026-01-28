@@ -110,14 +110,14 @@ RSpec.describe "Settings::AgentReleases", type: :request do
         StringIO.new("#!/bin/bash\necho test"),
         "application/octet-stream",
         true,
-        original_filename: "hpc-agent"
+        original_filename: "qis-agent"
       )
     end
 
     context "with valid parameters" do
       it "creates a new release" do
         # Create a temp file for the upload
-        file = Tempfile.new([ "hpc-agent", "" ])
+        file = Tempfile.new([ "qis-agent", "" ])
         file.binmode
         file.write("#!/bin/bash\necho 'agent binary'")
         file.rewind
@@ -127,7 +127,7 @@ RSpec.describe "Settings::AgentReleases", type: :request do
             agent_release: {
               version: "v2.0.0",
               release_notes: "New release",
-              binary: Rack::Test::UploadedFile.new(file.path, "application/octet-stream", true, original_filename: "hpc-agent")
+              binary: Rack::Test::UploadedFile.new(file.path, "application/octet-stream", true, original_filename: "qis-agent")
             }
           }
         }.to change(AgentRelease, :count).by(1)
@@ -137,7 +137,7 @@ RSpec.describe "Settings::AgentReleases", type: :request do
       end
 
       it "redirects to the show page" do
-        file = Tempfile.new([ "hpc-agent", "" ])
+        file = Tempfile.new([ "qis-agent", "" ])
         file.binmode
         file.write("#!/bin/bash\necho 'agent binary'")
         file.rewind
@@ -146,7 +146,7 @@ RSpec.describe "Settings::AgentReleases", type: :request do
           agent_release: {
             version: "v2.0.0",
             release_notes: "New release",
-            binary: Rack::Test::UploadedFile.new(file.path, "application/octet-stream", true, original_filename: "hpc-agent")
+            binary: Rack::Test::UploadedFile.new(file.path, "application/octet-stream", true, original_filename: "qis-agent")
           }
         }
 

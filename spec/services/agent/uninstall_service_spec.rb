@@ -147,7 +147,7 @@ RSpec.describe Agent::UninstallService do
     it "stops the agent service" do
       expect(service).to receive(:execute_command).with(
         ssh_session,
-        match(/systemctl stop hpc-agent/),
+        match(/systemctl stop qis-agent/),
         anything
       ).and_return("")
       allow(service).to receive(:execute_command).and_return("")
@@ -158,7 +158,7 @@ RSpec.describe Agent::UninstallService do
     it "disables the agent service" do
       expect(service).to receive(:execute_command).with(
         ssh_session,
-        match(/systemctl disable hpc-agent/),
+        match(/systemctl disable qis-agent/),
         anything
       ).and_return("")
       allow(service).to receive(:execute_command).and_return("")
@@ -169,7 +169,7 @@ RSpec.describe Agent::UninstallService do
     it "removes the agent binary" do
       expect(service).to receive(:execute_command).with(
         ssh_session,
-        match(/rm -f.*\/usr\/local\/bin\/hpc-agent/),
+        match(/rm -f.*\/usr\/local\/bin\/qis-agent/),
         anything
       ).and_return("")
       allow(service).to receive(:execute_command).and_return("")
@@ -180,7 +180,7 @@ RSpec.describe Agent::UninstallService do
     it "removes the service file" do
       expect(service).to receive(:execute_command).with(
         ssh_session,
-        match(/rm -f.*hpc-agent\.service/),
+        match(/rm -f.*qis-agent\.service/),
         anything
       ).and_return("")
       allow(service).to receive(:execute_command).and_return("")
@@ -202,7 +202,7 @@ RSpec.describe Agent::UninstallService do
     it "removes the configuration directory" do
       expect(service).to receive(:execute_command).with(
         ssh_session,
-        match(/rm -rf.*\/etc\/hpc-agent/),
+        match(/rm -rf.*\/etc\/qis-agent/),
         anything
       ).and_return("")
       allow(service).to receive(:execute_command).and_return("")

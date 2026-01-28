@@ -175,7 +175,7 @@ RSpec.describe Agent::Concerns::RemoteExecution do
         /restorecon.*chcon -t bin_t/,
         password: anything
       )
-      service.set_selinux_context(mock_ssh, "/usr/local/bin/hpc-agent", type: "bin_t")
+      service.set_selinux_context(mock_ssh, "/usr/local/bin/qis-agent", type: "bin_t")
     end
   end
 

@@ -16,14 +16,14 @@ FactoryBot.define do
 
       # Create a real file for the attachment
       file_content = "#!/bin/bash\necho 'mock agent v#{release.version}'"
-      file = Tempfile.new([ "hpc-agent", "" ])
+      file = Tempfile.new([ "qis-agent", "" ])
       file.binmode
       file.write(file_content)
       file.rewind
 
       release.binary.attach(
         io: file,
-        filename: "hpc-agent",
+        filename: "qis-agent",
         content_type: "application/octet-stream"
       )
     end

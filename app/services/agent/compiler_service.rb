@@ -119,8 +119,8 @@ module Agent
       tmp_dir = Rails.root.join("tmp").to_s
       FileUtils.mkdir_p(tmp_dir)
 
-      final_output_path = File.join(tmp_dir, "hpc-agent_#{@arch}_#{Time.now.to_i}")
-      static_build_path = File.join(tmp_dir, "hpc-agent_build_bin")
+      final_output_path = File.join(tmp_dir, "qis-agent_#{@arch}_#{Time.now.to_i}")
+      static_build_path = File.join(tmp_dir, "qis-agent_build_bin")
 
       env = build_environment
 
@@ -136,7 +136,7 @@ module Agent
       unless status.success?
         Rails.logger.error "[CompilerService] Build failed with status #{status.exitstatus}"
         Rails.logger.error "[CompilerService] Stderr: #{stderr}"
-        raise CompilationError, "Failed to compile hpc-agent for #{@arch}: #{stderr}"
+        raise CompilationError, "Failed to compile qis-agent for #{@arch}: #{stderr}"
       end
 
       Rails.logger.debug "[CompilerService] Build successful"
@@ -229,7 +229,7 @@ module Agent
       agent_binary = agent_release.agent_binaries.build(arch: standard_arch)
       agent_binary.binary.attach(
         io: File.open(binary_path, "rb"),
-        filename: "hpc-agent-#{@version_tag}-linux-#{standard_arch}",
+        filename: "qis-agent-#{@version_tag}-linux-#{standard_arch}",
         content_type: "application/octet-stream"
       )
 

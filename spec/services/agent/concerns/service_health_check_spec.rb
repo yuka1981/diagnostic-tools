@@ -62,7 +62,7 @@ RSpec.describe Agent::Concerns::ServiceHealthCheck do
     context "with local execution (ssh is nil)" do
       before do
         allow(instance).to receive(:execute_local_command)
-          .with("systemctl is-active hpc-agent", use_sudo: true)
+          .with("systemctl is-active qis-agent", use_sudo: true)
           .and_return("[sudo] password for user: active\n")
       end
 
@@ -76,8 +76,8 @@ RSpec.describe Agent::Concerns::ServiceHealthCheck do
 
       before do
         allow(instance).to receive(:build_remote_command)
-          .with("systemctl is-active hpc-agent", via_ssh: false, use_sudo: true)
-          .and_return("echo secret | sudo -S bash -c 'systemctl is-active hpc-agent'")
+          .with("systemctl is-active qis-agent", via_ssh: false, use_sudo: true)
+          .and_return("echo secret | sudo -S bash -c 'systemctl is-active qis-agent'")
         allow(instance).to receive(:execute_command)
           .and_return("[sudo] password for deploy: active\n")
       end

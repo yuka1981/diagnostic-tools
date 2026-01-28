@@ -228,12 +228,12 @@ module Agent
       service_content = generate_service_file(server_url: @server_url, api_token: @api_token, node_uuid: @node.uuid)
       service_path = "/etc/systemd/system/#{SERVICE_NAME}.service"
 
-      tempfile = Tempfile.new("hpc-agent-service")
+      tempfile = Tempfile.new("qis-agent-service")
       tempfile.write(service_content)
       tempfile.close
 
-      FileUtils.cp(tempfile.path, "/tmp/hpc-agent.service")
-      execute_local_command("mv /tmp/hpc-agent.service #{service_path}", use_sudo: true)
+      FileUtils.cp(tempfile.path, "/tmp/qis-agent.service")
+      execute_local_command("mv /tmp/qis-agent.service #{service_path}", use_sudo: true)
 
       tempfile.unlink
     end
@@ -243,20 +243,20 @@ module Agent
       service_path = "/etc/systemd/system/#{SERVICE_NAME}.service"
 
       encoded_content = Base64.strict_encode64(service_content)
-      write_cmd = build_remote_command("echo #{encoded_content} | base64 -d > /tmp/hpc-agent.service && mv /tmp/hpc-agent.service #{service_path}", via_ssh: via_ssh, use_sudo: true)
+      write_cmd = build_remote_command("echo #{encoded_content} | base64 -d > /tmp/qis-agent.service && mv /tmp/qis-agent.service #{service_path}", via_ssh: via_ssh, use_sudo: true)
       execute_command(ssh, write_cmd, password: @sudo_password)
     end
 
     def write_agent_uuid(ssh, via_ssh: false)
       report_progress "Writing node UUID"
-      uuid_path = "/etc/hpc-agent/node_id"
+      uuid_path = "/etc/qis-agent/node_id"
 
       if ssh.nil?
-        execute_local_command("mkdir -p /etc/hpc-agent", use_sudo: true)
+        execute_local_command("mkdir -p /etc/qis-agent", use_sudo: true)
         execute_local_command("echo #{@node.uuid} > #{uuid_path}", use_sudo: true)
       else
         cmd = build_remote_command(
-          "mkdir -p /etc/hpc-agent && echo #{@node.uuid} > #{uuid_path}",
+          "mkdir -p /etc/qis-agent && echo #{@node.uuid} > #{uuid_path}",
           via_ssh: via_ssh, use_sudo: true
         )
         execute_command(ssh, cmd, password: @sudo_password)

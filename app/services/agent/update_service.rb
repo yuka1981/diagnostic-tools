@@ -229,14 +229,14 @@ module Agent
     end
 
     def perform_local_rollback
-      execute_local_command("pkill -9 hpc-agent || true", use_sudo: true)
+      execute_local_command("pkill -9 qis-agent || true", use_sudo: true)
       execute_local_command("mv #{TARGET_BIN_PATH}.bak #{TARGET_BIN_PATH}", use_sudo: true)
       execute_local_command("mv /etc/systemd/system/#{SERVICE_NAME}.service.bak /etc/systemd/system/#{SERVICE_NAME}.service 2>/dev/null || true", use_sudo: true)
       execute_local_command("systemctl daemon-reload && systemctl start #{SERVICE_NAME}", use_sudo: true)
     end
 
     def perform_remote_rollback(ssh)
-      execute_command(ssh, build_remote_command("pkill -9 hpc-agent || true", via_ssh: false, use_sudo: true), password: @sudo_password)
+      execute_command(ssh, build_remote_command("pkill -9 qis-agent || true", via_ssh: false, use_sudo: true), password: @sudo_password)
       execute_command(ssh, build_remote_command("mv #{TARGET_BIN_PATH}.bak #{TARGET_BIN_PATH}", via_ssh: false, use_sudo: true), password: @sudo_password)
       execute_command(ssh, build_remote_command("mv /etc/systemd/system/#{SERVICE_NAME}.service.bak /etc/systemd/system/#{SERVICE_NAME}.service 2>/dev/null || true", via_ssh: false, use_sudo: true), password: @sudo_password)
       execute_command(ssh, build_remote_command("systemctl daemon-reload && systemctl start #{SERVICE_NAME}", via_ssh: false, use_sudo: true), password: @sudo_password)

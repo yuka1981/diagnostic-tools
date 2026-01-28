@@ -10,9 +10,9 @@ module Agent
     module RemoteExecution
       extend ActiveSupport::Concern
 
-      SERVICE_NAME = "hpc-agent"
-      TARGET_BIN_PATH = "/usr/local/bin/hpc-agent"
-      STAGING_DIR = "/tmp/hpc-agent-staging"
+      SERVICE_NAME = "qis-agent"
+      TARGET_BIN_PATH = "/usr/local/bin/qis-agent"
+      STAGING_DIR = "/tmp/qis-agent-staging"
 
       def localhost?(host)
         return false if host.blank?
@@ -269,7 +269,7 @@ module Agent
           User=root
           StandardOutput=journal
           StandardError=journal
-          SyslogIdentifier=hpc-agent
+          SyslogIdentifier=qis-agent
 
           [Install]
           WantedBy=multi-user.target

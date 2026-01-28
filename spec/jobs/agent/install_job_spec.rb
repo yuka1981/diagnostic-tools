@@ -24,7 +24,7 @@ RSpec.describe Agent::InstallJob, type: :job do
   end
 
   let(:install_result) { Agent::LifecycleService::Result.new(success: true, message: "Agent installed") }
-  let(:compiler) { instance_double(Agent::CompilerService, call: "/tmp/hpc-agent") }
+  let(:compiler) { instance_double(Agent::CompilerService, call: "/tmp/qis-agent") }
   let(:installer) { instance_double(Agent::InstallService, call: install_result) }
 
   before do
@@ -44,7 +44,7 @@ RSpec.describe Agent::InstallJob, type: :job do
                                                                 node: node,
                                                                 server_url: "http://test.com",
                                                                 api_token: nil,
-                                                                binary_path: "/tmp/hpc-agent",
+                                                                binary_path: "/tmp/qis-agent",
                                                                 cache_key: anything,
                                                                 on_progress: anything
                                                               ))
@@ -160,7 +160,7 @@ RSpec.describe Agent::InstallJob, type: :job do
     it "cleans up local binary after successful installation" do
       described_class.perform_now(**params)
 
-      expect(FileUtils).to have_received(:rm_f).with("/tmp/hpc-agent")
+      expect(FileUtils).to have_received(:rm_f).with("/tmp/qis-agent")
     end
 
     it "cleans up local binary after failed installation" do
@@ -168,7 +168,7 @@ RSpec.describe Agent::InstallJob, type: :job do
 
       described_class.perform_now(**params)
 
-      expect(FileUtils).to have_received(:rm_f).with("/tmp/hpc-agent")
+      expect(FileUtils).to have_received(:rm_f).with("/tmp/qis-agent")
     end
 
     it "does not attempt cleanup if binary was never created" do

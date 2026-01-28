@@ -132,14 +132,14 @@ RSpec.describe Agent::CompilerService do
       expect(FileUtils).to receive(:mv).with(anything, anything)
 
       path = service.call
-      expect(path).to include("tmp/hpc-agent_amd64_")
+      expect(path).to include("tmp/qis-agent_amd64_")
     end
 
     it "raises error if compilation fails" do
       allow(described_class).to receive(:go_available?).and_return(true)
       allow(Open3).to receive(:capture3).and_return([ "", "error message", double(success?: false, exitstatus: 1) ])
 
-      expect { service.call }.to raise_error(Agent::CompilerService::CompilationError, /Failed to compile hpc-agent/)
+      expect { service.call }.to raise_error(Agent::CompilerService::CompilationError, /Failed to compile qis-agent/)
     end
 
     it "raises error if go is not installed" do
