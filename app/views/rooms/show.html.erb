@@ -4,23 +4,23 @@
   { title: @room.name }
 ]) %>
 
-<div class="mb-6">
+<div class="mb-6" data-testid="rooms-show-container">
   <div class="flex items-center justify-between">
     <div class="flex items-center gap-4">
-      <h1 class="text-2xl font-bold text-neutral-85"><%= @room.name %></h1>
+      <h1 class="text-2xl font-bold text-neutral-85" data-testid="rooms-show-name"><%= @room.name %></h1>
       <% if @room.at_capacity? %>
-        <span class="inline-flex items-center rounded-sm px-2 py-0.5 text-xs font-medium bg-warning-1 text-warning-8 border border-warning-2">
+        <span class="inline-flex items-center rounded-sm px-2 py-0.5 text-xs font-medium bg-warning-1 text-warning-8 border border-warning-2" data-testid="rooms-show-capacity-badge">
           At Capacity
         </span>
       <% end %>
     </div>
     <% if current_user.approver? %>
       <div class="flex items-center gap-2">
-        <%= link_to edit_room_path(@room), class: "btn-secondary" do %>
+        <%= link_to edit_room_path(@room), class: "btn-secondary", data: { testid: "rooms-show-button-edit" } do %>
           <%= lucide_icon("square-pen", class: "h-4 w-4 mr-1") %>
           Edit
         <% end %>
-        <%= link_to new_server_rack_path(room_id: @room.id), class: "btn-primary" do %>
+        <%= link_to new_server_rack_path(room_id: @room.id), class: "btn-primary", data: { testid: "rooms-show-button-add-rack" } do %>
           <%= lucide_icon("plus", class: "h-4 w-4 mr-1") %>
           Add Rack
         <% end %>
@@ -31,7 +31,7 @@
 
 <div class="grid gap-6 lg:grid-cols-2">
   <%# Overview Card %>
-  <div class="card-netbox">
+  <div class="card-netbox" data-testid="rooms-show-overview">
     <div class="card-header">
       <h3 class="card-title">Overview</h3>
     </div>
@@ -70,7 +70,7 @@
   </div>
 
   <%# Capacity Card %>
-  <div class="card-netbox">
+  <div class="card-netbox" data-testid="rooms-show-capacity">
     <div class="card-header">
       <h3 class="card-title">Capacity</h3>
     </div>
@@ -121,13 +121,13 @@
 </div>
 
 <%# Racks List %>
-<div class="card-netbox mt-6">
+<div class="card-netbox mt-6" data-testid="rooms-show-racks">
   <div class="card-header flex items-center justify-between">
     <h3 class="card-title">Racks</h3>
   </div>
   <% if @server_racks.any? %>
     <div class="overflow-x-auto">
-      <table class="min-w-full divide-y divide-neutral-8 text-sm">
+      <table class="min-w-full divide-y divide-neutral-8 text-sm" data-testid="rooms-show-racks-table">
         <thead class="bg-neutral-2">
           <tr>
             <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-neutral-45 border-b">Name</th>
@@ -138,11 +138,11 @@
             <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-neutral-45 border-b">Nodes</th>
           </tr>
         </thead>
-        <tbody class="divide-y divide-neutral-8 bg-white">
+        <tbody class="divide-y divide-neutral-8 bg-white" data-testid="rooms-show-racks-tbody">
           <% @server_racks.each do |rack| %>
-            <tr class="hover:bg-neutral-2 transition-colors">
+            <tr class="hover:bg-neutral-2 transition-colors" data-testid="rooms-rack-row-<%= rack.name.parameterize %>">
               <td class="whitespace-nowrap px-3 py-2">
-                <%= link_to server_rack_path(rack), class: "group" do %>
+                <%= link_to server_rack_path(rack), class: "group", data: { testid: "rooms-rack-link-#{rack.name.parameterize}" } do %>
                   <p class="text-sm font-bold text-neutral-85 group-hover:text-primary-6"><%= rack.name %></p>
                 <% end %>
               </td>
@@ -185,7 +185,7 @@
       </table>
     </div>
   <% else %>
-    <div class="flex flex-col items-center justify-center py-12 text-center">
+    <div class="flex flex-col items-center justify-center py-12 text-center" data-testid="rooms-show-racks-empty">
       <div class="h-12 w-12 rounded-full bg-neutral-4 flex items-center justify-center mb-4">
         <%= lucide_icon("server", class: "h-6 w-6 text-neutral-25") %>
       </div>
@@ -202,7 +202,7 @@
 
 <%# Danger Zone %>
 <% if current_user.approver? && @server_racks.empty? %>
-  <div class="card-netbox mt-6 border-error-2">
+  <div class="card-netbox mt-6 border-error-2" data-testid="rooms-show-danger-zone">
     <div class="card-header bg-error-1 border-error-2">
       <h3 class="card-title text-error-8">Danger Zone</h3>
     </div>
@@ -215,7 +215,7 @@
         <%= button_to room_path(@room),
             method: :delete,
             class: "btn-danger",
-            data: { turbo_confirm: "Are you sure you want to delete this room? This action cannot be undone." } do %>
+            data: { turbo_confirm: "Are you sure you want to delete this room? This action cannot be undone.", testid: "rooms-show-button-delete" } do %>
           Delete Room
         <% end %>
       </div>
