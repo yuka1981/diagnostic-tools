@@ -582,3 +582,159 @@ await page.getByTestId('recipes-button-submit').click();
 |---------|---------|
 | `recipes-edit-container` | Page container |
 | `recipes-edit-title` | Page title |
+
+---
+
+## Benchmark Runs Module
+
+The Benchmark Runs module displays benchmark execution history with filtering, pagination, and detailed run information via slide-over panels.
+
+### Benchmark Runs Index Page
+
+| Test ID | Element |
+|---------|---------|
+| `benchmark-runs-page-container` | Page container |
+| `benchmark-runs-filter-form` | Filter form |
+| `benchmark-runs-filter-search` | Search input |
+| `benchmark-runs-filter-status` | Status filter select |
+| `benchmark-runs-filter-node` | Node filter select |
+| `benchmark-runs-filter-recipe` | Recipe filter select |
+| `benchmark-runs-button-search` | Search button |
+| `benchmark-runs-button-clear` | Clear filters button |
+| `benchmark-runs-results-summary` | Results summary text |
+| `benchmark-runs-table` | Main table element |
+| `benchmark-runs-table-header` | Table header (thead) |
+| `benchmark-runs-table-body` | Table body (tbody) |
+| `benchmark-runs-table-empty` | Empty state container |
+| `benchmark-runs-pagination` | Pagination container |
+| `benchmark-runs-pagination-prev` | Previous page button |
+| `benchmark-runs-pagination-next` | Next page button |
+| `benchmark-runs-slideover` | Slide-over container |
+
+### Run Row (dynamic with ID)
+
+| Test ID Pattern | Element |
+|-----------------|---------|
+| `benchmark-runs-row-{id}` | Table row |
+| `benchmark-runs-id-{id}` | Run ID cell |
+| `benchmark-runs-recipe-{id}` | Recipe name cell |
+| `benchmark-runs-hostname-{id}` | Hostname cell |
+| `benchmark-runs-status-{id}` | Status badge |
+| `benchmark-runs-gflops-{id}` | GFLOPS metric cell |
+| `benchmark-runs-duration-{id}` | Duration cell |
+| `benchmark-runs-created-{id}` | Created timestamp cell |
+| `benchmark-runs-button-cancel-{id}` | Cancel run button |
+| `benchmark-runs-button-view-{id}` | View run button |
+
+**Playwright Example:**
+```typescript
+// Click on a specific run
+await page.getByTestId('benchmark-runs-row-123').click();
+
+// Check run status
+await expect(page.getByTestId('benchmark-runs-status-123')).toContainText('Completed');
+
+// Cancel a running benchmark
+await page.getByTestId('benchmark-runs-button-cancel-456').click();
+```
+
+### Benchmark Runs Show Page
+
+| Test ID | Element |
+|---------|---------|
+| `benchmark-runs-show-container` | Page container |
+| `benchmark-runs-show-status-icon` | Status icon |
+| `benchmark-runs-show-recipe` | Recipe name display |
+| `benchmark-runs-show-status` | Status badge |
+| `benchmark-runs-show-button-cancel` | Cancel run button |
+| `benchmark-runs-show-details` | Details card |
+| `benchmark-runs-show-results` | Results card |
+| `benchmark-runs-show-error` | Error display card |
+| `benchmark-runs-show-config` | Configuration card |
+| `benchmark-runs-show-logs` | Logs card |
+| `benchmark-runs-show-logs-toggle` | Logs expand/collapse toggle |
+| `benchmark-runs-show-logs-content` | Logs content container |
+| `benchmark-runs-show-artifacts` | Artifacts card |
+| `benchmark-runs-show-artifacts-table` | Artifacts table |
+
+### Results Card
+
+| Test ID | Element |
+|---------|---------|
+| `benchmark-runs-results-card` | Results card container |
+| `benchmark-runs-results-badge` | Results status badge |
+| `benchmark-runs-results-waiting` | Waiting for results indicator |
+| `benchmark-runs-results-spinner` | Loading spinner |
+| `benchmark-runs-results-phase` | Current phase display |
+| `benchmark-runs-results-metrics` | Metrics container |
+| `benchmark-runs-results-empty` | Empty results state |
+| `benchmark-runs-metric-{key}` | Metric label (dynamic) |
+| `benchmark-runs-metric-value-{key}` | Metric value (dynamic) |
+
+**Playwright Example:**
+```typescript
+// Wait for results to load
+await page.getByTestId('benchmark-runs-results-card').waitFor();
+
+// Check specific metric
+await expect(page.getByTestId('benchmark-runs-metric-value-gflops')).toContainText('125.6');
+```
+
+### Configuration Card
+
+| Test ID | Element |
+|---------|---------|
+| `benchmark-runs-config-card` | Configuration card container |
+| `benchmark-runs-config-recipe` | Recipe configuration display |
+| `benchmark-runs-config-command` | Command display |
+| `benchmark-runs-config-timeout` | Timeout display |
+| `benchmark-runs-config-args` | Arguments display |
+
+### Slide-over
+
+| Test ID | Element |
+|---------|---------|
+| `benchmark-runs-slideover-backdrop` | Slide-over backdrop |
+| `benchmark-runs-slideover-panel` | Slide-over panel |
+| `benchmark-runs-slideover-title` | Slide-over title |
+| `benchmark-runs-slideover-close` | Close button |
+| `benchmark-runs-slideover-content` | Content container |
+
+### Slide-over Content
+
+| Test ID | Element |
+|---------|---------|
+| `benchmark-runs-slideover-content-frame` | Content turbo frame |
+| `benchmark-runs-slideover-header` | Header section |
+| `benchmark-runs-slideover-recipe` | Recipe name display |
+| `benchmark-runs-slideover-status` | Status badge |
+| `benchmark-runs-slideover-cancel` | Cancel button |
+| `benchmark-runs-slideover-tabs` | Tab navigation |
+| `benchmark-runs-tab-summary` | Summary tab |
+| `benchmark-runs-tab-metrics` | Metrics tab |
+| `benchmark-runs-tab-logs` | Logs tab |
+| `benchmark-runs-tab-artifacts` | Artifacts tab |
+| `benchmark-runs-panel-summary` | Summary panel |
+| `benchmark-runs-panel-metrics` | Metrics panel |
+| `benchmark-runs-panel-logs` | Logs panel |
+| `benchmark-runs-panel-artifacts` | Artifacts panel |
+| `benchmark-runs-slideover-error` | Error display |
+| `benchmark-runs-slideover-details` | Details section |
+| `benchmark-runs-slideover-metrics` | Metrics section |
+| `benchmark-runs-slideover-logs` | Logs section |
+| `benchmark-runs-slideover-artifacts` | Artifacts section |
+| `benchmark-runs-slideover-view-full` | View full page link |
+
+**Playwright Example:**
+```typescript
+// Open slide-over from table row
+await page.getByTestId('benchmark-runs-button-view-123').click();
+await page.getByTestId('benchmark-runs-slideover-panel').waitFor();
+
+// Switch tabs
+await page.getByTestId('benchmark-runs-tab-logs').click();
+await expect(page.getByTestId('benchmark-runs-panel-logs')).toBeVisible();
+
+// Close slide-over
+await page.getByTestId('benchmark-runs-slideover-close').click();
+```
