@@ -36,11 +36,11 @@
           <button type="button"
                   data-action="click->collapsible#toggle"
                   class="w-full flex items-center gap-3 px-5 py-2 text-sm font-bold rounded transition-colors <%= inventory_active ? 'text-primary-6' : 'hover:bg-neutral-4 hover:text-primary-6' %>">
+            <%= lucide_icon("archive", class: "h-5 w-5 opacity-75") %>
+            <span class="flex-1 text-left">Inventory</span>
             <%= lucide_icon("chevron-right",
                 class: "h-4 w-4 opacity-75 transition-transform duration-200",
                 data: { collapsible_target: "icon" }) %>
-            <%= lucide_icon("archive", class: "h-5 w-5 opacity-75") %>
-            <span>Inventory</span>
           </button>
 
           <%# Inventory child items %>
