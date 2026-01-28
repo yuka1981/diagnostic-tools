@@ -1,5 +1,6 @@
-<div class="fixed inset-0 z-50 overflow-y-auto" 
-     data-controller="modal">
+<div class="fixed inset-0 z-50 overflow-y-auto"
+     data-controller="modal"
+     <%= "data-testid=#{local_assigns[:testid]}" if local_assigns[:testid] %>>
   <%# Backdrop %>
   <div class="fixed inset-0 bg-neutral-85/50 backdrop-blur-sm transition-opacity"></div>
 
@@ -8,7 +9,7 @@
     <div class="card-netbox relative w-full <%= local_assigns[:max_width] || 'max-w-2xl' %> transform transition-all shadow-2xl">
       <%# Header %>
       <div class="card-header">
-        <h3 class="card-title"><%= title %></h3>
+        <h3 class="card-title" <%= "data-testid=#{local_assigns[:title_testid]}" if local_assigns[:title_testid] %>><%= title %></h3>
         <button type="button"
                 class="text-neutral-25 hover:text-neutral-45 transition-colors"
                 data-action="modal#close">
