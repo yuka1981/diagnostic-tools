@@ -1096,3 +1096,290 @@ await page.getByTestId('rooms-button-submit').click();
 |---------|---------|
 | `rooms-edit-container` | Page container |
 | `rooms-edit-title` | Page title |
+
+---
+
+## Settings & Admin Module
+
+The Settings & Admin module manages SSH defaults, agent configuration, agent releases, server products, and API keys.
+
+### SSH Settings Page
+
+| Test ID | Element |
+|---------|---------|
+| `ssh-settings-container` | Page container |
+| `ssh-settings-form` | Settings form |
+| `ssh-settings-input-bastion-host` | Bastion host input |
+| `ssh-settings-input-bastion-user` | Bastion user input |
+| `ssh-settings-input-bastion-port` | Bastion port input |
+| `ssh-settings-input-user` | SSH user input |
+| `ssh-settings-input-port` | SSH port input |
+| `ssh-settings-input-key` | SSH key textarea |
+| `ssh-settings-input-password` | SSH password input |
+| `ssh-settings-input-sudo` | Sudo credential input |
+| `ssh-settings-input-timeout` | Timeout input |
+| `ssh-settings-checkbox-verify` | Verify host key checkbox |
+| `ssh-settings-button-submit` | Submit button |
+
+**Playwright Example:**
+```typescript
+// Configure SSH settings
+await page.getByTestId('ssh-settings-input-bastion-host').fill('bastion.example.com');
+await page.getByTestId('ssh-settings-input-user').fill('admin');
+await page.getByTestId('ssh-settings-checkbox-verify').check();
+await page.getByTestId('ssh-settings-button-submit').click();
+```
+
+### Agent Configuration Page
+
+| Test ID | Element |
+|---------|---------|
+| `agent-config-container` | Page container |
+| `agent-config-form` | Configuration form |
+| `agent-config-input-url` | Server URL input |
+| `agent-config-input-path` | Agent path input |
+| `agent-config-input-workdir` | Working directory input |
+| `agent-config-button-submit` | Submit button |
+| `agent-config-releases` | Releases section |
+| `agent-config-button-new-release` | New release button |
+
+**Playwright Example:**
+```typescript
+// Configure agent settings
+await page.getByTestId('agent-config-input-url').fill('https://hpc-portal.com');
+await page.getByTestId('agent-config-input-path').fill('/usr/local/bin/hpc-agent');
+await page.getByTestId('agent-config-button-submit').click();
+```
+
+### Agent Releases Index Page
+
+#### Static Elements
+
+| Test ID | Element |
+|---------|---------|
+| `agent-releases-container` | Page container |
+| `agent-releases-button-new` | New release button |
+| `agent-releases-table` | Main table element |
+| `agent-releases-table-header` | Table header (thead) |
+| `agent-releases-table-body` | Table body (tbody) |
+| `agent-releases-empty` | Empty state container |
+
+#### Dynamic Elements (by version)
+
+| Test ID Pattern | Element |
+|-----------------|---------|
+| `agent-releases-row-{version}` | Table row |
+| `agent-releases-version-{version}` | Version cell link |
+| `agent-releases-status-{version}` | Status badge |
+| `agent-releases-button-view-{version}` | View release button |
+| `agent-releases-button-edit-{version}` | Edit release button |
+
+**Playwright Example:**
+```typescript
+// Click on a specific release
+await page.getByTestId('agent-releases-version-v1.2.0').click();
+
+// Check release status
+await expect(page.getByTestId('agent-releases-status-v1.2.0')).toContainText('Active');
+
+// Edit a release
+await page.getByTestId('agent-releases-button-edit-v1.2.0').click();
+```
+
+### Agent Releases Show Page
+
+| Test ID | Element |
+|---------|---------|
+| `agent-releases-show-container` | Page container |
+| `agent-releases-show-version` | Version heading |
+| `agent-releases-show-status` | Status badge |
+| `agent-releases-show-latest` | Latest badge |
+| `agent-releases-show-button-edit` | Edit release button |
+| `agent-releases-show-button-deprecate` | Deprecate button |
+| `agent-releases-show-button-activate` | Activate button |
+| `agent-releases-show-button-recall` | Recall button |
+| `agent-releases-show-overview` | Overview card |
+| `agent-releases-show-binaries` | Binaries card |
+| `agent-releases-show-binaries-table` | Binaries table |
+| `agent-releases-show-copy-checksum` | Copy checksum button |
+| `agent-releases-show-notes` | Release notes card |
+| `agent-releases-show-danger` | Danger zone card |
+| `agent-releases-show-button-delete` | Delete release button |
+
+#### Dynamic Elements (by architecture)
+
+| Test ID Pattern | Element |
+|-----------------|---------|
+| `agent-releases-binary-{arch}` | Binary row |
+| `agent-releases-download-{arch}` | Download button |
+
+**Playwright Example:**
+```typescript
+// View release details
+await page.getByTestId('agent-releases-show-container').waitFor();
+await expect(page.getByTestId('agent-releases-show-version')).toContainText('v1.2.0');
+
+// Download a binary
+await page.getByTestId('agent-releases-download-linux-amd64').click();
+
+// Deprecate a release
+await page.getByTestId('agent-releases-show-button-deprecate').click();
+```
+
+### Agent Releases Form
+
+| Test ID | Element |
+|---------|---------|
+| `agent-releases-form` | Form element |
+| `agent-releases-form-errors` | Form errors container |
+| `agent-releases-input-version` | Version input |
+| `agent-releases-select-status` | Status select |
+| `agent-releases-input-binary` | Binary file input |
+| `agent-releases-input-notes` | Release notes textarea |
+| `agent-releases-button-cancel` | Cancel button |
+| `agent-releases-button-submit` | Submit button |
+
+**Playwright Example:**
+```typescript
+// Fill out release form
+await page.getByTestId('agent-releases-input-version').fill('v1.3.0');
+await page.getByTestId('agent-releases-input-binary').setInputFiles('agent-v1.3.0');
+await page.getByTestId('agent-releases-input-notes').fill('## What\'s New\n\n- Feature 1');
+await page.getByTestId('agent-releases-button-submit').click();
+```
+
+### Server Products Index Page
+
+#### Static Elements
+
+| Test ID | Element |
+|---------|---------|
+| `server-products-container` | Page container |
+| `server-products-button-sync` | Sync from QCT button |
+| `server-products-button-new` | Add product button |
+| `server-products-last-sync` | Last sync timestamp |
+| `server-products-filter-form` | Filter form |
+| `server-products-filter-search` | Search input |
+| `server-products-filter-series` | Series filter select |
+| `server-products-filter-form-factor` | Form factor filter select |
+| `server-products-button-filter` | Filter button |
+| `server-products-button-clear` | Clear button |
+| `server-products-table` | Main table element |
+| `server-products-table-body` | Table body (tbody) |
+| `server-products-empty` | Empty state container |
+| `server-products-pagination` | Pagination container |
+
+#### Dynamic Elements (by parameterized name)
+
+| Test ID Pattern | Element |
+|-----------------|---------|
+| `server-products-row-{name}` | Table row |
+| `server-products-name-{name}` | Product name link |
+| `server-products-button-view-{name}` | View product button |
+| `server-products-button-edit-{name}` | Edit product button |
+
+**Playwright Example:**
+```typescript
+// Filter products
+await page.getByTestId('server-products-filter-search').fill('QuantaGrid');
+await page.getByTestId('server-products-filter-series').selectOption('QuantaGrid');
+await page.getByTestId('server-products-button-filter').click();
+
+// Click on a specific product
+await page.getByTestId('server-products-name-quantagrid-d54q-2u').click();
+
+// Clear filters
+await page.getByTestId('server-products-button-clear').click();
+```
+
+### Server Products Form
+
+| Test ID | Element |
+|---------|---------|
+| `server-products-form` | Form element |
+| `server-products-form-errors` | Form errors container |
+| `server-products-input-name` | Name input |
+| `server-products-input-series` | Series input |
+| `server-products-select-form-factor` | Form factor select |
+| `server-products-input-rack-height` | Rack height input |
+| `server-products-input-url` | QCT URL input |
+| `server-products-input-cpu-gen` | CPU generations input |
+| `server-products-select-sockets` | Socket count select |
+| `server-products-input-tdp` | Max TDP input |
+| `server-products-checkbox-gpu` | GPU support checkbox |
+| `server-products-input-max-memory` | Max memory input |
+| `server-products-input-dimm-slots` | DIMM slots input |
+| `server-products-input-memory-types` | Memory types input |
+| `server-products-input-memory-speed` | Memory speed input |
+| `server-products-input-images` | Images file input |
+| `server-products-button-cancel` | Cancel button |
+| `server-products-button-submit` | Submit button |
+
+**Playwright Example:**
+```typescript
+// Fill out product form
+await page.getByTestId('server-products-input-name').fill('QuantaGrid D54Q-2U');
+await page.getByTestId('server-products-input-series').fill('QuantaGrid');
+await page.getByTestId('server-products-select-form-factor').selectOption('2U');
+await page.getByTestId('server-products-input-cpu-gen').fill('5th Gen Xeon');
+await page.getByTestId('server-products-checkbox-gpu').check();
+await page.getByTestId('server-products-button-submit').click();
+```
+
+### API Keys Index Page
+
+#### Static Elements
+
+| Test ID | Element |
+|---------|---------|
+| `api-keys-container` | Page container |
+| `api-keys-button-new` | Generate key button |
+| `api-keys-table` | Main table element |
+| `api-keys-table-header` | Table header (thead) |
+| `api-keys-table-body` | Table body (tbody) |
+| `api-keys-empty` | Empty state container |
+
+#### Dynamic Elements (by parameterized name)
+
+| Test ID Pattern | Element |
+|-----------------|---------|
+| `api-keys-row-{name}` | Table row |
+| `api-keys-name-{name}` | Name cell |
+| `api-keys-token-{name}` | Token display |
+| `api-keys-status-{name}` | Status badge |
+| `api-keys-last-used-{name}` | Last used cell |
+| `api-keys-button-revoke-{name}` | Revoke button |
+| `api-keys-button-delete-{name}` | Delete button |
+
+**Playwright Example:**
+```typescript
+// Generate a new API key
+await page.getByTestId('api-keys-button-new').click();
+
+// Check key status
+await expect(page.getByTestId('api-keys-status-cluster-alpha')).toContainText('Active');
+
+// Revoke a key
+await page.getByTestId('api-keys-button-revoke-cluster-alpha').click();
+
+// Delete a revoked key
+await page.getByTestId('api-keys-button-delete-cluster-alpha').click();
+```
+
+### API Keys New Page
+
+| Test ID | Element |
+|---------|---------|
+| `api-keys-new-container` | Page container |
+| `api-keys-form` | Form element |
+| `api-keys-form-errors` | Form errors container |
+| `api-keys-input-name` | Name input |
+| `api-keys-button-cancel` | Cancel button |
+| `api-keys-button-generate` | Generate button |
+
+**Playwright Example:**
+```typescript
+// Generate a new API key
+await page.getByTestId('api-keys-input-name').fill('Compute Cluster Alpha');
+await page.getByTestId('api-keys-button-generate').click();
+```
