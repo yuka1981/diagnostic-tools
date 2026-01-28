@@ -6,7 +6,7 @@ RSpec.describe Benchmark::CommandBuilders::MlcCommandBuilder do
   let(:run_id) { Faker::Number.number(digits: 5) }
   let(:node_uuid) { Faker::Internet.uuid }
   let(:token) { Faker::Alphanumeric.alphanumeric(number: 32) }
-  let(:agent_bin) { "/usr/local/bin/hpc-agent" }
+  let(:agent_bin) { "/usr/local/bin/qis-agent" }
   let(:server_url) { "https://example.com" }
 
   describe "#subcommand" do

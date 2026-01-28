@@ -5,7 +5,7 @@ require "rails_helper"
 RSpec.describe Benchmark::CommandBuilders::HpcgCommandBuilder do
   let(:run_id) { Faker::Number.number(digits: 5) }
   let(:node_uuid) { Faker::Internet.uuid }
-  let(:agent_bin) { "/usr/local/bin/hpc-agent" }
+  let(:agent_bin) { "/usr/local/bin/qis-agent" }
   let(:server_url) { Faker::Internet.url }
   let(:token) { Faker::Alphanumeric.alphanumeric(number: 32) }
 

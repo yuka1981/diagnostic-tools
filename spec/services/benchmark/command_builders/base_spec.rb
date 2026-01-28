@@ -3,7 +3,7 @@
 require "rails_helper"
 
 RSpec.describe Benchmark::CommandBuilders::Base do
-  let(:agent_bin) { "/usr/local/bin/hpc-agent" }
+  let(:agent_bin) { "/usr/local/bin/qis-agent" }
   let(:run_id) { Faker::Alphanumeric.alphanumeric(number: 10) }
   let(:node_uuid) { Faker::Internet.uuid }
   let(:arguments) { { "size" => "1024", "iterations" => "100" } }
