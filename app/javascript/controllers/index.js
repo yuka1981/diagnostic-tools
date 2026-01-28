@@ -55,6 +55,9 @@ application.register("log-stream", LogStreamController)
 import MlcProfileController from "./mlc_profile_controller"
 application.register("mlc-profile", MlcProfileController)
 
+import MlcUploadController from "./mlc_upload_controller"
+application.register("mlc-upload", MlcUploadController)
+
 import ModalController from "./modal_controller"
 application.register("modal", ModalController)
 
