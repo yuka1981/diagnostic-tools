@@ -7,13 +7,14 @@ class FormFieldComponent < ViewComponent::Base
   NORMAL_BORDER = "border-neutral-15"
   ERROR_BORDER = "border-error-3 focus:border-error-5 focus:ring-error-5"
 
-  def initialize(form:, attribute:, label:, hint: nil, placeholder: nil, required: false)
+  def initialize(form:, attribute:, label:, hint: nil, placeholder: nil, required: false, testid: nil)
     @form = form
     @attribute = attribute
     @label = label
     @hint = hint
     @placeholder = placeholder
     @required = required
+    @testid = testid
   end
 
   def input_classes
@@ -51,5 +52,5 @@ class FormFieldComponent < ViewComponent::Base
 
   private
 
-  attr_reader :form, :attribute, :label, :hint, :placeholder, :required
+  attr_reader :form, :attribute, :label, :hint, :placeholder, :required, :testid
 end
