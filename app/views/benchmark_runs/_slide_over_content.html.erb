@@ -12,7 +12,7 @@
             <h3 class="text-base font-bold text-neutral-85 truncate" data-testid="benchmark-runs-slideover-recipe">
               <%= benchmark_run.benchmark_recipe.display_name %>
             </h3>
-            <%= node_status_badge(benchmark_run.status, data: { testid: "benchmark-runs-slideover-status" }) %>
+            <span data-testid="benchmark-runs-slideover-status"><%= node_status_badge(benchmark_run.status) %></span>
             <% if benchmark_run.pending? || benchmark_run.running? %>
               <%= button_to cancel_benchmark_run_path(benchmark_run),
                   method: :post,
