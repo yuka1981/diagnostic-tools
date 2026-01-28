@@ -1,5 +1,5 @@
-<%= turbo_frame_tag "notifications_list" do %>
-  <div id="notifications_list">
+<%= turbo_frame_tag "notifications_list", data: { testid: "notifications-list-frame" } do %>
+  <div id="notifications_list" data-testid="notifications-list-container">
     <% if notifications.any? %>
       <ul class="divide-y divide-neutral-8">
         <% notifications.each do |notification| %>

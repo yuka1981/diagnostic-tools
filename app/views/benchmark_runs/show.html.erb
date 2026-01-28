@@ -7,13 +7,13 @@
 <% end %>
 
 <%# Header with status %>
-<div class="mb-6 flex items-start justify-between">
+<div class="mb-6 flex items-start justify-between" data-testid="benchmark-runs-show-container">
   <div class="flex items-center gap-4">
-    <div class="flex h-14 w-14 items-center justify-center rounded-lg bg-white border border-neutral-15 shadow-sm">
+    <div class="flex h-14 w-14 items-center justify-center rounded-lg bg-white border border-neutral-15 shadow-sm" data-testid="benchmark-runs-show-status-icon">
       <%= status_icon(@benchmark_run.status) %>
     </div>
     <div>
-      <h1 class="text-2xl font-bold text-neutral-85">
+      <h1 class="text-2xl font-bold text-neutral-85" data-testid="benchmark-runs-show-recipe">
         <%= @benchmark_run.benchmark_recipe.display_name %>
       </h1>
       <p class="text-sm text-neutral-45">
@@ -23,11 +23,11 @@
     </div>
   </div>
   <div class="flex items-center gap-3">
-    <%= node_status_badge(@benchmark_run.status) %>
+    <span data-testid="benchmark-runs-show-status"><%= node_status_badge(@benchmark_run.status) %></span>
     <% if @benchmark_run.pending? || @benchmark_run.running? %>
       <%= button_to cancel_benchmark_run_path(@benchmark_run),
           method: :post,
-          data: { turbo_confirm: "Are you sure you want to cancel this benchmark run?" },
+          data: { turbo_confirm: "Are you sure you want to cancel this benchmark run?", testid: "benchmark-runs-show-button-cancel" },
           class: "inline-flex items-center gap-1 px-3 py-1.5 text-sm font-bold text-error-6 bg-white border border-error-3 rounded hover:bg-error-1 hover:border-error-4 transition-colors" do %>
         <%= lucide_icon("x", class: "h-4 w-4") %>
         Cancel Run
@@ -39,7 +39,7 @@
 <%# Top Section: Run Details (left) + Results (right) %>
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
   <%# Run Details Card %>
-  <div class="card-netbox">
+  <div class="card-netbox" data-testid="benchmark-runs-show-details">
     <div class="card-header">
       <h3 class="card-title">Run Details</h3>
     </div>
@@ -82,12 +82,14 @@
   </div>
 
   <%# Results Card %>
-  <%= render "benchmark_runs/results_card", run: @benchmark_run %>
+  <div data-testid="benchmark-runs-show-results">
+    <%= render "benchmark_runs/results_card", run: @benchmark_run %>
+  </div>
 </div>
 
 <%# Error Message Card (full width) %>
 <% if @benchmark_run.error_message.present? %>
-  <div class="card-netbox border-error-3 mb-6">
+  <div class="card-netbox border-error-3 mb-6" data-testid="benchmark-runs-show-error">
     <div class="card-header bg-error-1 border-error-3">
       <h3 class="card-title text-error-8">Error Message</h3>
     </div>
@@ -100,18 +102,20 @@
 <%# Bottom Section: Configuration, Logs, Artifacts (single column) %>
 <div class="space-y-6">
   <%# Configuration Card %>
-  <%= render "benchmark_runs/configuration_card", run: @benchmark_run %>
+  <div data-testid="benchmark-runs-show-config">
+    <%= render "benchmark_runs/configuration_card", run: @benchmark_run %>
+  </div>
 
   <%# Logs Card (collapsed by default) %>
   <% if @benchmark_run.log_content.present? %>
-    <div class="card-netbox" data-controller="collapsible" data-collapsible-open-value="false">
-      <div class="card-header cursor-pointer" data-action="click->collapsible#toggle">
+    <div class="card-netbox" data-controller="collapsible" data-collapsible-open-value="false" data-testid="benchmark-runs-show-logs">
+      <div class="card-header cursor-pointer" data-action="click->collapsible#toggle" data-testid="benchmark-runs-show-logs-toggle">
         <div class="flex items-center justify-between w-full">
           <h3 class="card-title">Logs</h3>
           <%= lucide_icon("chevron-down", class: "h-5 w-5 text-neutral-25 transform transition-transform", data: { collapsible_target: "icon" }) %>
         </div>
       </div>
-      <div data-collapsible-target="content" class="hidden">
+      <div data-collapsible-target="content" class="hidden" data-testid="benchmark-runs-show-logs-content">
         <pre class="p-4 text-xs font-mono text-neutral-85 bg-neutral-2 overflow-x-auto max-h-96 whitespace-pre-wrap break-words border-t border-neutral-8"><%= @benchmark_run.log_content %></pre>
       </div>
     </div>
@@ -119,13 +123,13 @@
 
   <%# Artifacts Card %>
   <% if @benchmark_run.artifact_indices.any? %>
-    <div class="card-netbox">
+    <div class="card-netbox" data-testid="benchmark-runs-show-artifacts">
       <div class="card-header">
         <h3 class="card-title">Artifacts</h3>
         <span class="text-xs text-neutral-45"><%= @benchmark_run.artifact_indices.count %> files</span>
       </div>
       <div class="p-0">
-        <table class="min-w-full divide-y divide-neutral-8 text-sm">
+        <table class="min-w-full divide-y divide-neutral-8 text-sm" data-testid="benchmark-runs-show-artifacts-table">
           <thead class="bg-neutral-2">
             <tr>
               <th class="px-4 py-2 text-left text-xs font-bold uppercase text-neutral-45">Name</th>

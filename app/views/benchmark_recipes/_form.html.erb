@@ -1,6 +1,6 @@
-<%= form_with(model: @benchmark_recipe, class: "space-y-6") do |f| %>
+<%= form_with(model: @benchmark_recipe, class: "space-y-6", data: { testid: "recipes-form" }) do |f| %>
   <% if @benchmark_recipe.errors.any? %>
-    <div class="rounded-lg bg-error-1 p-4 text-sm text-error-7 border border-error-2">
+    <div class="rounded-lg bg-error-1 p-4 text-sm text-error-7 border border-error-2" data-testid="recipes-form-errors">
       <h2 class="font-bold mb-2"><%= pluralize(@benchmark_recipe.errors.count, "error") %> prohibited this recipe from being saved:</h2>
       <ul class="list-disc list-inside">
         <% @benchmark_recipe.errors.full_messages.each do |message| %>
@@ -20,6 +20,7 @@
         <%= f.label :name, class: "block text-sm font-bold text-neutral-85 mb-1" %>
         <%= f.text_field :name, required: true,
             placeholder: "HPCG",
+            data: { testid: "recipes-input-name" },
             class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm" %>
         <p class="mt-1 text-xs text-neutral-45">Display name for the benchmark recipe.</p>
       </div>
@@ -28,6 +29,7 @@
         <%= f.label :version, class: "block text-sm font-bold text-neutral-85 mb-1" %>
         <%= f.text_field :version, required: true,
             placeholder: "3.1",
+            data: { testid: "recipes-input-version" },
             class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm" %>
         <p class="mt-1 text-xs text-neutral-45">Version identifier.</p>
       </div>
@@ -36,6 +38,7 @@
         <%= f.label :description, class: "block text-sm font-bold text-neutral-85 mb-1" %>
         <%= f.text_area :description, rows: 3,
             placeholder: "High Performance Conjugate Gradients benchmark for measuring...",
+            data: { testid: "recipes-input-description" },
             class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm" %>
         <p class="mt-1 text-xs text-neutral-45">Optional description of this benchmark recipe.</p>
       </div>
@@ -44,6 +47,7 @@
         <%= f.label :slug, class: "block text-sm font-bold text-neutral-85 mb-1" %>
         <%= f.text_field :slug,
             placeholder: "hpcg-3-1 (auto-generated if empty)",
+            data: { testid: "recipes-input-slug" },
             class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm font-mono" %>
         <p class="mt-1 text-xs text-neutral-45">URL-friendly identifier. Auto-generated from name and version if left empty.</p>
       </div>
@@ -51,7 +55,7 @@
       <div>
         <%= f.label :status, class: "block text-sm font-bold text-neutral-85 mb-1" %>
         <%= f.select :status, BenchmarkRecipe.statuses.keys.map { |s| [s.humanize, s] }, {},
-            class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm" %>
+            { data: { testid: "recipes-select-status" }, class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm" } %>
         <p class="mt-1 text-xs text-neutral-45">Active recipes are available for running benchmarks.</p>
       </div>
     </div>
@@ -67,6 +71,7 @@
         <%= f.label :command, class: "block text-sm font-bold text-neutral-85 mb-1" %>
         <%= f.text_field :command, required: true,
             placeholder: "hpcg",
+            data: { testid: "recipes-input-command" },
             class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm font-mono" %>
         <p class="mt-1 text-xs text-neutral-45">The command or binary to execute on the agent.</p>
       </div>
@@ -75,6 +80,7 @@
         <%= f.label :timeout_seconds, "Timeout (seconds)", class: "block text-sm font-bold text-neutral-85 mb-1" %>
         <%= f.number_field :timeout_seconds, min: 60, max: 86400,
             placeholder: "3600",
+            data: { testid: "recipes-input-timeout" },
             class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm" %>
         <p class="mt-1 text-xs text-neutral-45">Maximum execution time before timeout (60-86400 seconds).</p>
       </div>
@@ -85,6 +91,7 @@
             value: @benchmark_recipe.default_profile.present? ? JSON.pretty_generate(@benchmark_recipe.default_profile) : "",
             rows: 6,
             placeholder: '{"nx": 104, "ny": 104, "nz": 104}',
+            data: { testid: "recipes-input-profile" },
             class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm font-mono" %>
         <p class="mt-1 text-xs text-neutral-45">Default parameters in JSON format. These can be overridden when running a benchmark.</p>
       </div>
@@ -92,7 +99,7 @@
   </div>
 
   <div class="flex items-center justify-end gap-3 pt-4">
-    <%= link_to "Cancel", benchmark_recipes_path, class: "btn-secondary" %>
-    <%= f.submit @benchmark_recipe.new_record? ? "Create Recipe" : "Update Recipe", class: "btn-primary" %>
+    <%= link_to "Cancel", benchmark_recipes_path, class: "btn-secondary", data: { testid: "recipes-button-cancel" } %>
+    <%= f.submit @benchmark_recipe.new_record? ? "Create Recipe" : "Update Recipe", class: "btn-primary", data: { testid: "recipes-button-submit" } %>
   </div>
 <% end %>

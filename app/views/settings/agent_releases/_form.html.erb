@@ -1,6 +1,6 @@
-<%= form_with(model: [:settings, agent_release]) do |form| %>
+<%= form_with(model: [:settings, agent_release], data: { testid: "agent-releases-form" }) do |form| %>
   <% if agent_release.errors.any? %>
-    <div class="rounded-md bg-error-1 border border-error-2 p-4 mb-6">
+    <div class="rounded-md bg-error-1 border border-error-2 p-4 mb-6" data-testid="agent-releases-form-errors">
       <div class="flex">
         <div class="flex-shrink-0">
           <%= lucide_icon("alert-circle", class: "h-5 w-5 text-error-5") %>
@@ -35,7 +35,8 @@
           <%= form.text_field :version,
               class: "block w-full rounded border border-neutral-15 py-1.5 px-3 text-neutral-85 shadow-sm focus:ring-2 focus:ring-primary-5 focus:border-primary-5 sm:text-sm",
               placeholder: "v1.0.0",
-              required: true %>
+              required: true,
+              data: { testid: "agent-releases-input-version" } %>
           <p class="mt-1 text-[10px] text-neutral-45">
             Semantic version format (e.g., v1.0.0, 1.2.3-beta).
             <% if latest_version.present? %>
@@ -51,7 +52,8 @@
             <%= form.select :status,
                 AgentRelease.statuses.keys.map { |s| [s.humanize, s] },
                 {},
-                class: "block w-full rounded border border-neutral-15 py-1.5 px-3 text-neutral-85 shadow-sm focus:ring-2 focus:ring-primary-5 focus:border-primary-5 sm:text-sm" %>
+                { class: "block w-full rounded border border-neutral-15 py-1.5 px-3 text-neutral-85 shadow-sm focus:ring-2 focus:ring-primary-5 focus:border-primary-5 sm:text-sm",
+                  data: { testid: "agent-releases-select-status" } } %>
           </div>
         <% end %>
       </div>
@@ -83,7 +85,8 @@
                        file:bg-primary-1 file:text-primary-7
                        hover:file:bg-primary-1
                        cursor-pointer",
-                accept: "application/octet-stream,application/x-executable,application/x-elf" %>
+                accept: "application/octet-stream,application/x-executable,application/x-elf",
+                data: { testid: "agent-releases-input-binary" } %>
           </div>
         </div>
       </div>
@@ -101,7 +104,8 @@
             <%= form.text_area :release_notes,
                 class: "block w-full rounded border border-neutral-15 py-1.5 px-3 text-neutral-85 shadow-sm focus:ring-2 focus:ring-primary-5 focus:border-primary-5 sm:text-sm font-mono",
                 rows: 6,
-                placeholder: "## What's New\n\n- Feature 1\n- Bug fix 2\n- Improvement 3" %>
+                placeholder: "## What's New\n\n- Feature 1\n- Bug fix 2\n- Improvement 3",
+                data: { testid: "agent-releases-input-notes" } %>
           </div>
         </div>
       </div>
@@ -110,9 +114,11 @@
     <div class="flex items-center justify-end gap-3 bg-neutral-2 border-t border-neutral-8 px-4 py-3">
       <%= link_to "Cancel",
           agent_release.persisted? ? settings_agent_release_path(agent_release) : settings_agent_path,
-          class: "btn-secondary" %>
+          class: "btn-secondary",
+          data: { testid: "agent-releases-button-cancel" } %>
       <%= form.submit agent_release.persisted? ? "Update Release" : "Upload Release",
-          class: "btn-primary" %>
+          class: "btn-primary",
+          data: { testid: "agent-releases-button-submit" } %>
     </div>
   </div>
 <% end %>

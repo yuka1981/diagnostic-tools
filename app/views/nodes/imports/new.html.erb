@@ -1,7 +1,7 @@
 <%= turbo_frame_tag "import_modal" do %>
-  <%= render "shared/modal", title: "Import Nodes from CSV" do %>
+  <%= render "shared/modal", title: "Import Nodes from CSV", testid: "nodes-import-modal" do %>
     <div class="space-y-6">
-      <div class="rounded-md bg-primary-1 p-4 border border-primary-2">
+      <div class="rounded-md bg-primary-1 p-4 border border-primary-2" data-testid="nodes-import-requirements">
         <div class="flex">
           <div class="flex-shrink-0">
             <%= lucide_icon("info", class: "h-5 w-5 text-primary-5") %>
@@ -20,7 +20,7 @@
         </div>
       </div>
 
-      <div id="import_errors"></div>
+      <div id="import_errors" data-testid="nodes-import-errors"></div>
 
       <%= form_with(url: node_import_index_path, method: :post, class: "space-y-4") do |f| %>
         <div data-controller="file-drop"
@@ -29,6 +29,7 @@
           <label for="file" class="block text-xs font-bold text-neutral-85 uppercase mb-1">Select CSV File</label>
           
           <div data-file-drop-target="zone"
+               data-testid="nodes-import-dropzone"
                class="relative flex flex-col items-center justify-center rounded border-2 border-dashed border-neutral-15 bg-neutral-2 p-8 text-center transition-all hover:border-primary-4 hover:bg-primary-1">
             
             <div class="flex h-12 w-12 items-center justify-center rounded bg-white text-neutral-25 shadow-sm border border-neutral-8 mb-4 group-hover:text-primary-5 group-hover:border-primary-2 transition-colors">
@@ -42,20 +43,21 @@
               <p class="text-[10px] text-neutral-45 italic">CSV file only (hostname, ip, role)</p>
             </div>
 
-            <%= f.file_field :file, 
+            <%= f.file_field :file,
                 required: true,
                 accept: ".csv",
-                data: { 
+                data: {
                   file_drop_target: "input",
-                  action: "change->file-drop#fileSelected"
+                  action: "change->file-drop#fileSelected",
+                  testid: "nodes-import-file"
                 },
                 class: "absolute inset-0 h-full w-full cursor-pointer opacity-0" %>
           </div>
         </div>
 
         <div class="flex items-center justify-end gap-3 pt-4 border-t border-neutral-4">
-          <button type="button" class="btn-secondary" data-action="modal#close">Cancel</button>
-          <%= f.submit "Import Nodes", class: "btn-primary" %>
+          <button type="button" class="btn-secondary" data-action="modal#close" data-testid="nodes-import-cancel">Cancel</button>
+          <%= f.submit "Import Nodes", class: "btn-primary", data: { testid: "nodes-import-submit" } %>
         </div>
       <% end %>
     </div>

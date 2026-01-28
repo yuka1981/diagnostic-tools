@@ -1,26 +1,26 @@
 <% simple_breadcrumb("Notifications") %>
 
-<div class="container mx-auto px-4 py-6">
+<div class="container mx-auto px-4 py-6" data-testid="notifications-container">
   <div class="flex justify-between items-center mb-6">
     <h1 class="text-2xl font-semibold text-neutral-85">Notifications</h1>
     <div class="flex space-x-2">
-      <%= button_to "Mark All Read", mark_all_read_notifications_path, method: :post, class: "btn btn-secondary" %>
-      <%= button_to "Archive Read", archive_read_notifications_path, method: :post, class: "btn btn-secondary" %>
+      <%= button_to "Mark All Read", mark_all_read_notifications_path, method: :post, class: "btn btn-secondary", data: { testid: "notifications-button-mark-read" } %>
+      <%= button_to "Archive Read", archive_read_notifications_path, method: :post, class: "btn btn-secondary", data: { testid: "notifications-button-archive" } %>
     </div>
   </div>
 
   <div class="bg-white shadow rounded-lg" id="notifications-main-content">
     <% if @notifications.any? %>
-      <ul class="divide-y divide-neutral-8" id="notifications-main-list">
+      <ul class="divide-y divide-neutral-8" id="notifications-main-list" data-testid="notifications-list">
         <% @notifications.each do |notification| %>
           <%= render partial: "notifications/notification", locals: { notification: notification } %>
         <% end %>
       </ul>
-      <div class="px-4 py-3 border-t">
+      <div class="px-4 py-3 border-t" data-testid="notifications-pagination">
         <%== pagy_nav(@pagy) if defined?(@pagy) && @pagy.pages > 1 %>
       </div>
     <% else %>
-      <div class="p-6 text-center text-neutral-45">
+      <div class="p-6 text-center text-neutral-45" data-testid="notifications-empty">
         No notifications found.
       </div>
     <% end %>

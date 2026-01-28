@@ -1,9 +1,9 @@
 <% content_for(:title) { "Forgot Password - QCT InfraScope" } %>
 
-<div class="w-full max-w-[472px] bg-white p-9 shadow-lg">
+<div class="w-full max-w-[472px] bg-white p-9 shadow-lg" data-testid="auth-container">
   <%# QCT Logo %>
   <div class="flex justify-center py-4">
-    <%= image_tag "qct_logo_login.svg", alt: "QCT", class: "h-[94px] w-[340px]" %>
+    <%= image_tag "qct_logo_login.svg", alt: "QCT", class: "h-[94px] w-[340px]", data: { testid: "auth-logo" } %>
   </div>
 
   <%# Subtitle %>
@@ -17,7 +17,7 @@
     <p class="text-sm text-neutral-60 mt-2">Enter your email and we'll send you reset instructions.</p>
   </div>
 
-  <%= form_for(resource, as: resource_name, url: password_path(resource_name), html: { method: :post, class: "space-y-6" }) do |f| %>
+  <%= form_for(resource, as: resource_name, url: password_path(resource_name), html: { method: :post, class: "space-y-6", data: { testid: "auth-form-forgot-password" } }) do |f| %>
     <%= render "devise/shared/error_messages", resource: resource %>
 
     <%# Email Field %>
@@ -27,12 +27,14 @@
           autofocus: true,
           autocomplete: "email",
           placeholder: "Enter email",
+          data: { testid: "auth-input-email" },
           class: "w-full bg-neutral-2 border border-neutral-8 rounded-[5px] p-3 text-sm text-neutral-60 placeholder:text-neutral-60 focus:outline-none focus:ring-2 focus:ring-primary-5 focus:border-primary-5" %>
     </div>
 
     <%# Submit Button %>
     <div>
       <%= f.submit "Send Reset Instructions",
+          data: { testid: "auth-button-submit" },
           class: "w-full h-10 bg-primary-6 hover:bg-primary-7 text-white text-sm font-medium rounded-[5px] transition-colors focus:outline-none focus:ring-2 focus:ring-primary-5 focus:ring-offset-2 cursor-pointer" %>
     </div>
   <% end %>
@@ -40,13 +42,16 @@
   <%# Links %>
   <div class="flex items-center justify-center gap-0 mt-6">
     <%= link_to "Back to Login", new_session_path(resource_name),
-        class: "px-2 text-sm text-primary-6 hover:text-primary-7 border-r border-neutral-8" %>
+        class: "px-2 text-sm text-primary-6 hover:text-primary-7 border-r border-neutral-8",
+        data: { testid: "auth-link-sign-in" } %>
     <%= link_to "Create an Account!", new_registration_path(resource_name),
-        class: "px-2 text-sm text-primary-6 hover:text-primary-7" %>
+        class: "px-2 text-sm text-primary-6 hover:text-primary-7",
+        data: { testid: "auth-link-sign-up" } %>
   </div>
 
   <div class="flex items-center justify-center mt-4">
     <%= link_to "Need Help?", "#",
-        class: "text-sm text-primary-6 hover:text-primary-7" %>
+        class: "text-sm text-primary-6 hover:text-primary-7",
+        data: { testid: "auth-link-help" } %>
   </div>
 </div>

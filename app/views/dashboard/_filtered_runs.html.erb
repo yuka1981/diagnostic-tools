@@ -1,9 +1,9 @@
 <%# Filtered Benchmark Runs - Turbo Frame for heatmap filtering %>
-<%= turbo_frame_tag "filtered_runs" do %>
+<%= turbo_frame_tag "filtered_runs", data: { testid: "dashboard-runs-frame" } do %>
   <div class="card-netbox h-full">
     <div class="card-header">
       <div>
-        <h2 class="card-title">
+        <h2 class="card-title" data-testid="dashboard-runs-heading">
           <% if selected_node %>
             Benchmark Runs: <%= selected_node.hostname %>
           <% else %>
@@ -17,25 +17,26 @@
         <% end %>
       </div>
       <%= link_to "View all", benchmark_runs_path(node_id: selected_node&.id),
-          data: { turbo_frame: "_top" },
+          data: { turbo_frame: "_top", testid: "dashboard-runs-view-all" },
           class: "text-[10px] font-bold uppercase tracking-widest text-primary-6 hover:text-primary-7 transition-colors bg-primary-1 px-2 py-1 rounded border border-primary-1 shadow-sm" %>
     </div>
 
     <div class="p-0">
       <% if runs.any? %>
-        <div class="divide-y divide-neutral-4">
+        <div class="divide-y divide-neutral-4" data-testid="dashboard-runs-list">
           <% runs.each do |run| %>
-            <div class="flex items-center gap-4 p-3 transition-colors hover:bg-neutral-2">
-              <div class="flex h-8 w-8 items-center justify-center rounded border <%= status_bg_class(run.status) %> shadow-sm">
+            <div class="flex items-center gap-4 p-3 transition-colors hover:bg-neutral-2" data-testid="dashboard-run-<%= run.id %>">
+              <div class="flex h-8 w-8 items-center justify-center rounded border <%= status_bg_class(run.status) %> shadow-sm" data-testid="dashboard-run-status-<%= run.id %>">
                 <%= status_icon(run.status) %>
               </div>
               <div class="flex-1 min-w-0">
-                <p class="text-xs font-bold text-neutral-85 truncate uppercase tracking-tight">
+                <p class="text-xs font-bold text-neutral-85 truncate uppercase tracking-tight" data-testid="dashboard-run-recipe-<%= run.id %>">
                   <%= run.benchmark_recipe&.display_name || "Unknown Recipe" %>
                 </p>
                 <p class="text-[10px] text-neutral-45 font-medium">
-                  <span class="text-neutral-25">Node:</span> <span class="font-bold text-neutral-45"><%= run.node&.hostname || "Unknown" %></span>
+                  <span class="text-neutral-25">Node:</span> <span class="font-bold text-neutral-45" data-testid="dashboard-run-hostname-<%= run.id %>"><%= run.node&.hostname || "Unknown" %></span>
                   <span class="mx-1 text-neutral-15">|</span>
+                  <span data-testid="dashboard-run-time-<%= run.id %>">
                   <% if run.started_at %>
                     <%= time_ago_in_words(run.started_at) %> ago
                   <% else %>
@@ -44,9 +45,10 @@
                   <% if run.duration %>
                     · <%= number_with_precision(run.duration, precision: 1) %>s
                   <% end %>
+                  </span>
                 </p>
               </div>
-              <%= render StatusBadgeComponent.new(status: run.status, size: :small) %>
+              <%= render StatusBadgeComponent.new(status: run.status, size: :small, testid: "dashboard-run-badge-#{run.id}") %>
             </div>
           <% end %>
         </div>
@@ -59,7 +61,7 @@
           </div>
         <% end %>
       <% else %>
-        <div class="flex flex-col items-center justify-center py-12 text-center bg-neutral-2/50">
+        <div class="flex flex-col items-center justify-center py-12 text-center bg-neutral-2/50" data-testid="dashboard-runs-empty">
           <%= lucide_icon("bar-chart-3", class: "h-12 w-12 text-neutral-15") %>
           <p class="mt-4 text-xs font-bold text-neutral-45 uppercase">
             <% if selected_node %>

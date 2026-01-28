@@ -1,12 +1,12 @@
 <% content_for(:page_title) { "Rooms" } %>
 
-<div class="flex items-center justify-between mb-6">
+<div class="flex items-center justify-between mb-6" data-testid="rooms-page-container">
   <div>
     <h1 class="text-2xl font-bold text-neutral-85">Rooms</h1>
     <p class="text-sm text-neutral-45 mt-1">Manage data center rooms across your sites</p>
   </div>
   <% if current_user.approver? %>
-    <%= link_to new_room_path, class: "btn-primary" do %>
+    <%= link_to new_room_path, class: "btn-primary", data: { testid: "rooms-button-new" } do %>
       <%= lucide_icon("plus", class: "h-4 w-4 mr-2") %>
       Add Room
     <% end %>
@@ -22,10 +22,11 @@
           options_from_collection_for_select(@sites, :id, :name, params[:site_id]),
           { include_blank: "All Sites" },
           class: "rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm",
-          onchange: "this.form.submit()" %>
+          onchange: "this.form.submit()",
+          data: { testid: "rooms-filter-site" } %>
     </div>
     <% if params[:site_id].present? %>
-      <%= link_to "Clear Filter", rooms_path, class: "text-sm text-primary-6 hover:text-primary-7" %>
+      <%= link_to "Clear Filter", rooms_path, class: "text-sm text-primary-6 hover:text-primary-7", data: { testid: "rooms-filter-clear" } %>
     <% end %>
   <% end %>
 </div>
@@ -33,8 +34,8 @@
 <div class="card-netbox">
   <% if @rooms.any? %>
     <div class="overflow-x-auto">
-      <table class="min-w-full divide-y divide-neutral-8 text-sm">
-        <thead class="bg-neutral-2">
+      <table class="min-w-full divide-y divide-neutral-8 text-sm" data-testid="rooms-table">
+        <thead class="bg-neutral-2" data-testid="rooms-table-header">
           <tr>
             <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-neutral-45 border-b">Name</th>
             <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-neutral-45 border-b">Site</th>
@@ -47,15 +48,15 @@
             </th>
           </tr>
         </thead>
-        <tbody class="divide-y divide-neutral-8 bg-white">
+        <tbody class="divide-y divide-neutral-8 bg-white" data-testid="rooms-table-body">
           <% @rooms.each do |room| %>
-            <tr class="hover:bg-neutral-2 transition-colors">
+            <tr class="hover:bg-neutral-2 transition-colors" data-testid="rooms-row-<%= room.name.parameterize %>">
               <td class="whitespace-nowrap px-3 py-2">
-                <%= link_to room_path(room), class: "group" do %>
+                <%= link_to room_path(room), class: "group", data: { testid: "rooms-link-#{room.name.parameterize}" } do %>
                   <p class="text-sm font-bold text-neutral-85 group-hover:text-primary-6"><%= room.name %></p>
                 <% end %>
               </td>
-              <td class="whitespace-nowrap px-3 py-2 text-sm text-neutral-45">
+              <td class="whitespace-nowrap px-3 py-2 text-sm text-neutral-45" data-testid="rooms-site-<%= room.name.parameterize %>">
                 <%= link_to room.site.name, site_path(room.site), class: "hover:text-primary-6" %>
               </td>
               <td class="whitespace-nowrap px-3 py-2 text-sm text-neutral-45">
@@ -64,11 +65,11 @@
               <td class="whitespace-nowrap px-3 py-2 text-sm text-neutral-45">
                 <%= room.building_wing.presence || "-" %>
               </td>
-              <td class="whitespace-nowrap px-3 py-2 text-sm text-neutral-45">
+              <td class="whitespace-nowrap px-3 py-2 text-sm text-neutral-45" data-testid="rooms-racks-<%= room.name.parameterize %>">
                 <%= room.rack_count %><%= room.max_rack_count.present? ? " / #{room.max_rack_count}" : "" %>
               </td>
               <td class="whitespace-nowrap px-3 py-2">
-                <div class="flex items-center gap-2">
+                <div class="flex items-center gap-2" data-testid="rooms-utilization-<%= room.name.parameterize %>">
                   <div class="w-24 h-2 bg-neutral-8 rounded-full overflow-hidden">
                     <div class="h-full bg-primary-5 rounded-full" style="width: <%= room.utilization_percentage %>%"></div>
                   </div>
@@ -77,12 +78,12 @@
               </td>
               <td class="whitespace-nowrap px-3 py-2">
                 <div class="flex items-center justify-end gap-2">
-                  <%= link_to room_path(room), class: "inline-flex items-center text-primary-6 hover:text-primary-7", title: "View" do %>
+                  <%= link_to room_path(room), class: "inline-flex items-center text-primary-6 hover:text-primary-7", title: "View", data: { testid: "rooms-button-view-#{room.name.parameterize}" } do %>
                     <%= lucide_icon("eye", class: "h-4 w-4") %>
                     <span class="sr-only">View</span>
                   <% end %>
                   <% if current_user.approver? %>
-                    <%= link_to edit_room_path(room), class: "inline-flex items-center text-neutral-45 hover:text-neutral-85", title: "Edit" do %>
+                    <%= link_to edit_room_path(room), class: "inline-flex items-center text-neutral-45 hover:text-neutral-85", title: "Edit", data: { testid: "rooms-button-edit-#{room.name.parameterize}" } do %>
                       <%= lucide_icon("square-pen", class: "h-4 w-4") %>
                       <span class="sr-only">Edit</span>
                     <% end %>
@@ -95,14 +96,14 @@
       </table>
     </div>
   <% else %>
-    <div class="flex flex-col items-center justify-center py-12 text-center">
+    <div class="flex flex-col items-center justify-center py-12 text-center" data-testid="rooms-table-empty">
       <div class="h-12 w-12 rounded-full bg-neutral-4 flex items-center justify-center mb-4">
         <%= lucide_icon("building-2", class: "h-6 w-6 text-neutral-25") %>
       </div>
       <p class="text-sm font-medium text-neutral-85">No rooms yet</p>
       <p class="mt-1 text-xs text-neutral-45">Create a room to organize your rack infrastructure</p>
       <% if current_user.approver? %>
-        <%= link_to new_room_path, class: "mt-4 btn-primary" do %>
+        <%= link_to new_room_path, class: "mt-4 btn-primary", data: { testid: "rooms-empty-add" } do %>
           Add Room
         <% end %>
       <% end %>

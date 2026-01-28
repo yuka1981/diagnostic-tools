@@ -1,5 +1,5 @@
 <%= turbo_frame_tag "node_modal" do %>
-  <%= render "shared/modal", title: "Edit Node: #{@node.hostname}", max_width: "max-w-3xl" do %>
+  <%= render "shared/modal", title: "Edit Node: #{@node.hostname}", max_width: "max-w-3xl", testid: "nodes-form-modal", title_testid: "nodes-form-title" do %>
     <%= render NodeFormWizardComponent.new(
       node: @node,
       api_keys: @api_keys

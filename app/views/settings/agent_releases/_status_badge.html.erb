@@ -1,13 +1,14 @@
+<% testid_suffix = local_assigns[:testid_suffix] %>
 <% if release.active? %>
-  <span class="inline-flex items-center rounded-sm px-2 py-0.5 text-xs font-medium bg-success-1 text-success-8 border border-success-2">
+  <span class="inline-flex items-center rounded-sm px-2 py-0.5 text-xs font-medium bg-success-1 text-success-8 border border-success-2"<%= " data-testid=\"agent-releases-status-#{testid_suffix}\"".html_safe if testid_suffix %>>
     Active
   </span>
 <% elsif release.deprecated? %>
-  <span class="inline-flex items-center rounded-sm px-2 py-0.5 text-xs font-medium bg-warning-1 text-warning-8 border border-warning-2">
+  <span class="inline-flex items-center rounded-sm px-2 py-0.5 text-xs font-medium bg-warning-1 text-warning-8 border border-warning-2"<%= " data-testid=\"agent-releases-status-#{testid_suffix}\"".html_safe if testid_suffix %>>
     Deprecated
   </span>
 <% elsif release.recalled? %>
-  <span class="inline-flex items-center rounded-sm px-2 py-0.5 text-xs font-medium bg-error-1 text-error-8 border border-error-2">
+  <span class="inline-flex items-center rounded-sm px-2 py-0.5 text-xs font-medium bg-error-1 text-error-8 border border-error-2"<%= " data-testid=\"agent-releases-status-#{testid_suffix}\"".html_safe if testid_suffix %>>
     Recalled
   </span>
 <% end %>

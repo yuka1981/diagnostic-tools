@@ -1,8 +1,8 @@
 <%= turbo_frame_tag "modal" do %>
-  <%= render "shared/modal", title: "Run Benchmark: #{@node.hostname}", max_width: 'max-w-xl' do %>
+  <%= render "shared/modal", title: "Run Benchmark: #{@node.hostname}", max_width: 'max-w-xl', testid: 'nodes-benchmark-modal' do %>
     <div class="space-y-4">
       <%# Configuration Summary %>
-      <div class="card-netbox">
+      <div class="card-netbox" data-testid="nodes-benchmark-config">
         <div class="card-header bg-neutral-2">
           <h4 class="text-xs font-bold uppercase text-neutral-45">Configuration</h4>
         </div>
@@ -10,7 +10,7 @@
           <tbody class="divide-y divide-neutral-4">
             <tr>
               <td class="px-3 py-2 text-neutral-45 font-medium w-1/3">Working Directory</td>
-              <td class="px-3 py-2 font-mono text-neutral-85"><%= @preflight.config[:work_dir] %></td>
+              <td class="px-3 py-2 font-mono text-neutral-85" data-testid="nodes-benchmark-workdir"><%= @preflight.config[:work_dir] %></td>
               <td class="px-3 py-1 text-right">
                 <% case @preflight.config[:work_dir_source] %>
                 <% when :node %>
@@ -24,7 +24,7 @@
             </tr>
             <tr>
               <td class="px-3 py-2 text-neutral-45 font-medium">Agent Path</td>
-              <td class="px-3 py-2 font-mono text-neutral-85" colspan="2"><%= @preflight.config[:agent_path] %></td>
+              <td class="px-3 py-2 font-mono text-neutral-85" colspan="2" data-testid="nodes-benchmark-agentpath"><%= @preflight.config[:agent_path] %></td>
             </tr>
             <% if @preflight.config[:server_url].present? %>
             <tr>
@@ -34,7 +34,7 @@
             <% end %>
             <tr>
               <td class="px-3 py-2 text-neutral-45 font-medium">API Token</td>
-              <td class="px-3 py-2 text-neutral-85">
+              <td class="px-3 py-2 text-neutral-85" data-testid="nodes-benchmark-token-status">
                 <% case @preflight.config[:token_source] %>
                 <% when :node %>
                   <span class="text-success-6">Configured</span>
@@ -58,7 +58,7 @@
       </div>
 
       <%# Preflight Checks %>
-      <div class="card-netbox">
+      <div class="card-netbox" data-testid="nodes-benchmark-preflight">
         <div class="card-header bg-neutral-2">
           <h4 class="text-xs font-bold uppercase text-neutral-45">Pre-flight Checks</h4>
         </div>
@@ -84,7 +84,7 @@
 
       <%# Error with Quick Fix Links %>
       <% if @preflight.failed_checks.any? %>
-        <div class="rounded-md bg-warning-1 p-4 border border-warning-2">
+        <div class="rounded-md bg-warning-1 p-4 border border-warning-2" data-testid="nodes-benchmark-preflight-alert">
           <div class="flex">
             <%= lucide_icon("alert-triangle", class: "h-5 w-5 text-warning-5 flex-shrink-0") %>
             <div class="ml-3">
@@ -95,7 +95,7 @@
               <div class="mt-3 flex flex-wrap gap-2">
                 <%= link_to "Edit Node Settings", edit_node_path(@node),
                     class: "inline-flex items-center rounded-md bg-warning-1 px-2.5 py-1.5 text-xs font-semibold text-warning-8 hover:bg-warning-2",
-                    data: { turbo_frame: "_top" } %>
+                    data: { turbo_frame: "_top", testid: "nodes-benchmark-link-settings" } %>
                 <%= link_to "Global Settings", settings_agent_path,
                     class: "inline-flex items-center rounded-md bg-warning-1 px-2.5 py-1.5 text-xs font-semibold text-warning-8 hover:bg-warning-2",
                     data: { turbo_frame: "_top" } %>
@@ -119,7 +119,8 @@
             data: {
               turbo_frame: "_top",
               controller: "benchmark-recipe",
-              benchmark_recipe_recipes_value: recipes_data.to_json
+              benchmark_recipe_recipes_value: recipes_data.to_json,
+              testid: "nodes-benchmark-form"
             },
             class: "space-y-4" do |f| %>
           <% if @form.errors.any? %>
@@ -143,20 +144,22 @@
                 { class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm",
                   data: {
                     benchmark_recipe_target: "select",
-                    action: "change->benchmark-recipe#showDefaults"
+                    action: "change->benchmark-recipe#showDefaults",
+                    testid: "nodes-benchmark-recipe"
                   } } %>
             <p class="mt-1 text-[10px] text-neutral-45 italic">
               Select the benchmark recipe to run on this node.
             </p>
           </div>
 
-          <div data-benchmark-recipe-target="defaults" class="hidden">
+          <div data-benchmark-recipe-target="defaults" class="hidden" data-testid="nodes-benchmark-defaults">
             <div class="rounded-md bg-neutral-2 p-3 border border-neutral-8">
               <div class="flex items-center justify-between mb-2">
                 <h4 class="text-xs font-bold text-neutral-45">Recipe Default Profile</h4>
                 <button type="button"
                         class="text-[10px] text-primary-6 hover:text-primary-8 font-medium"
-                        data-action="click->benchmark-recipe#populateOverrides">
+                        data-action="click->benchmark-recipe#populateOverrides"
+                        data-testid="nodes-benchmark-copy-defaults">
                   Copy to overrides
                 </button>
               </div>
@@ -170,7 +173,7 @@
                 rows: 3,
                 class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm font-mono",
                 placeholder: '{"nx": 128, "ny": 128}',
-                data: { benchmark_recipe_target: "overrides" } %>
+                data: { benchmark_recipe_target: "overrides", testid: "nodes-benchmark-overrides" } %>
             <p class="mt-1 text-[10px] text-neutral-45 italic">
               Optional JSON to override recipe defaults. Leave blank to use recipe defaults.
             </p>
@@ -180,15 +183,16 @@
             <%= f.label :log_path, "Log File Path (Optional)", class: "block text-sm font-bold text-neutral-85 mb-1" %>
             <%= f.text_field :log_path,
                 class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm font-mono",
-                placeholder: "/tmp/hpcg.log" %>
+                placeholder: "/tmp/hpcg.log",
+                data: { testid: "nodes-benchmark-logpath" } %>
             <p class="mt-1 text-[10px] text-neutral-45 italic">
               Leave blank to use the default generated log file.
             </p>
           </div>
 
           <div class="flex items-center justify-end gap-3 pt-4 border-t border-neutral-4">
-            <button type="button" class="btn-secondary" data-action="modal#close">Cancel</button>
-            <%= f.submit "Start Benchmark", class: "btn-primary" %>
+            <button type="button" class="btn-secondary" data-action="modal#close" data-testid="nodes-benchmark-cancel">Cancel</button>
+            <%= f.submit "Start Benchmark", class: "btn-primary", data: { testid: "nodes-benchmark-submit" } %>
           </div>
         <% end %>
       <% else %>

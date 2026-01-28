@@ -6,13 +6,14 @@ class SlideOverComponent < ViewComponent::Base
     SlideOverTabComponent.new(name: name, active: active, content: block)
   }
 
-  def initialize(title:)
+  def initialize(title:, testid: nil)
     @title = title
+    @testid = testid
   end
 
   private
 
-  attr_reader :title
+  attr_reader :title, :testid
 
   class SlideOverTabComponent < ViewComponent::Base
     attr_reader :name, :active, :content
