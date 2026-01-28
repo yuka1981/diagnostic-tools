@@ -1,0 +1,36 @@
+<%= content_for :title, "MLC Installation - #{@installation.uuid}" %>
+
+<div class="max-w-4xl mx-auto">
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-2xl font-bold">MLC Installation</h1>
+    <% if @installation.running? %>
+      <%= button_to "Cancel Installation", mlc_installation_path(@installation), method: :delete, class: "btn btn-danger", data: { confirm: "Are you sure you want to cancel this installation?" } %>
+    <% end %>
+  </div>
+
+  <!-- Installation Status -->
+  <div id="mlc_installation_status" class="bg-white border rounded-lg p-6 mb-6">
+    <%= render "mlc_installations/status", installation: @installation %>
+  </div>
+
+  <!-- Node Progress -->
+  <div class="bg-white border rounded-lg p-6">
+    <h2 class="text-lg font-semibold mb-4">Node Progress</h2>
+
+    <div class="space-y-4">
+      <% @installation_nodes.each do |installation_node| %>
+        <div id="mlc_installation_node_<%= installation_node.id %>">
+          <%= render "mlc_installations/node_status", installation_node: installation_node %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <% if @installation.completed? || @installation.failed? %>
+    <div class="mt-6">
+      <%= link_to "New Installation", new_mlc_installation_path, class: "btn btn-primary" %>
+    </div>
+  <% end %>
+</div>
+
+<%= turbo_stream_from "mlc_installation_#{@installation.id}" %>

@@ -1,0 +1,49 @@
+<div class="flex items-center justify-between">
+  <div>
+    <p class="text-sm text-gray-500">Installation ID</p>
+    <p class="font-mono text-sm"><%= installation.uuid %></p>
+  </div>
+
+  <div class="text-right">
+    <p class="text-sm text-gray-500">Status</p>
+    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+      <%= case installation.status
+          when 'pending' then 'bg-gray-100 text-gray-800'
+          when 'running' then 'bg-blue-100 text-blue-800'
+          when 'completed' then 'bg-green-100 text-green-800'
+          when 'failed' then 'bg-red-100 text-red-800'
+          when 'cancelled' then 'bg-yellow-100 text-yellow-800'
+          end %>">
+      <%= installation.status.humanize %>
+    </span>
+  </div>
+</div>
+
+<% if installation.running? %>
+  <div class="mt-4">
+    <div class="flex justify-between text-sm mb-1">
+      <span>Progress</span>
+      <span><%= installation.progress_percentage %>%</span>
+    </div>
+    <div class="w-full bg-gray-200 rounded-full h-2">
+      <div class="bg-blue-600 h-2 rounded-full transition-all" style="width: <%= installation.progress_percentage %>%"></div>
+    </div>
+  </div>
+<% end %>
+
+<div class="mt-4 grid grid-cols-2 gap-4 text-sm">
+  <div>
+    <p class="text-gray-500">Started</p>
+    <p><%= installation.started_at ? installation.started_at.strftime("%Y-%m-%d %H:%M:%S") : "-" %></p>
+  </div>
+  <div>
+    <p class="text-gray-500">Completed</p>
+    <p><%= installation.completed_at ? installation.completed_at.strftime("%Y-%m-%d %H:%M:%S") : "-" %></p>
+  </div>
+  <% if installation.detected_version.present? %>
+    <div>
+      <p class="text-gray-500">Detected Version</p>
+      <p><%= installation.detected_version %></p>
+    </div>
+  <% end %>
+</div>

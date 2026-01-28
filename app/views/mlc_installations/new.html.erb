@@ -1,0 +1,110 @@
+<%= content_for :title, "Intel MLC Installation" %>
+
+<div class="max-w-4xl mx-auto">
+  <h1 class="text-2xl font-bold mb-6">Intel MLC Installation</h1>
+
+  <%= form_with model: @installation, local: true, data: { controller: "mlc-upload" } do |f| %>
+    <% if @installation.errors.any? %>
+      <div class="bg-red-50 border border-red-200 rounded p-4 mb-6">
+        <h3 class="text-red-800 font-medium">Errors:</h3>
+        <ul class="list-disc list-inside text-red-700">
+          <% @installation.errors.full_messages.each do |msg| %>
+            <li><%= msg %></li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
+
+    <!-- Step 1: Source Selection -->
+    <div class="bg-white border rounded-lg p-6 mb-6">
+      <h2 class="text-lg font-semibold mb-4">Step 1: Upload Tarball</h2>
+
+      <div class="mb-4">
+        <%= f.label :source_type, class: "block text-sm font-medium mb-2" %>
+        <div class="flex gap-4">
+          <%= f.radio_button :source_type, "upload", checked: true, data: { action: "mlc-upload#toggleSource" } %>
+          <%= f.label :source_type_upload, "Upload tarball", class: "mr-4" %>
+          <%= f.radio_button :source_type, "shared_path", data: { action: "mlc-upload#toggleSource" } %>
+          <%= f.label :source_type_shared_path, "Shared storage path" %>
+        </div>
+      </div>
+
+      <div data-mlc-upload-target="uploadSection">
+        <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center"
+             data-mlc-upload-target="dropzone"
+             data-action="dragover->mlc-upload#dragover drop->mlc-upload#drop">
+          <p class="text-gray-600 mb-2">Drag & drop MLC tarball or click to browse</p>
+          <%= file_field_tag :tarball, accept: ".tgz,.tar.gz", class: "hidden", data: { mlc_upload_target: "fileInput", action: "change->mlc-upload#handleFile" } %>
+          <button type="button" class="btn btn-secondary" data-action="mlc-upload#browse">
+            Select File
+          </button>
+          <p data-mlc-upload-target="fileName" class="mt-2 text-sm text-gray-500"></p>
+        </div>
+      </div>
+
+      <div data-mlc-upload-target="pathSection" class="hidden">
+        <%= f.label :source_path, "Shared path", class: "block text-sm font-medium mb-1" %>
+        <%= f.text_field :source_path, placeholder: "/shared/software/mlc.tgz", class: "input w-full" %>
+      </div>
+
+      <!-- Checksum Verification -->
+      <div class="mt-4 pt-4 border-t">
+        <h3 class="text-sm font-medium mb-2">Checksum Verification (optional)</h3>
+        <div class="flex gap-2 items-end">
+          <%= f.select :checksum_algorithm, [["SHA256", "sha256"], ["SHA1", "sha1"], ["MD5", "md5"]], { include_blank: "Select algorithm" }, class: "input w-32" %>
+          <%= f.text_field :checksum_value, placeholder: "Enter expected checksum", class: "input flex-1", data: { mlc_upload_target: "checksumInput" } %>
+          <button type="button" class="btn btn-secondary" data-action="mlc-upload#verifyChecksum" data-mlc-upload-target="verifyBtn" disabled>
+            Verify
+          </button>
+        </div>
+        <p data-mlc-upload-target="checksumResult" class="mt-2 text-sm"></p>
+      </div>
+    </div>
+
+    <!-- Step 2: Binary Selection -->
+    <div class="bg-white border rounded-lg p-6 mb-6" data-mlc-upload-target="binarySection">
+      <h2 class="text-lg font-semibold mb-4">Step 2: Select Binary</h2>
+      <div data-mlc-upload-target="binaryTree" class="border rounded p-4 min-h-32">
+        <p class="text-gray-500">Upload a tarball to see available binaries</p>
+      </div>
+      <%= f.hidden_field :binary_path, data: { mlc_upload_target: "binaryPath" } %>
+    </div>
+
+    <!-- Step 3: Node Selection -->
+    <div class="bg-white border rounded-lg p-6 mb-6">
+      <h2 class="text-lg font-semibold mb-4">Step 3: Select Target Nodes</h2>
+
+      <div class="max-h-64 overflow-y-auto border rounded p-2">
+        <% @nodes.each do |node| %>
+          <label class="flex items-center gap-2 p-2 hover:bg-gray-50 rounded">
+            <%= check_box_tag "mlc_installation[node_ids][]", node.id, false, class: "rounded" %>
+            <span class="flex-1"><%= node.hostname %></span>
+            <span class="text-sm <%= node.online? ? 'text-green-600' : 'text-red-600' %>">
+              <%= node.online? ? "Online" : "Offline" %>
+            </span>
+          </label>
+        <% end %>
+      </div>
+    </div>
+
+    <!-- Step 4: Options -->
+    <div class="bg-white border rounded-lg p-6 mb-6">
+      <h2 class="text-lg font-semibold mb-4">Installation Options</h2>
+
+      <div class="mb-4">
+        <%= f.label :failure_mode, "On failure", class: "block text-sm font-medium mb-1" %>
+        <div class="flex gap-4">
+          <%= f.radio_button :failure_mode, "stop_on_first", checked: true %>
+          <%= f.label :failure_mode_stop_on_first, "Stop on first failure (recommended)", class: "mr-4" %>
+          <%= f.radio_button :failure_mode, "continue_on_failure" %>
+          <%= f.label :failure_mode_continue_on_failure, "Continue and report failures at end" %>
+        </div>
+      </div>
+    </div>
+
+    <div class="flex justify-end gap-4">
+      <%= link_to "Cancel", root_path, class: "btn btn-secondary" %>
+      <%= f.submit "Install", class: "btn btn-primary" %>
+    </div>
+  <% end %>
+</div>

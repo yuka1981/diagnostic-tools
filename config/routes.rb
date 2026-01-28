@@ -112,6 +112,13 @@ Rails.application.routes.draw do
 
   resources :mlc_benchmarks, only: %i[new create]
 
+  resources :mlc_installations, only: [:new, :create, :show, :destroy] do
+    member do
+      post :verify_checksum
+      get :select_binary
+    end
+  end
+
   resources :tasks, only: [ :index, :destroy ] do
     member do
       post :cancel

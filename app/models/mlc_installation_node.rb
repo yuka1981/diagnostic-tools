@@ -2,7 +2,7 @@ class MlcInstallationNode < ApplicationRecord
   belongs_to :mlc_installation
   belongs_to :node
 
-  enum :status, { pending: 0, running: 1, success: 2, failed: 3, skipped: 4 }, default: :pending
+  enum :status, { pending: 0, running: 1, success: 2, failed: 3, skipped: 4, cancelled: 5 }, default: :pending
 
   def completed?
     success? || failed? || skipped?
