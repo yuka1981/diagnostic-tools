@@ -8,20 +8,20 @@
   <span class="font-medium text-neutral-85"><%= @agent_release.version %></span>
 <% end %>
 
-<div class="mb-6">
+<div class="mb-6" data-testid="agent-releases-show-container">
   <div class="flex items-center justify-between">
     <div class="flex items-center gap-4">
-      <h1 class="text-2xl font-bold text-neutral-85"><%= @agent_release.display_name %></h1>
-      <%= render partial: "status_badge", locals: { release: @agent_release } %>
+      <h1 class="text-2xl font-bold text-neutral-85" data-testid="agent-releases-show-version"><%= @agent_release.display_name %></h1>
+      <%= render partial: "status_badge", locals: { release: @agent_release, testid_suffix: "show" } %>
       <% if @agent_release == AgentRelease.latest %>
-        <span class="inline-flex items-center rounded-sm px-2 py-0.5 text-xs font-medium bg-primary-1 text-primary-8 border border-primary-2">
+        <span class="inline-flex items-center rounded-sm px-2 py-0.5 text-xs font-medium bg-primary-1 text-primary-8 border border-primary-2" data-testid="agent-releases-show-latest">
           Latest
         </span>
       <% end %>
     </div>
     <% if current_user.approver? %>
       <div class="flex items-center gap-2">
-        <%= link_to edit_settings_agent_release_path(@agent_release), class: "btn-secondary" do %>
+        <%= link_to edit_settings_agent_release_path(@agent_release), class: "btn-secondary", data: { testid: "agent-releases-show-button-edit" } do %>
           <%= lucide_icon("square-pen", class: "h-4 w-4 mr-1") %>
           Edit
         <% end %>
@@ -30,25 +30,27 @@
           <%= button_to deprecate_settings_agent_release_path(@agent_release),
               method: :patch,
               class: "btn-secondary",
-              data: { turbo_confirm: "Mark this release as deprecated?" } do %>
+              data: { turbo_confirm: "Mark this release as deprecated?", testid: "agent-releases-show-button-deprecate" } do %>
             Deprecate
           <% end %>
         <% elsif @agent_release.deprecated? %>
           <%= button_to activate_settings_agent_release_path(@agent_release),
               method: :patch,
-              class: "btn-primary" do %>
+              class: "btn-primary",
+              data: { testid: "agent-releases-show-button-activate" } do %>
             Activate
           <% end %>
           <%= button_to recall_settings_agent_release_path(@agent_release),
               method: :patch,
               class: "btn-danger",
-              data: { turbo_confirm: "Recall this release? This indicates a critical issue." } do %>
+              data: { turbo_confirm: "Recall this release? This indicates a critical issue.", testid: "agent-releases-show-button-recall" } do %>
             Recall
           <% end %>
         <% elsif @agent_release.recalled? %>
           <%= button_to activate_settings_agent_release_path(@agent_release),
               method: :patch,
-              class: "btn-primary" do %>
+              class: "btn-primary",
+              data: { testid: "agent-releases-show-button-activate" } do %>
             Re-activate
           <% end %>
         <% end %>
@@ -59,7 +61,7 @@
 
 <div class="grid gap-6 lg:grid-cols-2">
   <%# Overview Card %>
-  <div class="card-netbox">
+  <div class="card-netbox" data-testid="agent-releases-show-overview">
     <div class="card-header">
       <h3 class="card-title">Overview</h3>
     </div>
@@ -89,7 +91,7 @@
   </div>
 
   <%# Binary Details Card %>
-  <div class="card-netbox">
+  <div class="card-netbox" data-testid="agent-releases-show-binaries">
     <div class="card-header flex items-center justify-between">
       <h3 class="card-title">Binaries</h3>
       <% if current_user.approver? && @agent_release.agent_binaries.count < AgentBinary::SUPPORTED_ARCHITECTURES.size %>
@@ -100,7 +102,7 @@
     </div>
     <div class="p-0">
       <% if @agent_release.agent_binaries.any? %>
-        <table class="w-full text-sm text-left">
+        <table class="w-full text-sm text-left" data-testid="agent-releases-show-binaries-table">
           <thead class="bg-neutral-2 border-b border-neutral-8">
             <tr>
               <th class="px-4 py-2 font-bold text-neutral-45 uppercase text-[10px]">Architecture</th>
@@ -111,7 +113,7 @@
           </thead>
           <tbody class="divide-y divide-neutral-4">
             <% @agent_release.agent_binaries.order(:arch).each do |agent_binary| %>
-              <tr class="hover:bg-neutral-2">
+              <tr class="hover:bg-neutral-2" data-testid="agent-releases-binary-<%= agent_binary.arch %>">
                 <td class="px-4 py-2 text-neutral-85 font-bold">
                   <span class="inline-flex items-center rounded-sm px-2 py-0.5 text-xs font-mono bg-neutral-4 text-neutral-85 border border-neutral-8">
                     <%= agent_binary.arch %>
@@ -124,6 +126,7 @@
                       <span data-clipboard-target="source" class="hidden"><%= agent_binary.checksum %></span>
                       <button type="button"
                               data-action="click->clipboard#copy"
+                              data-testid="agent-releases-show-copy-checksum"
                               class="inline-flex items-center gap-1 hover:text-primary-6 cursor-pointer group"
                               title="Click to copy full checksum">
                         <span><%= agent_binary.checksum[0..15] %>...</span>
@@ -142,7 +145,8 @@
                 <td class="px-4 py-2">
                   <% if agent_binary.binary.attached? %>
                     <%= link_to rails_blob_path(agent_binary.binary, disposition: "attachment"),
-                        class: "inline-flex items-center text-primary-6 hover:text-primary-7 font-medium text-xs" do %>
+                        class: "inline-flex items-center text-primary-6 hover:text-primary-7 font-medium text-xs",
+                        data: { testid: "agent-releases-download-#{agent_binary.arch}" } do %>
                       <%= lucide_icon("download", class: "h-3 w-3 mr-1") %>
                       Download
                     <% end %>
@@ -213,7 +217,7 @@
 </div>
 
 <%# Release Notes Card %>
-<div class="card-netbox mt-6">
+<div class="card-netbox mt-6" data-testid="agent-releases-show-notes">
   <div class="card-header">
     <h3 class="card-title">Release Notes</h3>
   </div>
@@ -230,7 +234,7 @@
 
 <%# Danger Zone %>
 <% if current_user.approver? %>
-  <div class="card-netbox mt-6 border-error-2">
+  <div class="card-netbox mt-6 border-error-2" data-testid="agent-releases-show-danger">
     <div class="card-header bg-error-1 border-error-2">
       <h3 class="card-title text-error-8">Danger Zone</h3>
     </div>
@@ -243,7 +247,7 @@
         <%= button_to settings_agent_release_path(@agent_release),
             method: :delete,
             class: "btn-danger",
-            data: { turbo_confirm: "Are you sure you want to delete this release? This action cannot be undone." } do %>
+            data: { turbo_confirm: "Are you sure you want to delete this release? This action cannot be undone.", testid: "agent-releases-show-button-delete" } do %>
           Delete Release
         <% end %>
       </div>
