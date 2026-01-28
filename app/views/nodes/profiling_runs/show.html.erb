@@ -8,11 +8,11 @@
   <span class="font-medium text-neutral-85">Profiling Run</span>
 <% end %>
 
-<div class="space-y-6">
+<div class="space-y-6" data-testid="profiling-show-container">
   <%# Header %>
   <div class="flex items-center justify-between">
     <div>
-      <h1 class="text-2xl font-bold text-neutral-85">
+      <h1 class="text-2xl font-bold text-neutral-85" data-testid="profiling-show-type">
         <%= @run.subcommand.capitalize %> Profile
       </h1>
       <p class="text-sm text-neutral-45 mt-1">
@@ -23,19 +23,19 @@
     <div>
       <% case @run.status %>
       <% when "success" %>
-        <span class="inline-flex items-center rounded-full bg-success-2 px-3 py-1 text-sm font-medium text-success-7">
+        <span class="inline-flex items-center rounded-full bg-success-2 px-3 py-1 text-sm font-medium text-success-7" data-testid="profiling-show-status">
           Success
         </span>
       <% when "failed" %>
-        <span class="inline-flex items-center rounded-full bg-error-1 px-3 py-1 text-sm font-medium text-error-7">
+        <span class="inline-flex items-center rounded-full bg-error-1 px-3 py-1 text-sm font-medium text-error-7" data-testid="profiling-show-status">
           Failed
         </span>
       <% when "running" %>
-        <span class="inline-flex items-center rounded-full bg-primary-1 px-3 py-1 text-sm font-medium text-primary-7">
+        <span class="inline-flex items-center rounded-full bg-primary-1 px-3 py-1 text-sm font-medium text-primary-7" data-testid="profiling-show-status">
           Running
         </span>
       <% else %>
-        <span class="inline-flex items-center rounded-full bg-neutral-4 px-3 py-1 text-sm font-medium text-neutral-45">
+        <span class="inline-flex items-center rounded-full bg-neutral-4 px-3 py-1 text-sm font-medium text-neutral-45" data-testid="profiling-show-status">
           <%= @run.status.capitalize %>
         </span>
       <% end %>
@@ -44,7 +44,7 @@
 
   <%# Error Message %>
   <% if @run.error_message.present? %>
-    <div class="rounded-md bg-error-1 p-4 border border-error-2">
+    <div class="rounded-md bg-error-1 p-4 border border-error-2" data-testid="profiling-show-error">
       <h3 class="text-sm font-bold text-error-8">Error</h3>
       <p class="mt-1 text-sm text-error-7"><%= @run.error_message %></p>
     </div>
@@ -52,7 +52,7 @@
 
   <%# Metrics %>
   <% if @run.metrics.present? %>
-    <div class="card-netbox">
+    <div class="card-netbox" data-testid="profiling-show-details">
       <div class="card-header">
         <h3 class="card-title text-xs font-bold text-neutral-45 uppercase">Metrics</h3>
       </div>
@@ -64,11 +64,11 @@
 
   <%# Artifacts %>
   <% if @run.profiling_artifacts.any? %>
-    <div class="card-netbox">
+    <div class="card-netbox" data-testid="profiling-show-artifacts">
       <div class="card-header">
         <h3 class="card-title text-xs font-bold text-neutral-45 uppercase">Artifacts</h3>
       </div>
-      <div class="divide-y divide-neutral-4">
+      <div class="divide-y divide-neutral-4" data-testid="profiling-show-artifacts-table">
         <% @run.profiling_artifacts.each do |artifact| %>
           <div class="p-4 flex items-center justify-between">
             <div class="flex items-center gap-3">
@@ -107,7 +107,7 @@
 
   <%# Log Output %>
   <% if @run.log_content.present? %>
-    <div class="card-netbox">
+    <div class="card-netbox" data-testid="profiling-show-output">
       <div class="card-header">
         <h3 class="card-title text-xs font-bold text-neutral-45 uppercase">Log Output</h3>
       </div>
