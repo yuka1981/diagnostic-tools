@@ -3,16 +3,16 @@
   { title: "Generate API Key" }
 ]) %>
 
-<div class="space-y-6">
+<div class="space-y-6" data-testid="api-keys-new-container">
   <div class="card-netbox max-w-2xl">
     <div class="card-header">
       <h2 class="card-title">Generate New API Key</h2>
     </div>
     
     <div class="p-4">
-      <%= form_with model: @api_key, class: "space-y-6" do |f| %>
+      <%= form_with model: @api_key, class: "space-y-6", data: { testid: "api-keys-form" } do |f| %>
         <% if @api_key.errors.any? %>
-          <div class="rounded bg-error-1 p-4 border border-error-2 mb-6">
+          <div class="rounded bg-error-1 p-4 border border-error-2 mb-6" data-testid="api-keys-form-errors">
             <h3 class="text-sm font-bold text-error-8">Please correct the errors below</h3>
             <div class="mt-2 text-xs text-error-7">
               <ul role="list" class="list-disc pl-5 space-y-1">
@@ -26,15 +26,16 @@
 
         <div>
           <%= f.label :name, "Key Name", class: "block text-xs font-bold text-neutral-85 mb-1" %>
-          <%= f.text_field :name, 
-              class: "block w-full rounded border border-neutral-15 py-1.5 px-3 text-neutral-85 shadow-sm focus:ring-2 focus:ring-primary-5 focus:border-primary-5 sm:text-sm", 
-              placeholder: "e.g., Compute Cluster Alpha" %>
+          <%= f.text_field :name,
+              class: "block w-full rounded border border-neutral-15 py-1.5 px-3 text-neutral-85 shadow-sm focus:ring-2 focus:ring-primary-5 focus:border-primary-5 sm:text-sm",
+              placeholder: "e.g., Compute Cluster Alpha",
+              data: { testid: "api-keys-input-name" } %>
           <p class="mt-1 text-[10px] text-neutral-45 italic">Give this key a descriptive name to identify which agent/node will use it.</p>
         </div>
 
         <div class="flex items-center justify-end gap-3 pt-4 border-t border-neutral-4">
-          <%= link_to "Cancel", api_keys_path, class: "btn-secondary" %>
-          <%= f.submit "Generate API Key", class: "btn-primary" %>
+          <%= link_to "Cancel", api_keys_path, class: "btn-secondary", data: { testid: "api-keys-button-cancel" } %>
+          <%= f.submit "Generate API Key", class: "btn-primary", data: { testid: "api-keys-button-generate" } %>
         </div>
       <% end %>
     </div>
