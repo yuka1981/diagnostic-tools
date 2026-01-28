@@ -1,9 +1,11 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/spf13/cobra"
+	"github.com/yuka1981/diagnostic-tools/agent/mlc"
 )
 
 type mlcInstallOptions struct {
@@ -60,12 +62,41 @@ Examples:
 }
 
 func runMLCInstall(cmd *cobra.Command, opts *mlcInstallOptions) error {
+	ctx := cmd.Context()
+	if ctx == nil {
+		ctx = context.Background()
+	}
+
 	if opts.dryRun {
 		return printMLCInstallDryRun(cmd, opts)
 	}
 
-	// TODO: Implement actual installation in Task 8
-	return fmt.Errorf("installation not yet implemented")
+	fmt.Fprintln(cmd.OutOrStdout(), "Starting MLC installation...")
+
+	params := &mlc.InstallParams{
+		Tarball:    opts.tarball,
+		BinaryPath: opts.binaryPath,
+		InstallDir: opts.installDir,
+		ModuleDir:  opts.moduleDir,
+		InstallID:  opts.installID,
+	}
+
+	workflow := mlc.NewInstallWorkflow(nil)
+	result := workflow.Run(ctx, params)
+
+	if !result.Success {
+		fmt.Fprintf(cmd.ErrOrStderr(), "Installation failed at step %d (%s): %s\n",
+			result.FailedAtStep, result.FailedStepName, result.ErrorMessage)
+		return fmt.Errorf("installation failed: %s", result.ErrorMessage)
+	}
+
+	fmt.Fprintf(cmd.OutOrStdout(), "Installation successful!\n")
+	fmt.Fprintf(cmd.OutOrStdout(), "  Version: %s\n", result.Version)
+	fmt.Fprintf(cmd.OutOrStdout(), "  Install path: %s\n", result.InstallPath)
+	fmt.Fprintf(cmd.OutOrStdout(), "  Module path: %s\n", result.ModulePath)
+	fmt.Fprintf(cmd.OutOrStdout(), "\nTo use: module load mlc/%s\n", result.Version)
+
+	return nil
 }
 
 func printMLCInstallDryRun(cmd *cobra.Command, opts *mlcInstallOptions) error {
