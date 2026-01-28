@@ -483,3 +483,102 @@ await page.getByTestId('nodes-button-collect-compute-001').click();
 | `nodes-benchmark-logpath` | Log path input |
 | `nodes-benchmark-cancel` | Cancel button |
 | `nodes-benchmark-submit` | Submit button |
+
+---
+
+## Benchmark Recipes Module
+
+The Benchmark Recipes module manages benchmark configurations with slug-based identification for stable E2E test IDs.
+
+### Recipes Index Page
+
+| Test ID | Element |
+|---------|---------|
+| `recipes-page-container` | Page container |
+| `recipes-button-new` | New recipe button |
+| `recipes-table` | Main table element |
+| `recipes-table-header` | Table header (thead) |
+| `recipes-table-body` | Table body (tbody) |
+| `recipes-table-empty` | Empty state container |
+| `recipes-empty-add` | Empty state add button |
+
+### Recipe Row (dynamic with slug)
+
+| Test ID Pattern | Element |
+|-----------------|---------|
+| `recipes-row-{slug}` | Table row |
+| `recipes-link-{slug}` | Recipe name link |
+| `recipes-command-{slug}` | Command cell |
+| `recipes-status-{slug}` | Status badge |
+| `recipes-button-view-{slug}` | View recipe button |
+| `recipes-button-edit-{slug}` | Edit recipe button |
+
+**Playwright Example:**
+```typescript
+// Click on a specific recipe
+await page.getByTestId('recipes-link-hpcg-benchmark').click();
+
+// Check recipe status
+await expect(page.getByTestId('recipes-status-hpcg-benchmark')).toContainText('Active');
+
+// Edit a recipe
+await page.getByTestId('recipes-button-edit-hpcg-benchmark').click();
+```
+
+### Recipes Show Page
+
+| Test ID | Element |
+|---------|---------|
+| `recipes-show-container` | Page container |
+| `recipes-show-name` | Recipe name heading |
+| `recipes-show-status` | Status badge |
+| `recipes-show-button-edit` | Edit recipe button |
+| `recipes-show-button-archive` | Archive recipe button |
+| `recipes-show-button-activate` | Activate recipe button |
+| `recipes-show-overview` | Overview section card |
+| `recipes-show-technical` | Technical details card |
+| `recipes-show-profile` | Profile section card |
+| `recipes-show-profile-json` | Profile JSON display |
+| `recipes-show-danger-zone` | Danger zone card |
+| `recipes-show-button-delete` | Delete recipe button |
+
+### Recipes Form
+
+| Test ID | Element |
+|---------|---------|
+| `recipes-form` | Form element |
+| `recipes-form-errors` | Form errors container |
+| `recipes-input-name` | Name input |
+| `recipes-input-version` | Version input |
+| `recipes-input-description` | Description textarea |
+| `recipes-input-slug` | Slug input |
+| `recipes-select-status` | Status select |
+| `recipes-input-command` | Command input |
+| `recipes-input-timeout` | Timeout input |
+| `recipes-input-profile` | Profile JSON input |
+| `recipes-button-cancel` | Cancel button |
+| `recipes-button-submit` | Submit button |
+
+**Playwright Example:**
+```typescript
+// Fill out recipe form
+await page.getByTestId('recipes-input-name').fill('HPCG Benchmark');
+await page.getByTestId('recipes-input-slug').fill('hpcg-benchmark');
+await page.getByTestId('recipes-input-command').fill('hpcg --n 256');
+await page.getByTestId('recipes-select-status').selectOption('active');
+await page.getByTestId('recipes-button-submit').click();
+```
+
+### Recipes New Page
+
+| Test ID | Element |
+|---------|---------|
+| `recipes-new-container` | Page container |
+| `recipes-new-title` | Page title |
+
+### Recipes Edit Page
+
+| Test ID | Element |
+|---------|---------|
+| `recipes-edit-container` | Page container |
+| `recipes-edit-title` | Page title |
