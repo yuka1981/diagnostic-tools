@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_01_28_021721) do
+ActiveRecord::Schema[7.2].define(version: 2026_01_28_021750) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -203,6 +203,23 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_28_021721) do
     t.index ["benchmark_run_id"], name: "index_mlc_baselines_on_benchmark_run_id"
     t.index ["node_id", "metric_type"], name: "index_mlc_baselines_on_node_id_and_metric_type", unique: true
     t.index ["node_id"], name: "index_mlc_baselines_on_node_id"
+  end
+
+  create_table "mlc_installation_nodes", force: :cascade do |t|
+    t.bigint "mlc_installation_id", null: false
+    t.bigint "node_id", null: false
+    t.integer "status", default: 0, null: false
+    t.integer "step_current", default: 0
+    t.integer "step_total", default: 7
+    t.string "step_name"
+    t.text "error_message"
+    t.datetime "started_at"
+    t.datetime "completed_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["mlc_installation_id", "node_id"], name: "idx_on_mlc_installation_id_node_id_79f3adb797", unique: true
+    t.index ["mlc_installation_id"], name: "index_mlc_installation_nodes_on_mlc_installation_id"
+    t.index ["node_id"], name: "index_mlc_installation_nodes_on_node_id"
   end
 
   create_table "mlc_installations", force: :cascade do |t|
@@ -518,6 +535,8 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_28_021721) do
   add_foreign_key "inventory_discrepancies", "nodes"
   add_foreign_key "mlc_baselines", "benchmark_runs"
   add_foreign_key "mlc_baselines", "nodes"
+  add_foreign_key "mlc_installation_nodes", "mlc_installations"
+  add_foreign_key "mlc_installation_nodes", "nodes"
   add_foreign_key "mlc_installations", "users", column: "created_by_id"
   add_foreign_key "node_states", "nodes"
   add_foreign_key "nodes", "api_keys"
