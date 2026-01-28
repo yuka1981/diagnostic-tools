@@ -14,6 +14,6 @@ class CreateMlcInstallationNodes < ActiveRecord::Migration[7.2]
       t.timestamps
     end
 
-    add_index :mlc_installation_nodes, [:mlc_installation_id, :node_id], unique: true
+    add_index :mlc_installation_nodes, [ :mlc_installation_id, :node_id ], unique: true
   end
 end

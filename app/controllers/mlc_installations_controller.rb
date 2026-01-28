@@ -1,6 +1,6 @@
 class MlcInstallationsController < ApplicationController
   before_action :authenticate_user!
-  before_action :set_installation, only: [:show, :destroy]
+  before_action :set_installation, only: [ :show, :destroy ]
 
   def new
     @installation = MlcInstallation.new
@@ -117,8 +117,24 @@ class MlcInstallationsController < ApplicationController
   end
 
   def extract_tarball_for_selection(stored_path)
+    validated_path = validate_stored_path(stored_path)
+    return nil unless validated_path
+
     extract_dir = Dir.mktmpdir("mlc-select-")
-    system("tar", "-xzf", stored_path, "-C", extract_dir)
+    system("tar", "-xzf", validated_path, "-C", extract_dir)
     extract_dir
+  end
+
+  def validate_stored_path(stored_path)
+    return nil if stored_path.blank?
+
+    upload_dir = Mlc::UploadService::UPLOAD_DIR.to_s
+    expanded_path = File.expand_path(stored_path)
+
+    # Ensure path is within upload directory (prevent path traversal)
+    return nil unless expanded_path.start_with?(upload_dir)
+    return nil unless File.exist?(expanded_path)
+
+    expanded_path
   end
 end

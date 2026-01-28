@@ -36,11 +36,11 @@ module Mlc
       return false unless @result&.stored_path
 
       actual = case algorithm.downcase
-               when "sha256" then Digest::SHA256.file(@result.stored_path).hexdigest
-               when "sha1" then Digest::SHA1.file(@result.stored_path).hexdigest
-               when "md5" then Digest::MD5.file(@result.stored_path).hexdigest
-               else return false
-               end
+      when "sha256" then Digest::SHA256.file(@result.stored_path).hexdigest
+      when "sha1" then Digest::SHA1.file(@result.stored_path).hexdigest
+      when "md5" then Digest::MD5.file(@result.stored_path).hexdigest
+      else return false
+      end
 
       ActiveSupport::SecurityUtils.secure_compare(actual, expected.downcase)
     end

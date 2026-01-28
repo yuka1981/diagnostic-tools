@@ -14,7 +14,7 @@ class MlcInstallation < ApplicationRecord
   def progress_percentage
     return 0 if mlc_installation_nodes.empty?
 
-    completed = mlc_installation_nodes.where(status: [:success, :failed, :skipped]).count
+    completed = mlc_installation_nodes.where(status: [ :success, :failed, :skipped ]).count
     total = mlc_installation_nodes.count
     ((completed.to_f / total) * 100).to_i
   end
