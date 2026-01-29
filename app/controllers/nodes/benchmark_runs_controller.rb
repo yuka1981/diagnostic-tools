@@ -49,8 +49,6 @@ module Nodes
         Benchmark::TriggerJob.perform_later(
           @node,
           run,
-          request.base_url,
-          agent_token,
           argument_overrides,
           user_id: current_user.id
         )

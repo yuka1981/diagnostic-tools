@@ -55,61 +55,6 @@ RSpec.describe "Node Management", type: :system, js: true do
     expect(page).not_to have_selector("turbo-frame#node_modal .card-netbox")
   end
 
-  it "allows an approver to remove an agent" do
-    # Create node with non-root SSH user to require sudo password
-    node = create(:node, hostname: "uninstall-target", source: :agent_push, ip: "10.0.0.5",
-                  ssh_user: "deploy", ssh_user_override: true)
-    visit nodes_path
-
-    # Use a more specific selector to avoid intercepting other elements
-    within "tr##{dom_id(node)}" do
-      find("a[title='Uninstall Agent']").click
-    end
-
-    # Mock the background job service to succeed immediately
-    uninstall_result = Agent::LifecycleService::Result.new(success: true, message: "Agent uninstalled")
-    uninstaller = instance_double(Agent::UninstallService, call: uninstall_result)
-    allow(Agent::UninstallService).to receive(:new).and_return(uninstaller)
-
-    within "turbo-frame#uninstall_modal" do
-      expect(page).to have_content(/Uninstall Agent: uninstall-target/i)
-
-      fill_in "Remote Sudo Password", with: "secret"
-      fill_in "SSH Password / Key Passphrase", with: "password"
-
-      click_button "Begin Uninstallation"
-
-      # Wait for the processing state
-      expect(page).to have_content(/Uninstalling Agent.../i)
-    end
-
-    # We need to ensure the job runs and broadcasts
-    # Since we are in a system test with JS, the job will actually run if we use perform_enqueued_jobs
-    # or we can just manually trigger the broadcast that the job would do,
-    # but we need to wait for the subscription to be active.
-
-    # Wait a bit for ActionCable subscription
-    sleep 1
-
-    Turbo::StreamsChannel.broadcast_replace_to(
-      "agent_uninstall_uninstall-target",
-      target: "agent_uninstall_status_uninstall-target",
-      partial: "nodes/uninstalls/status",
-      locals: {
-        status: "success",
-        message: "Agent uninstalled successfully",
-        target_host: "uninstall-target",
-        steps: Agent::UninstallJob::STEPS
-      }
-    )
-
-    # Verify the successful state arrived via Turbo Stream
-    expect(page).to have_content(/Uninstallation Successful/i, wait: 10)
-    click_link "Done"
-
-    expect(page).to have_current_path(nodes_path)
-  end
-
   it "disables the Install button if the agent is already installed" do
     create(:node, hostname: "already-installed", source: :agent_push)
     visit nodes_path

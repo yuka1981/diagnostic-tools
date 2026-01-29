@@ -60,8 +60,6 @@ class TasksController < ApplicationController
       Benchmark::TriggerJob.perform_later(
         new_run.node,
         new_run,
-        request.base_url,
-        agent_token(new_run.node),
         {},
         user_id: current_user.id
       )

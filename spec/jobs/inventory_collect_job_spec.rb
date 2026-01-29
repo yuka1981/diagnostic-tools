@@ -5,153 +5,117 @@ require "rails_helper"
 RSpec.describe InventoryCollectJob, type: :job do
   include ActiveJob::TestHelper
 
-  let(:target_node) { create(:node, hostname: "compute-01") }
-  let(:gateway_node) { create(:node, :admin, hostname: "gateway-01") }
+  let(:node) { create(:node, hostname: "node-01") }
 
   describe "#perform" do
-    let(:service_result) do
-      Inventory::TriggerCollectService::Result.new(
+    let(:success_result) do
+      Inventory::SaltCollectService::Result.new(
         success: true,
-        output: { cpu_info: { cores: 8 } }
+        state_created: true,
+        node_state: nil
       )
     end
 
-    let(:mock_service) { instance_double(Inventory::TriggerCollectService, call: service_result) }
+    let(:mock_service) { instance_double(Inventory::SaltCollectService, call: success_result) }
 
     before do
-      allow(Inventory::TriggerCollectService).to receive(:new).and_return(mock_service)
+      allow(Inventory::SaltCollectService).to receive(:new).and_return(mock_service)
     end
 
-    it "finds the target node and calls TriggerCollectService" do
-      expect(Inventory::TriggerCollectService).to receive(:new).with(
-        target_node,
-        gateway: nil
-      ).and_return(mock_service)
+    it "delegates to Inventory::SaltCollectService" do
+      expect(Inventory::SaltCollectService).to receive(:new)
+        .with(node)
+        .and_return(mock_service)
 
-      described_class.perform_now(target_node.id)
-    end
+      described_class.perform_now(node.id)
 
-    context "with gateway node" do
-      it "passes gateway node to service" do
-        expect(Inventory::TriggerCollectService).to receive(:new).with(
-          target_node,
-          gateway: gateway_node
-        ).and_return(mock_service)
-
-        described_class.perform_now(target_node.id, gateway_node_id: gateway_node.id)
-      end
+      expect(mock_service).to have_received(:call)
     end
 
     context "when collection succeeds" do
-      let(:process_service_result) do
-        Inventory::ProcessStateService::Result.new(success: true, state_created: true)
-      end
+      it "does not log an error" do
+        expect(Rails.logger).not_to receive(:error)
 
-      let(:mock_process_service) { instance_double(Inventory::ProcessStateService, call: process_service_result) }
-
-      before do
-        allow(Inventory::ProcessStateService).to receive(:new).and_return(mock_process_service)
-      end
-
-      it "processes collected data with ProcessStateService" do
-        expect(Inventory::ProcessStateService).to receive(:new).with(
-          node_id: target_node.id,
-          raw_json: { cpu_info: { cores: 8 } }
-        ).and_return(mock_process_service)
-
-        described_class.perform_now(target_node.id)
+        described_class.perform_now(node.id)
       end
     end
 
-    context "when collection fails with error result" do
-      let(:service_result) do
-        Inventory::TriggerCollectService::Result.new(
+    context "when collection fails" do
+      let(:failure_result) do
+        Inventory::SaltCollectService::Result.new(
           success: false,
-          error: "Command returned empty output"
+          error: "Minion 'node-01' did not return a result"
         )
+      end
+
+      before do
+        allow(mock_service).to receive(:call).and_return(failure_result)
       end
 
       it "logs the error" do
-        expect(Rails.logger).to receive(:error).with(/Failed to collect data from compute-01/)
+        expect(Rails.logger).to receive(:error)
+          .with(/Failed to collect from node-01/)
 
-        described_class.perform_now(target_node.id)
-      end
-
-      it "does not call ProcessStateService" do
-        allow(Rails.logger).to receive(:error)
-        expect(Inventory::ProcessStateService).not_to receive(:new)
-
-        described_class.perform_now(target_node.id)
-      end
-    end
-
-    context "when SSH authentication fails" do
-      before do
-        allow(mock_service).to receive(:call).and_raise(
-          Net::SSH::AuthenticationFailed.new("admin")
-        )
-      end
-
-      it "logs the SSH error and completes without raising" do
-        expect(Rails.logger).to receive(:error).with(/SSH error for compute-01.*Authentication failed/)
-
-        expect { described_class.perform_now(target_node.id) }.not_to raise_error
-      end
-
-      it "does not call ProcessStateService" do
-        allow(Rails.logger).to receive(:error)
-        expect(Inventory::ProcessStateService).not_to receive(:new)
-
-        described_class.perform_now(target_node.id)
-      end
-    end
-
-    context "when SSH host key verification fails" do
-      before do
-        allow(mock_service).to receive(:call).and_raise(
-          Net::SSH::HostKeyMismatch.new("Host key mismatch")
-        )
-      end
-
-      it "logs the SSH error and completes without raising" do
-        expect(Rails.logger).to receive(:error).with(/SSH error for compute-01.*Host key verification failed/)
-
-        expect { described_class.perform_now(target_node.id) }.not_to raise_error
-      end
-    end
-
-    context "when other SSH exception occurs" do
-      before do
-        allow(mock_service).to receive(:call).and_raise(
-          Net::SSH::Exception.new("Unknown SSH error")
-        )
-      end
-
-      it "logs the SSH error and completes without raising" do
-        expect(Rails.logger).to receive(:error).with(/SSH error for compute-01/)
-
-        expect { described_class.perform_now(target_node.id) }.not_to raise_error
-      end
-    end
-
-    context "when SSH connection times out" do
-      before do
-        allow(mock_service).to receive(:call).and_raise(
-          Net::SSH::ConnectionTimeout.new("Connection timed out")
-        )
-      end
-
-      it "allows the exception to propagate for retry handling" do
-        # retry_on catches ConnectionTimeout internally, so it won't raise in perform_now
-        # but it will be enqueued for retry when using perform_later
-        # For perform_now, the retry mechanism handles it silently after max attempts
-        expect { described_class.perform_now(target_node.id) }.not_to raise_error
+        described_class.perform_now(node.id)
       end
     end
 
     context "when node does not exist" do
       it "discards the job without error" do
-        expect { described_class.perform_now(999999) }.not_to raise_error
+        expect { described_class.perform_now(999_999) }.not_to raise_error
+      end
+    end
+
+    context "with user_id for notifications" do
+      let(:user) { create(:user) }
+
+      it "creates and completes a notification on success" do
+        notification = instance_double(Notification)
+
+        allow(NotificationService).to receive(:create).and_return(notification)
+        allow(NotificationService).to receive(:start)
+        allow(NotificationService).to receive(:complete)
+
+        described_class.perform_now(node.id, user_id: user.id)
+
+        expect(NotificationService).to have_received(:create).with(
+          user: user,
+          type: "inventory_collect",
+          title: "Collecting inventory from node-01",
+          resource: node
+        )
+        expect(NotificationService).to have_received(:start).with(notification)
+        expect(NotificationService).to have_received(:complete).with(
+          notification, success: true, message: "Inventory collected successfully"
+        )
+      end
+
+      it "completes notification as failure on collection error" do
+        failure_result = Inventory::SaltCollectService::Result.new(
+          success: false,
+          error: "Salt API authentication failed"
+        )
+        allow(mock_service).to receive(:call).and_return(failure_result)
+
+        notification = instance_double(Notification)
+        allow(NotificationService).to receive(:create).and_return(notification)
+        allow(NotificationService).to receive(:start)
+        allow(NotificationService).to receive(:complete)
+        allow(Rails.logger).to receive(:error)
+
+        described_class.perform_now(node.id, user_id: user.id)
+
+        expect(NotificationService).to have_received(:complete).with(
+          notification, success: false, message: "Salt API authentication failed"
+        )
+      end
+    end
+
+    context "without user_id" do
+      it "does not create a notification" do
+        expect(NotificationService).not_to receive(:create)
+
+        described_class.perform_now(node.id)
       end
     end
   end
@@ -162,24 +126,17 @@ RSpec.describe InventoryCollectJob, type: :job do
     end
   end
 
-  describe "retry behavior" do
-    it "has retry_on configured for ConnectionTimeout only" do
-      # Verify that the job has rescue handlers configured
-      expect(described_class.rescue_handlers).not_to be_empty
-    end
-  end
-
   describe "enqueue" do
     it "can be enqueued with node id" do
       expect {
-        described_class.perform_later(target_node.id)
-      }.to have_enqueued_job(described_class).with(target_node.id)
+        described_class.perform_later(node.id)
+      }.to have_enqueued_job(described_class).with(node.id)
     end
 
-    it "can be enqueued with gateway node id" do
+    it "can be enqueued with user_id" do
       expect {
-        described_class.perform_later(target_node.id, gateway_node_id: gateway_node.id)
-      }.to have_enqueued_job(described_class).with(target_node.id, gateway_node_id: gateway_node.id)
+        described_class.perform_later(node.id, user_id: 42)
+      }.to have_enqueued_job(described_class).with(node.id, user_id: 42)
     end
   end
 end
