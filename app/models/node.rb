@@ -49,9 +49,6 @@ class Node < ApplicationRecord
     end
   end
 
-  # Constants
-  DEFAULT_AGENT_PATH = "qis-agent"
-
   # Scopes
   scope :online, -> { where(salt_status: :connected) }
   scope :unracked, -> { where(rack_id: nil) }
@@ -69,10 +66,6 @@ class Node < ApplicationRecord
   # Returns the most recent NodeState for this node
   def current_state
     node_states.latest_first.first
-  end
-
-  def effective_agent_path
-    agent_path.presence || DEFAULT_AGENT_PATH
   end
 
   # Returns the API token for this node, checking both direct storage and ApiKey association
