@@ -4,7 +4,7 @@ class NodesController < ApplicationController
   layout "dashboard"
   before_action :authenticate_user!
   before_action :set_node, only: %i[show edit update destroy test_connection collect run_benchmark]
-  before_action :authorize_approver!, only: %i[new create edit update destroy bulk_destroy test_connection collect run_benchmark]
+  before_action :authorize_approver!, only: %i[new create edit update destroy bulk_destroy test_connection collect run_benchmark discover import_minions]
 
   def index
     @nodes = Node.order(:hostname)
@@ -137,6 +137,46 @@ class NodesController < ApplicationController
       format.html {
         redirect_to nodes_path, notice: "#{deleted_count} nodes deleted."
       }
+    end
+  end
+
+  def discover
+    result = Salt::MinionDiscoveryService.new.call
+
+    if result.success?
+      @discovered = result.discovered
+      @existing_count = result.existing.size
+    else
+      @error = result.error
+      @discovered = []
+      @existing_count = 0
+    end
+  end
+
+  def import_minions
+    hostnames = params[:hostnames] || []
+    if hostnames.empty?
+      redirect_to nodes_path, alert: "No minions selected"
+      return
+    end
+
+    imported = []
+    errors = []
+
+    hostnames.each do |hostname|
+      node = Node.new(hostname: hostname, source: :salt_discovery, salt_status: :connected)
+      if node.save
+        imported << node
+        InventoryCollectJob.perform_later(node.id, user_id: current_user.id)
+      else
+        errors << { hostname: hostname, error: node.errors.full_messages.join(", ") }
+      end
+    end
+
+    if errors.empty?
+      redirect_to nodes_path, notice: "#{imported.size} minion(s) imported successfully"
+    else
+      redirect_to nodes_path, alert: "#{imported.size} imported, #{errors.size} failed"
     end
   end
 

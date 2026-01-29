@@ -1,0 +1,95 @@
+<% content_for(:page_title) { "Discover Minions" } %>
+
+<div class="max-w-4xl mx-auto">
+  <div class="card-netbox">
+    <div class="card-header">
+      <h3 class="card-title text-xs font-bold text-neutral-45 uppercase">Discover Salt Minions</h3>
+    </div>
+
+    <% if @error %>
+      <div class="p-6 text-center">
+        <div class="inline-flex items-center gap-2 text-error-6 mb-2">
+          <%= lucide_icon("alert-circle", class: "h-5 w-5") %>
+          <span class="font-bold">Salt API Error</span>
+        </div>
+        <p class="text-sm text-neutral-45"><%= @error %></p>
+        <div class="mt-4">
+          <%= link_to "Back to Nodes", nodes_path, class: "btn-secondary" %>
+        </div>
+      </div>
+    <% elsif @discovered.empty? %>
+      <div class="p-6 text-center">
+        <div class="inline-flex items-center gap-2 text-success-6 mb-2">
+          <%= lucide_icon("check-circle", class: "h-5 w-5") %>
+          <span class="font-bold">All minions registered</span>
+        </div>
+        <p class="text-sm text-neutral-45">All <%= @existing_count %> connected minion(s) are already in the system.</p>
+        <div class="mt-4">
+          <%= link_to "Back to Nodes", nodes_path, class: "btn-secondary" %>
+        </div>
+      </div>
+    <% else %>
+      <div class="p-4">
+        <p class="text-sm text-neutral-45 mb-4">
+          Found <span class="font-bold text-neutral-85"><%= @discovered.size %></span> unregistered minion(s).
+          <span class="text-neutral-25"><%= @existing_count %> already registered.</span>
+        </p>
+      </div>
+
+      <%= form_with url: import_minions_nodes_path, method: :post do |f| %>
+        <div class="overflow-x-auto" data-controller="bulk-select" data-bulk-select-item-name-value="minion" data-bulk-select-param-name-value="hostnames">
+          <table class="min-w-full divide-y divide-neutral-8 text-sm">
+            <thead class="bg-neutral-2">
+              <tr>
+                <th scope="col" class="w-10 border-b">
+                  <div class="flex items-center justify-center h-full py-2">
+                    <input type="checkbox"
+                           data-bulk-select-target="selectAll"
+                           data-action="change->bulk-select#toggleAll"
+                           class="rounded border-neutral-15 text-primary-6 focus:ring-primary-5">
+                  </div>
+                </th>
+                <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-neutral-45 border-b">Hostname</th>
+                <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-neutral-45 border-b">IP</th>
+                <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-neutral-45 border-b">OS</th>
+                <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-neutral-45 border-b">Arch</th>
+                <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-neutral-45 border-b">CPUs</th>
+                <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-neutral-45 border-b">Memory</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-neutral-4 bg-white">
+              <% @discovered.each do |minion| %>
+                <tr class="hover:bg-primary-1">
+                  <td class="whitespace-nowrap">
+                    <div class="flex items-center justify-center h-full py-2">
+                      <input type="checkbox"
+                             name="hostnames[]"
+                             value="<%= minion[:hostname] %>"
+                             data-bulk-select-target="checkbox"
+                             data-action="change->bulk-select#toggle"
+                             class="rounded border-neutral-15 text-primary-6 focus:ring-primary-5">
+                    </div>
+                  </td>
+                  <td class="whitespace-nowrap px-3 py-2 font-bold text-neutral-85"><%= minion[:hostname] %></td>
+                  <td class="whitespace-nowrap px-3 py-2 font-mono text-neutral-45 text-xs"><%= minion[:ip] || "—" %></td>
+                  <td class="whitespace-nowrap px-3 py-2 text-neutral-85"><%= [minion[:os], minion[:os_release]].compact.join(" ") %></td>
+                  <td class="whitespace-nowrap px-3 py-2 text-neutral-85"><%= minion[:arch] || "—" %></td>
+                  <td class="whitespace-nowrap px-3 py-2 text-neutral-85"><%= minion[:num_cpus] || "—" %></td>
+                  <td class="whitespace-nowrap px-3 py-2 text-neutral-85"><%= minion[:mem_total] ? number_to_human_size(minion[:mem_total].to_i * 1.megabyte) : "—" %></td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="flex items-center justify-between p-4 border-t border-neutral-8">
+          <%= link_to "Cancel", nodes_path, class: "btn-secondary" %>
+          <button type="submit" class="btn-primary">
+            <%= lucide_icon("download", class: "h-4 w-4") %>
+            Import Selected
+          </button>
+        </div>
+      <% end %>
+    <% end %>
+  </div>
+</div>
