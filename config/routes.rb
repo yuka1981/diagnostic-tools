@@ -47,15 +47,6 @@ Rails.application.routes.draw do
 
   namespace :settings do
     resource :ssh_defaults, only: [ :show, :update ], controller: :ssh_defaults
-    resource :agent, only: [ :show, :update ], controller: :agents
-    resources :agent_releases do
-      member do
-        patch :deprecate
-        patch :activate
-        patch :recall
-      end
-      resources :binaries, only: %i[new create destroy], controller: "agent_binaries"
-    end
     resources :server_products do
       collection do
         post :sync
@@ -88,12 +79,11 @@ Rails.application.routes.draw do
     resource :network, only: [], controller: "nodes/network" do
       get :ib_details
     end
-    resource :update, only: %i[new create], controller: "nodes/updates"
     collection do
       delete :bulk_destroy
+      get :discover
+      post :import_minions
       resources :imports, only: %i[new create], controller: "nodes/imports", as: :node_import
-      resources :installs, only: %i[new create], controller: "nodes/installs", as: :node_install
-      resources :uninstalls, only: %i[new create], controller: "nodes/uninstalls", as: :node_uninstall
     end
   end
   resources :benchmark_runs, only: %i[index show] do
@@ -112,7 +102,8 @@ Rails.application.routes.draw do
   resources :mlc_benchmarks, only: %i[new create]
 
   resources :mlc_installations, only: [ :new, :create, :show, :destroy ] do
-    member do
+    collection do
+      post :upload
       post :verify_checksum
       get :select_binary
     end
