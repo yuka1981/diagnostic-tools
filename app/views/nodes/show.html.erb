@@ -18,23 +18,8 @@
     </div>
     <div class="mt-1 flex items-center gap-4 text-sm text-neutral-45">
       <span class="font-mono">UUID: <%= @node.id %></span>
-      <% if @node.agent_version.present? %>
-        <span class="font-mono text-primary-6">Agent <%= @node.agent_version %></span>
-      <% end %>
       <span>•</span>
       <span>Added <%= time_ago_in_words(@node.created_at) %> ago</span>
-      <% if @node.agent_push? && current_user.approver? %>
-        <span>•</span>
-        <%= link_to "/uninstall-qis-agent.sh",
-            class: "text-neutral-25 hover:text-error-6 transition-colors",
-            title: "Download manual uninstall script",
-            download: "uninstall-qis-agent.sh" do %>
-          <span class="flex items-center gap-1">
-            <%= lucide_icon("download", class: "h-3 w-3") %>
-            Uninstall Script
-          </span>
-        <% end %>
-      <% end %>
     </div>
   </div>
 
@@ -48,20 +33,11 @@
         Collect
       <% end %>
 
-      <% if @node.agent_push? %>
-        <%= link_to new_node_benchmark_run_path(@node),
-            class: "btn-secondary",
-            data: { turbo_frame: "modal", testid: "nodes-show-button-benchmark" } do %>
-          <%= lucide_icon("zap", class: "h-4 w-4 text-login-5") %>
-          Benchmark
-        <% end %>
-
-        <%= link_to new_node_update_path(@node),
-            class: "btn-secondary",
-            data: { turbo_frame: "update_modal", testid: "nodes-show-button-update" } do %>
-          <%= lucide_icon("upload", class: "h-4 w-4 text-success-5") %>
-          Update Agent
-        <% end %>
+      <%= link_to new_node_benchmark_run_path(@node),
+          class: "btn-secondary",
+          data: { turbo_frame: "modal", testid: "nodes-show-button-benchmark" } do %>
+        <%= lucide_icon("zap", class: "h-4 w-4 text-login-5") %>
+        Benchmark
       <% end %>
 
       <%= link_to edit_node_path(@node),
@@ -168,7 +144,6 @@
 
 <%= turbo_frame_tag "modal" %>
 <%= turbo_frame_tag "node_modal" %>
-<%= turbo_frame_tag "update_modal" %>
 <%= turbo_frame_tag "profiling_modal" %>
 
 <%# Slide-over Panel for Benchmark Run Details %>

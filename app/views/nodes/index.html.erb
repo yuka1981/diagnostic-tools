@@ -12,6 +12,7 @@
         <%= lucide_icon("plus", class: "h-4 w-4") %>
         Add Node
       <% end %>
+      <%# TODO: Add "Discover Minions" button once route is available (Task 13) %>
     <% end %>
 
     <%= link_to new_node_import_path,
@@ -31,6 +32,3 @@
 <%# Modals turbo frames %>
 <%= turbo_frame_tag "node_modal" %>
 <%= turbo_frame_tag "import_modal" %>
-<%= turbo_frame_tag "install_modal" %>
-<%= turbo_frame_tag "uninstall_modal" %>
-<%= turbo_frame_tag "update_modal" %>
