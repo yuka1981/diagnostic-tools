@@ -138,14 +138,14 @@ RSpec.describe "Nodes", type: :request do
   end
 
   describe "POST /nodes/:id/test_connection" do
-    let(:service_double) { instance_double(Inventory::TriggerCollectService) }
+    let(:salt_client) { instance_double(SaltApiClient) }
 
     before do
-      allow(Inventory::TriggerCollectService).to receive(:new).with(any_args).and_return(service_double)
+      allow(SaltApiClient).to receive(:new).and_return(salt_client)
     end
 
     it "returns success message when connection succeeds" do
-      allow(service_double).to receive(:call).and_return(double(success?: true))
+      allow(salt_client).to receive(:run).with(node.hostname, "test.ping").and_return(true)
       post test_connection_node_path(node), headers: { "Accept" => "text/vnd.turbo-stream.html" }
 
       expect(response).to have_http_status(:success)
@@ -153,7 +153,7 @@ RSpec.describe "Nodes", type: :request do
     end
 
     it "returns error message when connection fails" do
-      allow(service_double).to receive(:call).and_return(double(success?: false, error: "Authentication failed"))
+      allow(salt_client).to receive(:run).and_raise(SaltApiClient::TargetUnreachable, "Minion not responding")
       post test_connection_node_path(node), headers: { "Accept" => "text/vnd.turbo-stream.html" }
 
       expect(response).to have_http_status(:success)
@@ -162,17 +162,16 @@ RSpec.describe "Nodes", type: :request do
   end
 
   describe "POST /nodes/:id/collect" do
-    let(:trigger_double) { instance_double(Inventory::TriggerCollectService) }
-    let(:process_double) { instance_double(Inventory::ProcessStateService) }
+    let(:service_double) { instance_double(Inventory::SaltCollectService) }
 
     before do
-      allow(Inventory::TriggerCollectService).to receive(:new).with(node).and_return(trigger_double)
+      allow(Inventory::SaltCollectService).to receive(:new).with(node).and_return(service_double)
     end
 
     it "returns success message and updates data when collection succeeds" do
-      allow(trigger_double).to receive(:call).and_return(double(success?: true, output: { host: { hostname: node.hostname } }))
-      allow(Inventory::ProcessStateService).to receive(:new).and_return(process_double)
-      allow(process_double).to receive(:call).and_return(double(success?: true, state_created: true, node_state: build(:node_state)))
+      allow(service_double).to receive(:call).and_return(
+        double(success?: true, state_created: true, node_state: build(:node_state))
+      )
 
       post collect_node_path(node), headers: { "Accept" => "text/vnd.turbo-stream.html" }
 
@@ -181,7 +180,9 @@ RSpec.describe "Nodes", type: :request do
     end
 
     it "returns error message when collection fails" do
-      allow(trigger_double).to receive(:call).and_return(double(success?: false, error: "Agent not found"))
+      allow(service_double).to receive(:call).and_return(
+        double(success?: false, error: "Agent not found")
+      )
       post collect_node_path(node), headers: { "Accept" => "text/vnd.turbo-stream.html" }
 
       expect(response).to have_http_status(:success)

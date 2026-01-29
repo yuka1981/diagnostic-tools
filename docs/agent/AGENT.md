@@ -60,17 +60,17 @@ type Responder interface {
 
 ### **3.1 節點身份識別 (Node Identity)**
 
-* **Mechanism**: 首次啟動時於 `/etc/hpc-agent/node_id` (或指定目錄) 生成並儲存 UUID。
+* **Mechanism**: 首次啟動時於 `/etc/qis-agent/node_id` (或指定目錄) 生成並儲存 UUID。
 * **Persistence**: 確保 Agent 重啟後 UUID 保持不變，用於伺服器端去重。
 
-### **3.2 系統資訊收集 (Inventory) - hpc-agent collect**
+### **3.2 系統資訊收集 (Inventory) - qis-agent collect**
 
 * **DMI (Phase 1)**: 透過 `dmidecode -t 0,1,17` 取得。若執行失敗 (如無權限) 應回傳 Warning 並繼續其他收集任務。
 * **CPU**: 解析 `/proc/cpuinfo` 並輔以 `/sys/devices/system/cpu` 取得頻率與快取。
 * **Memory**: 解析 `/proc/meminfo` 取得 Total, Free, Available, Buffers, Cached, Swap。
 * **Disk**: 讀取 `/proc/mounts` 並使用 `unix.Statfs` 取得空間資訊。
 
-### **3.3 雙向通訊 (Streaming) - hpc-agent start**
+### **3.3 雙向通訊 (Streaming) - qis-agent start**
 
 * **Protocol**: ActionCable WebSocket。
 * **Authentication**: 透過 `X-Node-ID` Header 與 `Authorization: Bearer <token>`。
@@ -87,10 +87,10 @@ type Responder interface {
 
 ## **4. CLI 介面 (Cobra)**
 
-* `hpc-agent start`: 以常駐程式 (Daemon) 模式執行，連接 WebSocket。
-* `hpc-agent collect`: 單次收集系統資訊並輸出 JSON。
-* `hpc-agent inventory push`: 收集並上傳至伺服器。
-* `hpc-agent check-key`: 驗證 API Token 效力。
+* `qis-agent start`: 以常駐程式 (Daemon) 模式執行，連接 WebSocket。
+* `qis-agent collect`: 單次收集系統資訊並輸出 JSON。
+* `qis-agent inventory push`: 收集並上傳至伺服器。
+* `qis-agent check-key`: 驗證 API Token 效力。
 
 ## **5. 測試策略 (Test Strategy)**
 

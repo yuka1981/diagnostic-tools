@@ -25,10 +25,10 @@
       <span>Added <%= time_ago_in_words(@node.created_at) %> ago</span>
       <% if @node.agent_push? && current_user.approver? %>
         <span>•</span>
-        <%= link_to "/uninstall-hpc-agent.sh",
+        <%= link_to "/uninstall-qis-agent.sh",
             class: "text-neutral-25 hover:text-error-6 transition-colors",
             title: "Download manual uninstall script",
-            download: "uninstall-hpc-agent.sh" do %>
+            download: "uninstall-qis-agent.sh" do %>
           <span class="flex items-center gap-1">
             <%= lucide_icon("download", class: "h-3 w-3") %>
             Uninstall Script

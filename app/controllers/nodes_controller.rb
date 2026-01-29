@@ -19,16 +19,19 @@ class NodesController < ApplicationController
   end
 
   def test_connection
-    service = Inventory::TriggerCollectService.new(@node)
-    result = service.call
+    salt_client = SaltApiClient.new
+    salt_client.run(@node.hostname, "test.ping")
 
     respond_to do |format|
       format.turbo_stream do
-        if result.success?
-          flash.now[:notice] = "Connection to #{@node.hostname} successful!"
-        else
-          flash.now[:alert] = "Connection to #{@node.hostname} failed: #{result.error}"
-        end
+        flash.now[:notice] = "Connection to #{@node.hostname} successful!"
+        render turbo_stream: turbo_stream.update("flash_messages", partial: "shared/flash")
+      end
+    end
+  rescue SaltApiClient::TargetUnreachable => e
+    respond_to do |format|
+      format.turbo_stream do
+        flash.now[:alert] = "Connection to #{@node.hostname} failed: #{e.message}"
         render turbo_stream: turbo_stream.update("flash_messages", partial: "shared/flash")
       end
     end
@@ -42,25 +45,13 @@ class NodesController < ApplicationController
   end
 
   def collect
-    trigger_service = Inventory::TriggerCollectService.new(@node)
-    trigger_result = trigger_service.call
+    service = Inventory::SaltCollectService.new(@node)
+    result = service.call
 
-    if trigger_result.success?
-      if trigger_result.output.is_a?(Hash) && trigger_result.output[:async]
-        @is_async = true
-        flash.now[:notice] = "Collection command sent to agent on #{@node.hostname}. Data will update shortly."
-      else
-        process_service = Inventory::ProcessStateService.new(node_id: @node.id, raw_json: trigger_result.output)
-        process_result = process_service.call
-
-        if process_result.success?
-          flash.now[:notice] = "System information collected successfully for #{@node.hostname}."
-        else
-          flash.now[:alert] = "Collected data but failed to process: #{process_result.error}"
-        end
-      end
+    if result.success?
+      flash.now[:notice] = "System information collected successfully for #{@node.hostname}."
     else
-      flash.now[:alert] = "Failed to collect information from #{@node.hostname}: #{trigger_result.error}"
+      flash.now[:alert] = "Failed to collect information from #{@node.hostname}: #{result.error}"
     end
 
     @node.reload

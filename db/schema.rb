@@ -20,8 +20,8 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_28_021750) do
     t.bigint "record_id", null: false
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
-    t.index [ "blob_id" ], name: "index_active_storage_attachments_on_blob_id"
-    t.index [ "record_type", "record_id", "name", "blob_id" ], name: "index_active_storage_attachments_uniqueness", unique: true
+    t.index ["blob_id"], name: "index_active_storage_attachments_on_blob_id"
+    t.index ["record_type", "record_id", "name", "blob_id"], name: "index_active_storage_attachments_uniqueness", unique: true
   end
 
   create_table "active_storage_blobs", force: :cascade do |t|
@@ -33,13 +33,13 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_28_021750) do
     t.bigint "byte_size", null: false
     t.string "checksum"
     t.datetime "created_at", null: false
-    t.index [ "key" ], name: "index_active_storage_blobs_on_key", unique: true
+    t.index ["key"], name: "index_active_storage_blobs_on_key", unique: true
   end
 
   create_table "active_storage_variant_records", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.string "variation_digest", null: false
-    t.index [ "blob_id", "variation_digest" ], name: "index_active_storage_variant_records_uniqueness", unique: true
+    t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
   end
 
   create_table "agent_binaries", force: :cascade do |t|
@@ -48,8 +48,8 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_28_021750) do
     t.string "checksum"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index [ "agent_release_id", "arch" ], name: "index_agent_binaries_on_agent_release_id_and_arch", unique: true
-    t.index [ "agent_release_id" ], name: "index_agent_binaries_on_agent_release_id"
+    t.index ["agent_release_id", "arch"], name: "index_agent_binaries_on_agent_release_id_and_arch", unique: true
+    t.index ["agent_release_id"], name: "index_agent_binaries_on_agent_release_id"
   end
 
   create_table "agent_events", force: :cascade do |t|
@@ -67,12 +67,12 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_28_021750) do
     t.datetime "completed_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index [ "agent_release_id" ], name: "index_agent_events_on_agent_release_id"
-    t.index [ "created_at" ], name: "index_agent_events_on_created_at"
-    t.index [ "node_id" ], name: "index_agent_events_on_node_id"
-    t.index [ "operation" ], name: "index_agent_events_on_operation"
-    t.index [ "status" ], name: "index_agent_events_on_status"
-    t.index [ "user_id" ], name: "index_agent_events_on_user_id"
+    t.index ["agent_release_id"], name: "index_agent_events_on_agent_release_id"
+    t.index ["created_at"], name: "index_agent_events_on_created_at"
+    t.index ["node_id"], name: "index_agent_events_on_node_id"
+    t.index ["operation"], name: "index_agent_events_on_operation"
+    t.index ["status"], name: "index_agent_events_on_status"
+    t.index ["user_id"], name: "index_agent_events_on_user_id"
   end
 
   create_table "agent_releases", force: :cascade do |t|
@@ -82,8 +82,8 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_28_021750) do
     t.integer "status", default: 0, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index [ "status" ], name: "index_agent_releases_on_status"
-    t.index [ "version" ], name: "index_agent_releases_on_version", unique: true
+    t.index ["status"], name: "index_agent_releases_on_status"
+    t.index ["version"], name: "index_agent_releases_on_version", unique: true
   end
 
   create_table "api_keys", force: :cascade do |t|
@@ -93,7 +93,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_28_021750) do
     t.datetime "last_used_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index [ "token" ], name: "index_api_keys_on_token", unique: true
+    t.index ["token"], name: "index_api_keys_on_token", unique: true
   end
 
   create_table "artifact_indices", force: :cascade do |t|
@@ -104,7 +104,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_28_021750) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.string "stored_path"
-    t.index [ "benchmark_run_id" ], name: "index_artifact_indices_on_benchmark_run_id"
+    t.index ["benchmark_run_id"], name: "index_artifact_indices_on_benchmark_run_id"
   end
 
   create_table "benchmark_recipes", force: :cascade do |t|
@@ -118,9 +118,9 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_28_021750) do
     t.text "description"
     t.integer "timeout_seconds", default: 3600
     t.integer "status", default: 0, null: false
-    t.index [ "name", "version" ], name: "index_benchmark_recipes_on_name_and_version", unique: true
-    t.index [ "name" ], name: "index_benchmark_recipes_on_name"
-    t.index [ "slug" ], name: "index_benchmark_recipes_on_slug", unique: true
+    t.index ["name", "version"], name: "index_benchmark_recipes_on_name_and_version", unique: true
+    t.index ["name"], name: "index_benchmark_recipes_on_name"
+    t.index ["slug"], name: "index_benchmark_recipes_on_slug", unique: true
   end
 
   create_table "benchmark_runs", force: :cascade do |t|
@@ -135,14 +135,62 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_28_021750) do
     t.datetime "updated_at", null: false
     t.string "log_path"
     t.uuid "uuid", default: -> { "gen_random_uuid()" }, null: false
+    t.datetime "last_heartbeat_at"
+    t.string "current_phase"
     t.text "log_content"
     t.jsonb "arguments", default: {}
-    t.index [ "benchmark_recipe_id" ], name: "index_benchmark_runs_on_benchmark_recipe_id"
-    t.index [ "node_id", "started_at" ], name: "index_benchmark_runs_on_node_id_and_started_at", order: { started_at: :desc }
-    t.index [ "node_id" ], name: "index_benchmark_runs_on_node_id"
-    t.index [ "started_at" ], name: "index_benchmark_runs_on_started_at"
-    t.index [ "status" ], name: "index_benchmark_runs_on_status"
-    t.index [ "uuid" ], name: "index_benchmark_runs_on_uuid", unique: true
+    t.index ["benchmark_recipe_id"], name: "index_benchmark_runs_on_benchmark_recipe_id"
+    t.index ["node_id", "started_at"], name: "index_benchmark_runs_on_node_id_and_started_at", order: { started_at: :desc }
+    t.index ["node_id"], name: "index_benchmark_runs_on_node_id"
+    t.index ["started_at"], name: "index_benchmark_runs_on_started_at"
+    t.index ["status"], name: "index_benchmark_runs_on_status"
+    t.index ["uuid"], name: "index_benchmark_runs_on_uuid", unique: true
+  end
+
+  create_table "bmc_credentials", force: :cascade do |t|
+    t.bigint "node_id"
+    t.string "bmc_address", null: false
+    t.string "username", null: false
+    t.string "password", null: false
+    t.integer "protocol", default: 0
+    t.integer "port"
+    t.boolean "verify_ssl", default: true
+    t.boolean "is_global_default", default: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["is_global_default"], name: "index_bmc_credentials_on_is_global_default", unique: true, where: "(is_global_default = true)"
+    t.index ["node_id"], name: "index_bmc_credentials_on_node_id", unique: true, where: "(node_id IS NOT NULL)"
+  end
+
+  create_table "bmc_inventories", force: :cascade do |t|
+    t.bigint "node_id", null: false
+    t.jsonb "processors", default: []
+    t.jsonb "memory", default: []
+    t.jsonb "storage", default: []
+    t.jsonb "network", default: []
+    t.jsonb "infiniband", default: []
+    t.jsonb "bios", default: {}
+    t.jsonb "bmc_info", default: {}
+    t.integer "collection_method"
+    t.datetime "captured_at", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["captured_at"], name: "index_bmc_inventories_on_captured_at"
+    t.index ["node_id"], name: "index_bmc_inventories_on_node_id"
+  end
+
+  create_table "inventory_discrepancies", force: :cascade do |t|
+    t.bigint "node_id", null: false
+    t.string "field_path", null: false
+    t.string "inband_value"
+    t.string "bmc_value"
+    t.integer "severity", default: 0
+    t.datetime "resolved_at"
+    t.text "resolution_note"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["node_id", "resolved_at"], name: "index_inventory_discrepancies_on_node_id_and_resolved_at"
+    t.index ["node_id"], name: "index_inventory_discrepancies_on_node_id"
   end
 
   create_table "mlc_baselines", force: :cascade do |t|
@@ -152,9 +200,9 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_28_021750) do
     t.float "value", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index [ "benchmark_run_id" ], name: "index_mlc_baselines_on_benchmark_run_id"
-    t.index [ "node_id", "metric_type" ], name: "index_mlc_baselines_on_node_id_and_metric_type", unique: true
-    t.index [ "node_id" ], name: "index_mlc_baselines_on_node_id"
+    t.index ["benchmark_run_id"], name: "index_mlc_baselines_on_benchmark_run_id"
+    t.index ["node_id", "metric_type"], name: "index_mlc_baselines_on_node_id_and_metric_type", unique: true
+    t.index ["node_id"], name: "index_mlc_baselines_on_node_id"
   end
 
   create_table "mlc_installation_nodes", force: :cascade do |t|
@@ -169,9 +217,9 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_28_021750) do
     t.datetime "completed_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index [ "mlc_installation_id", "node_id" ], name: "idx_on_mlc_installation_id_node_id_79f3adb797", unique: true
-    t.index [ "mlc_installation_id" ], name: "index_mlc_installation_nodes_on_mlc_installation_id"
-    t.index [ "node_id" ], name: "index_mlc_installation_nodes_on_node_id"
+    t.index ["mlc_installation_id", "node_id"], name: "idx_on_mlc_installation_id_node_id_79f3adb797", unique: true
+    t.index ["mlc_installation_id"], name: "index_mlc_installation_nodes_on_mlc_installation_id"
+    t.index ["node_id"], name: "index_mlc_installation_nodes_on_node_id"
   end
 
   create_table "mlc_installations", force: :cascade do |t|
@@ -192,8 +240,8 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_28_021750) do
     t.datetime "completed_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index [ "created_by_id" ], name: "index_mlc_installations_on_created_by_id"
-    t.index [ "uuid" ], name: "index_mlc_installations_on_uuid", unique: true
+    t.index ["created_by_id"], name: "index_mlc_installations_on_created_by_id"
+    t.index ["uuid"], name: "index_mlc_installations_on_uuid", unique: true
   end
 
   create_table "node_states", force: :cascade do |t|
@@ -208,9 +256,9 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_28_021750) do
     t.jsonb "host_info", default: {}
     t.jsonb "dmi_info", default: {}
     t.jsonb "network_inventory"
-    t.index [ "captured_at" ], name: "index_node_states_on_captured_at"
-    t.index [ "node_id", "captured_at" ], name: "index_node_states_on_node_id_and_captured_at", order: { captured_at: :desc }
-    t.index [ "node_id" ], name: "index_node_states_on_node_id"
+    t.index ["captured_at"], name: "index_node_states_on_captured_at"
+    t.index ["node_id", "captured_at"], name: "index_node_states_on_node_id_and_captured_at", order: { captured_at: :desc }
+    t.index ["node_id"], name: "index_node_states_on_node_id"
   end
 
   create_table "nodes", force: :cascade do |t|
@@ -224,9 +272,6 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_28_021750) do
     t.datetime "updated_at", null: false
     t.integer "ssh_port", default: 22, null: false
     t.string "ssh_user"
-    t.string "jump_host"
-    t.string "jump_user"
-    t.integer "jump_port"
     t.string "agent_path"
     t.string "uuid"
     t.integer "ssh_connect_method"
@@ -244,23 +289,19 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_28_021750) do
     t.integer "rack_height", default: 1
     t.integer "rack_face", default: 0
     t.bigint "server_product_id"
-    t.bigint "ssh_profile_id"
-    t.boolean "ssh_profile_override", default: false, null: false
     t.boolean "ssh_user_override", default: false
     t.boolean "ssh_port_override", default: false
     t.boolean "ssh_key_override", default: false
     t.boolean "ssh_password_override", default: false
     t.boolean "sudo_credential_override", default: false
     t.boolean "ssh_connect_method_override", default: false
-    t.index [ "api_key_id" ], name: "index_nodes_on_api_key_id"
-    t.index [ "hostname" ], name: "index_nodes_on_hostname", unique: true
-    t.index [ "rack_id", "rack_face", "rack_position" ], name: "index_nodes_on_rack_id_and_rack_face_and_rack_position"
-    t.index [ "rack_id" ], name: "index_nodes_on_rack_id"
-    t.index [ "role" ], name: "index_nodes_on_role"
-    t.index [ "server_product_id" ], name: "index_nodes_on_server_product_id"
-    t.index [ "source" ], name: "index_nodes_on_source"
-    t.index [ "ssh_profile_id" ], name: "index_nodes_on_ssh_profile_id"
-    t.index [ "uuid" ], name: "index_nodes_on_uuid"
+    t.index ["api_key_id"], name: "index_nodes_on_api_key_id"
+    t.index ["hostname"], name: "index_nodes_on_hostname", unique: true
+    t.index ["rack_id"], name: "index_nodes_on_rack_id"
+    t.index ["role"], name: "index_nodes_on_role"
+    t.index ["server_product_id"], name: "index_nodes_on_server_product_id"
+    t.index ["source"], name: "index_nodes_on_source"
+    t.index ["uuid"], name: "index_nodes_on_uuid"
   end
 
   create_table "notifications", force: :cascade do |t|
@@ -278,10 +319,10 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_28_021750) do
     t.datetime "completed_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index [ "resource_type", "resource_id" ], name: "index_notifications_on_resource_type_and_resource_id"
-    t.index [ "user_id", "archived", "read" ], name: "index_notifications_on_user_id_and_archived_and_read"
-    t.index [ "user_id", "created_at" ], name: "index_notifications_on_user_id_and_created_at"
-    t.index [ "user_id" ], name: "index_notifications_on_user_id"
+    t.index ["resource_type", "resource_id"], name: "index_notifications_on_resource_type_and_resource_id"
+    t.index ["user_id", "archived", "read"], name: "index_notifications_on_user_id_and_archived_and_read"
+    t.index ["user_id", "created_at"], name: "index_notifications_on_user_id_and_created_at"
+    t.index ["user_id"], name: "index_notifications_on_user_id"
   end
 
   create_table "profiling_artifacts", force: :cascade do |t|
@@ -292,8 +333,8 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_28_021750) do
     t.bigint "file_size"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index [ "profiling_run_id", "filename" ], name: "index_profiling_artifacts_on_profiling_run_id_and_filename", unique: true
-    t.index [ "profiling_run_id" ], name: "index_profiling_artifacts_on_profiling_run_id"
+    t.index ["profiling_run_id", "filename"], name: "index_profiling_artifacts_on_profiling_run_id_and_filename", unique: true
+    t.index ["profiling_run_id"], name: "index_profiling_artifacts_on_profiling_run_id"
   end
 
   create_table "profiling_recipes", force: :cascade do |t|
@@ -308,9 +349,9 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_28_021750) do
     t.integer "status", default: 0, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index [ "slug" ], name: "index_profiling_recipes_on_slug", unique: true
-    t.index [ "status" ], name: "index_profiling_recipes_on_status"
-    t.index [ "tool" ], name: "index_profiling_recipes_on_tool"
+    t.index ["slug"], name: "index_profiling_recipes_on_slug", unique: true
+    t.index ["status"], name: "index_profiling_recipes_on_status"
+    t.index ["tool"], name: "index_profiling_recipes_on_tool"
   end
 
   create_table "profiling_runs", force: :cascade do |t|
@@ -329,12 +370,12 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_28_021750) do
     t.string "artifact_path"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index [ "node_id", "created_at" ], name: "index_profiling_runs_on_node_id_and_created_at", order: { created_at: :desc }
-    t.index [ "node_id" ], name: "index_profiling_runs_on_node_id"
-    t.index [ "profiling_recipe_id" ], name: "index_profiling_runs_on_profiling_recipe_id"
-    t.index [ "status" ], name: "index_profiling_runs_on_status"
-    t.index [ "user_id" ], name: "index_profiling_runs_on_user_id"
-    t.index [ "uuid" ], name: "index_profiling_runs_on_uuid", unique: true
+    t.index ["node_id", "created_at"], name: "index_profiling_runs_on_node_id_and_created_at", order: { created_at: :desc }
+    t.index ["node_id"], name: "index_profiling_runs_on_node_id"
+    t.index ["profiling_recipe_id"], name: "index_profiling_runs_on_profiling_recipe_id"
+    t.index ["status"], name: "index_profiling_runs_on_status"
+    t.index ["user_id"], name: "index_profiling_runs_on_user_id"
+    t.index ["uuid"], name: "index_profiling_runs_on_uuid", unique: true
   end
 
   create_table "racks", force: :cascade do |t|
@@ -350,10 +391,10 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_28_021750) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.bigint "room_id", null: false
-    t.index [ "room_id", "facility_id" ], name: "index_racks_on_room_id_and_facility_id", unique: true, where: "(facility_id IS NOT NULL)"
-    t.index [ "room_id", "name" ], name: "index_racks_on_room_id_and_name", unique: true
-    t.index [ "room_id" ], name: "index_racks_on_room_id"
-    t.index [ "status" ], name: "index_racks_on_status"
+    t.index ["room_id", "facility_id"], name: "index_racks_on_room_id_and_facility_id", unique: true, where: "(facility_id IS NOT NULL)"
+    t.index ["room_id", "name"], name: "index_racks_on_room_id_and_name", unique: true
+    t.index ["room_id"], name: "index_racks_on_room_id"
+    t.index ["status"], name: "index_racks_on_status"
   end
 
   create_table "rooms", force: :cascade do |t|
@@ -369,8 +410,8 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_28_021750) do
     t.string "grid_coordinates"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index [ "site_id", "name" ], name: "index_rooms_on_site_id_and_name", unique: true
-    t.index [ "site_id" ], name: "index_rooms_on_site_id"
+    t.index ["site_id", "name"], name: "index_rooms_on_site_id_and_name", unique: true
+    t.index ["site_id"], name: "index_rooms_on_site_id"
   end
 
   create_table "server_products", force: :cascade do |t|
@@ -395,9 +436,9 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_28_021750) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.string "image_url"
-    t.index [ "form_factor" ], name: "index_server_products_on_form_factor"
-    t.index [ "name" ], name: "index_server_products_on_name", unique: true
-    t.index [ "product_series" ], name: "index_server_products_on_product_series"
+    t.index ["form_factor"], name: "index_server_products_on_form_factor"
+    t.index ["name"], name: "index_server_products_on_name", unique: true
+    t.index ["product_series"], name: "index_server_products_on_product_series"
   end
 
   create_table "sites", force: :cascade do |t|
@@ -405,23 +446,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_28_021750) do
     t.text "description"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index [ "name" ], name: "index_sites_on_name", unique: true
-  end
-
-  create_table "ssh_profiles", force: :cascade do |t|
-    t.string "name", limit: 255, null: false
-    t.integer "ssh_connect_method", default: 0, null: false
-    t.integer "ssh_port", default: 22, null: false
-    t.string "ssh_user", limit: 255
-    t.string "ssh_password"
-    t.text "ssh_key"
-    t.string "sudo_credential"
-    t.string "jump_host", limit: 255
-    t.string "jump_user", limit: 255
-    t.integer "jump_port"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index [ "name" ], name: "index_ssh_profiles_on_name", unique: true
+    t.index ["name"], name: "index_sites_on_name", unique: true
   end
 
   create_table "ssh_settings", force: :cascade do |t|
@@ -432,7 +457,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_28_021750) do
     t.datetime "updated_at", null: false
     t.string "server_url"
     t.string "benchmark_work_dir"
-    t.string "default_agent_path", default: "/usr/local/bin/hpc-agent"
+    t.string "default_agent_path", default: "/usr/local/bin/qis-agent"
     t.string "ssh_user"
     t.integer "ssh_port", default: 22
     t.text "ssh_key"
@@ -440,6 +465,10 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_28_021750) do
     t.string "sudo_credential"
     t.integer "timeout", default: 30
     t.boolean "verify_host_key", default: false
+    t.integer "bmc_sensor_polling_interval", default: 5
+    t.boolean "bmc_collection_enabled", default: false
+    t.string "prometheus_pushgateway_url"
+    t.string "prometheus_url"
   end
 
   create_table "sync_logs", force: :cascade do |t|
@@ -450,8 +479,8 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_28_021750) do
     t.datetime "completed_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index [ "completed_at" ], name: "index_sync_logs_on_completed_at"
-    t.index [ "source" ], name: "index_sync_logs_on_source"
+    t.index ["completed_at"], name: "index_sync_logs_on_completed_at"
+    t.index ["source"], name: "index_sync_logs_on_source"
   end
 
   create_table "users", force: :cascade do |t|
@@ -464,8 +493,9 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_28_021750) do
     t.integer "role", default: 0, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index [ "email" ], name: "index_users_on_email", unique: true
-    t.index [ "reset_password_token" ], name: "index_users_on_reset_password_token", unique: true
+    t.string "rack_node_preview_fields", default: ["cpu", "ram", "storage", "network"], array: true
+    t.index ["email"], name: "index_users_on_email", unique: true
+    t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
   end
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
@@ -477,6 +507,9 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_28_021750) do
   add_foreign_key "artifact_indices", "benchmark_runs"
   add_foreign_key "benchmark_runs", "benchmark_recipes"
   add_foreign_key "benchmark_runs", "nodes"
+  add_foreign_key "bmc_credentials", "nodes"
+  add_foreign_key "bmc_inventories", "nodes"
+  add_foreign_key "inventory_discrepancies", "nodes"
   add_foreign_key "mlc_baselines", "benchmark_runs"
   add_foreign_key "mlc_baselines", "nodes"
   add_foreign_key "mlc_installation_nodes", "mlc_installations"
@@ -486,7 +519,6 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_28_021750) do
   add_foreign_key "nodes", "api_keys"
   add_foreign_key "nodes", "racks"
   add_foreign_key "nodes", "server_products"
-  add_foreign_key "nodes", "ssh_profiles"
   add_foreign_key "notifications", "users"
   add_foreign_key "profiling_artifacts", "profiling_runs"
   add_foreign_key "profiling_runs", "nodes"

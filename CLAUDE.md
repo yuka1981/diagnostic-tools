@@ -43,7 +43,7 @@ bin/rails db:rollback
 cd agent
 
 # Build
-go build -o hpc-agent .
+go build -o qis-agent .
 
 # Run tests
 go test ./...
@@ -80,14 +80,14 @@ Key directories:
 - `agent/hpcg/` - HPCG benchmark workflow
 
 Agent commands:
-- `hpc-agent collect` - Output system info JSON to stdout
-- `hpc-agent inventory push --server URL --token TOKEN` - Push inventory to API
-- `hpc-agent hpcg` - Run HPCG benchmark workflow
+- `qis-agent collect` - Output system info JSON to stdout
+- `qis-agent inventory push --server URL --token TOKEN` - Push inventory to API
+- `qis-agent hpcg` - Run HPCG benchmark workflow
 
 ### Data Flow
 
-1. **Pull (Server-initiated)**: Rails SSH to Admin Node → Admin Node SSH to Compute Node → `hpc-agent collect` → JSON returned → DB update
-2. **Push (Agent-initiated)**: Agent runs `hpc-agent inventory push` → POST to Rails API → DB update
+1. **Pull (Server-initiated)**: Rails SSH to Admin Node → Admin Node SSH to Compute Node → `qis-agent collect` → JSON returned → DB update
+2. **Push (Agent-initiated)**: Agent runs `qis-agent inventory push` → POST to Rails API → DB update
 3. **Benchmarks**: Slurm Job triggers Agent → Agent builds/runs benchmark → Results uploaded to API + artifacts to shared storage
 
 ### Node State Versioning

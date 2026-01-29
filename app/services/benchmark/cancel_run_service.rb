@@ -76,9 +76,9 @@ module Benchmark
     end
 
     def resolve_agent_path
-      if @agent_path == "hpc-agent"
+      if @agent_path == "qis-agent"
         # When installed via agent installer, the binary is typically in /usr/local/bin
-        "/usr/local/bin/hpc-agent"
+        "/usr/local/bin/qis-agent"
       elsif @agent_path.start_with?("/")
         @agent_path
       else

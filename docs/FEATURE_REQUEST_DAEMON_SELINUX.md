@@ -15,7 +15,7 @@
 
 ### **2.1 Agent Daemon Mode** ✅
 
-* **Command**: `hpc-agent start`
+* **Command**: `qis-agent start`
 * **Behavior**:
     * ✅ 啟動後進入 **Blocking Loop**，不會結束程序。
     * ✅ 定期執行任務 (Heartbeat, Scheduled Inventory)。
@@ -90,7 +90,7 @@ After=network-online.target
 
 [Service]
 Type=simple
-ExecStart=/usr/local/bin/hpc-agent start --node-uuid "${NODE_UUID}" --server "${SERVER_URL}" --token "${AGENT_TOKEN}" --heartbeat-interval ${HEARTBEAT_INTERVAL:-60s} --inventory-interval ${INVENTORY_INTERVAL:-1h}
+ExecStart=/usr/local/bin/qis-agent start --node-uuid "${NODE_UUID}" --server "${SERVER_URL}" --token "${AGENT_TOKEN}" --heartbeat-interval ${HEARTBEAT_INTERVAL:-60s} --inventory-interval ${INVENTORY_INTERVAL:-1h}
 Restart=always
 RestartSec=10s
 User=root
@@ -99,7 +99,7 @@ User=root
 NoNewPrivileges=true
 ProtectSystem=strict
 ProtectHome=read-only
-ReadWritePaths=/etc/hpc-agent
+ReadWritePaths=/etc/qis-agent
 
 [Install]
 WantedBy=multi-user.target
@@ -115,7 +115,7 @@ WantedBy=multi-user.target
 | Node online status | `app/models/node.rb` | ✅ |
 | Install script | `agent/scripts/install.sh` | ✅ |
 | Uninstall script | `agent/scripts/uninstall.sh` | ✅ |
-| Service template | `agent/init/hpc-agent.service` | ✅ |
+| Service template | `agent/init/qis-agent.service` | ✅ |
 | Migration: last_heartbeat_at | `db/migrate/*_add_last_heartbeat_at_to_nodes.rb` | ✅ |
 | Migration: agent_status | `db/migrate/*_add_agent_status_to_nodes.rb` | ✅ |
 
@@ -123,7 +123,7 @@ WantedBy=multi-user.target
 
 ### Agent CLI
 ```bash
-hpc-agent start \
+qis-agent start \
   --node-uuid <uuid> \
   --server https://hpc.example.com \
   --token <token> \
@@ -137,7 +137,7 @@ sudo ./install.sh \
   --node-uuid <uuid> \
   --server https://hpc.example.com \
   --token <token> \
-  --binary ./hpc-agent \
+  --binary ./qis-agent \
   --heartbeat-interval 60s \
   --inventory-interval 1h
 ```

@@ -25,7 +25,7 @@ RSpec.describe "Benchmark Run Feature", type: :system do
       config: {
         work_dir: "/tmp/hpcg",
         work_dir_source: :default,
-        agent_path: "../hpc-agent",
+        agent_path: "../qis-agent",
         node_hostname: "test-node",
         server_url: nil,
         api_configured: false,

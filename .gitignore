@@ -62,7 +62,7 @@ Thumbs.db
 .gemini/
 /agent/agent
 /agent/hpcg_source/
-/bin/hpc-agent
+/bin/qis-agent
 /bin/watchman
 /bin/agent_bin
 

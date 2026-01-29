@@ -7,14 +7,14 @@ PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 HPCG_REPO="https://github.com/hpcg-benchmark/hpcg.git"
 HPCG_DIR="$PROJECT_ROOT/agent/hpcg_source"
-AGENT_BIN_PATH="$PROJECT_ROOT/agent/hpc-agent"
+AGENT_BIN_PATH="$PROJECT_ROOT/agent/qis-agent"
 
 echo "=== HPCG Build and Run Script ==="
 
 # 1. Build the Agent
 echo "Building the HPC Agent..."
 pushd "$PROJECT_ROOT/agent" > /dev/null
-go build -o hpc-agent .
+go build -o qis-agent .
 popd > /dev/null
 
 # 2. Clone HPCG Source

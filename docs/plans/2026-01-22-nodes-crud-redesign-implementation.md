@@ -442,7 +442,7 @@ Run: `bin/rails generate migration AddAgentConfigToSshSettings default_agent_pat
 
 class AddAgentConfigToSshSettings < ActiveRecord::Migration[7.2]
   def change
-    add_column :ssh_settings, :default_agent_path, :string, default: "/usr/local/bin/hpc-agent"
+    add_column :ssh_settings, :default_agent_path, :string, default: "/usr/local/bin/qis-agent"
   end
 end
 ```
@@ -469,7 +469,7 @@ RSpec.describe SshSetting, type: :model do
     it "sets default values" do
       setting = SshSetting.current
       expect(setting.bastion_port).to eq(22)
-      expect(setting.default_agent_path).to eq("/usr/local/bin/hpc-agent")
+      expect(setting.default_agent_path).to eq("/usr/local/bin/qis-agent")
     end
   end
 
@@ -491,7 +491,7 @@ Expected: Some failures on default_agent_path
 # frozen_string_literal: true
 
 class SshSetting < ApplicationRecord
-  DEFAULT_AGENT_PATH = "/usr/local/bin/hpc-agent"
+  DEFAULT_AGENT_PATH = "/usr/local/bin/qis-agent"
 
   validates :bastion_port, numericality: { only_integer: true, greater_than: 0, less_than: 65536 }, allow_blank: true
 
@@ -895,7 +895,7 @@ Add to the agent config form in `app/views/settings/agents/show.html.erb`:
 <div>
   <%= f.label :default_agent_path, "Default Agent Path", class: "block text-sm font-medium text-slate-700" %>
   <%= f.text_field :default_agent_path, class: "mt-1 input-netbox w-full",
-      placeholder: "/usr/local/bin/hpc-agent" %>
+      placeholder: "/usr/local/bin/qis-agent" %>
   <p class="mt-1 text-sm text-slate-500">Path to the agent binary on nodes. Used as default for new nodes.</p>
 </div>
 ```

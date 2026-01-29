@@ -3,7 +3,7 @@
 ## Project Structure & Module Organization
 - `app/`: Rails application code (models, controllers, views, jobs, mailers).
 - `spec/`: RSpec test suite (including system specs with Capybara).
-- `agent/`: Go-based `hpc-agent` CLI for node collection and benchmarks.
+- `agent/`: Go-based `qis-agent` CLI for node collection and benchmarks.
 - `config/`, `db/`, `lib/`: Rails configuration, migrations/schema, and shared libs.
 - `scripts/`: helper scripts (e.g., `scripts/run_hpcg_from_source.sh`).
 - `public/`, `storage/`, `tmp/`: assets, uploads, and transient files.
@@ -16,7 +16,7 @@
 - `COVERAGE=true bin/rspec`: generate a coverage report.
 - `bin/rubocop`: lint Ruby code; `bin/rubocop -a` auto-fixes.
 - `bin/brakeman`: Rails security scan.
-- `cd agent && go build -o hpc-agent .`: build the Go CLI.
+- `cd agent && go build -o qis-agent .`: build the Go CLI.
 
 ## Coding Style & Naming Conventions
 - Ruby: 2-space indentation, Rails conventions, Rubocop (Rails Omakase).

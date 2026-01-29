@@ -25,7 +25,7 @@ RSpec.describe "Benchmark Progress", type: :system, js: true do
       config: {
         work_dir: "/tmp/hpcg",
         work_dir_source: :default,
-        agent_path: "../hpc-agent",
+        agent_path: "../qis-agent",
         node_hostname: "target-node",
         server_url: nil,
         api_configured: false,

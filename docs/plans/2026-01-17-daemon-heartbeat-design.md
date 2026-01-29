@@ -117,4 +117,4 @@ The server detects missing heartbeats to mark nodes offline.
 ## Testing
 
 - Unit test `heartbeat.Service.Send()` with `httptest` server
-- Manual: `hpc-agent start --node-uuid X --token Y --heartbeat-interval 5s`
+- Manual: `qis-agent start --node-uuid X --token Y --heartbeat-interval 5s`

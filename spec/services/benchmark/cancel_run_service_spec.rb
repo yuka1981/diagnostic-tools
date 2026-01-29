@@ -242,7 +242,7 @@ RSpec.describe Benchmark::CancelRunService do
     it "uses default agent path when not specified" do
       service = described_class.new(benchmark_run)
       cmd = service.send(:build_cancel_command)
-      expect(cmd).to include("/usr/local/bin/hpc-agent")
+      expect(cmd).to include("/usr/local/bin/qis-agent")
     end
 
     it "uses custom agent path when specified" do
@@ -255,14 +255,14 @@ RSpec.describe Benchmark::CancelRunService do
   describe "#resolve_agent_path" do
     let(:benchmark_run) { create(:benchmark_run, :running, node: node, benchmark_recipe: recipe) }
 
-    it "resolves default hpc-agent to /usr/local/bin" do
-      service = described_class.new(benchmark_run, agent_path: "hpc-agent")
-      expect(service.send(:resolve_agent_path)).to eq("/usr/local/bin/hpc-agent")
+    it "resolves default qis-agent to /usr/local/bin" do
+      service = described_class.new(benchmark_run, agent_path: "qis-agent")
+      expect(service.send(:resolve_agent_path)).to eq("/usr/local/bin/qis-agent")
     end
 
     it "keeps absolute paths unchanged" do
-      service = described_class.new(benchmark_run, agent_path: "/opt/bin/hpc-agent")
-      expect(service.send(:resolve_agent_path)).to eq("/opt/bin/hpc-agent")
+      service = described_class.new(benchmark_run, agent_path: "/opt/bin/qis-agent")
+      expect(service.send(:resolve_agent_path)).to eq("/opt/bin/qis-agent")
     end
 
     it "prepends /usr/local/bin to relative paths" do

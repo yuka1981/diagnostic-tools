@@ -7,7 +7,7 @@
 
 ## **1. Context & Goal**
 
-The current install/uninstall/update logic for hpc-agent has grown organically and contains significant inconsistencies:
+The current install/uninstall/update logic for qis-agent has grown organically and contains significant inconsistencies:
 
 | Area | Install | Update (Patch) | Uninstall |
 |------|---------|----------------|-----------|
@@ -151,7 +151,7 @@ All operations follow a consistent phase pattern:
 
 #### **Phase 2: Connection & Preparation**
 - Establish SSH connection (direct or via bastion)
-- Create staging directory: `/tmp/hpc-agent-staging/`
+- Create staging directory: `/tmp/qis-agent-staging/`
 - Upload required files to staging location
 - Verify checksums match on target
 
@@ -160,19 +160,19 @@ All operations follow a consistent phase pattern:
 **Install**:
 ```
 1. Stop existing service (if upgrading from manual install)
-2. Deploy binary to /usr/local/bin/hpc-agent
+2. Deploy binary to /usr/local/bin/qis-agent
 3. Set permissions (755) and ownership (root:root)
 4. Deploy systemd service file
 5. Set SELinux contexts (bin_t, systemd_unit_file_t)
 6. Enable and start systemd service
-7. Read agent UUID from /etc/hpc-agent/node_id
+7. Read agent UUID from /etc/qis-agent/node_id
 ```
 
 **Update**:
 ```
 1. Stop current service
-2. Backup current binary to /usr/local/bin/hpc-agent.bak
-3. Backup current service file to /etc/systemd/system/hpc-agent.service.bak
+2. Backup current binary to /usr/local/bin/qis-agent.bak
+3. Backup current service file to /etc/systemd/system/qis-agent.service.bak
 4. Deploy new binary
 5. Set permissions (755) and ownership (root:root)
 6. Deploy regenerated service file (current server URL/token)
@@ -185,8 +185,8 @@ All operations follow a consistent phase pattern:
 ```
 1. Stop service
 2. Disable service
-3. Remove binary (/usr/local/bin/hpc-agent)
-4. Remove service file (/etc/systemd/system/hpc-agent.service)
+3. Remove binary (/usr/local/bin/qis-agent)
+4. Remove service file (/etc/systemd/system/qis-agent.service)
 5. Clean up staging files
 6. Reload systemd daemon
 7. Clear node.agent_version
@@ -199,15 +199,15 @@ Full 4-step verification (configurable timeout, default 30s):
 ```ruby
 def verify_health(expected_version:, timeout: 30.seconds)
   # Step 1: Systemd status check
-  status = execute_remote_command("systemctl is-active hpc-agent")
+  status = execute_remote_command("systemctl is-active qis-agent")
   raise HealthCheckError.new("Service not active", phase: :systemd) unless status.strip == "active"
 
   # Step 2: Process running check
-  pid = execute_remote_command("pidof hpc-agent || pgrep -x hpc-agent")
+  pid = execute_remote_command("pidof qis-agent || pgrep -x qis-agent")
   raise HealthCheckError.new("Process not found", phase: :process) if pid.blank?
 
   # Step 3: Version match check
-  version_output = execute_remote_command("/usr/local/bin/hpc-agent version 2>/dev/null || echo unknown")
+  version_output = execute_remote_command("/usr/local/bin/qis-agent version 2>/dev/null || echo unknown")
   unless version_output.include?(expected_version) || expected_version == "dev"
     raise HealthCheckError.new("Version mismatch: expected #{expected_version}, got #{version_output}", phase: :version)
   end
@@ -265,21 +265,21 @@ def attempt_rollback
   Rails.logger.warn "[Agent::UpdateService] Service failed to start, attempting rollback..."
 
   # 1. Kill any hung process
-  execute_remote_command("pkill -9 hpc-agent || true", sudo: true)
+  execute_remote_command("pkill -9 qis-agent || true", sudo: true)
 
   # 2. Restore binary
-  execute_remote_command("mv /usr/local/bin/hpc-agent.bak /usr/local/bin/hpc-agent", sudo: true)
+  execute_remote_command("mv /usr/local/bin/qis-agent.bak /usr/local/bin/qis-agent", sudo: true)
 
   # 3. Restore service file
-  execute_remote_command("mv /etc/systemd/system/hpc-agent.service.bak /etc/systemd/system/hpc-agent.service", sudo: true)
+  execute_remote_command("mv /etc/systemd/system/qis-agent.service.bak /etc/systemd/system/qis-agent.service", sudo: true)
 
   # 4. Reload and restart
   execute_remote_command("systemctl daemon-reload", sudo: true)
-  execute_remote_command("systemctl start hpc-agent", sudo: true)
+  execute_remote_command("systemctl start qis-agent", sudo: true)
 
   # 5. Verify old service is healthy
   sleep 3
-  status = execute_remote_command("systemctl is-active hpc-agent")
+  status = execute_remote_command("systemctl is-active qis-agent")
 
   if status.strip == "active"
     @agent_event.update!(status: :rolled_back, error_message: "Update failed, rolled back to previous version")
@@ -304,13 +304,13 @@ def generate_service_file
 
     [Service]
     Type=simple
-    ExecStart=/usr/local/bin/hpc-agent daemon --server "#{@server_url}" --token "#{@api_token}" --inventory-interval #{@inventory_interval}
+    ExecStart=/usr/local/bin/qis-agent daemon --server "#{@server_url}" --token "#{@api_token}" --inventory-interval #{@inventory_interval}
     Restart=always
     RestartSec=10
     User=root
     StandardOutput=journal
     StandardError=journal
-    SyslogIdentifier=hpc-agent
+    SyslogIdentifier=qis-agent
 
     [Install]
     WantedBy=multi-user.target
@@ -325,7 +325,7 @@ All operations derive version from consistent source:
 | Operation | Version Source | After Health Check |
 |-----------|---------------|-------------------|
 | Install (release) | `release.version` | Verify matches |
-| Install (dev compile) | Query `hpc-agent version` | Record actual |
+| Install (dev compile) | Query `qis-agent version` | Record actual |
 | Update | `release.version` | Verify matches |
 | Uninstall | N/A | Set `nil` |
 
@@ -493,12 +493,12 @@ If auto-rollback fails and manual intervention is needed:
 
 ```bash
 # On target node
-sudo systemctl stop hpc-agent
-sudo mv /usr/local/bin/hpc-agent.bak /usr/local/bin/hpc-agent
-sudo mv /etc/systemd/system/hpc-agent.service.bak /etc/systemd/system/hpc-agent.service
+sudo systemctl stop qis-agent
+sudo mv /usr/local/bin/qis-agent.bak /usr/local/bin/qis-agent
+sudo mv /etc/systemd/system/qis-agent.service.bak /etc/systemd/system/qis-agent.service
 sudo systemctl daemon-reload
-sudo systemctl start hpc-agent
-sudo systemctl status hpc-agent
+sudo systemctl start qis-agent
+sudo systemctl status qis-agent
 ```
 
 ## **9. Success Criteria**

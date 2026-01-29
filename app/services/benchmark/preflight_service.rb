@@ -19,7 +19,7 @@ module Benchmark
     def initialize(target_node, ssh_config: {}, server_url: nil, agent_token: nil)
       super(target_node, ssh_config: ssh_config)
       @work_dir = BenchmarkConfig.work_dir_for(@target_node)
-      @agent_path = @target_node.try(:effective_agent_path) || "hpc-agent"
+      @agent_path = @target_node.try(:effective_agent_path) || "qis-agent"
       @server_url = server_url
       @agent_token = agent_token
     end
@@ -262,8 +262,8 @@ module Benchmark
     end
 
     def resolve_agent_path
-      if @agent_path == "hpc-agent"
-        "../hpc-agent"
+      if @agent_path == "qis-agent"
+        "../qis-agent"
       elsif @agent_path.start_with?("/")
         @agent_path
       else

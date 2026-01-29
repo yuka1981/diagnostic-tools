@@ -2,16 +2,16 @@
 #
 # HPC Agent Uninstall Script
 #
-# This script removes the hpc-agent from the system.
+# This script removes the qis-agent from the system.
 # Run with sudo or as root.
 #
 # Usage:
-#   curl -fsSL http://your-server/uninstall-hpc-agent.sh | sudo bash
+#   curl -fsSL http://your-server/uninstall-qis-agent.sh | sudo bash
 #   # or
-#   wget -qO- http://your-server/uninstall-hpc-agent.sh | sudo bash
+#   wget -qO- http://your-server/uninstall-qis-agent.sh | sudo bash
 #   # or download and run:
-#   chmod +x uninstall-hpc-agent.sh
-#   sudo ./uninstall-hpc-agent.sh
+#   chmod +x uninstall-qis-agent.sh
+#   sudo ./uninstall-qis-agent.sh
 #
 
 set -e
@@ -23,11 +23,11 @@ YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
 # Paths
-BINARY_PATH="/usr/local/bin/hpc-agent"
-BACKUP_PATH="/usr/local/bin/hpc-agent.bak"
-SERVICE_FILE="/etc/systemd/system/hpc-agent.service"
-CONFIG_DIR="/etc/hpc-agent"
-TMP_FILES="/tmp/agent_bin_install /tmp/hpc-agent.service"
+BINARY_PATH="/usr/local/bin/qis-agent"
+BACKUP_PATH="/usr/local/bin/qis-agent.bak"
+SERVICE_FILE="/etc/systemd/system/qis-agent.service"
+CONFIG_DIR="/etc/qis-agent"
+TMP_FILES="/tmp/agent_bin_install /tmp/qis-agent.service"
 
 echo_info() {
     echo -e "${GREEN}[INFO]${NC} $1"
@@ -51,16 +51,16 @@ check_root() {
 
 # Stop and disable the service
 stop_service() {
-    echo_info "Stopping hpc-agent service..."
-    if systemctl is-active --quiet hpc-agent 2>/dev/null; then
-        systemctl stop hpc-agent || echo_warn "Failed to stop service (may already be stopped)"
+    echo_info "Stopping qis-agent service..."
+    if systemctl is-active --quiet qis-agent 2>/dev/null; then
+        systemctl stop qis-agent || echo_warn "Failed to stop service (may already be stopped)"
     else
         echo_info "Service is not running"
     fi
 
-    echo_info "Disabling hpc-agent service..."
-    if systemctl is-enabled --quiet hpc-agent 2>/dev/null; then
-        systemctl disable hpc-agent || echo_warn "Failed to disable service (may already be disabled)"
+    echo_info "Disabling qis-agent service..."
+    if systemctl is-enabled --quiet qis-agent 2>/dev/null; then
+        systemctl disable qis-agent || echo_warn "Failed to disable service (may already be disabled)"
     else
         echo_info "Service is not enabled"
     fi
@@ -127,7 +127,7 @@ main() {
 
     # Confirmation prompt (skip if piped)
     if [ -t 0 ]; then
-        echo_warn "This will remove the hpc-agent from this system."
+        echo_warn "This will remove the qis-agent from this system."
         read -p "Are you sure you want to continue? [y/N] " -n 1 -r
         echo
         if [[ ! $REPLY =~ ^[Yy]$ ]]; then
@@ -146,7 +146,7 @@ main() {
     echo -e "  ${GREEN}Uninstall Complete${NC}"
     echo "=========================================="
     echo ""
-    echo_info "The hpc-agent has been removed from this system."
+    echo_info "The qis-agent has been removed from this system."
     echo ""
 }
 
