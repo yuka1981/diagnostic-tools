@@ -4,56 +4,49 @@ module Benchmark
   class TriggerJob < ApplicationJob
     queue_as :default
 
-    def perform(node, run, server_url, agent_token, argument_overrides = {}, user_id: nil)
-      notification = nil
+    def perform(node, run, argument_overrides = {}, user_id: nil)
+      notification = create_notification(node, run, user_id) if user_id
 
-      # Create notification if user_id is provided
-      if user_id.present?
-        user = User.find_by(id: user_id)
-        if user
-          notification = NotificationService.create(
-            user: user,
-            type: "benchmark",
-            title: "Running benchmark on #{node.hostname}",
-            resource: run
-          )
-          NotificationService.start(notification)
-        end
-      end
-
-      trigger_service = Benchmark::TriggerRunService.new(
+      service = Benchmark::SaltTriggerRunService.new(
         node,
-        log_path: run.log_path,
-        run_id: run.uuid,
-        server_url: server_url,
-        agent_token: agent_token,
-        benchmark_recipe: run.benchmark_recipe,
+        benchmark_run: run,
         argument_overrides: argument_overrides
       )
-      result = trigger_service.call
 
-      # Reload to check current state - status may have changed during SSH call
-      # (e.g., user cancelled, or fast agent already reported completion)
-      run.reload
-      unless run.pending?
-        # Run state changed externally, mark notification accordingly
-        NotificationService.complete(notification, success: run.completed?, message: "Benchmark #{run.status}") if notification
-        return
-      end
+      result = service.call
 
       if result.success?
-        # Optimistically mark as running since SSH command was accepted
-        # Agent will update to success/failed when complete
-        run.update!(status: :running, started_at: Time.current, log_content: result.output)
-        NotificationService.complete(notification, success: true, message: "Benchmark started successfully") if notification
+        complete_notification(notification, :success, "Benchmark started on #{node.hostname}")
       else
-        # Store both error message and full SSH output for debugging
-        run.update!(status: :failed, error_message: result.error, log_content: result.output)
-        NotificationService.complete(notification, success: false, message: result.error) if notification
+        complete_notification(notification, :failure, "Failed: #{result.error}")
       end
-    rescue => e
-      NotificationService.complete(notification, success: false, message: e.message) if notification
+    rescue StandardError => e
+      run.update!(status: :failed, error_message: e.message, finished_at: Time.current) unless run.completed?
+      complete_notification(notification, :failure, "Error: #{e.message}")
       raise
+    end
+
+    private
+
+    def create_notification(node, run, user_id)
+      return nil unless user_id.present?
+      user = User.find_by(id: user_id)
+      return nil unless user
+      NotificationService.create(
+        user: user,
+        type: "benchmark",
+        title: "Running benchmark on #{node.hostname}",
+        resource: run
+      )
+    rescue StandardError
+      nil
+    end
+
+    def complete_notification(notification, status, message)
+      return unless notification
+      NotificationService.complete(notification, success: status == :success, message: message)
+    rescue StandardError
+      nil
     end
   end
 end
