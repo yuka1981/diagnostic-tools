@@ -51,6 +51,11 @@ module LucideHelper
       elements << tag(:circle, circle.symbolize_keys)
     end
 
+    # Render polylines
+    icon_data["polylines"]&.each do |polyline|
+      elements << tag(:polyline, polyline.symbolize_keys)
+    end
+
     safe_join(elements)
   end
 end
