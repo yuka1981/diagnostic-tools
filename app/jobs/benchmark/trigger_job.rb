@@ -32,12 +32,14 @@ module Benchmark
       return nil unless user_id.present?
       user = User.find_by(id: user_id)
       return nil unless user
-      NotificationService.create(
+      notification = NotificationService.create(
         user: user,
         type: "benchmark",
         title: "Running benchmark on #{node.hostname}",
         resource: run
       )
+      NotificationService.start(notification)
+      notification
     rescue StandardError
       nil
     end

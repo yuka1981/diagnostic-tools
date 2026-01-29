@@ -5,6 +5,6 @@ hpcg_work_dir:
 
 hpcg_binary_check:
   cmd.run:
-    - name: which hpcg || echo "HPCG binary not found"
+    - name: which hpcg
     - require:
       - file: hpcg_work_dir

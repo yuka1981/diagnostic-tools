@@ -8,7 +8,6 @@ Usage via salt-api:
     salt 'minion-id' benchmark.cancel
 """
 
-import json
 import os
 import re
 import signal

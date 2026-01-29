@@ -35,6 +35,8 @@ def collect_dmi():
         return {'error': str(e)}
     except subprocess.CalledProcessError as e:
         return {'error': f'dmidecode failed: {e.returncode}'}
+    except subprocess.TimeoutExpired as e:
+        return {'error': f'dmidecode timed out after {e.timeout}s'}
 
 
 def _run_dmidecode(dmi_type):
@@ -42,7 +44,7 @@ def _run_dmidecode(dmi_type):
     type_map = {'bios': '0', 'system': '1', 'baseboard': '2'}
     result = subprocess.run(
         ['dmidecode', '-t', type_map[dmi_type]],
-        capture_output=True, text=True, timeout=10
+        capture_output=True, text=True, timeout=10, check=True
     )
     return result.stdout
 
@@ -124,11 +126,13 @@ def collect_network_v2():
         return {'error': str(e)}
     except (json.JSONDecodeError, subprocess.CalledProcessError) as e:
         return {'error': f'lshw failed: {e}'}
+    except subprocess.TimeoutExpired as e:
+        return {'error': f'lshw timed out after {e.timeout}s'}
 
 
 def _run_lshw():
     result = subprocess.run(
         ['lshw', '-class', 'network', '-json'],
-        capture_output=True, text=True, timeout=30
+        capture_output=True, text=True, timeout=30, check=True
     )
     return result.stdout

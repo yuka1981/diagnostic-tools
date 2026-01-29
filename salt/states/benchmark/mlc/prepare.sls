@@ -5,6 +5,6 @@ mlc_work_dir:
 
 mlc_binary_check:
   cmd.run:
-    - name: which {{ pillar.get('binary_path', 'mlc') }} || echo "MLC binary not found"
+    - name: "which '{{ pillar.get('binary_path', 'mlc') }}'"
     - require:
       - file: mlc_work_dir

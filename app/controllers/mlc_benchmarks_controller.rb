@@ -32,8 +32,6 @@ class MlcBenchmarksController < ApplicationController
       Benchmark::TriggerJob.perform_later(
         @form.node,
         run,
-        request.base_url,
-        agent_token(@form.node),
         argument_overrides,
         user_id: current_user.id
       )
@@ -57,9 +55,4 @@ class MlcBenchmarksController < ApplicationController
     params.require(:mlc_run_form).permit(:node_id, :profile, :binary_path, :modules, :log_path)
   end
 
-  def agent_token(node)
-    node.effective_api_token.presence ||
-      Rails.application.credentials.dig(:api, :agent_token) ||
-      ENV["API_AGENT_TOKEN"]
-  end
 end
