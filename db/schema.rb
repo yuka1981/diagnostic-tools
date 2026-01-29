@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_01_28_021750) do
+ActiveRecord::Schema[7.2].define(version: 2026_01_29_162820) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -295,10 +295,12 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_28_021750) do
     t.boolean "ssh_password_override", default: false
     t.boolean "sudo_credential_override", default: false
     t.boolean "ssh_connect_method_override", default: false
+    t.integer "salt_status", default: 0, null: false
     t.index ["api_key_id"], name: "index_nodes_on_api_key_id"
     t.index ["hostname"], name: "index_nodes_on_hostname", unique: true
     t.index ["rack_id"], name: "index_nodes_on_rack_id"
     t.index ["role"], name: "index_nodes_on_role"
+    t.index ["salt_status"], name: "index_nodes_on_salt_status"
     t.index ["server_product_id"], name: "index_nodes_on_server_product_id"
     t.index ["source"], name: "index_nodes_on_source"
     t.index ["uuid"], name: "index_nodes_on_uuid"
@@ -457,7 +459,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_28_021750) do
     t.datetime "updated_at", null: false
     t.string "server_url"
     t.string "benchmark_work_dir"
-    t.string "default_agent_path", default: "/usr/local/bin/qis-agent"
+    t.string "default_agent_path", default: "/usr/local/bin/hpc-agent"
     t.string "ssh_user"
     t.integer "ssh_port", default: 22
     t.text "ssh_key"
