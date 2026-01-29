@@ -39,10 +39,6 @@ class NodeFormWizardComponent < ViewComponent::Base
     }
   end
 
-  def default_agent_path
-    agent_config&.default_agent_path.presence || SshSetting::DEFAULT_AGENT_PATH
-  end
-
   def default_benchmark_work_dir
     agent_config&.benchmark_work_dir.presence || BenchmarkConfig::DEFAULT_WORK_DIR
   end

@@ -84,11 +84,6 @@ RSpec.describe NodeFormWizardComponent, type: :component do
         expect(step3.css("select[name='node[api_key_id]']")).to be_present
       end
 
-      it "has agent_path field" do
-        step3 = rendered.css("[data-wizard-target='step']")[2]
-        expect(step3.css("input[name='node[agent_path]']")).to be_present
-      end
-
       it "has link to SSH Defaults settings" do
         step3 = rendered.css("[data-wizard-target='step']")[2]
         expect(step3.css("a[href='/settings/ssh_defaults']")).to be_present
@@ -172,24 +167,6 @@ RSpec.describe NodeFormWizardComponent, type: :component do
       keys = component.send(:api_keys_for_select)
       expect(keys.length).to eq(2)
       expect(keys.first).to eq([ api_keys.first.name, api_keys.first.id ])
-    end
-  end
-
-  describe "#default_agent_path" do
-    context "with agent_config" do
-      let(:agent_config) { double(default_agent_path: "/custom/path/agent") }
-
-      it "returns path from agent_config" do
-        expect(component.send(:default_agent_path)).to eq("/custom/path/agent")
-      end
-    end
-
-    context "without agent_config" do
-      let(:agent_config) { nil }
-
-      it "returns constant default" do
-        expect(component.send(:default_agent_path)).to eq(SshSetting::DEFAULT_AGENT_PATH)
-      end
     end
   end
 

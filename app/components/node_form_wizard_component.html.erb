@@ -266,17 +266,9 @@
 
       <div class="card-netbox">
         <div class="card-header">
-          <h3 class="card-title">Agent & Benchmark Configuration</h3>
+          <h3 class="card-title">Benchmark Configuration</h3>
         </div>
         <div class="p-4 grid grid-cols-1 gap-6 sm:grid-cols-2">
-          <div>
-            <%= f.label :agent_path, "Agent Path", class: "block text-sm font-bold text-neutral-85 mb-1" %>
-            <%= f.text_field :agent_path,
-                placeholder: default_agent_path,
-                class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm font-mono" %>
-            <p class="mt-1 text-xs text-neutral-45">Path to the qis-agent binary on this node. Leave blank to use default.</p>
-          </div>
-
           <div>
             <%= f.label :benchmark_work_dir, "Benchmark Working Directory", class: "block text-sm font-bold text-neutral-85 mb-1" %>
             <%= f.text_field :benchmark_work_dir,
