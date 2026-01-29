@@ -89,8 +89,8 @@ RSpec.describe Node, type: :model do
     end
 
     describe "source" do
-      it "defines manual, csv, and agent_push sources" do
-        expect(Node.sources).to eq({ "manual" => 0, "csv" => 1, "agent_push" => 2 })
+      it "defines manual, csv, agent_push, and salt_discovery sources" do
+        expect(Node.sources).to eq({ "manual" => 0, "csv" => 1, "agent_push" => 2, "salt_discovery" => 3 })
       end
 
       it "defaults to manual source" do
@@ -107,6 +107,45 @@ RSpec.describe Node, type: :model do
         node = build(:node, :agent_push)
         expect(node).to be_agent_push
       end
+    end
+  end
+
+  describe "salt_status enum" do
+    it "defines unknown, connected, disconnected, and pending statuses" do
+      expect(Node.salt_statuses).to eq({
+        "unknown" => 0, "connected" => 1, "disconnected" => 2, "pending" => 3
+      })
+    end
+
+    it "defaults to unknown" do
+      node = Node.new
+      expect(node.salt_status).to eq("unknown")
+    end
+
+    it "can be set to connected" do
+      node = build(:node, salt_status: :connected)
+      expect(node).to be_salt_connected
+    end
+
+    it "can be set to disconnected" do
+      node = build(:node, salt_status: :disconnected)
+      expect(node).to be_salt_disconnected
+    end
+
+    it "can be set to pending" do
+      node = build(:node, salt_status: :pending)
+      expect(node).to be_salt_pending
+    end
+  end
+
+  describe "source enum with salt_discovery" do
+    it "includes salt_discovery" do
+      expect(Node.sources).to include("salt_discovery" => 3)
+    end
+
+    it "can be set to salt_discovery" do
+      node = build(:node, source: :salt_discovery)
+      expect(node).to be_salt_discovery
     end
   end
 
@@ -166,18 +205,23 @@ RSpec.describe Node, type: :model do
   end
 
   describe "#online?" do
-    it "returns true if last_heartbeat_at is within 2 minutes" do
-      node = build(:node, last_heartbeat_at: 1.minute.ago)
+    it "returns true if salt_status is connected" do
+      node = build(:node, salt_status: :connected)
       expect(node).to be_online
     end
 
-    it "returns false if last_heartbeat_at is older than 2 minutes" do
-      node = build(:node, last_heartbeat_at: 3.minutes.ago)
+    it "returns false if salt_status is disconnected" do
+      node = build(:node, salt_status: :disconnected)
       expect(node).not_to be_online
     end
 
-    it "returns false if last_heartbeat_at is nil" do
-      node = build(:node, last_heartbeat_at: nil)
+    it "returns false if salt_status is unknown" do
+      node = build(:node, salt_status: :unknown)
+      expect(node).not_to be_online
+    end
+
+    it "returns false if salt_status is pending" do
+      node = build(:node, salt_status: :pending)
       expect(node).not_to be_online
     end
   end

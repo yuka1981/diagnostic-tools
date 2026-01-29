@@ -16,8 +16,9 @@ class Node < ApplicationRecord
 
   # Enums - removed custom_bastion, only global_bastion and direct remain
   enum :role, { compute: 0, login: 1, admin: 2 }, default: :compute
-  enum :source, { manual: 0, csv: 1, agent_push: 2 }, default: :manual
+  enum :source, { manual: 0, csv: 1, agent_push: 2, salt_discovery: 3 }, default: :manual
   enum :ssh_connect_method, { global_bastion: 0, direct: 2 }, default: :global_bastion
+  enum :salt_status, { unknown: 0, connected: 1, disconnected: 2, pending: 3 }, default: :unknown, prefix: :salt
 
   # Validations
   validates :hostname, presence: true, uniqueness: true, length: { maximum: 255 }
@@ -49,19 +50,16 @@ class Node < ApplicationRecord
   end
 
   # Constants
-  HEARTBEAT_ONLINE_THRESHOLD = 2.minutes
   DEFAULT_AGENT_PATH = "qis-agent"
 
   # Scopes
-  scope :online, -> { where(last_heartbeat_at: HEARTBEAT_ONLINE_THRESHOLD.ago..) }
+  scope :online, -> { where(salt_status: :connected) }
   scope :unracked, -> { where(rack_id: nil) }
   scope :racked, -> { where.not(rack_id: nil) }
 
   # Instance methods
   def online?
-    return false if last_heartbeat_at.nil?
-
-    last_heartbeat_at > HEARTBEAT_ONLINE_THRESHOLD.ago
+    salt_connected?
   end
 
   def touch_last_seen
@@ -84,7 +82,7 @@ class Node < ApplicationRecord
   end
 
   def status
-    online? ? :online : :offline
+    salt_status.to_sym
   end
 
   # Simplified effective_* methods using override flags

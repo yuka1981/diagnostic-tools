@@ -27,11 +27,29 @@ FactoryBot.define do
       source { :agent_push }
     end
 
+    trait :salt_discovery do
+      source { :salt_discovery }
+    end
+
+    trait :salt_connected do
+      salt_status { :connected }
+    end
+
+    trait :salt_disconnected do
+      salt_status { :disconnected }
+    end
+
+    trait :salt_pending do
+      salt_status { :pending }
+    end
+
     trait :online do
+      salt_status { :connected }
       last_seen_at { 1.minute.ago }
     end
 
     trait :offline do
+      salt_status { :disconnected }
       last_seen_at { 10.minutes.ago }
     end
 
