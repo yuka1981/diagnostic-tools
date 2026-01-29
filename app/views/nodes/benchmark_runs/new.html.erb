@@ -22,10 +22,6 @@
                 <% end %>
               </td>
             </tr>
-            <tr>
-              <td class="px-3 py-2 text-neutral-45 font-medium">Agent Path</td>
-              <td class="px-3 py-2 font-mono text-neutral-85" colspan="2" data-testid="nodes-benchmark-agentpath"><%= @preflight.config[:agent_path] %></td>
-            </tr>
             <% if @preflight.config[:server_url].present? %>
             <tr>
               <td class="px-3 py-2 text-neutral-45 font-medium">Callback URL</td>
@@ -96,7 +92,7 @@
                 <%= link_to "Edit Node Settings", edit_node_path(@node),
                     class: "inline-flex items-center rounded-md bg-warning-1 px-2.5 py-1.5 text-xs font-semibold text-warning-8 hover:bg-warning-2",
                     data: { turbo_frame: "_top", testid: "nodes-benchmark-link-settings" } %>
-                <%= link_to "Global Settings", settings_agent_path,
+                <%= link_to "SSH Settings", settings_ssh_defaults_path,
                     class: "inline-flex items-center rounded-md bg-warning-1 px-2.5 py-1.5 text-xs font-semibold text-warning-8 hover:bg-warning-2",
                     data: { turbo_frame: "_top" } %>
                 <%= link_to "API Keys", api_keys_path,
