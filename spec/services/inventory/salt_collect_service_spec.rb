@@ -9,7 +9,7 @@ RSpec.describe Inventory::SaltCollectService do
     {
       "host" => "node-01",
       "fqdn" => "node-01.cluster.local",
-      "ip4_interfaces" => { "eth0" => ["10.0.1.1"] },
+      "ip4_interfaces" => { "eth0" => [ "10.0.1.1" ] },
       "cpuarch" => "x86_64",
       "kernel" => "Linux",
       "kernelrelease" => "5.15.0",
@@ -18,8 +18,8 @@ RSpec.describe Inventory::SaltCollectService do
       "cpu_model" => "Intel Xeon Gold 6248",
       "num_cpus" => 40,
       "mem_total" => 256000,
-      "disks" => ["sda"],
-      "SSDs" => ["sda"],
+      "disks" => [ "sda" ],
+      "SSDs" => [ "sda" ],
       "gpus" => []
     }
   end

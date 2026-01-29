@@ -4,7 +4,7 @@ require "rails_helper"
 
 RSpec.describe Benchmark::TriggerJob, type: :job do
   let(:node) { create(:node, hostname: "node-01") }
-  let(:recipe) { create(:benchmark_recipe, benchmark_type: :hpcg) }
+  let(:recipe) { create(:benchmark_recipe, :hpcg) }
   let(:run) { create(:benchmark_run, node: node, benchmark_recipe: recipe) }
 
   it "delegates to Benchmark::SaltTriggerRunService" do

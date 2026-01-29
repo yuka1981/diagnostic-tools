@@ -39,8 +39,7 @@ module Benchmark
     private
 
     def state_mod
-      benchmark_type = @benchmark_run.benchmark_recipe.benchmark_type
-      "benchmark.#{benchmark_type}"
+      "benchmark.#{@benchmark_run.benchmark_recipe.name}"
     end
 
     def pillar_data

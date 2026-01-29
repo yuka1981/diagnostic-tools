@@ -6,7 +6,7 @@ RSpec.describe Salt::InventoryMapper do
       {
         "host" => "node-01",
         "fqdn" => "node-01.cluster.local",
-        "ip4_interfaces" => { "eth0" => ["10.0.1.1"], "lo" => ["127.0.0.1"] },
+        "ip4_interfaces" => { "eth0" => [ "10.0.1.1" ], "lo" => [ "127.0.0.1" ] },
         "cpuarch" => "x86_64",
         "kernel" => "Linux",
         "kernelrelease" => "5.15.0-generic",
@@ -15,8 +15,8 @@ RSpec.describe Salt::InventoryMapper do
         "cpu_model" => "Intel(R) Xeon(R) Gold 6248 CPU @ 2.50GHz",
         "num_cpus" => 40,
         "mem_total" => 256000,
-        "disks" => ["sda", "sdb"],
-        "SSDs" => ["sda"],
+        "disks" => [ "sda", "sdb" ],
+        "SSDs" => [ "sda" ],
         "gpus" => []
       }
     end
@@ -33,8 +33,8 @@ RSpec.describe Salt::InventoryMapper do
       {
         "node_count" => 2,
         "nodes" => {
-          "0" => { "cpus" => [0, 1, 2, 3], "memory_mb" => 128000 },
-          "1" => { "cpus" => [4, 5, 6, 7], "memory_mb" => 128000 }
+          "0" => { "cpus" => [ 0, 1, 2, 3 ], "memory_mb" => 128000 },
+          "1" => { "cpus" => [ 4, 5, 6, 7 ], "memory_mb" => 128000 }
         }
       }
     end

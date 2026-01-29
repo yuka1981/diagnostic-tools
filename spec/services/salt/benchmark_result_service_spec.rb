@@ -2,7 +2,7 @@ require "rails_helper"
 
 RSpec.describe Salt::BenchmarkResultService do
   let(:node) { create(:node, hostname: "node-01") }
-  let(:recipe) { create(:benchmark_recipe, benchmark_type: :hpcg) }
+  let(:recipe) { create(:benchmark_recipe, :hpcg) }
   let(:run) { create(:benchmark_run, :running, node: node, benchmark_recipe: recipe) }
   let(:salt_client) { instance_double(SaltApiClient) }
 
@@ -16,7 +16,7 @@ RSpec.describe Salt::BenchmarkResultService do
           "start_time" => "2026-01-29T12:00:00Z",
           "end_time" => "2026-01-29T12:30:00Z",
           "log_content" => "Benchmark completed successfully",
-          "artifacts" => ["/tmp/hpcg/HPCG-Benchmark.txt"]
+          "artifacts" => [ "/tmp/hpcg/HPCG-Benchmark.txt" ]
         }
       }
     }

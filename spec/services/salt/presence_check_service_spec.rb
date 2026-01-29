@@ -13,8 +13,8 @@ RSpec.describe Salt::PresenceCheckService do
       allow(salt_client).to receive(:run_runner)
         .with("manage.status")
         .and_return({
-          "up" => ["node-01", "node-02"],
-          "down" => ["node-03"]
+          "up" => [ "node-01", "node-02" ],
+          "down" => [ "node-03" ]
         })
     end
 

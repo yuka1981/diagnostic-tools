@@ -2,7 +2,7 @@ require "rails_helper"
 
 RSpec.describe Benchmark::SaltTriggerRunService do
   let(:node) { create(:node, hostname: "node-01") }
-  let(:recipe) { create(:benchmark_recipe, benchmark_type: :mlc) }
+  let(:recipe) { create(:benchmark_recipe, name: "mlc", command: "mlc") }
   let(:run) { create(:benchmark_run, node: node, benchmark_recipe: recipe) }
   let(:salt_client) { instance_double(SaltApiClient) }
   let(:service) do

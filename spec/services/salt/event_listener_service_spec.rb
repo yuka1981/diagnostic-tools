@@ -12,7 +12,7 @@ RSpec.describe Salt::EventListenerService do
       event_tag = "salt/job/ret/20260129120000123456"
       event_data = {
         "fun" => "state.apply",
-        "fun_args" => [{ "mods" => "benchmark.hpcg", "pillar" => { "run_id" => run.uuid } }],
+        "fun_args" => [ { "mods" => "benchmark.hpcg", "pillar" => { "run_id" => run.uuid } } ],
         "return" => {
           "status" => "PASS",
           "metrics" => { "gflops" => 45.67 }
@@ -29,7 +29,7 @@ RSpec.describe Salt::EventListenerService do
       event_tag = "salt/presence/change"
       event_data = {
         "new" => [],
-        "lost" => ["node-01"]
+        "lost" => [ "node-01" ]
       }
 
       service.dispatch_event(event_tag, event_data)
@@ -46,7 +46,7 @@ RSpec.describe Salt::EventListenerService do
     it "marks lost nodes as offline" do
       node = create(:node, hostname: "node-01", last_heartbeat_at: 1.minute.ago)
 
-      service.update_presence(new_minions: [], lost_minions: ["node-01"])
+      service.update_presence(new_minions: [], lost_minions: [ "node-01" ])
       node.reload
       expect(node.online?).to be false
     end

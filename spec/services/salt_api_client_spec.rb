@@ -12,7 +12,7 @@ RSpec.describe SaltApiClient do
         .with(body: { username: username, password: password, eauth: "pam" })
         .to_return(
           status: 200,
-          body: { return: [{ token: "abc123", expire: (Time.current + 12.hours).to_f }] }.to_json,
+          body: { return: [ { token: "abc123", expire: (Time.current + 12.hours).to_f } ] }.to_json,
           headers: { "Content-Type" => "application/json" }
         )
 
@@ -33,7 +33,7 @@ RSpec.describe SaltApiClient do
       stub_request(:post, "#{base_url}/login")
         .to_return(
           status: 200,
-          body: { return: [{ token: "abc123", expire: (Time.current + 12.hours).to_f }] }.to_json,
+          body: { return: [ { token: "abc123", expire: (Time.current + 12.hours).to_f } ] }.to_json,
           headers: { "Content-Type" => "application/json" }
         )
     end
@@ -46,7 +46,7 @@ RSpec.describe SaltApiClient do
         )
         .to_return(
           status: 200,
-          body: { return: [{ "node-01" => true }] }.to_json,
+          body: { return: [ { "node-01" => true } ] }.to_json,
           headers: { "Content-Type" => "application/json" }
         )
 
@@ -57,16 +57,16 @@ RSpec.describe SaltApiClient do
     it "passes keyword arguments to the Salt function" do
       stub_request(:post, "#{base_url}/")
         .with(
-          body: { client: "local", tgt: "node-01", fun: "grains.item", arg: ["os", "cpuarch"] }.to_json,
+          body: { client: "local", tgt: "node-01", fun: "grains.item", arg: [ "os", "cpuarch" ] }.to_json,
           headers: { "X-Auth-Token" => "abc123" }
         )
         .to_return(
           status: 200,
-          body: { return: [{ "node-01" => { "os" => "CentOS", "cpuarch" => "x86_64" } }] }.to_json,
+          body: { return: [ { "node-01" => { "os" => "CentOS", "cpuarch" => "x86_64" } } ] }.to_json,
           headers: { "Content-Type" => "application/json" }
         )
 
-      result = client.run("node-01", "grains.item", arg: ["os", "cpuarch"])
+      result = client.run("node-01", "grains.item", arg: [ "os", "cpuarch" ])
       expect(result).to eq({ "os" => "CentOS", "cpuarch" => "x86_64" })
     end
 
@@ -74,7 +74,7 @@ RSpec.describe SaltApiClient do
       stub_request(:post, "#{base_url}/")
         .to_return(
           status: 200,
-          body: { return: [{ "node-01" => false }] }.to_json,
+          body: { return: [ { "node-01" => false } ] }.to_json,
           headers: { "Content-Type" => "application/json" }
         )
 
@@ -86,7 +86,7 @@ RSpec.describe SaltApiClient do
       stub_request(:post, "#{base_url}/")
         .to_return(
           status: 200,
-          body: { return: [{}] }.to_json,
+          body: { return: [ {} ] }.to_json,
           headers: { "Content-Type" => "application/json" }
         )
 
@@ -101,19 +101,19 @@ RSpec.describe SaltApiClient do
       stub_request(:post, "#{base_url}/login")
         .to_return(
           status: 200,
-          body: { return: [{ token: "token1", expire: (Time.current + 30.seconds).to_f }] }.to_json,
+          body: { return: [ { token: "token1", expire: (Time.current + 30.seconds).to_f } ] }.to_json,
           headers: { "Content-Type" => "application/json" }
         ).then
         .to_return(
           status: 200,
-          body: { return: [{ token: "token2", expire: (Time.current + 12.hours).to_f }] }.to_json,
+          body: { return: [ { token: "token2", expire: (Time.current + 12.hours).to_f } ] }.to_json,
           headers: { "Content-Type" => "application/json" }
         )
 
       stub_request(:post, "#{base_url}/")
         .to_return(
           status: 200,
-          body: { return: [{ "node-01" => true }] }.to_json,
+          body: { return: [ { "node-01" => true } ] }.to_json,
           headers: { "Content-Type" => "application/json" }
         )
 
@@ -130,7 +130,7 @@ RSpec.describe SaltApiClient do
       stub_request(:post, "#{base_url}/login")
         .to_return(
           status: 200,
-          body: { return: [{ token: "abc123", expire: (Time.current + 12.hours).to_f }] }.to_json,
+          body: { return: [ { token: "abc123", expire: (Time.current + 12.hours).to_f } ] }.to_json,
           headers: { "Content-Type" => "application/json" }
         )
     end
@@ -140,7 +140,7 @@ RSpec.describe SaltApiClient do
         .with(body: hash_including(client: "local_async"))
         .to_return(
           status: 200,
-          body: { return: [{ jid: "20260129120000123456" }] }.to_json,
+          body: { return: [ { jid: "20260129120000123456" } ] }.to_json,
           headers: { "Content-Type" => "application/json" }
         )
 
@@ -154,7 +154,7 @@ RSpec.describe SaltApiClient do
       stub_request(:post, "#{base_url}/login")
         .to_return(
           status: 200,
-          body: { return: [{ token: "abc123", expire: (Time.current + 12.hours).to_f }] }.to_json,
+          body: { return: [ { token: "abc123", expire: (Time.current + 12.hours).to_f } ] }.to_json,
           headers: { "Content-Type" => "application/json" }
         )
     end
@@ -163,7 +163,7 @@ RSpec.describe SaltApiClient do
       stub_request(:get, "#{base_url}/jobs/20260129120000123456")
         .to_return(
           status: 200,
-          body: { return: [{ "node-01" => { "retcode" => 0, "return" => "success" } }] }.to_json,
+          body: { return: [ { "node-01" => { "retcode" => 0, "return" => "success" } } ] }.to_json,
           headers: { "Content-Type" => "application/json" }
         )
 
@@ -177,7 +177,7 @@ RSpec.describe SaltApiClient do
       stub_request(:post, "#{base_url}/login")
         .to_return(
           status: 200,
-          body: { return: [{ token: "abc123", expire: (Time.current + 12.hours).to_f }] }.to_json,
+          body: { return: [ { token: "abc123", expire: (Time.current + 12.hours).to_f } ] }.to_json,
           headers: { "Content-Type" => "application/json" }
         )
     end
@@ -187,7 +187,7 @@ RSpec.describe SaltApiClient do
         .with(body: hash_including(client: "runner", fun: "manage.status"))
         .to_return(
           status: 200,
-          body: { return: [{ "up" => ["node-01", "node-02"], "down" => ["node-03"] }] }.to_json,
+          body: { return: [ { "up" => [ "node-01", "node-02" ], "down" => [ "node-03" ] } ] }.to_json,
           headers: { "Content-Type" => "application/json" }
         )
 
@@ -202,7 +202,7 @@ RSpec.describe SaltApiClient do
       stub_request(:post, "#{base_url}/login")
         .to_return(
           status: 200,
-          body: { return: [{ token: "abc123", expire: (Time.current + 12.hours).to_f }] }.to_json,
+          body: { return: [ { token: "abc123", expire: (Time.current + 12.hours).to_f } ] }.to_json,
           headers: { "Content-Type" => "application/json" }
         )
     end
@@ -219,7 +219,7 @@ RSpec.describe SaltApiClient do
 
       events = []
       client.events do |tag, data|
-        events << [tag, data]
+        events << [ tag, data ]
         break # Stop after first event for test
       end
 
