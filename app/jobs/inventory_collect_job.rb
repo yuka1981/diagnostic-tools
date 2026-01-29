@@ -3,85 +3,53 @@
 class InventoryCollectJob < ApplicationJob
   queue_as :default
 
-  # Retry only on transient network errors (connection timeout)
-  # Other SSH errors (AuthenticationFailed, HostKeyMismatch) are non-retriable
-  retry_on Net::SSH::ConnectionTimeout, wait: :polynomially_longer, attempts: 3
+  # Retry on transient Salt API timeouts
+  retry_on SaltApiClient::TimeoutError, wait: :polynomially_longer, attempts: 3
 
   # Discard job if node no longer exists
   discard_on ActiveRecord::RecordNotFound
 
   # @param target_node_id [Integer] The ID of the node to collect data from
-  # @param gateway_node_id [Integer, nil] Optional ID of the gateway node
   # @param user_id [Integer, nil] Optional ID of the user who triggered the collection
-  # @param options [Hash] Additional options (ssh_config, agent_path)
-  def perform(target_node_id, gateway_node_id: nil, user_id: nil, **options)
+  def perform(target_node_id, user_id: nil)
     target_node = Node.find(target_node_id)
-    gateway_node = gateway_node_id ? Node.find(gateway_node_id) : nil
-    notification = nil
+    notification = create_notification(target_node, user_id)
 
-    # Create notification if user_id is provided
-    if user_id.present?
-      user = User.find_by(id: user_id)
-      if user
-        notification = NotificationService.create(
-          user: user,
-          type: "inventory_collect",
-          title: "Collecting inventory from #{target_node.hostname}",
-          resource: target_node
-        )
-        NotificationService.start(notification)
-      end
-    end
-
-    result = Inventory::TriggerCollectService.new(
-      target_node,
-      gateway: gateway_node,
-      **options
-    ).call
+    result = Inventory::SaltCollectService.new(target_node).call
 
     if result.success?
-      process_collected_data(target_node, result.output)
-      NotificationService.complete(notification, success: true, message: "Inventory collected successfully") if notification
+      complete_notification(notification, :success, "Inventory collected successfully")
     else
-      handle_collection_error(target_node, result.error)
-      NotificationService.complete(notification, success: false, message: result.error) if notification
+      Rails.logger.error("[InventoryCollectJob] Failed to collect from #{target_node.hostname}: #{result.error}")
+      complete_notification(notification, :failure, result.error)
     end
-  rescue Net::SSH::AuthenticationFailed => e
-    # Non-retriable: Authentication failure should not be retried
-    handle_ssh_error(target_node, "Authentication failed: #{e.message}")
-    NotificationService.complete(notification, success: false, message: "Authentication failed: #{e.message}") if notification
-  rescue Net::SSH::HostKeyMismatch => e
-    # Non-retriable: Host key issues require manual intervention
-    handle_ssh_error(target_node, "Host key verification failed: #{e.message}")
-    NotificationService.complete(notification, success: false, message: "Host key verification failed") if notification
-  rescue Net::SSH::Exception => e
-    # Catch-all for other SSH errors (non-retriable by default)
-    handle_ssh_error(target_node, "SSH error: #{e.message}")
-    NotificationService.complete(notification, success: false, message: e.message) if notification
   end
 
   private
 
-  def process_collected_data(node, raw_json)
-    if raw_json.is_a?(Hash) && raw_json[:async]
-      Rails.logger.info("[InventoryCollectJob] Command broadcasted via WebSocket for #{node.hostname}. Waiting for callback.")
-      return
-    end
+  def create_notification(node, user_id)
+    return nil unless user_id.present?
 
-    # Use ProcessStateService to handle versioning
-    Inventory::ProcessStateService.new(
-      node_id: node.id,
-      raw_json: raw_json
-    ).call
+    user = User.find_by(id: user_id)
+    return nil unless user
+
+    notification = NotificationService.create(
+      user: user,
+      type: "inventory_collect",
+      title: "Collecting inventory from #{node.hostname}",
+      resource: node
+    )
+    NotificationService.start(notification)
+    notification
+  rescue StandardError
+    nil
   end
 
-  def handle_collection_error(node, error_message)
-    Rails.logger.error("[InventoryCollectJob] Failed to collect data from #{node.hostname}: #{error_message}")
-  end
+  def complete_notification(notification, status, message)
+    return unless notification
 
-  def handle_ssh_error(node, error_message)
-    Rails.logger.error("[InventoryCollectJob] SSH error for #{node.hostname}: #{error_message}")
-    # Non-retriable SSH errors are logged but not re-raised
-    # This allows the job to complete without retry
+    NotificationService.complete(notification, success: status == :success, message: message)
+  rescue StandardError
+    nil
   end
 end
