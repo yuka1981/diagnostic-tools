@@ -19,7 +19,7 @@ module Benchmark
     def initialize(target_node, ssh_config: {}, server_url: nil, agent_token: nil)
       super(target_node, ssh_config: ssh_config)
       @work_dir = BenchmarkConfig.work_dir_for(@target_node)
-      @agent_path = @target_node.try(:effective_agent_path) || "qis-agent"
+      @agent_path = @target_node.try(:agent_path).presence || SshSetting::DEFAULT_AGENT_PATH
       @server_url = server_url
       @agent_token = agent_token
     end
@@ -71,7 +71,7 @@ module Benchmark
       {
         work_dir: @work_dir,
         work_dir_source: work_dir_source,
-        agent_path: resolve_agent_path,
+        agent_path: @agent_path,
         node_hostname: @target_node.hostname,
         server_url: @server_url,
         api_configured: @server_url.present? && @agent_token.present?,
@@ -262,13 +262,7 @@ module Benchmark
     end
 
     def resolve_agent_path
-      if @agent_path == "qis-agent"
-        "../qis-agent"
-      elsif @agent_path.start_with?("/")
-        @agent_path
-      else
-        "../#{@agent_path}"
-      end
+      @agent_path
     end
 
     def suggest_work_dir_fix
@@ -276,7 +270,7 @@ module Benchmark
       when :node
         "This directory is configured in the node settings. Edit the node to change it."
       when :global
-        "This directory is set in Settings > Agents. Change it there or override it in the node settings."
+        "This directory is set in SSH Settings. Change it there or override it in the node settings."
       else
         "Using default directory '#{BenchmarkConfig::DEFAULT_WORK_DIR}'. Configure it in Settings > Agents or in the node settings."
       end

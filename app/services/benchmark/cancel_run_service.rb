@@ -2,15 +2,13 @@
 
 module Benchmark
   class CancelRunService < ::SshExecutionService
-    DEFAULT_AGENT_PATH = "qis-agent"
-
     # Initialize the service
     # @param benchmark_run [BenchmarkRun] The benchmark run to cancel
     # @param ssh_config [Hash] SSH configuration (user, keys, timeout, verify_host_key)
     # @param agent_path [String, nil] Optional override for path to the agent binary
     def initialize(benchmark_run, ssh_config: {}, agent_path: nil)
       @benchmark_run = benchmark_run
-      @agent_path = agent_path || benchmark_run.node.try(:effective_agent_path) || DEFAULT_AGENT_PATH
+      @agent_path = agent_path || benchmark_run.node.try(:agent_path).presence || SshSetting::DEFAULT_AGENT_PATH
       super(benchmark_run.node, ssh_config: ssh_config)
     end
 
@@ -76,10 +74,7 @@ module Benchmark
     end
 
     def resolve_agent_path
-      if @agent_path == "qis-agent"
-        # When installed via agent installer, the binary is typically in /usr/local/bin
-        "/usr/local/bin/qis-agent"
-      elsif @agent_path.start_with?("/")
+      if @agent_path.start_with?("/")
         @agent_path
       else
         "/usr/local/bin/#{@agent_path}"

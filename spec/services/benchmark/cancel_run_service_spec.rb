@@ -255,7 +255,7 @@ RSpec.describe Benchmark::CancelRunService do
   describe "#resolve_agent_path" do
     let(:benchmark_run) { create(:benchmark_run, :running, node: node, benchmark_recipe: recipe) }
 
-    it "resolves default qis-agent to /usr/local/bin" do
+    it "resolves relative path by prepending /usr/local/bin" do
       service = described_class.new(benchmark_run, agent_path: "qis-agent")
       expect(service.send(:resolve_agent_path)).to eq("/usr/local/bin/qis-agent")
     end
@@ -271,12 +271,12 @@ RSpec.describe Benchmark::CancelRunService do
     end
   end
 
-  describe "integration with node effective_agent_path" do
+  describe "integration with node agent_path" do
     let(:benchmark_run) { create(:benchmark_run, :running, node: node, benchmark_recipe: recipe) }
 
     context "when node has custom agent path" do
       before do
-        allow(node).to receive(:effective_agent_path).and_return("/custom/path/agent")
+        allow(node).to receive(:agent_path).and_return("/custom/path/agent")
       end
 
       it "uses node's effective_agent_path" do

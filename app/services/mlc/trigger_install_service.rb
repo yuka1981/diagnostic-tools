@@ -75,7 +75,7 @@ module Mlc
     end
 
     def resolve_agent_path
-      @installation_node.node.effective_agent_path || "/usr/local/bin/qis-agent"
+      @installation_node.node.agent_path.presence || SshSetting::DEFAULT_AGENT_PATH
     end
   end
 end
