@@ -94,4 +94,61 @@ RSpec.describe TableComponent, type: :component do
 
     expect(page).to have_css("tr.hover\\:bg-neutral-2")
   end
+
+  describe "test IDs" do
+    it "renders data-testid on container when testid is provided" do
+      render_inline(TableComponent.new(collection: nodes, testid: "nodes")) do |table|
+        table.with_column(header: "Name") { |n| n.hostname }
+      end
+
+      expect(page).to have_css("[data-testid='nodes-table-container']")
+    end
+
+    it "renders data-testid on header" do
+      render_inline(TableComponent.new(collection: nodes, testid: "nodes")) do |table|
+        table.with_column(header: "Name") { |n| n.hostname }
+      end
+
+      expect(page).to have_css("[data-testid='nodes-table-header']")
+    end
+
+    it "renders data-testid on body" do
+      render_inline(TableComponent.new(collection: nodes, testid: "nodes")) do |table|
+        table.with_column(header: "Name") { |n| n.hostname }
+      end
+
+      expect(page).to have_css("[data-testid='nodes-table-body']")
+    end
+
+    it "renders data-testid on empty state" do
+      render_inline(TableComponent.new(collection: [], testid: "nodes")) do |table|
+        table.with_column(header: "Name") { |n| n.hostname }
+        table.with_empty { "<div>No items</div>".html_safe }
+      end
+
+      expect(page).to have_css("[data-testid='nodes-table-empty']")
+    end
+
+    it "renders data-testid on bulk actions" do
+      render_inline(TableComponent.new(
+        collection: nodes,
+        selectable: true,
+        bulk_action_path: "/nodes/bulk_destroy",
+        testid: "nodes"
+      )) do |table|
+        table.with_bulk_action(label: "Delete", method: :delete)
+        table.with_column(header: "Name") { |n| n.hostname }
+      end
+
+      expect(page).to have_css("[data-testid='nodes-bulk-actions']")
+    end
+
+    it "does not render data-testid when testid is not provided" do
+      render_inline(TableComponent.new(collection: nodes)) do |table|
+        table.with_column(header: "Name") { |n| n.hostname }
+      end
+
+      expect(page).not_to have_css("[data-testid]")
+    end
+  end
 end

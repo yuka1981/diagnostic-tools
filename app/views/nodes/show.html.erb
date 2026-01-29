@@ -8,13 +8,13 @@
 
 <%= turbo_stream_from @node %>
 
-<div data-controller="slide-over">
+<div data-controller="slide-over" data-testid="nodes-show-container">
 <%# Header %>
 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
   <div>
     <div class="flex items-center gap-3">
-      <h1 class="text-2xl font-bold text-neutral-85"><%= @node.hostname %></h1>
-      <%= node_status_badge(@node.status) %>
+      <h1 class="text-2xl font-bold text-neutral-85" data-testid="nodes-show-hostname"><%= @node.hostname %></h1>
+      <span data-testid="nodes-show-status"><%= node_status_badge(@node.status) %></span>
     </div>
     <div class="mt-1 flex items-center gap-4 text-sm text-neutral-45">
       <span class="font-mono">UUID: <%= @node.id %></span>
@@ -43,7 +43,7 @@
       <%= button_to collect_node_path(@node),
           method: :post,
           class: "btn-primary",
-          data: { turbo_submits_with: "Collecting..." } do %>
+          data: { turbo_submits_with: "Collecting...", testid: "nodes-show-button-collect" } do %>
         <%= lucide_icon("refresh-cw", class: "h-4 w-4") %>
         Collect
       <% end %>
@@ -51,14 +51,14 @@
       <% if @node.agent_push? %>
         <%= link_to new_node_benchmark_run_path(@node),
             class: "btn-secondary",
-            data: { turbo_frame: "modal" } do %>
+            data: { turbo_frame: "modal", testid: "nodes-show-button-benchmark" } do %>
           <%= lucide_icon("zap", class: "h-4 w-4 text-login-5") %>
           Benchmark
         <% end %>
 
         <%= link_to new_node_update_path(@node),
             class: "btn-secondary",
-            data: { turbo_frame: "update_modal" } do %>
+            data: { turbo_frame: "update_modal", testid: "nodes-show-button-update" } do %>
           <%= lucide_icon("upload", class: "h-4 w-4 text-success-5") %>
           Update Agent
         <% end %>
@@ -66,7 +66,7 @@
 
       <%= link_to edit_node_path(@node),
           class: "btn-secondary",
-          data: { turbo_frame: "node_modal" } do %>
+          data: { turbo_frame: "node_modal", testid: "nodes-show-button-edit" } do %>
         <%= lucide_icon("square-pen", class: "h-4 w-4 text-warning-5") %>
         Edit
       <% end %>
@@ -74,7 +74,7 @@
       <%= button_to node_path(@node),
           method: :delete,
           class: "btn-danger",
-          data: { turbo_confirm: "Are you sure you want to delete this node?" } do %>
+          data: { turbo_confirm: "Are you sure you want to delete this node?", testid: "nodes-show-button-delete" } do %>
         <%= lucide_icon("trash-2", class: "h-4 w-4") %>
         Delete
       <% end %>
@@ -87,34 +87,39 @@
   <%# Tab Navigation %>
   <div class="mb-6 border-b border-neutral-8">
     <nav class="-mb-px flex gap-6 tabs nav-tabs" aria-label="Tabs">
-      <a href="#" 
-         data-tabs-target="tab" 
+      <a href="#"
+         data-tabs-target="tab"
          data-action="click->tabs#select"
+         data-testid="nodes-tab-overview"
          class="border-transparent text-neutral-45 hover:border-neutral-15 hover:text-neutral-85 whitespace-nowrap border-b-2 py-4 px-1 text-sm font-bold uppercase transition-colors"
          aria-current="page">
         Overview
       </a>
-      <a href="#" 
-         data-tabs-target="tab" 
+      <a href="#"
+         data-tabs-target="tab"
          data-action="click->tabs#select"
+         data-testid="nodes-tab-hardware"
          class="border-transparent text-neutral-45 hover:border-neutral-15 hover:text-neutral-85 whitespace-nowrap border-b-2 py-4 px-1 text-sm font-bold uppercase transition-colors">
         Hardware
       </a>
-      <a href="#" 
-         data-tabs-target="tab" 
+      <a href="#"
+         data-tabs-target="tab"
          data-action="click->tabs#select"
+         data-testid="nodes-tab-benchmarks"
          class="border-transparent text-neutral-45 hover:border-neutral-15 hover:text-neutral-85 whitespace-nowrap border-b-2 py-4 px-1 text-sm font-bold uppercase transition-colors">
         Benchmark History
       </a>
       <a href="#"
          data-tabs-target="tab"
          data-action="click->tabs#select"
+         data-testid="nodes-tab-logs"
          class="border-transparent text-neutral-45 hover:border-neutral-15 hover:text-neutral-85 whitespace-nowrap border-b-2 py-4 px-1 text-sm font-bold uppercase transition-colors">
         Logs
       </a>
       <a href="#"
          data-tabs-target="tab"
          data-action="click->tabs#select"
+         data-testid="nodes-tab-profiling"
          class="border-transparent text-neutral-45 hover:border-neutral-15 hover:text-neutral-85 whitespace-nowrap border-b-2 py-4 px-1 text-sm font-bold uppercase transition-colors">
         Profiling
       </a>
@@ -136,17 +141,17 @@
   <%# Tab Panels %>
   <div class="grid grid-cols-12 gap-6">
     <%# Panel 1: Overview %>
-    <div data-tabs-target="panel" class="col-span-12 outline-none" role="tabpanel" tabindex="0">
+    <div data-tabs-target="panel" data-testid="nodes-panel-overview" class="col-span-12 outline-none" role="tabpanel" tabindex="0">
       <%= render "nodes/overview", node: @node %>
     </div>
 
     <%# Panel 2: Hardware %>
-    <div data-tabs-target="panel" class="hidden col-span-12 outline-none" role="tabpanel" tabindex="0">
+    <div data-tabs-target="panel" data-testid="nodes-panel-hardware" class="hidden col-span-12 outline-none" role="tabpanel" tabindex="0">
       <%= render "nodes/hardware", node: @node %>
     </div>
 
     <%# Panel 3: Benchmark History %>
-    <div data-tabs-target="panel" class="hidden col-span-12 outline-none" role="tabpanel" tabindex="0">
+    <div data-tabs-target="panel" data-testid="nodes-panel-benchmarks" class="hidden col-span-12 outline-none" role="tabpanel" tabindex="0">
       <div class="card-netbox">
          <div class="card-header">
            <h3 class="card-title text-xs font-bold text-neutral-45 uppercase">Benchmark History</h3>
@@ -162,12 +167,12 @@
     </div>
 
     <%# Panel 4: Logs %>
-    <div data-tabs-target="panel" class="hidden col-span-12 outline-none" role="tabpanel" tabindex="0">
+    <div data-tabs-target="panel" data-testid="nodes-panel-logs" class="hidden col-span-12 outline-none" role="tabpanel" tabindex="0">
       <%= render "nodes/logs", node: @node %>
     </div>
 
     <%# Panel 5: Profiling %>
-    <div data-tabs-target="panel" class="hidden col-span-12 outline-none" role="tabpanel" tabindex="0">
+    <div data-tabs-target="panel" data-testid="nodes-panel-profiling" class="hidden col-span-12 outline-none" role="tabpanel" tabindex="0">
       <%= render "nodes/profiling", node: @node %>
     </div>
 

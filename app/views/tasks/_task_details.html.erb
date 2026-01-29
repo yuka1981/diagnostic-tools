@@ -1,7 +1,7 @@
-<tr id="<%= task.dom_id %>_details" class="bg-neutral-2 hidden" data-accordion-target="details">
+<tr id="<%= task.dom_id %>_details" class="bg-neutral-2 hidden" data-accordion-target="details" data-testid="tasks-details-<%= task.to_param %>">
   <td colspan="8" class="p-0">
     <div class="px-6 py-4">
-          <div class="grid grid-cols-2 gap-6">
+          <div class="grid grid-cols-2 gap-6" data-testid="tasks-details-table-<%= task.to_param %>">
             <%# Details Column %>
             <div>
               <h4 class="text-xs font-bold text-neutral-45 uppercase mb-2">Details</h4>
@@ -47,7 +47,7 @@
 
           <%# Artifacts Section %>
           <% if task.artifacts.any? %>
-            <div class="mt-4 pt-4 border-t border-neutral-8">
+            <div class="mt-4 pt-4 border-t border-neutral-8" data-testid="tasks-details-output-<%= task.to_param %>">
               <h4 class="text-xs font-bold text-neutral-45 uppercase mb-2">Artifacts</h4>
               <div class="flex flex-wrap gap-2">
                 <% task.wrapped_artifacts.each do |artifact| %>
@@ -70,7 +70,7 @@
 
           <%# Error Message Section %>
           <% if task.error_message.present? %>
-            <div class="mt-4 pt-4 border-t border-error-2">
+            <div class="mt-4 pt-4 border-t border-error-2" data-testid="tasks-details-error-<%= task.to_param %>">
               <h4 class="text-xs font-bold text-error-5 uppercase mb-2">Error</h4>
               <p class="text-sm text-error-7 bg-error-1 rounded p-2"><%= task.error_message %></p>
             </div>

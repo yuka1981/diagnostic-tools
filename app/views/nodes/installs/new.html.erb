@@ -1,11 +1,11 @@
 <%= turbo_frame_tag "install_modal" do %>
-  <%= render "shared/modal", title: "Install Agent: #{params[:hostname]}" do %>
+  <%= render "shared/modal", title: "Install Agent: #{params[:hostname]}", testid: "nodes-install-modal" do %>
     <div class="px-2" id="install_modal_body">
       <% # Default to showing all fields if @required_fields is not set (e.g., new nodes) %>
       <% required_fields = @required_fields || { ssh_password: true, sudo_password: true, api_key: true, server_url: true } %>
       <% required_count = required_fields.values.count(true) %>
       <% if required_count > 0 %>
-        <div class="rounded-md bg-primary-1 p-4 border border-primary-2 mb-4">
+        <div class="rounded-md bg-primary-1 p-4 border border-primary-2 mb-4" data-testid="nodes-install-requirements">
           <div class="flex">
             <div class="flex-shrink-0">
               <%= lucide_icon("info", class: "h-5 w-5 text-primary-5") %>
@@ -20,7 +20,7 @@
         </div>
       <% end %>
 
-      <div class="rounded-md bg-warning-1 p-4 border border-warning-2 mb-6">
+      <div class="rounded-md bg-warning-1 p-4 border border-warning-2 mb-6" data-testid="nodes-install-security">
         <div class="flex">
           <div class="flex-shrink-0">
             <%= lucide_icon("alert-triangle", class: "h-5 w-5 text-warning-5") %>
@@ -34,7 +34,7 @@
         </div>
       </div>
 
-      <%= form_with(url: node_install_index_path, method: :post, class: "space-y-6", scope: :install) do |f| %>
+      <%= form_with(url: node_install_index_path, method: :post, class: "space-y-6", scope: :install, data: { testid: "nodes-install-form" }) do |f| %>
         <%= f.hidden_field :hostname, value: params[:hostname] %>
         <%= f.hidden_field :arch, value: @arch, id: "install_arch" %>
         <%# Bastion settings are now only global - use SshSetting %>
@@ -47,7 +47,8 @@
               <%= f.label :sudo_password, "Remote Sudo Password", class: "block text-sm font-bold text-neutral-85 mb-1" %>
               <%= f.password_field :sudo_password, required: true,
                   placeholder: "••••••••",
-                  class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm" %>
+                  class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm",
+                  data: { testid: "nodes-install-sudo-password" } %>
             </div>
           <% end %>
 
@@ -56,7 +57,8 @@
               <%= f.label :bastion_password, "SSH Password / Key Passphrase", class: "block text-sm font-bold text-neutral-85 mb-1" %>
               <%= f.password_field :bastion_password, required: false,
                   placeholder: "•••••••• (optional)",
-                  class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm" %>
+                  class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm",
+                  data: { testid: "nodes-install-ssh-password" } %>
             </div>
           <% end %>
 
@@ -64,7 +66,8 @@
             <div class="sm:col-span-2">
               <%= f.label :api_key_id, "Agent API Key", class: "block text-sm font-bold text-neutral-85 mb-1" %>
               <%= f.collection_select :api_key_id, @api_keys, :id, :name, { prompt: "Select an API key for the agent" },
-                  class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm" %>
+                  class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm",
+                  data: { testid: "nodes-install-api-key" } %>
             </div>
           <% end %>
 
@@ -73,7 +76,8 @@
               <%= f.label :server_url, "Server URL (Callback)", class: "block text-sm font-bold text-neutral-85 mb-1" %>
               <%= f.text_field :server_url, value: @server_url,
                   placeholder: "http://10.0.0.1:3000",
-                  class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm font-mono" %>
+                  class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm font-mono",
+                  data: { testid: "nodes-install-server-url" } %>
               <p class="mt-1 text-[10px] text-neutral-45 italic">The URL the agent will use to push data back to this server.</p>
             </div>
           <% end %>
@@ -81,7 +85,7 @@
 
         <div class="flex items-center justify-end gap-3 pt-4 border-t border-neutral-4">
           <button type="button" class="btn-secondary" data-action="modal#close">Cancel</button>
-          <%= f.submit "Begin Installation", class: "btn-primary" %>
+          <%= f.submit "Begin Installation", class: "btn-primary", data: { testid: "nodes-install-submit" } %>
         </div>
       <% end %>
     </div>

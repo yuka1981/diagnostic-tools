@@ -1,6 +1,6 @@
-<%= form_with(model: @room, class: "space-y-6") do |f| %>
+<%= form_with(model: @room, class: "space-y-6", data: { testid: "rooms-form" }) do |f| %>
   <% if @room.errors.any? %>
-    <div class="rounded-lg bg-error-1 p-4 text-sm text-error-7 border border-error-2">
+    <div class="rounded-lg bg-error-1 p-4 text-sm text-error-7 border border-error-2" data-testid="rooms-form-errors">
       <h2 class="font-bold mb-2"><%= pluralize(@room.errors.count, "error") %> prohibited this room from being saved:</h2>
       <ul class="list-disc list-inside">
         <% @room.errors.full_messages.each do |message| %>
@@ -20,7 +20,7 @@
         <%= f.label :site_id, "Site", class: "block text-sm font-bold text-neutral-85 mb-1" %>
         <%= f.collection_select :site_id, @sites, :id, :name,
             { prompt: "Select a site" },
-            { required: true, class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm" } %>
+            { required: true, class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm", data: { testid: "rooms-select-site" } } %>
         <p class="mt-1 text-xs text-neutral-45">Site where this room is located.</p>
       </div>
 
@@ -28,7 +28,8 @@
         <%= f.label :name, class: "block text-sm font-bold text-neutral-85 mb-1" %>
         <%= f.text_field :name, required: true,
             placeholder: "Server Room A",
-            class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm" %>
+            class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm",
+            data: { testid: "rooms-input-name" } %>
         <p class="mt-1 text-xs text-neutral-45">Display name for this room.</p>
       </div>
 
@@ -36,7 +37,8 @@
         <%= f.label :description, class: "block text-sm font-bold text-neutral-85 mb-1" %>
         <%= f.text_area :description, rows: 3,
             placeholder: "Primary server room on the first floor...",
-            class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm" %>
+            class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm",
+            data: { testid: "rooms-input-description" } %>
         <p class="mt-1 text-xs text-neutral-45">Optional description of this room.</p>
       </div>
     </div>
@@ -52,7 +54,8 @@
         <%= f.label :floor_number, "Floor Number", class: "block text-sm font-bold text-neutral-85 mb-1" %>
         <%= f.number_field :floor_number,
             placeholder: "1",
-            class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm" %>
+            class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm",
+            data: { testid: "rooms-input-floor" } %>
         <p class="mt-1 text-xs text-neutral-45">Floor number in the building.</p>
       </div>
 
@@ -60,7 +63,8 @@
         <%= f.label :building_wing, "Building Wing", class: "block text-sm font-bold text-neutral-85 mb-1" %>
         <%= f.text_field :building_wing,
             placeholder: "East Wing",
-            class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm" %>
+            class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm",
+            data: { testid: "rooms-input-wing" } %>
         <p class="mt-1 text-xs text-neutral-45">Wing or section of the building.</p>
       </div>
 
@@ -68,7 +72,8 @@
         <%= f.label :grid_coordinates, "Grid Coordinates", class: "block text-sm font-bold text-neutral-85 mb-1" %>
         <%= f.text_field :grid_coordinates,
             placeholder: "A1-B3",
-            class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm" %>
+            class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm",
+            data: { testid: "rooms-input-grid" } %>
         <p class="mt-1 text-xs text-neutral-45">Grid reference on floor plan.</p>
       </div>
     </div>
@@ -84,7 +89,8 @@
         <%= f.label :floor_area_sqm, "Floor Area (m²)", class: "block text-sm font-bold text-neutral-85 mb-1" %>
         <%= f.number_field :floor_area_sqm, step: "0.01", min: 0,
             placeholder: "100.00",
-            class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm" %>
+            class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm",
+            data: { testid: "rooms-input-area" } %>
         <p class="mt-1 text-xs text-neutral-45">Total floor area in square meters.</p>
       </div>
 
@@ -92,7 +98,8 @@
         <%= f.label :max_rack_count, "Max Rack Count", class: "block text-sm font-bold text-neutral-85 mb-1" %>
         <%= f.number_field :max_rack_count, min: 1,
             placeholder: "20",
-            class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm" %>
+            class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm",
+            data: { testid: "rooms-input-max-racks" } %>
         <p class="mt-1 text-xs text-neutral-45">Maximum number of racks this room can hold.</p>
       </div>
 
@@ -100,7 +107,8 @@
         <%= f.label :power_capacity_kw, "Power Capacity (kW)", class: "block text-sm font-bold text-neutral-85 mb-1" %>
         <%= f.number_field :power_capacity_kw, step: "0.01", min: 0,
             placeholder: "500.00",
-            class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm" %>
+            class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm",
+            data: { testid: "rooms-input-power" } %>
         <p class="mt-1 text-xs text-neutral-45">Total power capacity in kilowatts.</p>
       </div>
 
@@ -108,14 +116,15 @@
         <%= f.label :cooling_capacity_kw, "Cooling Capacity (kW)", class: "block text-sm font-bold text-neutral-85 mb-1" %>
         <%= f.number_field :cooling_capacity_kw, step: "0.01", min: 0,
             placeholder: "400.00",
-            class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm" %>
+            class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm",
+            data: { testid: "rooms-input-cooling" } %>
         <p class="mt-1 text-xs text-neutral-45">Total cooling capacity in kilowatts.</p>
       </div>
     </div>
   </div>
 
   <div class="flex items-center justify-end gap-3 pt-4">
-    <%= link_to "Cancel", rooms_path, class: "btn-secondary" %>
-    <%= f.submit @room.new_record? ? "Create Room" : "Update Room", class: "btn-primary" %>
+    <%= link_to "Cancel", rooms_path, class: "btn-secondary", data: { testid: "rooms-button-cancel" } %>
+    <%= f.submit @room.new_record? ? "Create Room" : "Update Room", class: "btn-primary", data: { testid: "rooms-button-submit" } %>
   </div>
 <% end %>

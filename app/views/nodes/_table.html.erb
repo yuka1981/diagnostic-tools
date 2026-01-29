@@ -2,16 +2,18 @@
   <%# Action bar for bulk operations (approvers only) - uses grid for smooth height animation %>
   <% if current_user.approver? %>
     <div data-bulk-select-target="actionBar"
+         data-testid="nodes-bulk-actions"
          class="grid transition-[grid-template-rows] duration-300 ease-in-out"
          style="grid-template-rows: 0fr;"
          data-expanded-style="grid-template-rows: 1fr;"
          data-collapsed-style="grid-template-rows: 0fr;">
       <div class="overflow-hidden min-h-0">
         <div class="bg-neutral-4 border-b border-neutral-8 px-4 py-3 flex items-center justify-between">
-          <span class="text-sm text-neutral-85 font-bold" data-bulk-select-target="count">0 node(s) selected</span>
+          <span class="text-sm text-neutral-85 font-bold" data-bulk-select-target="count" data-testid="nodes-bulk-count">0 node(s) selected</span>
           <div class="flex items-center gap-3">
             <button type="button"
                     data-action="click->bulk-select#clearAll"
+                    data-testid="nodes-bulk-clear"
                     class="text-sm text-neutral-45 hover:text-neutral-85">
               Clear
             </button>
@@ -23,7 +25,7 @@
                           },
                           class: "inline" do |f| %>
               <div data-bulk-select-target="hiddenInputs"></div>
-              <button type="submit" class="btn-danger text-sm">
+              <button type="submit" class="btn-danger text-sm" data-testid="nodes-bulk-delete">
                 <%= lucide_icon("trash-2", class: "h-4 w-4") %>
                 Delete Selected
               </button>
@@ -36,8 +38,8 @@
 
   <div class="overflow-x-auto">
     <% if nodes.any? %>
-      <table class="min-w-full divide-y divide-neutral-8 text-sm">
-        <thead class="bg-neutral-2">
+      <table class="min-w-full divide-y divide-neutral-8 text-sm" data-testid="nodes-table">
+        <thead class="bg-neutral-2" data-testid="nodes-table-header">
           <tr>
             <% if current_user.approver? %>
               <th scope="col" class="w-10 border-b">
@@ -64,7 +66,7 @@
             </th>
           </tr>
         </thead>
-        <tbody id="nodes_tbody" class="divide-y divide-neutral-8 bg-white">
+        <tbody id="nodes_tbody" class="divide-y divide-neutral-8 bg-white" data-testid="nodes-table-body">
           <%= render partial: "nodes/node", collection: nodes, as: :node %>
         </tbody>
       </table>
@@ -72,20 +74,21 @@
       <%= render EmptyStateComponent.new(
         icon: "server",
         title: "No nodes found",
-        description: "Get started by creating a new node."
+        description: "Get started by creating a new node.",
+        testid: "nodes-table-empty"
       ) do |empty| %>
         <% empty.with_action do %>
           <% if current_user.approver? %>
             <%= link_to new_node_path,
                 class: "btn-primary",
-                data: { turbo_frame: "node_modal" } do %>
+                data: { turbo_frame: "node_modal", testid: "nodes-empty-add" } do %>
               <%= lucide_icon("plus", class: "h-4 w-4") %>
               Add Node
             <% end %>
           <% end %>
           <%= link_to new_node_import_path,
               class: "btn-secondary",
-              data: { turbo_frame: "import_modal" } do %>
+              data: { turbo_frame: "import_modal", testid: "nodes-empty-import" } do %>
             <%= lucide_icon("upload", class: "h-4 w-4") %>
             Import CSV
           <% end %>

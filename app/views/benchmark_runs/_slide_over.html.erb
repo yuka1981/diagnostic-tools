@@ -3,12 +3,14 @@
 <%# Backdrop %>
 <div data-slide-over-target="backdrop"
      data-action="click->slide-over#backdropClick"
+     data-testid="benchmark-runs-slideover-backdrop"
      class="hidden fixed inset-0 z-40 bg-neutral-85/60 backdrop-blur-sm opacity-0 transition-opacity duration-300 ease-in-out">
 </div>
 
 <%# Centered Modal Panel %>
 <div data-slide-over-target="panel"
      data-action="click->slide-over#panelClick"
+     data-testid="benchmark-runs-slideover"
      role="dialog"
      aria-modal="true"
      aria-labelledby="slide-over-title"
@@ -17,12 +19,13 @@
   <div data-slide-over-target="modalContent" class="w-full max-w-2xl max-h-[90vh] bg-white shadow-2xl ring-1 ring-neutral-8 rounded-lg overflow-hidden">
     <%# Header %>
     <div class="flex items-center justify-between border-b border-neutral-8 px-6 py-4">
-      <h2 id="slide-over-title" class="text-lg font-semibold text-neutral-85">
+      <h2 id="slide-over-title" data-testid="benchmark-runs-slideover-title" class="text-lg font-semibold text-neutral-85">
         Run Details
       </h2>
       <button type="button"
               data-slide-over-target="closeButton"
               data-action="click->slide-over#close"
+              data-testid="benchmark-runs-slideover-close"
               class="rounded-lg p-2 text-neutral-35 hover:bg-neutral-4 hover:text-neutral-45 focus:outline-none focus:ring-2 focus:ring-primary-5 transition-colors">
         <span class="sr-only">Close panel</span>
         <%= lucide_icon("x", class: "h-5 w-5") %>
@@ -32,7 +35,7 @@
     <%# Content - Turbo Frame for lazy loading with fixed height to prevent tab-switch fluctuation %>
     <%= turbo_frame_tag "slide_over_content",
         class: "block h-[60vh] overflow-y-auto bg-neutral-2 border border-neutral-8 rounded-b-md",
-        data: { slide_over_target: "content" } do %>
+        data: { slide_over_target: "content", testid: "benchmark-runs-slideover-content" } do %>
       <%# Placeholder content - will be replaced when a run is selected %>
       <div class="flex flex-col items-center justify-center h-full py-12 text-center px-6">
         <%= lucide_icon("clipboard", class: "h-12 w-12 text-neutral-15") %>

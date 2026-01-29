@@ -7,7 +7,7 @@
 <div class="grid grid-cols-12 gap-6 mb-6">
   <!-- Left Column: Info Panel -->
   <div class="col-span-12 lg:col-span-4">
-    <div class="card-netbox h-full">
+    <div class="card-netbox h-full" data-testid="nodes-overview-details">
       <div class="card-header">
         <h3 class="card-title text-xs font-bold text-neutral-45 uppercase">Node Details</h3>
       </div>
@@ -42,7 +42,7 @@
 
   <!-- Middle Column: Operating System -->
   <div class="col-span-12 lg:col-span-4">
-    <div class="card-netbox h-full">
+    <div class="card-netbox h-full" data-testid="nodes-overview-os">
       <div class="card-header">
         <h3 class="card-title text-xs font-bold text-neutral-45 uppercase">Operating System</h3>
       </div>
@@ -79,15 +79,15 @@
 </div>
 
 <!-- Server Product Card -->
-<div class="mb-6">
+<div class="mb-6" data-testid="nodes-overview-product">
   <%= render "nodes/server_product_card", node: node %>
 </div>
 
 <!-- Bottom Section: Recent Benchmarks -->
-    <div class="card-netbox">
+    <div class="card-netbox" data-testid="nodes-overview-runs">
   <div class="card-header">
     <h3 class="card-title text-xs font-bold text-neutral-45 uppercase">Recent Benchmark Runs</h3>
-    <%= link_to "View All", node_benchmark_runs_path(node), class: "text-xs font-bold text-primary-6 hover:underline" %>
+    <%= link_to "View All", node_benchmark_runs_path(node), class: "text-xs font-bold text-primary-6 hover:underline", data: { testid: "nodes-overview-runs-link" } %>
   </div>
   <div class="overflow-x-auto">
      <% if node.benchmark_runs.any? %>
@@ -103,7 +103,7 @@
              <th scope="col" class="relative px-3 py-2 border-b"><span class="sr-only">Actions</span></th>
            </tr>
          </thead>
-         <tbody id="node_recent_runs_tbody" class="divide-y divide-neutral-4">
+         <tbody id="node_recent_runs_tbody" class="divide-y divide-neutral-4" data-testid="nodes-overview-runs-tbody">
            <% node.benchmark_runs.order(created_at: :desc).limit(5).each do |run| %>
              <%= render "nodes/benchmark_run_row", run: run %>
            <% end %>

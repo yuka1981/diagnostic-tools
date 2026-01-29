@@ -1,12 +1,12 @@
 <% content_for(:page_title) { "Benchmark Recipes" } %>
 
-<div class="flex items-center justify-between mb-6">
+<div class="flex items-center justify-between mb-6" data-testid="recipes-page-container">
   <div>
     <h1 class="text-2xl font-bold text-neutral-85">Benchmark Recipes</h1>
     <p class="text-sm text-neutral-45 mt-1">Manage benchmark test configurations</p>
   </div>
   <% if current_user.approver? %>
-    <%= link_to new_benchmark_recipe_path, class: "btn-primary" do %>
+    <%= link_to new_benchmark_recipe_path, class: "btn-primary", data: { testid: "recipes-button-new" } do %>
       <%= lucide_icon("plus", class: "h-4 w-4 mr-2") %>
       Add Recipe
     <% end %>
@@ -16,8 +16,8 @@
 <div class="card-netbox">
   <% if @benchmark_recipes.any? %>
     <div class="overflow-x-auto">
-      <table class="min-w-full divide-y divide-neutral-8 text-sm">
-        <thead class="bg-neutral-2">
+      <table class="min-w-full divide-y divide-neutral-8 text-sm" data-testid="recipes-table">
+        <thead class="bg-neutral-2" data-testid="recipes-table-header">
           <tr>
             <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-neutral-45 border-b">Name</th>
             <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-neutral-45 border-b">Command</th>
@@ -29,16 +29,16 @@
             </th>
           </tr>
         </thead>
-        <tbody class="divide-y divide-neutral-8 bg-white">
+        <tbody class="divide-y divide-neutral-8 bg-white" data-testid="recipes-table-body">
           <% @benchmark_recipes.each do |recipe| %>
-            <tr class="hover:bg-neutral-2 transition-colors">
+            <tr class="hover:bg-neutral-2 transition-colors" data-testid="recipes-row-<%= recipe.slug %>">
               <td class="whitespace-nowrap px-3 py-2">
-                <%= link_to benchmark_recipe_path(recipe), class: "group" do %>
+                <%= link_to benchmark_recipe_path(recipe), class: "group", data: { testid: "recipes-link-#{recipe.slug}" } do %>
                   <p class="text-sm font-bold text-neutral-85 group-hover:text-primary-6"><%= recipe.name %></p>
                   <p class="text-xs text-neutral-45">v<%= recipe.version %></p>
                 <% end %>
               </td>
-              <td class="whitespace-nowrap px-3 py-2 text-sm text-neutral-45 font-mono">
+              <td class="whitespace-nowrap px-3 py-2 text-sm text-neutral-45 font-mono" data-testid="recipes-command-<%= recipe.slug %>">
                 <%= recipe.command %>
               </td>
               <td class="whitespace-nowrap px-3 py-2 text-sm text-neutral-45">
@@ -46,11 +46,11 @@
               </td>
               <td class="whitespace-nowrap px-3 py-2">
                 <% if recipe.active? %>
-                  <span class="inline-flex items-center rounded-sm px-2 py-0.5 text-xs font-medium bg-success-1 text-success-8 border border-success-2">
+                  <span class="inline-flex items-center rounded-sm px-2 py-0.5 text-xs font-medium bg-success-1 text-success-8 border border-success-2" data-testid="recipes-status-<%= recipe.slug %>">
                     Active
                   </span>
                 <% else %>
-                  <span class="inline-flex items-center rounded-sm px-2 py-0.5 text-xs font-medium bg-neutral-4 text-neutral-45 border border-neutral-8">
+                  <span class="inline-flex items-center rounded-sm px-2 py-0.5 text-xs font-medium bg-neutral-4 text-neutral-45 border border-neutral-8" data-testid="recipes-status-<%= recipe.slug %>">
                     Archived
                   </span>
                 <% end %>
@@ -60,12 +60,12 @@
               </td>
               <td class="whitespace-nowrap px-3 py-2">
                 <div class="flex items-center justify-end gap-2">
-                  <%= link_to benchmark_recipe_path(recipe), class: "inline-flex items-center text-primary-6 hover:text-primary-7", title: "View" do %>
+                  <%= link_to benchmark_recipe_path(recipe), class: "inline-flex items-center text-primary-6 hover:text-primary-7", title: "View", data: { testid: "recipes-button-view-#{recipe.slug}" } do %>
                     <%= lucide_icon("eye", class: "h-4 w-4") %>
                     <span class="sr-only">View</span>
                   <% end %>
                   <% if current_user.approver? %>
-                    <%= link_to edit_benchmark_recipe_path(recipe), class: "inline-flex items-center text-neutral-45 hover:text-neutral-85", title: "Edit" do %>
+                    <%= link_to edit_benchmark_recipe_path(recipe), class: "inline-flex items-center text-neutral-45 hover:text-neutral-85", title: "Edit", data: { testid: "recipes-button-edit-#{recipe.slug}" } do %>
                       <%= lucide_icon("square-pen", class: "h-4 w-4") %>
                       <span class="sr-only">Edit</span>
                     <% end %>
@@ -78,14 +78,14 @@
       </table>
     </div>
   <% else %>
-    <div class="flex flex-col items-center justify-center py-12 text-center">
+    <div class="flex flex-col items-center justify-center py-12 text-center" data-testid="recipes-table-empty">
       <div class="h-12 w-12 rounded-full bg-neutral-4 flex items-center justify-center mb-4">
         <%= lucide_icon("flask-conical", class: "h-6 w-6 text-neutral-25") %>
       </div>
       <p class="text-sm font-medium text-neutral-85">No benchmark recipes yet</p>
       <p class="mt-1 text-xs text-neutral-45">Create a recipe to define benchmark configurations</p>
       <% if current_user.approver? %>
-        <%= link_to new_benchmark_recipe_path, class: "mt-4 btn-primary" do %>
+        <%= link_to new_benchmark_recipe_path, class: "mt-4 btn-primary", data: { testid: "recipes-empty-add" } do %>
           Add Recipe
         <% end %>
       <% end %>

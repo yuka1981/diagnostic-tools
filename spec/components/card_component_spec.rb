@@ -59,4 +59,36 @@ RSpec.describe CardComponent, type: :component do
 
     expect(page).to have_css("div.card-netbox.mt-4")
   end
+
+  describe "test IDs" do
+    it "renders data-testid on container when testid is provided" do
+      render_inline(CardComponent.new(title: "Test", testid: "dashboard-stat")) do
+        "Content"
+      end
+
+      expect(page).to have_css("[data-testid='dashboard-stat-card']")
+    end
+
+    it "renders data-testid on header when present" do
+      render_inline(CardComponent.new(title: "Test", testid: "dashboard-stat")) do
+        "Content"
+      end
+
+      expect(page).to have_css("[data-testid='dashboard-stat-card-header']")
+    end
+
+    it "renders data-testid on body" do
+      render_inline(CardComponent.new(title: "Test", testid: "dashboard-stat")) do
+        "Content"
+      end
+
+      expect(page).to have_css("[data-testid='dashboard-stat-card-body']")
+    end
+
+    it "does not render data-testid when testid is not provided" do
+      render_inline(CardComponent.new(title: "Test")) { "Content" }
+
+      expect(page).not_to have_css("[data-testid]")
+    end
+  end
 end

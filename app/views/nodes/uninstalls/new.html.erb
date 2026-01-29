@@ -1,10 +1,10 @@
 <%= turbo_frame_tag "uninstall_modal" do %>
-  <%= render "shared/modal", title: "Uninstall Agent: #{params[:hostname]}" do %>
+  <%= render "shared/modal", title: "Uninstall Agent: #{params[:hostname]}", testid: "nodes-uninstall-modal" do %>
     <div class="px-2" id="uninstall_modal_body">
       <% # Default to showing all credential fields if @required_fields is not set %>
       <% required_fields = @required_fields || { ssh_password: true, sudo_password: true } %>
 
-      <div class="rounded-md bg-error-1 p-4 border border-error-2 mb-6">
+      <div class="rounded-md bg-error-1 p-4 border border-error-2 mb-6" data-testid="nodes-uninstall-alert">
         <div class="flex">
           <div class="flex-shrink-0">
             <%= lucide_icon("circle-x", class: "h-5 w-5 text-error-5") %>
@@ -19,7 +19,7 @@
       </div>
 
       <% if required_fields.values.none? %>
-        <div class="rounded-md bg-primary-1 p-4 border border-primary-2 mb-6">
+        <div class="rounded-md bg-primary-1 p-4 border border-primary-2 mb-6" data-testid="nodes-uninstall-credentials">
           <div class="flex">
             <div class="flex-shrink-0">
               <%= lucide_icon("circle-check", class: "h-5 w-5 text-primary-5") %>
@@ -33,7 +33,7 @@
         </div>
       <% end %>
 
-      <%= form_with(url: node_uninstall_index_path, method: :post, class: "space-y-6", scope: :uninstall) do |f| %>
+      <%= form_with(url: node_uninstall_index_path, method: :post, class: "space-y-6", scope: :uninstall, data: { testid: "nodes-uninstall-form" }) do |f| %>
         <%= f.hidden_field :hostname, value: params[:hostname] %>
         <%# Bastion settings are now only global - use SshSetting %>
         <%= f.hidden_field :bastion_host, value: @ssh_setting.bastion_host %>
@@ -46,7 +46,8 @@
                 <%= f.label :sudo_password, "Remote Sudo Password", class: "block text-sm font-bold text-neutral-85 mb-1" %>
                 <%= f.password_field :sudo_password, required: true,
                     placeholder: "••••••••",
-                    class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm" %>
+                    class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm",
+                    data: { testid: "nodes-uninstall-sudo-password" } %>
               </div>
             <% end %>
 
@@ -55,7 +56,8 @@
                 <%= f.label :bastion_password, "SSH Password / Key Passphrase", class: "block text-sm font-bold text-neutral-85 mb-1" %>
                 <%= f.password_field :bastion_password, required: false,
                     placeholder: "•••••••• (optional)",
-                    class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm" %>
+                    class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm",
+                    data: { testid: "nodes-uninstall-ssh-password" } %>
               </div>
             <% end %>
           </div>
@@ -63,7 +65,7 @@
 
         <div class="flex items-center justify-end gap-3 pt-4 border-t border-neutral-4">
           <button type="button" class="btn-secondary" data-action="modal#close">Cancel</button>
-          <%= f.submit "Begin Uninstallation", class: "btn-danger" %>
+          <%= f.submit "Begin Uninstallation", class: "btn-danger", data: { testid: "nodes-uninstall-submit" } %>
         </div>
       <% end %>
     </div>

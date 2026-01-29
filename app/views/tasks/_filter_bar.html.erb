@@ -3,14 +3,15 @@
     <h3 class="card-title">Filters</h3>
   </div>
   <div class="p-4">
-    <%= form_with url: tasks_path, method: :get, data: { controller: "autosubmit", turbo_frame: "tasks_list", turbo_action: "advance" }, class: "flex flex-wrap items-end gap-4" do |f| %>
+    <%= form_with url: tasks_path, method: :get, data: { controller: "autosubmit", turbo_frame: "tasks_list", turbo_action: "advance", testid: "tasks-filter-form" }, class: "flex flex-wrap items-end gap-4" do |f| %>
       <%# Search Field %>
       <div class="flex-1 min-w-[200px]">
         <label for="q" class="block text-xs font-bold text-neutral-45 uppercase mb-1">Search</label>
         <%= f.text_field :q,
             value: @filter.search_query,
             placeholder: "Search by node, recipe, UUID...",
-            class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm" %>
+            class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm",
+            data: { testid: "tasks-filter-search" } %>
       </div>
 
       <%# Type Filter %>
@@ -20,7 +21,7 @@
             options_for_select([["All Types", ""], ["Benchmark", "benchmark"], ["Profiling", "profiling"]], @filter.type_filter),
             {},
             class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm",
-            data: { action: "change->autosubmit#submit" } %>
+            data: { action: "change->autosubmit#submit", testid: "tasks-filter-type" } %>
       </div>
 
       <%# Status Filter %>
@@ -30,7 +31,7 @@
             options_for_select([["All Statuses", ""]] + BenchmarkRun.statuses.keys.map { |s| [s.humanize, s] }, @filter.status),
             {},
             class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm",
-            data: { action: "change->autosubmit#submit" } %>
+            data: { action: "change->autosubmit#submit", testid: "tasks-filter-status" } %>
       </div>
 
       <%# Node Filter %>
@@ -40,7 +41,7 @@
             options_for_select([["All Nodes", ""]] + @nodes.map { |n| [n.hostname, n.id] }, @filter.node_id),
             {},
             class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm",
-            data: { action: "change->autosubmit#submit" } %>
+            data: { action: "change->autosubmit#submit", testid: "tasks-filter-node" } %>
       </div>
 
       <%# Recipe Filter %>
@@ -55,7 +56,7 @@
             ),
             {},
             class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm",
-            data: { action: "change->autosubmit#submit" } %>
+            data: { action: "change->autosubmit#submit", testid: "tasks-filter-recipe" } %>
       </div>
 
       <%# Date Range Filter %>
@@ -71,16 +72,16 @@
             ], @filter.date_range),
             {},
             class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm",
-            data: { action: "change->autosubmit#submit" } %>
+            data: { action: "change->autosubmit#submit", testid: "tasks-filter-date" } %>
       </div>
 
       <%# Actions %>
       <div class="flex items-center gap-2">
-        <%= f.submit "Search", class: "btn-primary cursor-pointer" %>
+        <%= f.submit "Search", class: "btn-primary cursor-pointer", data: { testid: "tasks-button-search" } %>
 
         <% if @filter.filtered? %>
           <%= link_to "Clear", tasks_path,
-              data: { turbo_frame: "tasks_list" },
+              data: { turbo_frame: "tasks_list", testid: "tasks-button-clear" },
               class: "btn-secondary" %>
         <% end %>
       </div>

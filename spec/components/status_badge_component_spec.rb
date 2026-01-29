@@ -94,4 +94,18 @@ RSpec.describe StatusBadgeComponent, type: :component do
       expect(page).to have_css("span.px-1\\.5.py-0\\.5.text-\\[9px\\]")
     end
   end
+
+  describe "test IDs" do
+    it "renders data-testid when testid is provided" do
+      render_inline(StatusBadgeComponent.new(status: :success, testid: "nodes-badge-status"))
+
+      expect(page).to have_css("[data-testid='nodes-badge-status-success']")
+    end
+
+    it "does not render data-testid when testid is not provided" do
+      render_inline(StatusBadgeComponent.new(status: :success))
+
+      expect(page).not_to have_css("[data-testid]")
+    end
+  end
 end

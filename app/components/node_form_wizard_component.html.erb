@@ -1,4 +1,4 @@
-<div data-controller="wizard" data-wizard-total-value="3" data-wizard-current-value="1">
+<div data-controller="wizard" data-wizard-total-value="3" data-wizard-current-value="1"<% if testid %> data-testid="<%= testid %>-container"<% end %>>
   <%# Progress Indicators %>
   <div class="mb-6">
     <div class="flex items-center justify-between">
@@ -8,6 +8,7 @@
                   data-wizard-target="indicator"
                   data-step="<%= index + 1 %>"
                   data-action="click->wizard#goToStep"
+                  <% if testid %>data-testid="<%= testid %>-step-<%= index + 1 %>"<% end %>
                   class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors <%= index == 0 ? 'bg-primary-6 text-white' : 'bg-neutral-15 text-neutral-45' %>">
             <%= index + 1 %>
           </button>
@@ -32,7 +33,7 @@
     </div>
   <% end %>
 
-  <%= form_with(model: node, url: form_url, method: form_method, class: "space-y-6", data: form_data) do |f| %>
+  <%= form_with(model: node, url: form_url, method: form_method, class: "space-y-6", data: form_data.merge(testid ? { testid: "#{testid}-form" } : {})) do |f| %>
     <%# Step 1: Basic Info %>
     <div data-wizard-target="step" class="space-y-6">
       <div class="card-netbox">
@@ -307,22 +308,24 @@
       <button type="button"
               data-wizard-target="backButton"
               data-action="click->wizard#back"
+              <% if testid %>data-testid="<%= testid %>-button-back"<% end %>
               class="hidden btn-secondary">
         Back
       </button>
       <div class="flex items-center gap-3 ml-auto">
         <%= link_to "Cancel", nodes_path,
             class: "btn-secondary",
-            data: { turbo_frame: "node_modal" } %>
+            data: { turbo_frame: "node_modal" }.merge(testid ? { testid: "#{testid}-button-cancel" } : {}) %>
         <button type="button"
                 data-wizard-target="nextButton"
                 data-action="click->wizard#next"
+                <% if testid %>data-testid="<%= testid %>-button-next"<% end %>
                 class="btn-primary">
           Next
         </button>
         <%= f.submit "Save Node",
             class: "hidden btn-primary",
-            data: { wizard_target: "submitButton", hostname_validation_target: "submit" } %>
+            data: { wizard_target: "submitButton", hostname_validation_target: "submit" }.merge(testid ? { testid: "#{testid}-button-submit" } : {}) %>
       </div>
     </div>
   <% end %>

@@ -1,13 +1,13 @@
-<div class="<%= card_classes %>">
+<div class="<%= card_classes %>" <% if testid %>data-testid="<%= testid %>-card"<% end %>>
   <% if header? %>
-    <div class="card-header">
+    <div class="card-header" <% if testid %>data-testid="<%= testid %>-card-header"<% end %>>
       <h3 class="card-title"><%= title %></h3>
       <% if action? %>
         <div><%= action %></div>
       <% end %>
     </div>
   <% end %>
-  <div class="<%= body_classes %>">
+  <div class="<%= body_classes %>" <% if testid %>data-testid="<%= testid %>-card-body"<% end %>>
     <%= content %>
   </div>
 </div>

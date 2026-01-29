@@ -3,9 +3,10 @@
 class CardComponent < ViewComponent::Base
   renders_one :action
 
-  def initialize(title: nil, padding: true, **options)
+  def initialize(title: nil, padding: true, testid: nil, **options)
     @title = title
     @padding = padding
+    @testid = testid
     @options = options
   end
 
@@ -25,5 +26,5 @@ class CardComponent < ViewComponent::Base
 
   private
 
-  attr_reader :title, :padding, :options
+  attr_reader :title, :padding, :testid, :options
 end

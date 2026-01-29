@@ -1,7 +1,7 @@
 <%# Configuration Card - Shows recipe and effective arguments for a benchmark run %>
 <% run = local_assigns[:run] || benchmark_run %>
 
-<div class="card-netbox">
+<div class="card-netbox" data-testid="benchmark-runs-config-card">
   <div class="card-header">
     <h3 class="card-title">Configuration</h3>
   </div>
@@ -13,16 +13,17 @@
           <td class="px-4 py-2">
             <%= link_to run.benchmark_recipe.display_name,
                 benchmark_recipe_path(run.benchmark_recipe),
-                class: "text-primary-6 font-bold hover:underline" %>
+                class: "text-primary-6 font-bold hover:underline",
+                data: { testid: "benchmark-runs-config-recipe" } %>
           </td>
         </tr>
         <tr class="hover:bg-neutral-2">
           <th class="px-4 py-2 font-bold text-neutral-85 border-r border-neutral-8">Command</th>
-          <td class="px-4 py-2 font-mono text-neutral-85"><%= run.benchmark_recipe.command %></td>
+          <td class="px-4 py-2 font-mono text-neutral-85" data-testid="benchmark-runs-config-command"><%= run.benchmark_recipe.command %></td>
         </tr>
         <tr class="hover:bg-neutral-2">
           <th class="px-4 py-2 font-bold text-neutral-85 border-r border-neutral-8">Timeout</th>
-          <td class="px-4 py-2 text-neutral-85">
+          <td class="px-4 py-2 text-neutral-85" data-testid="benchmark-runs-config-timeout">
             <% if run.benchmark_recipe.timeout_seconds.present? %>
               <%= distance_of_time_in_words(run.benchmark_recipe.timeout_seconds) %>
               <span class="text-neutral-25 text-xs">(<%= number_with_delimiter(run.benchmark_recipe.timeout_seconds) %> seconds)</span>
@@ -35,7 +36,7 @@
     </table>
 
     <%# Effective Arguments Section %>
-    <div class="border-t border-neutral-8">
+    <div class="border-t border-neutral-8" data-testid="benchmark-runs-config-args">
       <div class="px-4 py-2 bg-neutral-2 border-b border-neutral-8">
         <h4 class="text-xs font-bold uppercase text-neutral-45">Effective Arguments</h4>
         <p class="text-[10px] text-neutral-45 mt-0.5">Arguments used for this specific run (recipe defaults + overrides)</p>

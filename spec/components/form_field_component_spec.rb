@@ -93,4 +93,40 @@ RSpec.describe FormFieldComponent, type: :component do
     expect(component.input_classes).to include("rounded-md")
     expect(component.input_classes).to include("border-neutral-15")
   end
+
+  describe "test IDs" do
+    it "renders data-testid on container when testid is provided" do
+      render_inline(FormFieldComponent.new(
+        form: form,
+        attribute: :hostname,
+        label: "Hostname",
+        testid: "nodes-field-hostname"
+      ))
+
+      expect(page).to have_css("[data-testid='nodes-field-hostname']")
+    end
+
+    it "renders data-testid on error container when errors present" do
+      node.errors.add(:hostname, "can't be blank")
+
+      render_inline(FormFieldComponent.new(
+        form: form,
+        attribute: :hostname,
+        label: "Hostname",
+        testid: "nodes-field-hostname"
+      ))
+
+      expect(page).to have_css("[data-testid='nodes-field-hostname-error']")
+    end
+
+    it "does not render data-testid when testid is not provided" do
+      render_inline(FormFieldComponent.new(
+        form: form,
+        attribute: :hostname,
+        label: "Hostname"
+      ))
+
+      expect(page).not_to have_css("[data-testid]")
+    end
+  end
 end

@@ -1,4 +1,4 @@
-<div class="card-netbox h-[600px] flex flex-col">
+<div class="card-netbox h-[600px] flex flex-col" data-testid="nodes-logs-card">
   <div class="card-header bg-neutral-85 border-neutral-85">
     <div class="flex items-center gap-2">
       <div class="flex gap-1.5">
@@ -9,7 +9,7 @@
       <h3 class="ml-3 text-xs font-mono text-neutral-25">Agent Log Stream</h3>
     </div>
     <div class="flex items-center gap-2">
-      <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-medium bg-neutral-85 text-neutral-25 border border-neutral-85">
+      <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-medium bg-neutral-85 text-neutral-25 border border-neutral-85" data-testid="nodes-logs-live-indicator">
         <span class="w-1.5 h-1.5 rounded-full bg-success-5 animate-pulse"></span>
         Live
       </span>
@@ -18,7 +18,7 @@
   <div class="flex-1 bg-neutral-85 p-4 overflow-y-auto font-mono text-xs"
        data-controller="log-stream"
        data-log-stream-node-id-value="<%= node.id %>">
-    <pre data-log-stream-target="output" class="whitespace-pre-wrap text-neutral-15 font-mono"></pre>
+    <pre data-log-stream-target="output" class="whitespace-pre-wrap text-neutral-15 font-mono" data-testid="nodes-logs-output"></pre>
     
     <%# Initial state message %>
     <div class="text-neutral-45 italic mt-2 text-center">

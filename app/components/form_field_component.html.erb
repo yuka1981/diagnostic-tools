@@ -1,4 +1,4 @@
-<div>
+<div<% if testid %> data-testid="<%= testid %>"<% end %>>
   <label for="<%= field_id %>" class="block text-sm font-bold text-neutral-85 mb-1">
     <%= label %>
     <% if required %>
@@ -16,7 +16,7 @@
   <% end %>
 
   <% if errors? %>
-    <div id="<%= error_id %>" role="alert">
+    <div id="<%= error_id %>" role="alert"<% if testid %> data-testid="<%= testid %>-error"<% end %>>
       <% error_messages.each do |message| %>
         <p class="mt-1 text-xs text-error-6"><%= message %></p>
       <% end %>
