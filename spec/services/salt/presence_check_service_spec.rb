@@ -5,9 +5,9 @@ RSpec.describe Salt::PresenceCheckService do
   let(:service) { described_class.new(salt_client: salt_client) }
 
   describe "#call" do
-    let!(:node_01) { create(:node, hostname: "node-01", last_heartbeat_at: 1.minute.ago) }
-    let!(:node_02) { create(:node, hostname: "node-02", last_heartbeat_at: 1.minute.ago) }
-    let!(:node_03) { create(:node, hostname: "node-03", last_heartbeat_at: 1.minute.ago) }
+    let!(:node_01) { create(:node, hostname: "node-01", salt_status: :connected) }
+    let!(:node_02) { create(:node, hostname: "node-02", salt_status: :connected) }
+    let!(:node_03) { create(:node, hostname: "node-03", salt_status: :connected) }
 
     before do
       allow(salt_client).to receive(:run_runner)
@@ -18,16 +18,25 @@ RSpec.describe Salt::PresenceCheckService do
         })
     end
 
-    it "marks up nodes with current heartbeat" do
+    it "marks up nodes as salt_connected" do
       service.call
-      node_01.reload
-      expect(node_01.online?).to be true
+      expect(node_01.reload.salt_status).to eq("connected")
     end
 
-    it "clears heartbeat for down nodes" do
+    it "updates last_seen_at for up nodes" do
       service.call
-      node_03.reload
-      expect(node_03.online?).to be false
+      expect(node_01.reload.last_seen_at).to be_within(2.seconds).of(Time.current)
+    end
+
+    it "marks down nodes as salt_disconnected" do
+      service.call
+      expect(node_03.reload.salt_status).to eq("disconnected")
+    end
+
+    it "does not flip unknown nodes to disconnected" do
+      unknown_node = create(:node, hostname: "node-04", salt_status: :unknown)
+      service.call
+      expect(unknown_node.reload.salt_status).to eq("unknown")
     end
 
     it "returns counts of up and down nodes" do

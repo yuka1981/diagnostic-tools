@@ -32,8 +32,17 @@ module Salt
     end
 
     def update_presence(new_minions: [], lost_minions: [])
-      Node.where(hostname: lost_minions).update_all(last_heartbeat_at: nil) if lost_minions.any?
-      Node.where(hostname: new_minions).update_all(last_heartbeat_at: Time.current) if new_minions.any?
+      if lost_minions.any?
+        Node.where(hostname: lost_minions)
+            .where.not(salt_status: Node.salt_statuses[:unknown])
+            .update_all(salt_status: Node.salt_statuses[:disconnected])
+      end
+      if new_minions.any?
+        Node.where(hostname: new_minions).update_all(
+          salt_status: Node.salt_statuses[:connected],
+          last_seen_at: Time.current
+        )
+      end
     end
 
     private

@@ -11,13 +11,14 @@ module Salt
       up_minions = status["up"] || []
       down_minions = status["down"] || []
 
-      up_minions.each do |hostname|
-        Node.where(hostname: hostname).update_all(last_heartbeat_at: Time.current)
-      end
+      Node.where(hostname: up_minions).update_all(
+        salt_status: Node.salt_statuses[:connected],
+        last_seen_at: Time.current
+      )
 
-      down_minions.each do |hostname|
-        Node.where(hostname: hostname).update_all(last_heartbeat_at: nil)
-      end
+      Node.where(hostname: down_minions)
+          .where.not(salt_status: Node.salt_statuses[:unknown])
+          .update_all(salt_status: Node.salt_statuses[:disconnected])
 
       { up: up_minions.size, down: down_minions.size }
     rescue SaltApiClient::TimeoutError, SaltApiClient::ApiError => e

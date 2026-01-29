@@ -46,12 +46,25 @@ RSpec.describe Salt::EventListenerService do
   end
 
   describe "#update_presence" do
-    it "marks lost nodes as offline" do
-      node = create(:node, hostname: "node-01", last_heartbeat_at: 1.minute.ago)
+    it "marks lost nodes as disconnected" do
+      node = create(:node, hostname: "node-01", salt_status: :connected)
 
       service.update_presence(new_minions: [], lost_minions: [ "node-01" ])
-      node.reload
-      expect(node.online?).to be false
+      expect(node.reload.salt_status).to eq("disconnected")
+    end
+
+    it "marks new nodes as connected" do
+      node = create(:node, hostname: "node-02", salt_status: :disconnected)
+
+      service.update_presence(new_minions: [ "node-02" ], lost_minions: [])
+      expect(node.reload.salt_status).to eq("connected")
+    end
+
+    it "does not flip unknown nodes to disconnected" do
+      node = create(:node, hostname: "node-03", salt_status: :unknown)
+
+      service.update_presence(new_minions: [], lost_minions: [ "node-03" ])
+      expect(node.reload.salt_status).to eq("unknown")
     end
   end
 end
