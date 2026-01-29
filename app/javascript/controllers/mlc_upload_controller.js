@@ -5,7 +5,8 @@ export default class extends Controller {
     "dropzone", "fileInput", "fileName",
     "uploadSection", "pathSection",
     "checksumInput", "verifyBtn", "checksumResult",
-    "binarySection", "binaryTree", "binaryPath"
+    "binarySection", "binaryTree", "binaryPath",
+    "storedPath"
   ]
 
   connect() {
@@ -68,17 +69,37 @@ export default class extends Controller {
     formData.append("tarball", file)
 
     try {
-      this.fileNameTarget.textContent += " - Uploading..."
+      this.fileNameTarget.textContent = `${file.name} (${this.formatSize(file.size)}) - Uploading...`
 
-      // We'll handle the actual upload through the form submission
-      // For now, just mark as ready
-      this.fileNameTarget.textContent = `Selected: ${file.name} (${this.formatSize(file.size)}) - Ready`
+      const response = await fetch("/mlc_installations/upload", {
+        method: "POST",
+        headers: {
+          "X-CSRF-Token": document.querySelector('meta[name="csrf-token"]').content
+        },
+        body: formData
+      })
 
-      // Note: The actual upload happens on form submission
-      // This controller manages the UI state
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || "Upload failed")
+      }
+
+      this.storedPath = data.stored_path
+      if (this.hasStoredPathTarget) {
+        this.storedPathTarget.value = data.stored_path
+      }
+      this.fileNameTarget.textContent = `${file.name} (${this.formatSize(file.size)}) - Uploaded`
+      this.fileNameTarget.classList.add("text-green-600")
+      this.fileNameTarget.classList.remove("text-gray-500")
+
+      // Auto-detect binaries after upload
+      await this.detectBinaries()
 
     } catch (error) {
-      this.fileNameTarget.textContent = `Error: ${error.message}`
+      this.fileNameTarget.textContent = `Upload failed: ${error.message}`
+      this.fileNameTarget.classList.add("text-red-600")
+      this.fileNameTarget.classList.remove("text-gray-500")
     }
   }
 

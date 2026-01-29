@@ -1,4 +1,13 @@
 <%= content_for :title, "MLC Installation - #{@installation.uuid}" %>
+<% content_for(:page_title) { "MLC Installation" } %>
+<% content_for(:breadcrumbs) do %>
+  <span class="mx-2">/</span>
+  <%= link_to "Benchmarks", benchmark_runs_path, class: "hover:text-primary-6 font-bold" %>
+  <span class="mx-2">/</span>
+  <%= link_to "MLC Installation", new_mlc_installation_path, class: "hover:text-primary-6 font-bold" %>
+  <span class="mx-2">/</span>
+  <span class="text-neutral-85"><%= @installation.uuid.first(8) %></span>
+<% end %>
 
 <div class="max-w-4xl mx-auto">
   <div class="flex justify-between items-center mb-6">

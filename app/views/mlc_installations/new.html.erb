@@ -1,4 +1,11 @@
 <%= content_for :title, "Intel MLC Installation" %>
+<% content_for(:page_title) { "MLC Installation" } %>
+<% content_for(:breadcrumbs) do %>
+  <span class="mx-2">/</span>
+  <%= link_to "Benchmarks", benchmark_runs_path, class: "hover:text-primary-6 font-bold" %>
+  <span class="mx-2">/</span>
+  <span class="text-neutral-85">MLC Installation</span>
+<% end %>
 
 <div class="max-w-4xl mx-auto">
   <h1 class="text-2xl font-bold mb-6">Intel MLC Installation</h1>
@@ -32,7 +39,7 @@
       <div data-mlc-upload-target="uploadSection">
         <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center"
              data-mlc-upload-target="dropzone"
-             data-action="dragover->mlc-upload#dragover drop->mlc-upload#drop">
+             data-action="dragover->mlc-upload#dragover dragleave->mlc-upload#dragleave drop->mlc-upload#drop">
           <p class="text-gray-600 mb-2">Drag & drop MLC tarball or click to browse</p>
           <%= file_field_tag :tarball, accept: ".tgz,.tar.gz", class: "hidden", data: { mlc_upload_target: "fileInput", action: "change->mlc-upload#handleFile" } %>
           <button type="button" class="btn btn-secondary" data-action="mlc-upload#browse">
@@ -40,6 +47,7 @@
           </button>
           <p data-mlc-upload-target="fileName" class="mt-2 text-sm text-gray-500"></p>
         </div>
+        <%= f.hidden_field :stored_path, data: { mlc_upload_target: "storedPath" } %>
       </div>
 
       <div data-mlc-upload-target="pathSection" class="hidden">

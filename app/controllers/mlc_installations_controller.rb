@@ -11,15 +11,28 @@ class MlcInstallationsController < ApplicationController
     @installation = MlcInstallation.new(installation_params)
     @installation.created_by = current_user
 
-    if params[:tarball].present?
-      upload_result = handle_upload(params[:tarball])
-      unless upload_result.success?
-        flash.now[:alert] = upload_result.error
-        @nodes = Node.online.order(:hostname)
-        return render :new, status: :unprocessable_entity
-      end
+    # Use pre-uploaded stored path if available (from AJAX upload), otherwise upload now
+    if @installation.source_type == "upload"
+      stored_path = installation_params[:stored_path]
+      if stored_path.present?
+        validated = validate_stored_path(stored_path)
+        if validated
+          @installation.source_path = validated
+        else
+          flash.now[:alert] = "Invalid uploaded file"
+          @nodes = Node.online.order(:hostname)
+          return render :new, status: :unprocessable_entity
+        end
+      elsif params[:tarball].present?
+        upload_result = handle_upload(params[:tarball])
+        unless upload_result.success?
+          flash.now[:alert] = upload_result.error
+          @nodes = Node.online.order(:hostname)
+          return render :new, status: :unprocessable_entity
+        end
 
-      @installation.source_path = upload_result.stored_path
+        @installation.source_path = upload_result.stored_path
+      end
     end
 
     if @installation.save
@@ -45,11 +58,30 @@ class MlcInstallationsController < ApplicationController
     redirect_to @installation, notice: "Installation cancelled"
   end
 
+  def upload
+    unless params[:tarball].present?
+      return render json: { error: "No file provided" }, status: :unprocessable_entity
+    end
+
+    upload_result = handle_upload(params[:tarball])
+
+    if upload_result.success?
+      render json: { stored_path: upload_result.stored_path, checksum: upload_result.computed_checksum }
+    else
+      render json: { error: upload_result.error }, status: :unprocessable_entity
+    end
+  end
+
   def verify_checksum
+    stored_path = validate_stored_path(params[:stored_path])
+    unless stored_path
+      return render json: { error: "Invalid file path" }, status: :unprocessable_entity
+    end
+
     upload_service = Mlc::UploadService.new(nil)
     upload_service.instance_variable_set(:@result, Mlc::UploadService::Result.new(
       success?: true,
-      stored_path: params[:stored_path]
+      stored_path: stored_path
     ))
 
     verified = upload_service.verify_checksum(params[:algorithm], params[:checksum])
@@ -79,7 +111,7 @@ class MlcInstallationsController < ApplicationController
 
   def installation_params
     params.require(:mlc_installation).permit(
-      :source_type, :source_path, :binary_path,
+      :source_type, :source_path, :binary_path, :stored_path,
       :checksum_algorithm, :checksum_value, :checksum_verified,
       :install_dir, :module_dir, :failure_mode,
       node_ids: []
