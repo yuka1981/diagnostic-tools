@@ -149,7 +149,7 @@ class NodesController < ApplicationController
   def node_params
     params.require(:node).permit(
       :hostname, :ip, :role, :arch, :ssh_port, :ssh_user, :ssh_key, :ssh_password,
-      :sudo_credential, :ssh_connect_method, :agent_path, :benchmark_work_dir,
+      :sudo_credential, :ssh_connect_method, :benchmark_work_dir,
       :api_key_id, :rack_id, :rack_position, :rack_height, :server_product_id,
       :ssh_user_override, :ssh_port_override, :ssh_key_override, :ssh_password_override,
       :sudo_credential_override, :ssh_connect_method_override
