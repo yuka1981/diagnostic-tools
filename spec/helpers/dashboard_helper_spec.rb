@@ -36,9 +36,17 @@ RSpec.describe DashboardHelper, type: :helper do
       expect(helper.status_badge_class("cancelled")).to include("neutral")
     end
 
-    it "returns warning colors for unknown status" do
-      # "unknown" maps to :warning in STATUS_COLORS
-      expect(helper.status_badge_class("unknown")).to include("warning")
+    it "returns muted colors for unknown status" do
+      # "unknown" maps to :muted in STATUS_COLORS
+      expect(helper.status_badge_class("unknown")).to include("neutral")
+    end
+
+    it "returns success colors for connected status" do
+      expect(helper.status_badge_class("connected")).to include("success")
+    end
+
+    it "returns error colors for disconnected status" do
+      expect(helper.status_badge_class("disconnected")).to include("error")
     end
 
     it "returns default muted colors for unrecognized status" do
@@ -60,9 +68,9 @@ RSpec.describe DashboardHelper, type: :helper do
       expect(helper.status_bg_class("failed")).to include("error")
     end
 
-    it "returns warning background for unknown status" do
-      # "unknown" maps to :warning which uses QPDM warning color
-      expect(helper.status_bg_class("unknown")).to include("warning")
+    it "returns muted background for unknown status" do
+      # "unknown" maps to :muted which uses neutral color
+      expect(helper.status_bg_class("unknown")).to include("neutral")
     end
 
     it "returns default background for unrecognized status" do
@@ -79,9 +87,9 @@ RSpec.describe DashboardHelper, type: :helper do
       expect(helper.status_text_color("failed")).to include("error")
     end
 
-    it "returns warning text color for unknown status" do
-      # "unknown" maps to :warning which uses QPDM warning color
-      expect(helper.status_text_color("unknown")).to include("warning")
+    it "returns muted text color for unknown status" do
+      # "unknown" maps to :muted which uses neutral color
+      expect(helper.status_text_color("unknown")).to include("neutral")
     end
 
     it "returns default text color for unrecognized status" do

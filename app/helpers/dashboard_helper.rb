@@ -34,13 +34,15 @@ module DashboardHelper
     "completed" => :success,
     "passed" => :success,
     "online" => :success,
+    "connected" => :success,
     "failed" => :error,
     "offline" => :error,
     "error" => :error,
+    "disconnected" => :error,
     "running" => :running,
     "pending" => :warning,
     "warning" => :warning,
-    "unknown" => :warning,
+    "unknown" => :muted,
     "cancelled" => :muted
   }.freeze
 
