@@ -10,10 +10,11 @@ class StatusBadgeComponent < ViewComponent::Base
     small: "px-1.5 py-0.5 text-[9px]"
   }.freeze
 
-  def initialize(status:, label: nil, size: :default)
+  def initialize(status:, label: nil, size: :default, testid: nil)
     @status = status
     @label = label
     @size = size
+    @testid = testid
   end
 
   def color_classes
@@ -30,7 +31,12 @@ class StatusBadgeComponent < ViewComponent::Base
     label || status.to_s.titleize
   end
 
+  def testid_attribute
+    return nil unless testid
+    "#{testid}-#{status}"
+  end
+
   private
 
-  attr_reader :status, :label, :size
+  attr_reader :status, :label, :size, :testid
 end

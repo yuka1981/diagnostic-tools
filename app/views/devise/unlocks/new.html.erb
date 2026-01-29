@@ -1,22 +1,23 @@
 <div class="flex min-h-full flex-col justify-center px-6 py-12 lg:px-8">
   <div class="sm:mx-auto sm:w-full sm:max-w-md">
-    <div class="card-netbox shadow-xl">
+    <div class="card-netbox shadow-xl" data-testid="auth-container">
       <div class="card-header justify-center py-4">
         <h2 class="text-lg font-black text-neutral-85 uppercase tracking-tight">Resend unlock instructions</h2>
       </div>
 
       <div class="p-6">
-        <%= form_for(resource, as: resource_name, url: unlock_path(resource_name), html: { method: :post, class: "space-y-5" }) do |f| %>
+        <%= form_for(resource, as: resource_name, url: unlock_path(resource_name), html: { method: :post, class: "space-y-5", data: { testid: "auth-form-resend-unlock" } }) do |f| %>
           <%= render "devise/shared/error_messages", resource: resource %>
 
           <div>
             <%= f.label :email, class: "block text-xs font-bold text-neutral-85 uppercase mb-1" %>
             <%= f.email_field :email, autofocus: true, autocomplete: "email",
+                data: { testid: "auth-input-email" },
                 class: "block w-full rounded border border-neutral-15 py-1.5 px-3 text-neutral-85 shadow-sm focus:ring-2 focus:ring-primary-5 focus:border-primary-5 sm:text-sm" %>
           </div>
 
           <div class="pt-2">
-            <%= f.submit "Resend instructions", class: "btn-primary w-full justify-center py-2 text-sm" %>
+            <%= f.submit "Resend instructions", data: { testid: "auth-button-submit" }, class: "btn-primary w-full justify-center py-2 text-sm" %>
           </div>
         <% end %>
 

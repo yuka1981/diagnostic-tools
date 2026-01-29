@@ -12,14 +12,14 @@
     <p class="text-sm text-neutral-45 mt-1">Manage HPC agent binary versions</p>
   </div>
   <% if current_user.approver? %>
-    <%= link_to new_settings_agent_release_path, class: "btn-primary" do %>
+    <%= link_to new_settings_agent_release_path, class: "btn-primary", data: { testid: "agent-releases-button-new" } do %>
       <%= lucide_icon("plus", class: "h-4 w-4 mr-2") %>
       New Release
     <% end %>
   <% end %>
 </div>
 
-<div class="card-netbox">
+<div class="card-netbox" data-testid="agent-releases-container">
   <%= render partial: "releases_table",
              locals: { agent_releases: @agent_releases, latest_release: @latest_release } %>
 </div>

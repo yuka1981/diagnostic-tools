@@ -1,18 +1,18 @@
-<tr id="profiling_run_<%= run.id %>">
-  <td class="px-4 py-3 text-sm">
+<tr id="profiling_run_<%= run.id %>" data-testid="profiling-row-<%= run.id %>">
+  <td class="px-4 py-3 text-sm" data-testid="profiling-type-<%= run.id %>">
     <span class="font-medium text-neutral-85"><%= run.subcommand.capitalize %></span>
     <% if run.profiling_recipe %>
-      <span class="text-xs text-neutral-45 block"><%= run.profiling_recipe.name %></span>
+      <span class="text-xs text-neutral-45 block" data-testid="profiling-recipe-<%= run.id %>"><%= run.profiling_recipe.name %></span>
     <% end %>
   </td>
   <td class="px-4 py-3">
     <% case run.status %>
     <% when "pending" %>
-      <span class="inline-flex items-center rounded-full bg-neutral-4 px-2.5 py-0.5 text-xs font-medium text-neutral-45">
+      <span class="inline-flex items-center rounded-full bg-neutral-4 px-2.5 py-0.5 text-xs font-medium text-neutral-45" data-testid="profiling-status-<%= run.id %>">
         Pending
       </span>
     <% when "running" %>
-      <span class="inline-flex items-center rounded-full bg-primary-1 px-2.5 py-0.5 text-xs font-medium text-primary-7">
+      <span class="inline-flex items-center rounded-full bg-primary-1 px-2.5 py-0.5 text-xs font-medium text-primary-7" data-testid="profiling-status-<%= run.id %>">
         <svg class="animate-spin -ml-0.5 mr-1.5 h-3 w-3" fill="none" viewBox="0 0 24 24">
           <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
           <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -20,27 +20,27 @@
         Running
       </span>
     <% when "success" %>
-      <span class="inline-flex items-center rounded-full bg-success-2 px-2.5 py-0.5 text-xs font-medium text-success-7">
+      <span class="inline-flex items-center rounded-full bg-success-2 px-2.5 py-0.5 text-xs font-medium text-success-7" data-testid="profiling-status-<%= run.id %>">
         Success
       </span>
     <% when "failed" %>
-      <span class="inline-flex items-center rounded-full bg-error-1 px-2.5 py-0.5 text-xs font-medium text-error-7">
+      <span class="inline-flex items-center rounded-full bg-error-1 px-2.5 py-0.5 text-xs font-medium text-error-7" data-testid="profiling-status-<%= run.id %>">
         Failed
       </span>
     <% when "cancelled" %>
-      <span class="inline-flex items-center rounded-full bg-warning-1 px-2.5 py-0.5 text-xs font-medium text-warning-7">
+      <span class="inline-flex items-center rounded-full bg-warning-1 px-2.5 py-0.5 text-xs font-medium text-warning-7" data-testid="profiling-status-<%= run.id %>">
         Cancelled
       </span>
     <% end %>
   </td>
-  <td class="px-4 py-3 text-sm text-neutral-45">
+  <td class="px-4 py-3 text-sm text-neutral-45" data-testid="profiling-started-<%= run.id %>">
     <% if run.started_at %>
       <%= time_ago_in_words(run.started_at) %> ago
     <% else %>
       -
     <% end %>
   </td>
-  <td class="px-4 py-3 text-sm text-neutral-45">
+  <td class="px-4 py-3 text-sm text-neutral-45" data-testid="profiling-duration-<%= run.id %>">
     <% if run.duration %>
       <%= distance_of_time_in_words(run.duration) %>
     <% elsif run.running? && run.started_at %>
@@ -51,9 +51,10 @@
   </td>
   <td class="px-4 py-3 text-sm">
     <%= link_to "View", node_profiling_run_path(run.node, run),
-        class: "text-primary-6 hover:text-primary-8 font-medium" %>
+        class: "text-primary-6 hover:text-primary-8 font-medium",
+        data: { testid: "profiling-link-view-#{run.id}" } %>
     <% if run.profiling_artifacts.any? %>
-      <span class="ml-2 text-xs text-neutral-25">
+      <span class="ml-2 text-xs text-neutral-25" data-testid="profiling-artifacts-<%= run.id %>">
         (<%= run.profiling_artifacts.count %> files)
       </span>
     <% end %>

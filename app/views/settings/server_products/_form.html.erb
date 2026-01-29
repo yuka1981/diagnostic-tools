@@ -1,6 +1,6 @@
-<%= form_with(model: [:settings, @server_product], class: "space-y-6") do |f| %>
+<%= form_with(model: [:settings, @server_product], class: "space-y-6", data: { testid: "server-products-form" }) do |f| %>
   <% if @server_product.errors.any? %>
-    <div class="rounded-lg bg-error-1 p-4 text-sm text-error-7 border border-error-2">
+    <div class="rounded-lg bg-error-1 p-4 text-sm text-error-7 border border-error-2" data-testid="server-products-form-errors">
       <h2 class="font-bold mb-2"><%= pluralize(@server_product.errors.count, "error") %> prohibited this server product from being saved:</h2>
       <ul class="list-disc list-inside">
         <% @server_product.errors.full_messages.each do |message| %>
@@ -20,7 +20,8 @@
         <%= f.label :name, class: "block text-sm font-bold text-neutral-85 mb-1" %>
         <%= f.text_field :name, required: true,
             placeholder: "QuantaGrid D54Q-2U",
-            class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm" %>
+            class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm",
+            data: { testid: "server-products-input-name" } %>
         <p class="mt-1 text-xs text-neutral-45">The model name for this server product.</p>
       </div>
 
@@ -28,7 +29,8 @@
         <%= f.label :product_series, class: "block text-sm font-bold text-neutral-85 mb-1" %>
         <%= f.text_field :product_series,
             placeholder: "QuantaGrid",
-            class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm" %>
+            class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm",
+            data: { testid: "server-products-input-series" } %>
         <p class="mt-1 text-xs text-neutral-45">Product line (e.g., QuantaGrid, QuantaPlex).</p>
       </div>
 
@@ -37,14 +39,16 @@
         <%= f.select :form_factor,
             options_for_select((1..10).map { |u| ["#{u}U", "#{u}U"] }, @server_product.form_factor),
             { include_blank: "Select form factor" },
-            class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm" %>
+            { class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm",
+              data: { testid: "server-products-select-form-factor" } } %>
         <p class="mt-1 text-xs text-neutral-45">Physical form factor of the server.</p>
       </div>
 
       <div>
         <%= f.label :rack_height, class: "block text-sm font-bold text-neutral-85 mb-1" %>
         <%= f.number_field :rack_height, min: 1, max: 48,
-            class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm" %>
+            class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm",
+            data: { testid: "server-products-input-rack-height" } %>
         <p class="mt-1 text-xs text-neutral-45">Height in rack units (U). Auto-set from form factor if not specified.</p>
       </div>
 
@@ -52,7 +56,8 @@
         <%= f.label :qct_product_url, "QCT Product URL", class: "block text-sm font-bold text-neutral-85 mb-1" %>
         <%= f.url_field :qct_product_url,
             placeholder: "https://www.qct.io/product/...",
-            class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm" %>
+            class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm",
+            data: { testid: "server-products-input-url" } %>
         <p class="mt-1 text-xs text-neutral-45">Link to the product page on QCT website.</p>
       </div>
     </div>
@@ -69,7 +74,8 @@
         <%= f.text_field :cpu_generations,
             value: @server_product.cpu_generations&.join(", "),
             placeholder: "5th Gen Xeon, 4th Gen Xeon",
-            class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm" %>
+            class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm",
+            data: { testid: "server-products-input-cpu-gen" } %>
         <p class="mt-1 text-xs text-neutral-45">Comma-separated list of supported CPU generations.</p>
       </div>
 
@@ -78,7 +84,8 @@
         <%= f.select :socket_count,
             options_for_select([["1 Socket", 1], ["2 Sockets", 2], ["4 Sockets", 4], ["8 Sockets", 8]], @server_product.socket_count),
             { include_blank: "Select socket count" },
-            class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm" %>
+            { class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm",
+              data: { testid: "server-products-select-sockets" } } %>
         <p class="mt-1 text-xs text-neutral-45">Number of CPU sockets.</p>
       </div>
 
@@ -86,14 +93,16 @@
         <%= f.label :max_tdp_watts, "Max TDP (Watts)", class: "block text-sm font-bold text-neutral-85 mb-1" %>
         <%= f.number_field :max_tdp_watts, min: 0,
             placeholder: "350",
-            class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm" %>
+            class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm",
+            data: { testid: "server-products-input-tdp" } %>
         <p class="mt-1 text-xs text-neutral-45">Maximum supported CPU TDP in watts.</p>
       </div>
 
       <div class="md:col-span-2">
         <div class="flex items-center gap-3">
           <%= f.check_box :gpu_support,
-              class: "h-4 w-4 rounded border-neutral-15 text-primary-6 focus:ring-primary-5" %>
+              class: "h-4 w-4 rounded border-neutral-15 text-primary-6 focus:ring-primary-5",
+              data: { testid: "server-products-checkbox-gpu" } %>
           <%= f.label :gpu_support, class: "text-sm font-bold text-neutral-85" %>
         </div>
         <p class="mt-1 text-xs text-neutral-45">Check if this server supports GPU accelerators.</p>
@@ -111,7 +120,8 @@
         <%= f.label :max_memory_gb, "Max Memory (GB)", class: "block text-sm font-bold text-neutral-85 mb-1" %>
         <%= f.number_field :max_memory_gb, min: 0,
             placeholder: "8192",
-            class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm" %>
+            class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm",
+            data: { testid: "server-products-input-max-memory" } %>
         <p class="mt-1 text-xs text-neutral-45">Maximum supported memory capacity in GB.</p>
       </div>
 
@@ -119,7 +129,8 @@
         <%= f.label :dimm_slots, "DIMM Slots", class: "block text-sm font-bold text-neutral-85 mb-1" %>
         <%= f.number_field :dimm_slots, min: 0,
             placeholder: "32",
-            class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm" %>
+            class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm",
+            data: { testid: "server-products-input-dimm-slots" } %>
         <p class="mt-1 text-xs text-neutral-45">Number of DIMM slots available.</p>
       </div>
 
@@ -128,7 +139,8 @@
         <%= f.text_field :memory_types,
             value: @server_product.memory_types&.join(", "),
             placeholder: "DDR5, DDR4",
-            class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm" %>
+            class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm",
+            data: { testid: "server-products-input-memory-types" } %>
         <p class="mt-1 text-xs text-neutral-45">Comma-separated list of supported memory types.</p>
       </div>
 
@@ -136,7 +148,8 @@
         <%= f.label :max_memory_speed_mhz, "Max Memory Speed (MHz)", class: "block text-sm font-bold text-neutral-85 mb-1" %>
         <%= f.number_field :max_memory_speed_mhz, min: 0,
             placeholder: "5600",
-            class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm" %>
+            class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm",
+            data: { testid: "server-products-input-memory-speed" } %>
         <p class="mt-1 text-xs text-neutral-45">Maximum supported memory speed in MHz.</p>
       </div>
     </div>
@@ -169,14 +182,15 @@
                     file:rounded-md file:border-0
                     file:text-sm file:font-semibold
                     file:bg-primary-1 file:text-primary-7
-                    hover:file:bg-primary-1" %>
+                    hover:file:bg-primary-1",
+            data: { testid: "server-products-input-images" } %>
         <p class="mt-1 text-xs text-neutral-45">Select one or more product images (JPG, PNG, WebP).</p>
       </div>
     </div>
   </div>
 
   <div class="flex items-center justify-end gap-3 pt-4">
-    <%= link_to "Cancel", settings_server_products_path, class: "btn-secondary" %>
-    <%= f.submit @server_product.new_record? ? "Create Server Product" : "Update Server Product", class: "btn-primary" %>
+    <%= link_to "Cancel", settings_server_products_path, class: "btn-secondary", data: { testid: "server-products-button-cancel" } %>
+    <%= f.submit @server_product.new_record? ? "Create Server Product" : "Update Server Product", class: "btn-primary", data: { testid: "server-products-button-submit" } %>
   </div>
 <% end %>

@@ -1,23 +1,23 @@
 <%# Results Card - Shows benchmark metrics and results %>
 <% run = local_assigns[:run] || benchmark_run %>
 
-<div class="card-netbox">
+<div class="card-netbox" data-testid="benchmark-runs-results-card">
   <div class="card-header">
     <div class="flex items-center justify-between">
       <h3 class="card-title">Results</h3>
       <% if run.completed? %>
         <% if run.success? %>
-          <span class="inline-flex items-center rounded-full bg-success-2 px-2.5 py-0.5 text-xs font-bold text-success-8">
+          <span class="inline-flex items-center rounded-full bg-success-2 px-2.5 py-0.5 text-xs font-bold text-success-8" data-testid="benchmark-runs-results-badge">
             <%= lucide_icon("circle-check", class: "mr-1 h-3 w-3") %>
             PASS
           </span>
         <% elsif run.failed? %>
-          <span class="inline-flex items-center rounded-full bg-error-1 px-2.5 py-0.5 text-xs font-bold text-error-8">
+          <span class="inline-flex items-center rounded-full bg-error-1 px-2.5 py-0.5 text-xs font-bold text-error-8" data-testid="benchmark-runs-results-badge">
             <%= lucide_icon("circle-x", class: "mr-1 h-3 w-3") %>
             FAIL
           </span>
         <% elsif run.cancelled? %>
-          <span class="inline-flex items-center rounded-full bg-neutral-4 px-2.5 py-0.5 text-xs font-bold text-neutral-45">
+          <span class="inline-flex items-center rounded-full bg-neutral-4 px-2.5 py-0.5 text-xs font-bold text-neutral-45" data-testid="benchmark-runs-results-badge">
             Cancelled
           </span>
         <% end %>
@@ -28,14 +28,14 @@
   <div class="p-0">
     <% if run.pending? || run.running? %>
       <%# Waiting state %>
-      <div class="px-4 py-8 text-center bg-neutral-2">
+      <div class="px-4 py-8 text-center bg-neutral-2" data-testid="benchmark-runs-results-waiting">
         <% if run.running? %>
-          <div class="flex items-center justify-center mb-3">
+          <div class="flex items-center justify-center mb-3" data-testid="benchmark-runs-results-spinner">
             <%= lucide_icon("loader-2", class: "animate-spin h-6 w-6 text-primary-6") %>
           </div>
           <p class="text-neutral-45 font-bold">Benchmark in progress...</p>
           <% if run.current_phase.present? %>
-            <p class="text-sm text-neutral-45 mt-1">Phase: <%= run.current_phase %></p>
+            <p class="text-sm text-neutral-45 mt-1" data-testid="benchmark-runs-results-phase">Phase: <%= run.current_phase %></p>
           <% end %>
         <% else %>
           <%= lucide_icon("clock", class: "mx-auto h-8 w-8 text-neutral-25 mb-2") %>
@@ -46,18 +46,18 @@
 
     <% elsif run.metrics.present? && run.metrics.any? %>
       <%# Metrics table %>
-      <table class="w-full text-sm text-left">
+      <table class="w-full text-sm text-left" data-testid="benchmark-runs-results-metrics">
         <tbody class="divide-y divide-neutral-4">
           <% # Prioritize key metrics at the top %>
           <% priority_keys = %w[gflops gflop_s bandwidth result score] %>
           <% sorted_metrics = run.metrics.sort_by { |k, _| priority_keys.index(k.to_s.downcase) || 999 } %>
 
           <% sorted_metrics.each do |key, value| %>
-            <tr class="hover:bg-neutral-2">
+            <tr class="hover:bg-neutral-2" data-testid="benchmark-runs-metric-<%= key.to_s.parameterize %>">
               <th class="px-4 py-2 font-bold text-neutral-85 w-1/2 border-r border-neutral-8">
                 <%= format_metric_key(key) %>
               </th>
-              <td class="px-4 py-2 font-mono">
+              <td class="px-4 py-2 font-mono" data-testid="benchmark-runs-metric-value-<%= key.to_s.parameterize %>">
                 <% if key.to_s.downcase == "result" %>
                   <% if value.to_s.upcase == "PASS" || value.to_s.upcase == "VALID" %>
                     <span class="text-success-6 font-bold"><%= value %></span>
@@ -86,7 +86,7 @@
 
     <% else %>
       <%# No metrics available for completed run %>
-      <div class="px-4 py-8 text-center bg-neutral-2">
+      <div class="px-4 py-8 text-center bg-neutral-2" data-testid="benchmark-runs-results-empty">
         <%= lucide_icon("clipboard", class: "mx-auto h-8 w-8 text-neutral-25 mb-2") %>
         <p class="text-neutral-45 font-bold">No metrics recorded</p>
         <% if run.failed? %>

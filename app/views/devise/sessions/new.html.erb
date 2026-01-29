@@ -1,9 +1,9 @@
 <% content_for(:title) { "Sign In - QCT InfraScope" } %>
 
-<div class="w-full max-w-[472px] bg-white p-9 shadow-lg" data-controller="tabs">
+<div class="w-full max-w-[472px] bg-white p-9 shadow-lg" data-controller="tabs" data-testid="auth-container">
   <%# QCT Logo %>
   <div class="flex justify-center py-4">
-    <%= image_tag "qct_logo_login.svg", alt: "QCT", class: "h-[94px] w-[340px]" %>
+    <%= image_tag "qct_logo_login.svg", alt: "QCT", class: "h-[94px] w-[340px]", data: { testid: "auth-logo" } %>
   </div>
 
   <%# Subtitle %>
@@ -14,19 +14,21 @@
   <%# Login / Sign Up Tabs %>
   <div class="flex items-center justify-center gap-2 mb-6">
     <%= link_to "Login", new_user_session_path,
-        class: "px-3 py-2 text-sm font-medium text-primary-6 border-b-[3px] border-primary-6 transition-all duration-200" %>
+        class: "px-3 py-2 text-sm font-medium text-primary-6 border-b-[3px] border-primary-6 transition-all duration-200",
+        data: { testid: "auth-tab-login" } %>
     <%= link_to "Sign Up", new_user_registration_path,
-        class: "px-3 py-2 text-sm font-normal text-neutral-60 hover:text-primary-6 border-b-[3px] border-transparent transition-all duration-200" %>
+        class: "px-3 py-2 text-sm font-normal text-neutral-60 hover:text-primary-6 border-b-[3px] border-transparent transition-all duration-200",
+        data: { testid: "auth-tab-signup" } %>
   </div>
 
   <%# Flash Alert for failed login %>
   <% if flash[:alert].present? %>
-    <div class="bg-error-1 border border-error-3 text-error-8 px-4 py-3 rounded-[5px] text-sm mb-6">
+    <div class="bg-error-1 border border-error-3 text-error-8 px-4 py-3 rounded-[5px] text-sm mb-6" data-testid="auth-flash-alert">
       <%= flash[:alert] %>
     </div>
   <% end %>
 
-  <%= form_for(resource, as: resource_name, url: session_path(resource_name), html: { class: "space-y-6" }) do |f| %>
+  <%= form_for(resource, as: resource_name, url: session_path(resource_name), html: { class: "space-y-6", data: { testid: "auth-form-login" } }) do |f| %>
     <%= render "devise/shared/error_messages", resource: resource %>
 
     <%# Account Field %>
@@ -36,6 +38,7 @@
           autofocus: true,
           autocomplete: "email",
           placeholder: "Enter account",
+          data: { testid: "auth-input-email" },
           class: "w-full bg-neutral-2 border border-neutral-8 rounded-[5px] p-3 text-sm text-neutral-60 placeholder:text-neutral-60 focus:outline-none focus:ring-2 focus:ring-primary-5 focus:border-primary-5" %>
     </div>
 
@@ -46,10 +49,11 @@
         <%= f.password_field :password,
             autocomplete: "current-password",
             placeholder: "Enter password",
-            data: { password_visibility_target: "input" },
+            data: { password_visibility_target: "input", testid: "auth-input-password" },
             class: "w-full h-10 bg-neutral-2 border border-neutral-8 rounded-[5px] pl-3 pr-10 text-sm text-neutral-60 placeholder:text-neutral-60 focus:outline-none focus:ring-2 focus:ring-primary-5 focus:border-primary-5" %>
         <button type="button"
                 data-action="click->password-visibility#toggle"
+                data-testid="auth-button-password-toggle"
                 class="absolute right-0 top-0 h-10 w-10 flex items-center justify-center bg-primary-6 rounded-r-[5px] hover:bg-primary-7 focus:outline-none">
           <%# Eye open icon (show password) %>
           <svg data-password-visibility-target="showIcon" class="w-4 h-4 text-white" viewBox="0 0 16 16" fill="currentColor">
@@ -69,6 +73,7 @@
     <%# Login Button %>
     <div>
       <%= f.submit "Login",
+          data: { testid: "auth-button-submit" },
           class: "w-full h-10 bg-primary-6 hover:bg-primary-7 text-white text-sm font-medium rounded-[5px] transition-colors focus:outline-none focus:ring-2 focus:ring-primary-5 focus:ring-offset-2 cursor-pointer" %>
     </div>
   <% end %>
@@ -77,14 +82,17 @@
   <div class="flex items-center justify-center gap-0 mt-6">
     <% if devise_mapping.recoverable? %>
       <%= link_to "Forgot Your Password?", new_password_path(resource_name),
-          class: "px-2 text-sm text-primary-6 hover:text-primary-7 border-r border-neutral-8" %>
+          class: "px-2 text-sm text-primary-6 hover:text-primary-7 border-r border-neutral-8",
+          data: { testid: "auth-link-forgot-password" } %>
     <% end %>
     <%= link_to "Create an Account!", new_registration_path(resource_name),
-        class: "px-2 text-sm text-primary-6 hover:text-primary-7" %>
+        class: "px-2 text-sm text-primary-6 hover:text-primary-7",
+        data: { testid: "auth-link-sign-up" } %>
   </div>
 
   <div class="flex items-center justify-center mt-4">
     <%= link_to "Need Help?", "#",
-        class: "text-sm text-primary-6 hover:text-primary-7" %>
+        class: "text-sm text-primary-6 hover:text-primary-7",
+        data: { testid: "auth-link-help" } %>
   </div>
 </div>

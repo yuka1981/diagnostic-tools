@@ -4,8 +4,8 @@
   { title: "Edit" }
 ]) %>
 
-<div class="mb-6">
-  <h1 class="text-2xl font-bold text-neutral-85">Edit <%= @benchmark_recipe.display_name %></h1>
+<div class="mb-6" data-testid="recipes-edit-container">
+  <h1 class="text-2xl font-bold text-neutral-85" data-testid="recipes-edit-title">Edit <%= @benchmark_recipe.display_name %></h1>
   <p class="text-sm text-neutral-45 mt-1">Modify benchmark configuration</p>
 </div>
 

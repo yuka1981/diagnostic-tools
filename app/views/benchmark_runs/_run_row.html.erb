@@ -1,24 +1,24 @@
-<tr id="<%= dom_id(run) %>" class="hover:bg-neutral-2 transition-colors">
-  <td class="whitespace-nowrap px-3 py-2 text-sm font-mono text-neutral-45">
+<tr id="<%= dom_id(run) %>" class="hover:bg-neutral-2 transition-colors" data-testid="benchmark-runs-row-<%= run.id %>">
+  <td class="whitespace-nowrap px-3 py-2 text-sm font-mono text-neutral-45" data-testid="benchmark-runs-id-<%= run.id %>">
     <%= run.id %>
   </td>
-  <td class="whitespace-nowrap px-3 py-2">
+  <td class="whitespace-nowrap px-3 py-2" data-testid="benchmark-runs-recipe-<%= run.id %>">
     <p class="text-sm font-medium text-neutral-85"><%= run.benchmark_recipe.name %></p>
     <p class="text-xs text-neutral-45"><%= run.benchmark_recipe.version %></p>
   </td>
   <td class="whitespace-nowrap px-3 py-2 text-sm text-neutral-45">
-    <%= link_to run.node.hostname, node_path(run.node), class: "hover:text-primary-6" %>
+    <%= link_to run.node.hostname, node_path(run.node), class: "hover:text-primary-6", data: { testid: "benchmark-runs-hostname-#{run.id}" } %>
   </td>
-  <td class="whitespace-nowrap px-3 py-2">
+  <td class="whitespace-nowrap px-3 py-2" data-testid="benchmark-runs-status-<%= run.id %>">
     <%= render StatusBadgeComponent.new(status: run.status) %>
   </td>
-  <td class="whitespace-nowrap px-3 py-2 text-sm text-neutral-45 font-mono">
+  <td class="whitespace-nowrap px-3 py-2 text-sm text-neutral-45 font-mono" data-testid="benchmark-runs-gflops-<%= run.id %>">
     <%= run.metrics&.dig("gflops") ? number_with_precision(run.metrics["gflops"], precision: 2, strip_insignificant_zeros: true) : "-" %>
   </td>
-  <td class="whitespace-nowrap px-3 py-2 text-sm text-neutral-45">
+  <td class="whitespace-nowrap px-3 py-2 text-sm text-neutral-45" data-testid="benchmark-runs-duration-<%= run.id %>">
     <%= run.duration ? distance_of_time_in_words(run.duration) : "-" %>
   </td>
-  <td class="whitespace-nowrap px-3 py-2 text-sm text-neutral-45">
+  <td class="whitespace-nowrap px-3 py-2 text-sm text-neutral-45" data-testid="benchmark-runs-created-<%= run.id %>">
     <%= l(run.created_at, format: :short) %>
   </td>
   <td class="whitespace-nowrap px-3 py-2 text-right text-sm">
@@ -26,14 +26,14 @@
       <% if run.pending? || run.running? %>
         <%= button_to cancel_benchmark_run_path(run),
             method: :post,
-            data: { turbo_confirm: "Are you sure you want to cancel this benchmark run?" },
+            data: { turbo_confirm: "Are you sure you want to cancel this benchmark run?", testid: "benchmark-runs-button-cancel-#{run.id}" },
             title: "Cancel",
             class: "p-1.5 text-error-5 hover:text-error-7 hover:bg-error-1 rounded transition-colors" do %>
           <%= lucide_icon("x", class: "h-4 w-4") %>
         <% end %>
       <% end %>
       <%= link_to benchmark_run_path(run),
-          data: { action: "click->slide-over#open", turbo_frame: "slide_over_content" },
+          data: { action: "click->slide-over#open", turbo_frame: "slide_over_content", testid: "benchmark-runs-button-view-#{run.id}" },
           title: "View Details",
           class: "p-1.5 text-neutral-45 hover:text-primary-6 hover:bg-primary-1 rounded transition-colors" do %>
         <%= lucide_icon("eye", class: "h-4 w-4") %>

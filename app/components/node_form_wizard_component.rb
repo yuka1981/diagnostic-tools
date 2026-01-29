@@ -1,15 +1,16 @@
 # frozen_string_literal: true
 
 class NodeFormWizardComponent < ViewComponent::Base
-  def initialize(node:, api_keys: [], agent_config: nil)
+  def initialize(node:, api_keys: [], agent_config: nil, testid: nil)
     @node = node
     @api_keys = api_keys
     @agent_config = agent_config || SshSetting.current
+    @testid = testid
   end
 
   private
 
-  attr_reader :node, :api_keys, :agent_config
+  attr_reader :node, :api_keys, :agent_config, :testid
 
   def roles_for_select
     Node.roles.keys.map { |r| [ r.titleize, r ] }

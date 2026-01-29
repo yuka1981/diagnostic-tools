@@ -10,11 +10,12 @@
      role="dialog"
      aria-modal="true"
      aria-labelledby="slide-over-title"
+     <% if testid %>data-testid="<%= testid %>-container"<% end %>
      class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 opacity-0 scale-95 transition-all duration-300 ease-in-out">
 
   <div data-slide-over-target="modalContent" class="w-full max-w-2xl max-h-[90vh] bg-white shadow-2xl ring-1 ring-neutral-8 rounded-lg overflow-hidden">
     <%# Header %>
-    <div class="flex items-center justify-between border-b border-neutral-8 px-6 py-4">
+    <div class="flex items-center justify-between border-b border-neutral-8 px-6 py-4" <% if testid %>data-testid="<%= testid %>-header"<% end %>>
       <div class="flex items-center gap-3">
         <h2 id="slide-over-title" class="text-lg font-semibold text-neutral-85">
           <%= title %>
@@ -26,6 +27,7 @@
       <button type="button"
               data-slide-over-target="closeButton"
               data-action="click->slide-over#close"
+              <% if testid %>data-testid="<%= testid %>-close-button"<% end %>
               class="rounded-lg p-2 text-neutral-35 hover:bg-neutral-4 hover:text-neutral-45 focus:outline-none focus:ring-2 focus:ring-primary-5 transition-colors">
         <span class="sr-only">Close panel</span>
         <%= helpers.lucide_icon("x", class: "h-5 w-5") %>
@@ -35,7 +37,7 @@
     <%# Tabs %>
     <div data-controller="tabs">
       <%# Tab Navigation %>
-      <div class="border-b border-neutral-8 bg-white">
+      <div class="border-b border-neutral-8 bg-white" <% if testid %>data-testid="<%= testid %>-tabs"<% end %>>
         <nav class="flex px-6" aria-label="Tabs" role="tablist" data-action="keydown->tabs#handleKeydown">
           <% tabs.each_with_index do |tab, index| %>
             <button type="button"
@@ -54,7 +56,7 @@
       </div>
 
       <%# Tab Panels %>
-      <div class="p-6 max-h-[60vh] overflow-y-auto">
+      <div class="p-6 max-h-[60vh] overflow-y-auto" <% if testid %>data-testid="<%= testid %>-content"<% end %>>
         <% tabs.each do |tab| %>
           <div id="<%= tab.panel_id %>"
                role="tabpanel"

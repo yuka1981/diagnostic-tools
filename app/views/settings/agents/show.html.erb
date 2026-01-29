@@ -1,13 +1,13 @@
 <% content_for(:page_title) { "Agent Configuration" } %>
 
-<div class="space-y-6">
+<div class="space-y-6" data-testid="agent-config-container">
   <%# Agent Configuration Card %>
   <div class="card-netbox">
     <div class="card-header">
       <h2 class="card-title">Agent Configuration</h2>
     </div>
 
-    <%= form_with(model: @ssh_setting, url: settings_agent_path, method: :patch) do |f| %>
+    <%= form_with(model: @ssh_setting, url: settings_agent_path, method: :patch, data: { testid: "agent-config-form" }) do |f| %>
       <div class="p-4 space-y-6">
         <div>
           <h3 class="text-sm font-bold text-neutral-85">Reporting Settings</h3>
@@ -17,7 +17,7 @@
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-6">
           <div class="sm:col-span-4">
             <%= f.label :server_url, "Server URL (Reporting Endpoint)", class: "block text-xs font-bold text-neutral-85 mb-1" %>
-            <%= f.text_field :server_url, placeholder: "e.g. https://hpc-portal.com", class: "block w-full rounded border border-neutral-15 py-1.5 px-3 text-neutral-85 shadow-sm focus:ring-2 focus:ring-primary-5 focus:border-primary-5 sm:text-sm" %>
+            <%= f.text_field :server_url, placeholder: "e.g. https://hpc-portal.com", class: "block w-full rounded border border-neutral-15 py-1.5 px-3 text-neutral-85 shadow-sm focus:ring-2 focus:ring-primary-5 focus:border-primary-5 sm:text-sm", data: { testid: "agent-config-input-url" } %>
             <p class="mt-1 text-[10px] text-neutral-45">The default URL agents will use to send data back to this server. Can be overridden per installation.</p>
           </div>
         </div>
@@ -25,7 +25,7 @@
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-6">
           <div class="sm:col-span-4">
             <%= f.label :default_agent_path, "Default Agent Path", class: "block text-xs font-bold text-neutral-85 mb-1" %>
-            <%= f.text_field :default_agent_path, placeholder: "/usr/local/bin/qis-agent", class: "block w-full rounded border border-neutral-15 py-1.5 px-3 text-neutral-85 shadow-sm focus:ring-2 focus:ring-primary-5 focus:border-primary-5 sm:text-sm" %>
+            <%= f.text_field :default_agent_path, placeholder: "/usr/local/bin/qis-agent", class: "block w-full rounded border border-neutral-15 py-1.5 px-3 text-neutral-85 shadow-sm focus:ring-2 focus:ring-primary-5 focus:border-primary-5 sm:text-sm", data: { testid: "agent-config-input-path" } %>
             <p class="mt-1 text-[10px] text-neutral-45">Path to the agent binary on nodes. Used as default for new nodes.</p>
           </div>
         </div>
@@ -40,24 +40,24 @@
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-6">
           <div class="sm:col-span-4">
             <%= f.label :benchmark_work_dir, "Default Benchmark Working Directory", class: "block text-xs font-bold text-neutral-85 mb-1" %>
-            <%= f.text_field :benchmark_work_dir, placeholder: "e.g. hpcg_source", class: "block w-full rounded border border-neutral-15 py-1.5 px-3 text-neutral-85 shadow-sm focus:ring-2 focus:ring-primary-5 focus:border-primary-5 sm:text-sm" %>
+            <%= f.text_field :benchmark_work_dir, placeholder: "e.g. hpcg_source", class: "block w-full rounded border border-neutral-15 py-1.5 px-3 text-neutral-85 shadow-sm focus:ring-2 focus:ring-primary-5 focus:border-primary-5 sm:text-sm", data: { testid: "agent-config-input-workdir" } %>
             <p class="mt-1 text-[10px] text-neutral-45">The default directory on remote nodes where benchmark source code is located. Defaults to "<%= BenchmarkConfig::DEFAULT_WORK_DIR %>" if not set. Can be overridden per node.</p>
           </div>
         </div>
       </div>
 
       <div class="flex items-center justify-end gap-3 bg-neutral-2 border-t border-neutral-8 px-4 py-3">
-        <%= f.submit "Save Configuration", class: "btn-primary" %>
+        <%= f.submit "Save Configuration", class: "btn-primary", data: { testid: "agent-config-button-submit" } %>
       </div>
     <% end %>
   </div>
 
   <%# Agent Releases Card %>
-  <div class="card-netbox">
+  <div class="card-netbox" data-testid="agent-config-releases">
     <div class="card-header flex items-center justify-between">
       <h2 class="card-title">Agent Releases</h2>
       <% if current_user.approver? %>
-        <%= link_to new_settings_agent_release_path, class: "btn-primary text-xs" do %>
+        <%= link_to new_settings_agent_release_path, class: "btn-primary text-xs", data: { testid: "agent-config-button-new-release" } do %>
           <%= lucide_icon("plus", class: "h-3 w-3 mr-1") %>
           New Release
         <% end %>

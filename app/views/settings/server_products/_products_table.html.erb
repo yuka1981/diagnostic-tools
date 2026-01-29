@@ -1,4 +1,4 @@
-<tbody class="divide-y divide-neutral-8 bg-white" id="products-tbody">
+<tbody class="divide-y divide-neutral-8 bg-white" id="products-tbody" data-testid="server-products-table-body">
   <% @server_products.each do |product| %>
     <%= render partial: "product", locals: { product: product } %>
   <% end %>

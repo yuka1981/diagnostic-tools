@@ -1,6 +1,6 @@
-<%= form_with(model: @site, class: "space-y-6") do |f| %>
+<%= form_with(model: @site, class: "space-y-6", data: { testid: "sites-form" }) do |f| %>
   <% if @site.errors.any? %>
-    <div class="rounded-lg bg-error-1 p-4 text-sm text-error-7 border border-error-2">
+    <div class="rounded-lg bg-error-1 p-4 text-sm text-error-7 border border-error-2" data-testid="sites-form-errors">
       <h2 class="font-bold mb-2"><%= pluralize(@site.errors.count, "error") %> prohibited this site from being saved:</h2>
       <ul class="list-disc list-inside">
         <% @site.errors.full_messages.each do |message| %>
@@ -20,7 +20,8 @@
         <%= f.label :name, class: "block text-sm font-bold text-neutral-85 mb-1" %>
         <%= f.text_field :name, required: true,
             placeholder: "Data Center A",
-            class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm" %>
+            class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm",
+            data: { testid: "sites-input-name" } %>
         <p class="mt-1 text-xs text-neutral-45">Display name for the site.</p>
       </div>
 
@@ -28,14 +29,15 @@
         <%= f.label :description, class: "block text-sm font-bold text-neutral-85 mb-1" %>
         <%= f.text_area :description, rows: 3,
             placeholder: "Primary data center located in Building A...",
-            class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm" %>
+            class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm",
+            data: { testid: "sites-input-description" } %>
         <p class="mt-1 text-xs text-neutral-45">Optional description of this site.</p>
       </div>
     </div>
   </div>
 
   <div class="flex items-center justify-end gap-3 pt-4">
-    <%= link_to "Cancel", sites_path, class: "btn-secondary" %>
-    <%= f.submit @site.new_record? ? "Create Site" : "Update Site", class: "btn-primary" %>
+    <%= link_to "Cancel", sites_path, class: "btn-secondary", data: { testid: "sites-button-cancel" } %>
+    <%= f.submit @site.new_record? ? "Create Site" : "Update Site", class: "btn-primary", data: { testid: "sites-button-submit" } %>
   </div>
 <% end %>

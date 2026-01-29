@@ -1,9 +1,9 @@
 <% content_for(:title) { "Sign Up - QCT InfraScope" } %>
 
-<div class="w-full max-w-[472px] bg-white p-9 shadow-lg">
+<div class="w-full max-w-[472px] bg-white p-9 shadow-lg" data-testid="auth-container">
   <%# QCT Logo %>
   <div class="flex justify-center py-4">
-    <%= image_tag "qct_logo_login.svg", alt: "QCT", class: "h-[94px] w-[340px]" %>
+    <%= image_tag "qct_logo_login.svg", alt: "QCT", class: "h-[94px] w-[340px]", data: { testid: "auth-logo" } %>
   </div>
 
   <%# Subtitle %>
@@ -14,12 +14,14 @@
   <%# Login / Sign Up Tabs %>
   <div class="flex items-center justify-center gap-2 mb-6">
     <%= link_to "Login", new_user_session_path,
-        class: "px-3 py-2 text-sm font-normal text-neutral-60 hover:text-primary-6 border-b-[3px] border-transparent transition-all duration-200" %>
+        class: "px-3 py-2 text-sm font-normal text-neutral-60 hover:text-primary-6 border-b-[3px] border-transparent transition-all duration-200",
+        data: { testid: "auth-tab-login" } %>
     <%= link_to "Sign Up", new_user_registration_path,
-        class: "px-3 py-2 text-sm font-medium text-primary-6 border-b-[3px] border-primary-6 transition-all duration-200" %>
+        class: "px-3 py-2 text-sm font-medium text-primary-6 border-b-[3px] border-primary-6 transition-all duration-200",
+        data: { testid: "auth-tab-signup" } %>
   </div>
 
-  <%= form_for(resource, as: resource_name, url: registration_path(resource_name), html: { class: "space-y-6" }) do |f| %>
+  <%= form_for(resource, as: resource_name, url: registration_path(resource_name), html: { class: "space-y-6", data: { testid: "auth-form-register" } }) do |f| %>
     <%= render "devise/shared/error_messages", resource: resource %>
 
     <%# Name Field %>
@@ -29,6 +31,7 @@
           autofocus: true,
           autocomplete: "name",
           placeholder: "Enter your name",
+          data: { testid: "auth-input-name" },
           class: "w-full bg-neutral-2 border border-neutral-8 rounded-[5px] p-3 text-sm text-neutral-60 placeholder:text-neutral-60 focus:outline-none focus:ring-2 focus:ring-primary-5 focus:border-primary-5" %>
     </div>
 
@@ -38,6 +41,7 @@
       <%= f.email_field :email,
           autocomplete: "email",
           placeholder: "Enter email",
+          data: { testid: "auth-input-email" },
           class: "w-full bg-neutral-2 border border-neutral-8 rounded-[5px] p-3 text-sm text-neutral-60 placeholder:text-neutral-60 focus:outline-none focus:ring-2 focus:ring-primary-5 focus:border-primary-5" %>
     </div>
 
@@ -48,10 +52,11 @@
         <%= f.password_field :password,
             autocomplete: "new-password",
             placeholder: "Enter password",
-            data: { password_visibility_target: "input" },
+            data: { password_visibility_target: "input", testid: "auth-input-password" },
             class: "w-full h-10 bg-neutral-2 border border-neutral-8 rounded-[5px] pl-3 pr-10 text-sm text-neutral-60 placeholder:text-neutral-60 focus:outline-none focus:ring-2 focus:ring-primary-5 focus:border-primary-5" %>
         <button type="button"
                 data-action="click->password-visibility#toggle"
+                data-testid="auth-button-password-toggle"
                 class="absolute right-0 top-0 h-10 w-10 flex items-center justify-center bg-primary-6 rounded-r-[5px] hover:bg-primary-7 focus:outline-none">
           <svg data-password-visibility-target="showIcon" class="w-4 h-4 text-white" viewBox="0 0 16 16" fill="currentColor">
             <path d="M8 3C4.364 3 1.258 5.073 0 8c1.258 2.927 4.364 5 8 5s6.742-2.073 8-5c-1.258-2.927-4.364-5-8-5zm0 8.5a3.5 3.5 0 110-7 3.5 3.5 0 010 7zm0-5.5a2 2 0 100 4 2 2 0 000-4z"/>
@@ -76,10 +81,11 @@
         <%= f.password_field :password_confirmation,
             autocomplete: "new-password",
             placeholder: "Confirm password",
-            data: { password_visibility_target: "input" },
+            data: { password_visibility_target: "input", testid: "auth-input-password-confirmation" },
             class: "w-full h-10 bg-neutral-2 border border-neutral-8 rounded-[5px] pl-3 pr-10 text-sm text-neutral-60 placeholder:text-neutral-60 focus:outline-none focus:ring-2 focus:ring-primary-5 focus:border-primary-5" %>
         <button type="button"
                 data-action="click->password-visibility#toggle"
+                data-testid="auth-button-password-confirm-toggle"
                 class="absolute right-0 top-0 h-10 w-10 flex items-center justify-center bg-primary-6 rounded-r-[5px] hover:bg-primary-7 focus:outline-none">
           <svg data-password-visibility-target="showIcon" class="w-4 h-4 text-white" viewBox="0 0 16 16" fill="currentColor">
             <path d="M8 3C4.364 3 1.258 5.073 0 8c1.258 2.927 4.364 5 8 5s6.742-2.073 8-5c-1.258-2.927-4.364-5-8-5zm0 8.5a3.5 3.5 0 110-7 3.5 3.5 0 010 7zm0-5.5a2 2 0 100 4 2 2 0 000-4z"/>
@@ -97,6 +103,7 @@
     <%# Sign Up Button %>
     <div>
       <%= f.submit "Sign Up",
+          data: { testid: "auth-button-submit" },
           class: "w-full h-10 bg-primary-6 hover:bg-primary-7 text-white text-sm font-medium rounded-[5px] transition-colors focus:outline-none focus:ring-2 focus:ring-primary-5 focus:ring-offset-2 cursor-pointer" %>
     </div>
   <% end %>
@@ -104,11 +111,13 @@
   <%# Links %>
   <div class="flex items-center justify-center mt-6">
     <%= link_to "Already have an account? Sign in", new_session_path(resource_name),
-        class: "text-sm text-primary-6 hover:text-primary-7" %>
+        class: "text-sm text-primary-6 hover:text-primary-7",
+        data: { testid: "auth-link-sign-in" } %>
   </div>
 
   <div class="flex items-center justify-center mt-4">
     <%= link_to "Need Help?", "#",
-        class: "text-sm text-primary-6 hover:text-primary-7" %>
+        class: "text-sm text-primary-6 hover:text-primary-7",
+        data: { testid: "auth-link-help" } %>
   </div>
 </div>

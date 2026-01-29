@@ -1,16 +1,17 @@
 <% content_for(:page_title) { "Server Products" } %>
 
+<div data-testid="server-products-container">
 <div class="flex items-center justify-between mb-6">
   <div>
     <h1 class="text-2xl font-bold text-neutral-85">Server Products</h1>
     <p class="text-sm text-neutral-45 mt-1">Manage QCT server product catalog</p>
   </div>
   <div class="flex items-center gap-3">
-    <%= button_to sync_settings_server_products_path, method: :post, class: "btn-secondary", data: { turbo_confirm: "Start sync from QCT website?" } do %>
+    <%= button_to sync_settings_server_products_path, method: :post, class: "btn-secondary", data: { turbo_confirm: "Start sync from QCT website?", testid: "server-products-button-sync" } do %>
       <%= lucide_icon("refresh-cw", class: "h-4 w-4 mr-2") %>
       Sync from QCT
     <% end %>
-    <%= link_to new_settings_server_product_path, class: "btn-primary" do %>
+    <%= link_to new_settings_server_product_path, class: "btn-primary", data: { testid: "server-products-button-new" } do %>
       <%= lucide_icon("plus", class: "h-4 w-4 mr-2") %>
       Add Product
     <% end %>
@@ -18,7 +19,7 @@
 </div>
 
 <% if @last_sync %>
-  <div class="mb-4 text-sm text-neutral-45">
+  <div class="mb-4 text-sm text-neutral-45" data-testid="server-products-last-sync">
     Last synced <%= time_ago_in_words(@last_sync.completed_at) %> ago
     <% if @last_sync.products_added > 0 || @last_sync.products_updated > 0 %>
       (<%= @last_sync.products_added %> added, <%= @last_sync.products_updated %> updated)
@@ -27,9 +28,9 @@
 <% end %>
 
 <div class="card-netbox mb-4">
-  <%= form_with url: settings_server_products_path, method: :get, class: "flex flex-wrap gap-4 p-4", data: { turbo_frame: "_top" } do |f| %>
+  <%= form_with url: settings_server_products_path, method: :get, class: "flex flex-wrap gap-4 p-4", data: { turbo_frame: "_top", testid: "server-products-filter-form" } do |f| %>
     <div class="flex-1 min-w-[200px]">
-      <%= f.text_field :q, value: params[:q], placeholder: "Search by name...", class: "form-input w-full" %>
+      <%= f.text_field :q, value: params[:q], placeholder: "Search by name...", class: "form-input w-full", data: { testid: "server-products-filter-search" } %>
     </div>
     <div class="w-48">
       <%= f.select :series,
@@ -38,7 +39,7 @@
               params[:series]
             ),
             { include_blank: "All Series" },
-            class: "form-select w-full" %>
+            { class: "form-select w-full", data: { testid: "server-products-filter-series" } } %>
     </div>
     <div class="w-48">
       <%= f.select :form_factor,
@@ -47,11 +48,11 @@
               params[:form_factor]
             ),
             { include_blank: "All Form Factors" },
-            class: "form-select w-full" %>
+            { class: "form-select w-full", data: { testid: "server-products-filter-form-factor" } } %>
     </div>
     <div class="flex gap-2">
-      <%= f.submit "Filter", class: "btn-primary" %>
-      <%= link_to "Clear", settings_server_products_path, class: "btn-secondary" %>
+      <%= f.submit "Filter", class: "btn-primary", data: { testid: "server-products-button-filter" } %>
+      <%= link_to "Clear", settings_server_products_path, class: "btn-secondary", data: { testid: "server-products-button-clear" } %>
     </div>
   <% end %>
 </div>
@@ -59,7 +60,7 @@
 <div class="card-netbox">
   <% if @server_products.any? %>
     <div class="overflow-x-auto">
-      <table class="min-w-full divide-y divide-neutral-8 text-sm">
+      <table class="min-w-full divide-y divide-neutral-8 text-sm" data-testid="server-products-table">
         <thead class="bg-neutral-2">
           <tr>
             <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-neutral-45 border-b w-16">Image</th>
@@ -81,7 +82,7 @@
     </div>
 
     <% if @server_products.total_pages > 1 %>
-      <div class="border-t border-neutral-8 bg-neutral-2 px-6 py-4">
+      <div class="border-t border-neutral-8 bg-neutral-2 px-6 py-4" data-testid="server-products-pagination">
         <div class="flex items-center justify-between">
           <div class="text-sm text-neutral-85">
             Showing
@@ -97,7 +98,7 @@
       </div>
     <% end %>
   <% else %>
-    <div class="flex flex-col items-center justify-center py-12 text-center">
+    <div class="flex flex-col items-center justify-center py-12 text-center" data-testid="server-products-empty">
       <div class="h-12 w-12 rounded-full bg-neutral-4 flex items-center justify-center mb-4">
         <%= lucide_icon("server", class: "h-6 w-6 text-neutral-25") %>
       </div>
@@ -113,4 +114,5 @@
       </div>
     </div>
   <% end %>
+</div>
 </div>

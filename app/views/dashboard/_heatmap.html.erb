@@ -1,22 +1,25 @@
 <%# Node Heatmap Grid - Visual representation of cluster status %>
 <div class="card-netbox !overflow-visible"
      data-controller="heatmap"
-     data-heatmap-runs-frame-id-value="filtered_runs">
+     data-heatmap-runs-frame-id-value="filtered_runs"
+     data-testid="dashboard-heatmap-container">
   
   <div class="card-header">
     <div>
-      <h2 class="card-title">Node Heatmap</h2>
+      <h2 class="card-title" data-testid="dashboard-heatmap-title">Node Heatmap</h2>
       <p class="text-[10px] text-neutral-45 lowercase font-normal italic">Click a node to filter benchmark runs</p>
     </div>
     
     <%# Selection indicator and clear button %>
     <div class="flex items-center gap-3">
-      <span data-heatmap-target="selectedLabel" 
-            class="hidden text-xs font-bold text-primary-6 uppercase tracking-tight"></span>
+      <span data-heatmap-target="selectedLabel"
+            class="hidden text-xs font-bold text-primary-6 uppercase tracking-tight"
+            data-testid="dashboard-heatmap-selected"></span>
       <button type="button"
               data-heatmap-target="clearButton"
               data-action="click->heatmap#clearSelection"
-              class="hidden items-center gap-1.5 rounded bg-neutral-4 px-2 py-1 text-[10px] font-bold text-neutral-85 hover:bg-neutral-8 border border-neutral-15 transition-colors uppercase">
+              class="hidden items-center gap-1.5 rounded bg-neutral-4 px-2 py-1 text-[10px] font-bold text-neutral-85 hover:bg-neutral-8 border border-neutral-15 transition-colors uppercase"
+              data-testid="dashboard-heatmap-clear">
         <%= lucide_icon("x", class: "h-3 w-3") %>
         Clear filter
       </button>
@@ -42,16 +45,16 @@
       <% role_order = %w[admin login compute k8s_worker] %>
       <% role_labels = { "admin" => "Admin", "login" => "Login", "compute" => "Compute", "k8s_worker" => "K8s Worker" } %>
 
-      <div class="space-y-4" role="grid" aria-label="Node heatmap">
+      <div class="space-y-4" role="grid" aria-label="Node heatmap" data-testid="dashboard-heatmap-grid">
         <% role_order.each do |role| %>
           <% role_nodes = grouped_nodes[role] %>
           <% next if role_nodes.blank? %>
 
           <%# Role Group %>
-          <div class="flex items-center gap-3">
+          <div class="flex items-center gap-3" data-testid="dashboard-heatmap-role-<%= role %>">
             <%# Role Label %>
             <div class="w-20 shrink-0">
-              <span class="text-[10px] font-bold text-neutral-45 uppercase tracking-tight"><%= role_labels[role] || role.humanize %></span>
+              <span class="text-[10px] font-bold text-neutral-45 uppercase tracking-tight" data-testid="dashboard-heatmap-role-label-<%= role %>"><%= role_labels[role] || role.humanize %></span>
               <span class="text-[9px] text-neutral-25 ml-1">(<%= role_nodes.size %>)</span>
             </div>
 
@@ -64,7 +67,8 @@
                         data-node-id="<%= node.id %>"
                         data-hostname="<%= node.hostname %>"
                         class="group relative h-4 w-4 rounded-full transition-all duration-150 cursor-pointer hover:scale-105 focus:outline-none focus:ring-2 focus:ring-primary-5 focus:ring-offset-2 <%= node_heatmap_class(node) %> border border-black/5"
-                        aria-label="<%= node.hostname %>, <%= node.role %>, <%= node.online? ? 'online' : 'offline' %>">
+                        aria-label="<%= node.hostname %>, <%= node.role %>, <%= node.online? ? 'online' : 'offline' %>"
+                        data-testid="dashboard-heatmap-node-<%= node.hostname %>">
                   <%# Tooltip on hover %>
                   <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 hidden group-hover:block z-50 pointer-events-none">
                     <div class="whitespace-nowrap rounded-lg bg-white px-3 py-2.5 shadow-[0_4px_20px_rgba(0,0,0,0.15)] ring-1 ring-neutral-8">
@@ -126,13 +130,13 @@
 
       <%# Node count summary %>
       <% online_count = nodes.count(&:online?) %>
-      <div class="mt-4 flex items-center justify-between text-[10px] font-bold uppercase tracking-widest text-neutral-25">
+      <div class="mt-4 flex items-center justify-between text-[10px] font-bold uppercase tracking-widest text-neutral-25" data-testid="dashboard-heatmap-summary">
         <span><%= nodes.size %> nodes total</span>
         <span><%= online_count %> online, <%= nodes.size - online_count %> offline</span>
       </div>
     <% else %>
       <%# Empty state %>
-      <div class="flex flex-col items-center justify-center py-12 text-center border-2 border-dashed border-neutral-8 rounded-lg">
+      <div class="flex flex-col items-center justify-center py-12 text-center border-2 border-dashed border-neutral-8 rounded-lg" data-testid="dashboard-heatmap-empty">
         <%= lucide_icon("server", class: "h-12 w-12 text-neutral-15") %>
         <p class="mt-4 text-xs font-bold text-neutral-45 uppercase">No nodes registered</p>
         <p class="mt-1 text-[10px] text-neutral-25 font-medium">Import nodes via CSV or API to see the heatmap</p>

@@ -80,4 +80,55 @@ RSpec.describe SlideOverComponent, type: :component do
 
     expect(page).to have_css("[data-controller='tabs']")
   end
+
+  describe "test IDs" do
+    it "renders data-testid on container when testid is provided" do
+      render_inline(SlideOverComponent.new(title: "Details", testid: "nodes-modal")) do |c|
+        c.with_tab(name: "Overview", active: true) { "Content" }
+      end
+
+      expect(page).to have_css("[data-testid='nodes-modal-container']")
+    end
+
+    it "renders data-testid on header" do
+      render_inline(SlideOverComponent.new(title: "Details", testid: "nodes-modal")) do |c|
+        c.with_tab(name: "Overview", active: true) { "Content" }
+      end
+
+      expect(page).to have_css("[data-testid='nodes-modal-header']")
+    end
+
+    it "renders data-testid on close button" do
+      render_inline(SlideOverComponent.new(title: "Details", testid: "nodes-modal")) do |c|
+        c.with_tab(name: "Overview", active: true) { "Content" }
+      end
+
+      expect(page).to have_css("[data-testid='nodes-modal-close-button']")
+    end
+
+    it "renders data-testid on tabs container" do
+      render_inline(SlideOverComponent.new(title: "Details", testid: "nodes-modal")) do |c|
+        c.with_tab(name: "Overview", active: true) { "Content" }
+        c.with_tab(name: "Hardware", active: false) { "Content" }
+      end
+
+      expect(page).to have_css("[data-testid='nodes-modal-tabs']")
+    end
+
+    it "renders data-testid on content area" do
+      render_inline(SlideOverComponent.new(title: "Details", testid: "nodes-modal")) do |c|
+        c.with_tab(name: "Overview", active: true) { "Content" }
+      end
+
+      expect(page).to have_css("[data-testid='nodes-modal-content']")
+    end
+
+    it "does not render data-testid when testid is not provided" do
+      render_inline(SlideOverComponent.new(title: "Details")) do |c|
+        c.with_tab(name: "Overview", active: true) { "Content" }
+      end
+
+      expect(page).not_to have_css("[data-testid]")
+    end
+  end
 end

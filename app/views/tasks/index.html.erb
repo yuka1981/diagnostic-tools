@@ -1,13 +1,14 @@
 <% content_for(:page_title) { "Tasks" } %>
 
 <div data-controller="auto-refresh"
-     data-auto-refresh-frame-value="tasks_list">
+     data-auto-refresh-frame-value="tasks_list"
+     data-testid="tasks-page-container">
 
   <div class="flex items-center justify-between mb-6">
     <h1 class="text-2xl font-bold text-neutral-85">Tasks</h1>
 
     <%# Auto-refresh control %>
-    <div class="flex items-center gap-2">
+    <div class="flex items-center gap-2" data-testid="tasks-auto-refresh">
       <span data-auto-refresh-target="countdown" class="text-xs text-neutral-45 hidden"></span>
       <select data-auto-refresh-target="select"
               data-action="change->auto-refresh#updateInterval"
@@ -25,12 +26,12 @@
   <%= render "tasks/filter_bar" %>
 
   <%# Tasks List (Turbo Frame) %>
-  <%= turbo_frame_tag "tasks_list", data: { turbo_action: "advance" } do %>
+  <%= turbo_frame_tag "tasks_list", data: { turbo_action: "advance", testid: "tasks-list-frame" } do %>
     <div class="card-netbox">
       <% if @tasks.any? %>
         <%# Filter Summary %>
         <% if @filter.filtered? %>
-          <div class="border-b border-neutral-8 bg-neutral-2 px-6 py-3">
+          <div class="border-b border-neutral-8 bg-neutral-2 px-6 py-3" data-testid="tasks-filter-summary">
             <p class="text-sm text-neutral-45">
               Showing <%= pluralize(@filter.total_count, "task") %>
               <% if @filter.search_query.present? %>
@@ -41,8 +42,8 @@
         <% end %>
 
         <div class="overflow-x-auto">
-          <table class="min-w-full divide-y divide-neutral-8 text-sm">
-            <thead class="bg-neutral-2">
+          <table class="min-w-full divide-y divide-neutral-8 text-sm" data-testid="tasks-table">
+            <thead class="bg-neutral-2" data-testid="tasks-table-header">
               <tr>
                 <th scope="col" class="w-8 px-3 py-2 border-b"></th>
                 <th scope="col" class="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-neutral-45 border-b">Type</th>
@@ -56,7 +57,7 @@
                 </th>
               </tr>
             </thead>
-            <tbody class="divide-y divide-neutral-8 bg-white" data-controller="accordion" data-accordion-exclusive-value="true">
+            <tbody class="divide-y divide-neutral-8 bg-white" data-controller="accordion" data-accordion-exclusive-value="true" data-testid="tasks-table-body">
               <% @tasks.each do |task| %>
                 <%= render "tasks/task_row", task: task %>
                 <%= render "tasks/task_details", task: task %>
@@ -66,7 +67,7 @@
         </div>
 
         <%# Pagination %>
-        <div class="border-t border-neutral-8 bg-neutral-2 px-6 py-4">
+        <div class="border-t border-neutral-8 bg-neutral-2 px-6 py-4" data-testid="tasks-pagination">
           <div class="flex items-center justify-between gap-4">
             <%# Left: Showing info %>
             <div class="hidden sm:block">
@@ -90,6 +91,7 @@
             <div class="flex items-center gap-2">
               <label for="per_page" class="text-xs font-bold text-neutral-45 uppercase whitespace-nowrap">Per page</label>
               <select id="per_page"
+                      data-testid="tasks-per-page"
                       class="text-sm rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 py-1.5"
                       onchange="document.getElementById('tasks_list').src = this.value">
                 <% [10, 20, 50].each do |count| %>
@@ -103,7 +105,7 @@
           </div>
         </div>
       <% else %>
-        <div class="flex flex-col items-center justify-center py-12 text-center">
+        <div class="flex flex-col items-center justify-center py-12 text-center" data-testid="tasks-table-empty">
           <div class="h-12 w-12 rounded-full bg-neutral-4 flex items-center justify-center mb-4">
             <%= lucide_icon("list-checks", class: "h-6 w-6 text-neutral-25") %>
           </div>
