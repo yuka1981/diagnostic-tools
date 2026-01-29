@@ -18,6 +18,7 @@ Rails.application.routes.draw do
 
     namespace :v1 do
       get "health", to: "health#show"
+      post "salt/events", to: "salt_events#create"
       post "inventory/push", to: "inventory#push"
       resources :benchmark_runs, only: [ :create, :update ]
       post "nodes/:id/heartbeat", to: "heartbeats#create"
