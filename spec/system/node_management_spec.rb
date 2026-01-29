@@ -54,5 +54,4 @@ RSpec.describe "Node Management", type: :system, js: true do
     # Ensure modal is closed
     expect(page).not_to have_selector("turbo-frame#node_modal .card-netbox")
   end
-
 end

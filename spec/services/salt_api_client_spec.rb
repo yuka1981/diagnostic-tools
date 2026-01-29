@@ -202,7 +202,7 @@ RSpec.describe SaltApiClient do
       stub_request(:post, "#{base_url}/login")
         .to_return(
           status: 200,
-          body: { return: [{ token: "test-token", expire: (Time.current + 1.hour).to_f }] }.to_json,
+          body: { return: [ { token: "test-token", expire: (Time.current + 1.hour).to_f } ] }.to_json,
           headers: { "Content-Type" => "application/json" }
         )
     end
@@ -216,7 +216,7 @@ RSpec.describe SaltApiClient do
       stub_request(:get, "#{base_url}/minions")
         .to_return(
           status: 200,
-          body: { return: [minion_data] }.to_json,
+          body: { return: [ minion_data ] }.to_json,
           headers: { "Content-Type" => "application/json" }
         )
 
@@ -228,7 +228,7 @@ RSpec.describe SaltApiClient do
       stub_request(:get, "#{base_url}/minions")
         .to_return(
           status: 200,
-          body: { return: [{}] }.to_json,
+          body: { return: [ {} ] }.to_json,
           headers: { "Content-Type" => "application/json" }
         )
 

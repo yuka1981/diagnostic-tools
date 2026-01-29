@@ -32,5 +32,4 @@ RSpec.describe "Settings::SshDefaults", type: :system do
     expect(setting.bastion_user).to eq("admin-user")
     expect(setting.bastion_port).to eq(2222)
   end
-
 end
