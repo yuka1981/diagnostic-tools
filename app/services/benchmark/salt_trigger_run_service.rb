@@ -39,7 +39,7 @@ module Benchmark
     private
 
     def state_mod
-      "benchmark.#{@benchmark_run.benchmark_recipe.name}"
+      "benchmark.#{@benchmark_run.benchmark_recipe.slug}"
     end
 
     def pillar_data

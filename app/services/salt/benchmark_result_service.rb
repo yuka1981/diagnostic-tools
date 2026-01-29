@@ -16,7 +16,7 @@ module Salt
           error_message: "Invalid job return data: #{minion_return.inspect.truncate(500)}",
           finished_at: Time.current
         )
-        return
+        return false
       end
 
       result = minion_return["return"]
@@ -33,12 +33,19 @@ module Salt
       )
 
       fetch_artifacts(result["artifacts"] || [])
+      true
+    rescue StandardError => e
+      Rails.logger.error("[BenchmarkResultService] Processing failed: #{e.message}")
+      false
     end
 
     private
 
     def write_log_content(content)
       return nil unless content.present?
+
+      content = content.truncate(10_000_000) if content.bytesize > 10_000_000 # 10MB cap
+
       log_dir = Rails.root.join("storage", "benchmark_logs")
       FileUtils.mkdir_p(log_dir)
       path = log_dir.join("#{@benchmark_run.uuid}.log")

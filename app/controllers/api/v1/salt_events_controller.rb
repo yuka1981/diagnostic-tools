@@ -7,6 +7,11 @@ module Api
         body = JSON.parse(request.body.read)
         tag = body["tag"]
 
+        if tag.blank?
+          render json: { error: "Missing required field: tag" }, status: :unprocessable_entity
+          return
+        end
+
         Salt::EventListenerService.new.dispatch_event(tag, body)
 
         render json: { success: true }

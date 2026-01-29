@@ -85,6 +85,11 @@ class SaltApiClient
     uri = URI.parse("#{@base_url}/events")
     http = Net::HTTP.new(uri.host, uri.port)
     http.use_ssl = uri.scheme == "https"
+    if http.use_ssl?
+      http.verify_mode = OpenSSL::SSL::VERIFY_PEER
+      ca_cert = salt_config[:ca_cert]
+      http.ca_file = ca_cert if ca_cert.present?
+    end
     http.read_timeout = 0
 
     request = Net::HTTP::Get.new(uri)
@@ -133,6 +138,11 @@ class SaltApiClient
   def execute_request(uri, request)
     http = Net::HTTP.new(uri.host, uri.port)
     http.use_ssl = uri.scheme == "https"
+    if http.use_ssl?
+      http.verify_mode = OpenSSL::SSL::VERIFY_PEER
+      ca_cert = salt_config[:ca_cert]
+      http.ca_file = ca_cert if ca_cert.present?
+    end
     http.open_timeout = 10
     http.read_timeout = 300
 
@@ -158,15 +168,20 @@ class SaltApiClient
 
   def parse_sse_stream(response, &block)
     tag = nil
+    data_lines = []
     response.read_body do |chunk|
       chunk.each_line do |line|
-        line = line.strip
+        line = line.rstrip
         if line.start_with?("tag: ")
           tag = line.sub("tag: ", "")
-        elsif line.start_with?("data: ") && tag
-          data = JSON.parse(line.sub("data: ", ""))
+          data_lines = []
+        elsif line.start_with?("data: ")
+          data_lines << line.sub("data: ", "")
+        elsif line.empty? && tag && data_lines.any?
+          data = JSON.parse(data_lines.join("\n"))
           block.call(tag, data)
           tag = nil
+          data_lines = []
         end
       end
     end
@@ -176,7 +191,8 @@ class SaltApiClient
     @salt_config ||= {
       base_url: Rails.application.credentials.dig(:salt_api, :base_url) || ENV["SALT_API_URL"],
       username: Rails.application.credentials.dig(:salt_api, :username) || ENV["SALT_API_USERNAME"],
-      password: Rails.application.credentials.dig(:salt_api, :password) || ENV["SALT_API_PASSWORD"]
+      password: Rails.application.credentials.dig(:salt_api, :password) || ENV["SALT_API_PASSWORD"],
+      ca_cert: Rails.application.credentials.dig(:salt_api, :ca_cert) || ENV["SALT_API_CA_CERT"]
     }
   end
 end

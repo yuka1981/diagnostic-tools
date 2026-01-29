@@ -76,13 +76,13 @@ RSpec.describe Salt::InventoryMapper do
 
     it "maps dmi data" do
       result = mapper.call
-      expect(result[:dmi]["bios"]["vendor"]).to eq("AMI")
-      expect(result[:dmi]["system"]["manufacturer"]).to eq("QCT")
+      expect(result[:dmi][:bios][:vendor]).to eq("AMI")
+      expect(result[:dmi][:system][:manufacturer]).to eq("QCT")
     end
 
     it "maps network_v2 data" do
       result = mapper.call
-      expect(result[:network_v2]["devices"].first["name"]).to eq("eth0")
+      expect(result[:network_v2][:devices].first[:name]).to eq("eth0")
     end
 
     it "produces output compatible with ProcessStateService" do

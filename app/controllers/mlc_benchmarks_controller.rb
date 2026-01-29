@@ -54,5 +54,4 @@ class MlcBenchmarksController < ApplicationController
   def form_params
     params.require(:mlc_run_form).permit(:node_id, :profile, :binary_path, :modules, :log_path)
   end
-
 end

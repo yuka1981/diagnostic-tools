@@ -21,7 +21,10 @@ RSpec.describe Salt::EventListenerService do
         "retcode" => 0
       }
 
-      expect(Salt::BenchmarkResultService).to receive(:new).and_call_original
+      result_service = instance_double(Salt::BenchmarkResultService, call: true)
+      expect(Salt::BenchmarkResultService).to receive(:new)
+        .with(hash_including(benchmark_run: run))
+        .and_return(result_service)
       service.dispatch_event(event_tag, event_data)
     end
 

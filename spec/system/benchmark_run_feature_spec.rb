@@ -60,11 +60,6 @@ RSpec.describe "Benchmark Run Feature", type: :system do
     select recipe.display_name, from: "Benchmark Recipe"
     fill_in "Log File Path (Optional)", with: "/tmp/custom_hpcg.log"
 
-    # We need to mock the service call to avoid actual SSH
-    service = instance_double(Benchmark::TriggerRunService)
-    allow(Benchmark::TriggerRunService).to receive(:new).and_return(service)
-    allow(service).to receive(:call).and_return(double(success?: true))
-
     click_button "Start Benchmark"
 
     expect(page).to have_content("Benchmark triggered successfully")

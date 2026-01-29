@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Salt
   class PresenceCheckService
     def initialize(salt_client: nil)

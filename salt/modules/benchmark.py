@@ -117,7 +117,7 @@ def _find_benchmark_pid():
     """Find a running benchmark process PID."""
     try:
         result = subprocess.run(
-            ['pgrep', '-f', '(hpcg|mlc)'],
+            ['pgrep', '-x', 'hpcg|mlc'],
             capture_output=True, text=True
         )
         if result.returncode == 0 and result.stdout.strip():

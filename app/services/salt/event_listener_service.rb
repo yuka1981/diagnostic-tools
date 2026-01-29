@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Salt
   class EventListenerService
     BENCHMARK_JOB_PATTERN = /\Asalt\/job\/ret\//.freeze
@@ -8,10 +10,15 @@ module Salt
     end
 
     def listen
-      @salt_client.events do |tag, data|
-        dispatch_event(tag, data)
+      loop do
+        @salt_client.events do |tag, data|
+          dispatch_event(tag, data)
+        rescue StandardError => e
+          Rails.logger.error("[SaltEventListener] Event dispatch error for tag=#{tag}: #{e.message}")
+        end
       rescue StandardError => e
-        Rails.logger.error("Salt event dispatch error for tag=#{tag}: #{e.message}")
+        Rails.logger.error("[SaltEventListener] SSE connection lost: #{e.message}, reconnecting...")
+        sleep 5
       end
     end
 
@@ -25,15 +32,8 @@ module Salt
     end
 
     def update_presence(new_minions: [], lost_minions: [])
-      lost_minions.each do |hostname|
-        node = Node.find_by(hostname: hostname)
-        node&.update(last_heartbeat_at: nil)
-      end
-
-      new_minions.each do |hostname|
-        node = Node.find_by(hostname: hostname)
-        node&.update(last_heartbeat_at: Time.current)
-      end
+      Node.where(hostname: lost_minions).update_all(last_heartbeat_at: nil) if lost_minions.any?
+      Node.where(hostname: new_minions).update_all(last_heartbeat_at: Time.current) if new_minions.any?
     end
 
     private

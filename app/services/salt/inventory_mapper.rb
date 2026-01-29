@@ -75,13 +75,13 @@ module Salt
     def map_network_v2_info
       return {} unless @network_v2
 
-      @network_v2
+      @network_v2.deep_symbolize_keys
     end
 
     def map_dmi_info
       return {} unless @dmi
 
-      @dmi
+      @dmi.deep_symbolize_keys
     end
   end
 end
