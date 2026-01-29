@@ -4,7 +4,7 @@
 
 **Goal:** Replace the custom Go agent (`qis-agent`) and SSH-based node management with SaltStack salt-api REST interface, using Salt minions on compute nodes and custom execution modules for inventory and benchmarks.
 
-**Architecture:** Rails communicates with nodes exclusively through a `SaltApiClient` service that talks to salt-api (CherryPy) on the admin node. Inventory uses Salt grains + custom execution modules mapped to the existing `ProcessStateService` schema. Benchmarks use Salt orchestrate runner with event bus streaming. Presence detection replaces heartbeat.
+**Architecture:** Rails communicates with nodes exclusively through a `SaltApiClient` service that talks to salt-api (CherryPy) on the admin node. Inventory uses Salt grains + custom execution modules mapped to the existing `ProcessStateService` schema. Benchmarks use Salt `state.apply` with async job tracking and event bus streaming. Presence detection replaces heartbeat.
 
 **Tech Stack:** Rails 7.2 + Hotwire (backend), Python 3 (Salt custom modules), SaltStack 3006+ (salt-master, salt-api, salt-minion), RSpec (tests)
 
@@ -108,6 +108,18 @@ RSpec.describe SaltApiClient do
       expect { client.run("node-01", "test.ping") }
         .to raise_error(SaltApiClient::TargetUnreachable)
     end
+
+    it "raises TargetUnreachable when minion is not in the result" do
+      stub_request(:post, "#{base_url}/")
+        .to_return(
+          status: 200,
+          body: { return: [{}] }.to_json,
+          headers: { "Content-Type" => "application/json" }
+        )
+
+      expect { client.run("node-01", "grains.items") }
+        .to raise_error(SaltApiClient::TargetUnreachable)
+    end
   end
 
   describe "token auto-renewal" do
@@ -195,7 +207,12 @@ class SaltApiClient
     data = parse_response(response)
     result = data.dig("return", 0)
 
-    minion_result = result&.dig(target)
+    unless result.is_a?(Hash) && result.key?(target)
+      raise TargetUnreachable, "Minion '#{target}' did not return a result"
+    end
+
+    minion_result = result[target]
+
     if minion_result == false && function == "test.ping"
       raise TargetUnreachable, "Minion '#{target}' is not responding"
     end
@@ -340,7 +357,7 @@ describe "#run_async" do
         headers: { "Content-Type" => "application/json" }
       )
 
-    jid = client.run_async("node-01", "state.orchestrate", mods: "benchmark.hpcg")
+    jid = client.run_async("node-01", "state.apply", mods: "benchmark.hpcg")
     expect(jid).to eq("20260129120000123456")
   end
 end
@@ -499,13 +516,13 @@ RSpec.describe Salt::InventoryMapper do
 
     it "maps dmi data" do
       result = mapper.call
-      expect(result[:dmi][:bios][:vendor]).to eq("AMI")
-      expect(result[:dmi][:system][:manufacturer]).to eq("QCT")
+      expect(result[:dmi]["bios"]["vendor"]).to eq("AMI")
+      expect(result[:dmi]["system"]["manufacturer"]).to eq("QCT")
     end
 
     it "maps network_v2 data" do
       result = mapper.call
-      expect(result[:network_v2][:devices].first["name"]).to eq("eth0")
+      expect(result[:network_v2]["devices"].first["name"]).to eq("eth0")
     end
 
     it "produces output compatible with ProcessStateService" do
@@ -714,9 +731,13 @@ RSpec.describe Inventory::SaltCollectService do
     end
 
     it "delegates to ProcessStateService with mapped data" do
+      mock_result = Inventory::ProcessStateService::Result.new(
+        success: true, state_created: true, node_state: nil, error: nil, error_code: nil
+      )
+      mock_service = instance_double(Inventory::ProcessStateService, call: mock_result)
       expect(Inventory::ProcessStateService).to receive(:new).with(
         hash_including(node_id: node.id, raw_json: hash_including(:host, :cpu, :memory))
-      ).and_call_original
+      ).and_return(mock_service)
 
       service.call
     end
@@ -756,7 +777,7 @@ Create `app/services/inventory/salt_collect_service.rb`:
 ```ruby
 module Inventory
   class SaltCollectService
-    Result = Struct.new(:success, :error, :state_created, :node_state, keyword_init: true) do
+    Result = Struct.new(:success, :error, :state_created, :node_state, :error_code, keyword_init: true) do
       def success?
         success
       end
@@ -854,11 +875,11 @@ RSpec.describe Benchmark::SaltTriggerRunService do
   end
 
   describe "#call" do
-    it "triggers an async Salt orchestration job" do
+    it "triggers an async Salt state.apply job" do
       expect(salt_client).to receive(:run_async)
         .with(
           "node-01",
-          "state.orchestrate",
+          "state.apply",
           mods: "benchmark.mlc",
           pillar: hash_including(run_id: run.uuid)
         )
@@ -928,8 +949,8 @@ module Benchmark
     def call
       jid = @salt_client.run_async(
         @target_node.hostname,
-        "state.orchestrate",
-        mods: orchestration_mod,
+        "state.apply",
+        mods: state_mod,
         pillar: pillar_data
       )
 
@@ -950,7 +971,7 @@ module Benchmark
 
     private
 
-    def orchestration_mod
+    def state_mod
       benchmark_type = @benchmark_run.benchmark_recipe.benchmark_type
       "benchmark.#{benchmark_type}"
     end
@@ -980,7 +1001,7 @@ Expected: All PASS
 
 ```bash
 git add app/services/benchmark/salt_trigger_run_service.rb spec/services/benchmark/salt_trigger_run_service_spec.rb
-git commit -m "feat(salt): add Benchmark::SaltTriggerRunService for orchestrated benchmarks"
+git commit -m "feat(salt): add Benchmark::SaltTriggerRunService for Salt-based benchmarks"
 ```
 
 ---
@@ -1041,7 +1062,7 @@ RSpec.describe Salt::BenchmarkResultService do
       expect(run.status).to eq("success")
       expect(run.metrics["gflops"]).to eq(45.67)
       expect(run.finished_at).to be_present
-      expect(run.log_content).to eq("Benchmark completed successfully")
+      expect(run.log_path).to be_present
     end
 
     it "maps FAIL status correctly" do
@@ -1099,13 +1120,14 @@ module Salt
 
       result = minion_return["return"]
       status = BenchmarkRun.status_from_agent(result["status"]) || :failed
+      log_file_path = write_log_content(result["log_content"])
 
       @benchmark_run.update!(
         status: status,
         metrics: result["metrics"] || {},
         started_at: parse_time(result["start_time"]) || @benchmark_run.started_at,
         finished_at: parse_time(result["end_time"]) || Time.current,
-        log_content: result["log_content"],
+        log_path: log_file_path,
         error_message: result["error_message"]
       )
 
@@ -1113,6 +1135,15 @@ module Salt
     end
 
     private
+
+    def write_log_content(content)
+      return nil unless content.present?
+      log_dir = Rails.root.join("storage", "benchmark_logs")
+      FileUtils.mkdir_p(log_dir)
+      path = log_dir.join("#{@benchmark_run.uuid}.log")
+      File.write(path, content)
+      path.to_s
+    end
 
     def fetch_artifacts(artifact_paths)
       artifact_paths.each do |path|
@@ -1172,7 +1203,7 @@ RSpec.describe Salt::EventListenerService do
       run = create(:benchmark_run, :running, node: node)
       event_tag = "salt/job/ret/20260129120000123456"
       event_data = {
-        "fun" => "state.orchestrate",
+        "fun" => "state.apply",
         "fun_args" => [{ "mods" => "benchmark.hpcg", "pillar" => { "run_id" => run.uuid } }],
         "return" => {
           "status" => "PASS",
@@ -1267,7 +1298,7 @@ module Salt
 
     def benchmark_event?(data)
       fun = data["fun"]
-      fun == "state.orchestrate" && data.dig("fun_args")&.any? { |arg|
+      fun == "state.apply" && data.dig("fun_args")&.any? { |arg|
         arg.is_a?(Hash) && arg["mods"]&.start_with?("benchmark.")
       }
     end
@@ -1378,6 +1409,8 @@ Add to `app/services/salt_api_client.rb`:
 ```ruby
 def events(&block)
   ensure_authenticated
+  # salt-api accepts token via X-Auth-Token header or ?token= query param.
+  # Using header approach for consistency with other methods.
   uri = URI.parse("#{@base_url}/events")
   http = Net::HTTP.new(uri.host, uri.port)
   http.use_ssl = uri.scheme == "https"
@@ -1778,15 +1811,17 @@ git commit -m "refactor(salt): update Benchmark::TriggerJob to use SaltTriggerRu
 
 ## Phase 7: Salt Custom Execution Modules (Python)
 
-### Task 7.1: Create inventory DMI collection module
+### Task 7.1: Create consolidated inventory collection module
+
+> **Note:** All inventory functions (`collect_dmi`, `collect_numa`, `collect_network_v2`) live in a single `inventory.py` module because Salt only loads one module per `__virtualname__`. Multiple files sharing `__virtualname__ = 'inventory'` would silently override each other.
 
 **Files:**
-- Create: `salt/modules/inventory_dmi.py`
-- Test: `salt/modules/tests/test_inventory_dmi.py`
+- Create: `salt/modules/inventory.py`
+- Test: `salt/modules/tests/test_inventory.py`
 
 **Step 1: Write the failing test**
 
-Create `salt/modules/tests/test_inventory_dmi.py`:
+Create `salt/modules/tests/test_inventory.py`:
 
 ```python
 import json
@@ -1800,7 +1835,7 @@ import sys
 import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
-import inventory_dmi
+import inventory
 
 
 class TestCollectDmi:
@@ -1824,7 +1859,7 @@ Base Board Information
 \tProduct Name: S6Q
 """
 
-    @mock.patch('inventory_dmi._run_dmidecode')
+    @mock.patch('inventory._run_dmidecode')
     def test_collect_dmi_returns_structured_data(self, mock_run):
         mock_run.side_effect = lambda t: {
             'bios': self.SAMPLE_DMIDECODE_BIOS,
@@ -1832,128 +1867,24 @@ Base Board Information
             'baseboard': self.SAMPLE_DMIDECODE_BASEBOARD,
         }[t]
 
-        result = inventory_dmi.collect_dmi()
+        result = inventory.collect_dmi()
 
         assert result['bios']['vendor'] == 'American Megatrends Inc.'
         assert result['system']['manufacturer'] == 'QCT'
         assert result['system']['product_name'] == 'QuantaPlex T42S-2U'
         assert result['baseboard']['manufacturer'] == 'QCT'
 
-    @mock.patch('inventory_dmi._run_dmidecode')
+    @mock.patch('inventory._run_dmidecode')
     def test_collect_dmi_handles_missing_dmidecode(self, mock_run):
         mock_run.side_effect = FileNotFoundError("dmidecode not found")
 
-        result = inventory_dmi.collect_dmi()
+        result = inventory.collect_dmi()
         assert result == {'error': 'dmidecode not found'}
-```
-
-**Step 2: Run test to verify it fails**
-
-Run: `cd salt/modules && python -m pytest tests/test_inventory_dmi.py -v`
-Expected: FAIL — `ModuleNotFoundError: No module named 'inventory_dmi'`
-
-**Step 3: Write minimal implementation**
-
-Create `salt/modules/inventory_dmi.py`:
-
-```python
-"""
-Salt custom execution module for DMI/BIOS inventory collection.
-Wraps dmidecode to collect BIOS, system, and baseboard information.
-
-Usage via salt-api:
-    salt 'minion-id' inventory.collect_dmi
-"""
-
-import subprocess
-import re
-
-
-__virtualname__ = 'inventory'
-
-
-def __virtual__():
-    return __virtualname__
-
-
-def collect_dmi():
-    """Collect DMI information from the system using dmidecode."""
-    try:
-        return {
-            'bios': _parse_section(_run_dmidecode('bios')),
-            'system': _parse_section(_run_dmidecode('system')),
-            'baseboard': _parse_section(_run_dmidecode('baseboard')),
-        }
-    except FileNotFoundError as e:
-        return {'error': str(e)}
-    except subprocess.CalledProcessError as e:
-        return {'error': f'dmidecode failed: {e.returncode}'}
-
-
-def _run_dmidecode(dmi_type):
-    """Run dmidecode for a specific type."""
-    type_map = {
-        'bios': '0',
-        'system': '1',
-        'baseboard': '2',
-    }
-    result = subprocess.run(
-        ['dmidecode', '-t', type_map[dmi_type]],
-        capture_output=True, text=True, timeout=10
-    )
-    return result.stdout
-
-
-def _parse_section(output):
-    """Parse dmidecode output into a dict of key-value pairs."""
-    data = {}
-    for line in output.splitlines():
-        line = line.strip()
-        if ':' in line and not line.endswith(':'):
-            key, _, value = line.partition(':')
-            key = key.strip().lower().replace(' ', '_')
-            value = value.strip()
-            if value:
-                data[key] = value
-    return data
-```
-
-**Step 4: Run test to verify it passes**
-
-Run: `cd salt/modules && python -m pytest tests/test_inventory_dmi.py -v`
-Expected: All PASS
-
-**Step 5: Commit**
-
-```bash
-git add salt/modules/inventory_dmi.py salt/modules/tests/test_inventory_dmi.py
-git commit -m "feat(salt): add inventory DMI custom execution module"
-```
-
----
-
-### Task 7.2: Create inventory NUMA collection module
-
-**Files:**
-- Create: `salt/modules/inventory_numa.py`
-- Test: `salt/modules/tests/test_inventory_numa.py`
-
-**Step 1: Write the failing test**
-
-Create `salt/modules/tests/test_inventory_numa.py`:
-
-```python
-from unittest import mock
-import os
-import sys
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
-
-import inventory_numa
 
 
 class TestCollectNuma:
-    @mock.patch('inventory_numa._read_file')
-    @mock.patch('inventory_numa._list_numa_nodes')
+    @mock.patch('inventory._read_file')
+    @mock.patch('inventory._list_numa_nodes')
     def test_collect_numa_returns_topology(self, mock_list, mock_read):
         mock_list.return_value = ['node0', 'node1']
         mock_read.side_effect = lambda path: {
@@ -1963,130 +1894,20 @@ class TestCollectNuma:
             '/sys/devices/system/node/node1/meminfo': 'Node 1 MemTotal:       131072000 kB',
         }.get(path, '')
 
-        result = inventory_numa.collect_numa()
+        result = inventory.collect_numa()
 
         assert result['node_count'] == 2
         assert result['nodes']['0']['cpulist'] == '0-19'
         assert result['nodes']['1']['cpulist'] == '20-39'
         assert result['nodes']['0']['memory_kb'] == 131072000
 
-    @mock.patch('inventory_numa._list_numa_nodes')
+    @mock.patch('inventory._list_numa_nodes')
     def test_collect_numa_handles_no_numa(self, mock_list):
         mock_list.return_value = []
 
-        result = inventory_numa.collect_numa()
+        result = inventory.collect_numa()
         assert result['node_count'] == 0
         assert result['nodes'] == {}
-```
-
-**Step 2: Run test to verify it fails**
-
-Run: `cd salt/modules && python -m pytest tests/test_inventory_numa.py -v`
-Expected: FAIL — `ModuleNotFoundError`
-
-**Step 3: Write minimal implementation**
-
-Create `salt/modules/inventory_numa.py`:
-
-```python
-"""
-Salt custom execution module for NUMA topology collection.
-Reads /sys/devices/system/node/ to collect NUMA node information.
-
-Usage via salt-api:
-    salt 'minion-id' inventory.collect_numa
-"""
-
-import os
-import re
-
-
-__virtualname__ = 'inventory'
-
-
-def __virtual__():
-    return __virtualname__
-
-
-def collect_numa():
-    """Collect NUMA topology from /sys/devices/system/node/."""
-    numa_nodes = _list_numa_nodes()
-    nodes = {}
-
-    for node_dir in numa_nodes:
-        node_num = node_dir.replace('node', '')
-        base_path = f'/sys/devices/system/node/{node_dir}'
-
-        cpulist = _read_file(f'{base_path}/cpulist').strip()
-        meminfo = _read_file(f'{base_path}/meminfo')
-        memory_kb = _parse_memtotal(meminfo)
-
-        nodes[node_num] = {
-            'cpulist': cpulist,
-            'memory_kb': memory_kb,
-        }
-
-    return {
-        'node_count': len(numa_nodes),
-        'nodes': nodes,
-    }
-
-
-def _list_numa_nodes():
-    """List NUMA node directories."""
-    base = '/sys/devices/system/node'
-    if not os.path.isdir(base):
-        return []
-    return sorted([d for d in os.listdir(base) if d.startswith('node') and d[4:].isdigit()])
-
-
-def _read_file(path):
-    """Read a file and return its contents."""
-    try:
-        with open(path, 'r') as f:
-            return f.read()
-    except (IOError, OSError):
-        return ''
-
-
-def _parse_memtotal(meminfo):
-    """Parse MemTotal from NUMA meminfo output."""
-    match = re.search(r'MemTotal:\s+(\d+)\s+kB', meminfo)
-    return int(match.group(1)) if match else 0
-```
-
-**Step 4: Run test to verify it passes**
-
-Run: `cd salt/modules && python -m pytest tests/test_inventory_numa.py -v`
-Expected: All PASS
-
-**Step 5: Commit**
-
-```bash
-git add salt/modules/inventory_numa.py salt/modules/tests/test_inventory_numa.py
-git commit -m "feat(salt): add inventory NUMA custom execution module"
-```
-
----
-
-### Task 7.3: Create inventory network v2 collection module
-
-**Files:**
-- Create: `salt/modules/inventory_network_v2.py`
-- Test: `salt/modules/tests/test_inventory_network_v2.py`
-
-**Step 1: Write the failing test**
-
-Create `salt/modules/tests/test_inventory_network_v2.py`:
-
-```python
-from unittest import mock
-import json
-import os
-import sys
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
-
-import inventory_network_v2
 
 
 class TestCollectNetworkV2:
@@ -2108,11 +1929,11 @@ class TestCollectNetworkV2:
         }
     ])
 
-    @mock.patch('inventory_network_v2._run_lshw')
+    @mock.patch('inventory._run_lshw')
     def test_collect_network_v2_returns_devices(self, mock_run):
         mock_run.return_value = self.SAMPLE_LSHW_OUTPUT
 
-        result = inventory_network_v2.collect_network_v2()
+        result = inventory.collect_network_v2()
 
         assert len(result['devices']) == 1
         dev = result['devices'][0]
@@ -2122,33 +1943,37 @@ class TestCollectNetworkV2:
         assert dev['mac'] == 'aa:bb:cc:dd:ee:ff'
         assert dev['vendor'] == 'Intel Corporation'
 
-    @mock.patch('inventory_network_v2._run_lshw')
+    @mock.patch('inventory._run_lshw')
     def test_collect_network_v2_handles_lshw_failure(self, mock_run):
         mock_run.side_effect = FileNotFoundError("lshw not found")
 
-        result = inventory_network_v2.collect_network_v2()
+        result = inventory.collect_network_v2()
         assert result == {'error': 'lshw not found'}
 ```
 
 **Step 2: Run test to verify it fails**
 
-Run: `cd salt/modules && python -m pytest tests/test_inventory_network_v2.py -v`
-Expected: FAIL — `ModuleNotFoundError`
+Run: `cd salt/modules && python -m pytest tests/test_inventory.py -v`
+Expected: FAIL — `ModuleNotFoundError: No module named 'inventory'`
 
 **Step 3: Write minimal implementation**
 
-Create `salt/modules/inventory_network_v2.py`:
+Create `salt/modules/inventory.py`:
 
 ```python
 """
-Salt custom execution module for advanced network inventory.
-Wraps lshw to collect detailed NIC information.
+Salt custom execution module for system inventory collection.
+Collects DMI, NUMA topology, and advanced network device information.
 
 Usage via salt-api:
+    salt 'minion-id' inventory.collect_dmi
+    salt 'minion-id' inventory.collect_numa
     salt 'minion-id' inventory.collect_network_v2
 """
 
 import json
+import os
+import re
 import subprocess
 
 
@@ -2159,12 +1984,91 @@ def __virtual__():
     return __virtualname__
 
 
+# --- DMI Collection ---
+
+def collect_dmi():
+    """Collect DMI information from the system using dmidecode."""
+    try:
+        return {
+            'bios': _parse_dmi_section(_run_dmidecode('bios')),
+            'system': _parse_dmi_section(_run_dmidecode('system')),
+            'baseboard': _parse_dmi_section(_run_dmidecode('baseboard')),
+        }
+    except FileNotFoundError as e:
+        return {'error': str(e)}
+    except subprocess.CalledProcessError as e:
+        return {'error': f'dmidecode failed: {e.returncode}'}
+
+
+def _run_dmidecode(dmi_type):
+    """Run dmidecode for a specific type."""
+    type_map = {'bios': '0', 'system': '1', 'baseboard': '2'}
+    result = subprocess.run(
+        ['dmidecode', '-t', type_map[dmi_type]],
+        capture_output=True, text=True, timeout=10
+    )
+    return result.stdout
+
+
+def _parse_dmi_section(output):
+    """Parse dmidecode output into a dict of key-value pairs."""
+    data = {}
+    for line in output.splitlines():
+        line = line.strip()
+        if ':' in line and not line.endswith(':'):
+            key, _, value = line.partition(':')
+            key = key.strip().lower().replace(' ', '_')
+            value = value.strip()
+            if value:
+                data[key] = value
+    return data
+
+
+# --- NUMA Topology ---
+
+def collect_numa():
+    """Collect NUMA topology from /sys/devices/system/node/."""
+    numa_nodes = _list_numa_nodes()
+    nodes = {}
+
+    for node_dir in numa_nodes:
+        node_num = node_dir.replace('node', '')
+        base_path = f'/sys/devices/system/node/{node_dir}'
+        cpulist = _read_file(f'{base_path}/cpulist').strip()
+        meminfo = _read_file(f'{base_path}/meminfo')
+        memory_kb = _parse_memtotal(meminfo)
+        nodes[node_num] = {'cpulist': cpulist, 'memory_kb': memory_kb}
+
+    return {'node_count': len(numa_nodes), 'nodes': nodes}
+
+
+def _list_numa_nodes():
+    base = '/sys/devices/system/node'
+    if not os.path.isdir(base):
+        return []
+    return sorted([d for d in os.listdir(base) if d.startswith('node') and d[4:].isdigit()])
+
+
+def _read_file(path):
+    try:
+        with open(path, 'r') as f:
+            return f.read()
+    except (IOError, OSError):
+        return ''
+
+
+def _parse_memtotal(meminfo):
+    match = re.search(r'MemTotal:\s+(\d+)\s+kB', meminfo)
+    return int(match.group(1)) if match else 0
+
+
+# --- Network V2 (lshw) ---
+
 def collect_network_v2():
     """Collect advanced network device information using lshw."""
     try:
         raw = _run_lshw()
         entries = json.loads(raw)
-
         devices = []
         for entry in entries:
             config = entry.get('configuration', {})
@@ -2178,7 +2082,6 @@ def collect_network_v2():
                 'link': config.get('link', ''),
                 'pci_slot': entry.get('handle', ''),
             })
-
         return {'devices': devices}
     except FileNotFoundError as e:
         return {'error': str(e)}
@@ -2187,7 +2090,6 @@ def collect_network_v2():
 
 
 def _run_lshw():
-    """Run lshw for network class."""
     result = subprocess.run(
         ['lshw', '-class', 'network', '-json'],
         capture_output=True, text=True, timeout=30
@@ -2197,19 +2099,19 @@ def _run_lshw():
 
 **Step 4: Run test to verify it passes**
 
-Run: `cd salt/modules && python -m pytest tests/test_inventory_network_v2.py -v`
+Run: `cd salt/modules && python -m pytest tests/test_inventory.py -v`
 Expected: All PASS
 
 **Step 5: Commit**
 
 ```bash
-git add salt/modules/inventory_network_v2.py salt/modules/tests/test_inventory_network_v2.py
-git commit -m "feat(salt): add inventory network_v2 custom execution module"
+git add salt/modules/inventory.py salt/modules/tests/test_inventory.py
+git commit -m "feat(salt): add consolidated inventory custom execution module (DMI, NUMA, network_v2)"
 ```
 
 ---
 
-### Task 7.4: Create benchmark execution module
+### Task 7.2: Create benchmark execution module
 
 **Files:**
 - Create: `salt/modules/benchmark.py`
@@ -2479,7 +2381,7 @@ Create `salt/states/benchmark/hpcg/init.sls`:
 
 ```yaml
 # HPCG Benchmark Orchestration
-# Called via: salt-run state.orchestrate benchmark.hpcg pillar='{"run_id": "uuid", "work_dir": "/tmp/hpcg"}'
+# Applied via: salt 'node-01' state.apply benchmark.hpcg pillar='{"run_id": "uuid", "work_dir": "/tmp/hpcg"}'
 
 include:
   - benchmark.hpcg.prepare
@@ -2507,9 +2409,9 @@ Create `salt/states/benchmark/hpcg/execute.sls`:
 ```yaml
 run_hpcg:
   module.run:
-    - name: benchmark.run_hpcg
-    - work_dir: {{ pillar.get('work_dir', '/tmp/hpcg') }}
-    - run_id: {{ pillar.get('run_id', '') }}
+    - benchmark.run_hpcg:
+      - work_dir: {{ pillar.get('work_dir', '/tmp/hpcg') }}
+      - run_id: {{ pillar.get('run_id', '') }}
     - require:
       - cmd: hpcg_binary_check
 ```
@@ -2521,9 +2423,9 @@ Create `salt/states/benchmark/hpcg/collect.sls`:
 # Artifacts can be pushed to master via cp.push
 push_hpcg_artifacts:
   module.run:
-    - name: cp.push_dir
-    - path: {{ pillar.get('work_dir', '/tmp/hpcg') }}
-    - glob: "*.txt"
+    - cp.push_dir:
+      - path: {{ pillar.get('work_dir', '/tmp/hpcg') }}
+      - glob: "*"
     - require:
       - module: run_hpcg
 ```
@@ -2551,7 +2453,7 @@ Create `salt/states/benchmark/mlc/init.sls`:
 
 ```yaml
 # MLC Benchmark Orchestration
-# Called via: salt-run state.orchestrate benchmark.mlc pillar='{"run_id": "uuid", "work_dir": "/tmp/mlc", "binary_path": "mlc", "profile": "quick"}'
+# Applied via: salt 'node-01' state.apply benchmark.mlc pillar='{"run_id": "uuid", "work_dir": "/tmp/mlc", "binary_path": "mlc", "profile": "quick"}'
 
 include:
   - benchmark.mlc.prepare
@@ -2579,11 +2481,11 @@ Create `salt/states/benchmark/mlc/execute.sls`:
 ```yaml
 run_mlc:
   module.run:
-    - name: benchmark.run_mlc
-    - work_dir: {{ pillar.get('work_dir', '/tmp/mlc') }}
-    - run_id: {{ pillar.get('run_id', '') }}
-    - binary_path: {{ pillar.get('binary_path', 'mlc') }}
-    - profile: {{ pillar.get('profile', 'quick') }}
+    - benchmark.run_mlc:
+      - work_dir: {{ pillar.get('work_dir', '/tmp/mlc') }}
+      - run_id: {{ pillar.get('run_id', '') }}
+      - binary_path: {{ pillar.get('binary_path', 'mlc') }}
+      - profile: {{ pillar.get('profile', 'quick') }}
     - require:
       - cmd: mlc_binary_check
 ```
@@ -2593,9 +2495,9 @@ Create `salt/states/benchmark/mlc/collect.sls`:
 ```yaml
 push_mlc_artifacts:
   module.run:
-    - name: cp.push_dir
-    - path: {{ pillar.get('work_dir', '/tmp/mlc') }}
-    - glob: "*.txt,*.dat,*.log"
+    - cp.push_dir:
+      - path: {{ pillar.get('work_dir', '/tmp/mlc') }}
+      - glob: "*"
     - require:
       - module: run_mlc
 ```
@@ -2636,6 +2538,12 @@ netapi_enable_clients:
   - local_async
   - runner
 
+# Enable presence detection events on the event bus
+presence_events: True
+
+# Allow minions to push files to the master via cp.push
+file_recv: True
+
 # PAM auth for Rails service account
 external_auth:
   pam:
@@ -2649,11 +2557,11 @@ external_auth:
         - benchmark.run_mlc
         - benchmark.cancel
         - test.ping
+        - state.apply
         - cp.push
         - cp.push_dir
       - '@runner':
         - manage.status
-        - state.orchestrate
 
 # Custom modules path
 module_dirs:
@@ -2677,7 +2585,7 @@ Create `salt/reactor/job_return.sls`:
 ```yaml
 # Reactor: forward benchmark job returns to Rails webhook
 # This reactor fires when any job completes on a minion
-{% if 'benchmark' in data.get('fun', '') or 'state.orchestrate' in data.get('fun', '') %}
+{% if 'benchmark' in data.get('fun', '') or 'state.apply' in data.get('fun', '') %}
 notify_rails:
   runner.http.query:
     - url: {{ salt['config.get']('rails_webhook_url', 'http://localhost:3000/api/v1/salt/events') }}
@@ -2685,15 +2593,7 @@ notify_rails:
     - header_dict:
         Content-Type: application/json
         Authorization: "Bearer {{ salt['config.get']('rails_api_token', '') }}"
-    - data: >
-        {
-          "tag": "{{ tag }}",
-          "fun": "{{ data['fun'] }}",
-          "id": "{{ data['id'] }}",
-          "jid": "{{ data['jid'] }}",
-          "retcode": {{ data.get('retcode', -1) }},
-          "return": {{ data.get('return', '{}') | json }}
-        }
+    - data: {{ {"tag": tag, "fun": data['fun'], "id": data['id'], "jid": data['jid'], "retcode": data.get('retcode', -1), "return": data.get('return', {})} | tojson }}
 {% endif %}
 ```
 
@@ -2708,12 +2608,7 @@ notify_rails_presence:
     - header_dict:
         Content-Type: application/json
         Authorization: "Bearer {{ salt['config.get']('rails_api_token', '') }}"
-    - data: >
-        {
-          "tag": "salt/presence/change",
-          "new": {{ data.get('new', []) | json }},
-          "lost": {{ data.get('lost', []) | json }}
-        }
+    - data: {{ {"tag": "salt/presence/change", "new": data.get('new', []), "lost": data.get('lost', [])} | tojson }}
 ```
 
 **Step 2: Commit**
@@ -2845,7 +2740,7 @@ RSpec.describe Api::V1::SaltEventsController, type: :controller do
     it "dispatches benchmark events" do
       post :create, body: {
         tag: "salt/job/ret/123",
-        fun: "state.orchestrate",
+        fun: "state.apply",
         fun_args: [{ "mods" => "benchmark.hpcg", "pillar" => { "run_id" => run.uuid } }],
         id: "node-01",
         retcode: 0,
@@ -3007,9 +2902,7 @@ Expected: Clean sequence of commits following the phase structure.
 | `app/services/inventory/salt_collect_service.rb` | Salt-based inventory collection |
 | `app/services/benchmark/salt_trigger_run_service.rb` | Salt-based benchmark trigger |
 | `app/controllers/api/v1/salt_events_controller.rb` | Webhook for Salt reactor |
-| `salt/modules/inventory_dmi.py` | DMI collection module |
-| `salt/modules/inventory_numa.py` | NUMA topology module |
-| `salt/modules/inventory_network_v2.py` | Advanced networking module |
+| `salt/modules/inventory.py` | Consolidated inventory module (DMI, NUMA, network_v2) |
 | `salt/modules/benchmark.py` | Benchmark execution module |
 | `salt/states/benchmark/hpcg/*.sls` | HPCG orchestration states |
 | `salt/states/benchmark/mlc/*.sls` | MLC orchestration states |
