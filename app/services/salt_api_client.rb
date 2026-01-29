@@ -80,6 +80,13 @@ class SaltApiClient
     data.dig("return", 0)
   end
 
+  def get_minions
+    ensure_authenticated
+    response = get("/minions")
+    data = parse_response(response)
+    data.dig("return", 0) || {}
+  end
+
   def events(&block)
     ensure_authenticated
     uri = URI.parse("#{@base_url}/events")

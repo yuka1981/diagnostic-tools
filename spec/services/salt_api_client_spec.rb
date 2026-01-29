@@ -197,6 +197,46 @@ RSpec.describe SaltApiClient do
     end
   end
 
+  describe "#get_minions" do
+    before do
+      stub_request(:post, "#{base_url}/login")
+        .to_return(
+          status: 200,
+          body: { return: [{ token: "test-token", expire: (Time.current + 1.hour).to_f }] }.to_json,
+          headers: { "Content-Type" => "application/json" }
+        )
+    end
+
+    it "returns all minions with grains" do
+      minion_data = {
+        "node-01" => { "os" => "Rocky", "cpuarch" => "x86_64" },
+        "node-02" => { "os" => "Ubuntu", "cpuarch" => "aarch64" }
+      }
+
+      stub_request(:get, "#{base_url}/minions")
+        .to_return(
+          status: 200,
+          body: { return: [minion_data] }.to_json,
+          headers: { "Content-Type" => "application/json" }
+        )
+
+      result = client.get_minions
+      expect(result).to eq(minion_data)
+    end
+
+    it "returns empty hash when no minions" do
+      stub_request(:get, "#{base_url}/minions")
+        .to_return(
+          status: 200,
+          body: { return: [{}] }.to_json,
+          headers: { "Content-Type" => "application/json" }
+        )
+
+      result = client.get_minions
+      expect(result).to eq({})
+    end
+  end
+
   describe "#events" do
     before do
       stub_request(:post, "#{base_url}/login")
