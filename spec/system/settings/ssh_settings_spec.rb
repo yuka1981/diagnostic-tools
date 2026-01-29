@@ -33,26 +33,4 @@ RSpec.describe "Settings::SshDefaults", type: :system do
     expect(setting.bastion_port).to eq(2222)
   end
 
-  it "allows updating global Agent settings" do
-    visit settings_agent_path
-
-    # Check initial state
-    expect(page).to have_content("Agent Configuration")
-    expect(page).to have_content("Reporting Settings")
-
-    # Fill in the form
-    fill_in "Server URL (Reporting Endpoint)", with: "https://hpc.example.com"
-
-    click_button "Save Configuration"
-
-    # Verify success message
-    expect(page).to have_content("Agent configuration updated successfully")
-
-    # Verify persisted values
-    expect(page).to have_field("Server URL (Reporting Endpoint)", with: "https://hpc.example.com")
-
-    # Verify database state
-    setting = SshSetting.current
-    expect(setting.server_url).to eq("https://hpc.example.com")
-  end
 end

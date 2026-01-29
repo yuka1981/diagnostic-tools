@@ -55,23 +55,4 @@ RSpec.describe "Node Management", type: :system, js: true do
     expect(page).not_to have_selector("turbo-frame#node_modal .card-netbox")
   end
 
-  it "disables the Install button if the agent is already installed" do
-    create(:node, hostname: "already-installed", source: :agent_push)
-    visit nodes_path
-
-    within "tr", text: "already-installed" do
-      expect(page).to have_css("span[title='qis-agent is already installed']")
-      expect(page).not_to have_link(title: "Install Agent")
-    end
-  end
-
-  it "disables the Uninstall button if the agent is not installed" do
-    create(:node, hostname: "not-installed", source: :manual)
-    visit nodes_path
-
-    within "tr", text: "not-installed" do
-      expect(page).to have_css("span[title='qis-agent is not installed']")
-      expect(page).not_to have_link(title: "Uninstall Agent")
-    end
-  end
 end

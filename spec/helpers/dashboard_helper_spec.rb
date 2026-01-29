@@ -120,11 +120,11 @@ RSpec.describe DashboardHelper, type: :helper do
   end
 
   describe "#node_heatmap_class" do
-    # Node status is computed from last_heartbeat_at, not a status attribute
-    let(:online_compute_node) { build(:node, role: :compute, last_heartbeat_at: 1.minute.ago) }
-    let(:offline_compute_node) { build(:node, role: :compute, last_heartbeat_at: 10.minutes.ago) }
-    let(:online_login_node) { build(:node, role: :login, last_heartbeat_at: 1.minute.ago) }
-    let(:online_admin_node) { build(:node, role: :admin, last_heartbeat_at: 1.minute.ago) }
+    # Node status is computed from salt_status enum
+    let(:online_compute_node) { build(:node, role: :compute, salt_status: :connected) }
+    let(:offline_compute_node) { build(:node, role: :compute, salt_status: :disconnected) }
+    let(:online_login_node) { build(:node, role: :login, salt_status: :connected) }
+    let(:online_admin_node) { build(:node, role: :admin, salt_status: :connected) }
 
     it "returns success for online compute nodes" do
       expect(helper.node_heatmap_class(online_compute_node)).to include("success")

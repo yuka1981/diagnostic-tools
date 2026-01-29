@@ -14,7 +14,7 @@ RSpec.describe "MlcInstallations", type: :request do
     end
 
     it "lists available nodes" do
-      node = create(:node, hostname: "compute-001", last_heartbeat_at: 1.minute.ago)
+      node = create(:node, hostname: "compute-001", salt_status: :connected)
       get new_mlc_installation_path
 
       expect(response.body).to include("compute-001")
