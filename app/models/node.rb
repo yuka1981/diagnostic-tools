@@ -11,7 +11,6 @@ class Node < ApplicationRecord
   has_many :profiling_runs, dependent: :destroy
   has_many :mlc_baselines, dependent: :destroy
   has_many :mlc_installation_nodes, dependent: :destroy
-  has_many :agent_events, dependent: :destroy
   has_many :bmc_inventories, dependent: :destroy
   has_many :inventory_discrepancies, dependent: :destroy
   has_one :bmc_credential, dependent: :destroy
@@ -22,7 +21,6 @@ class Node < ApplicationRecord
   # Enums - removed custom_bastion, only global_bastion and direct remain
   enum :role, { compute: 0, login: 1, admin: 2 }, default: :compute
   enum :source, { manual: 0, csv: 1, agent_push: 2, salt_discovery: 3 }, default: :manual
-  enum :ssh_connect_method, { global_bastion: 0, direct: 2 }, default: :global_bastion
   enum :salt_status, { unknown: 0, connected: 1, disconnected: 2, pending: 3 }, default: :unknown, prefix: :salt
 
   # Validations
@@ -30,8 +28,6 @@ class Node < ApplicationRecord
   validates :uuid, uniqueness: true, allow_blank: true
   validates :role, presence: true
   validates :source, presence: true
-  validates :ssh_port, numericality: { only_integer: true, greater_than: 0, less_than: 65536 }
-  validates :ssh_user, length: { maximum: 255 }
   validates :arch, inclusion: { in: %w[x86_64 aarch64 arm64], allow_blank: true }
   validates :rack_height, numericality: { only_integer: true, greater_than: 0 }, allow_nil: true
   validate :hostname_not_localhost
@@ -81,33 +77,6 @@ class Node < ApplicationRecord
 
   def status
     salt_status.to_sym
-  end
-
-  # Simplified effective_* methods using override flags
-  # If override flag is true, use node value. Otherwise, use global default.
-
-  def effective_ssh_user
-    ssh_user_override? ? ssh_user : SshSetting.current.ssh_user
-  end
-
-  def effective_ssh_port
-    ssh_port_override? ? ssh_port : SshSetting.current.ssh_port
-  end
-
-  def effective_ssh_connect_method
-    ssh_connect_method_override? ? ssh_connect_method : "global_bastion"
-  end
-
-  def effective_ssh_key
-    ssh_key_override? ? ssh_key : SshSetting.current.ssh_key
-  end
-
-  def effective_ssh_password
-    ssh_password_override? ? ssh_password : SshSetting.current.ssh_password
-  end
-
-  def effective_sudo_credential
-    sudo_credential_override? ? sudo_credential : SshSetting.current.sudo_credential
   end
 
   # Returns true if the node has any pending or running benchmark runs
