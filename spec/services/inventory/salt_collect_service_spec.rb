@@ -36,6 +36,10 @@ RSpec.describe Inventory::SaltCollectService do
     { "devices" => [] }
   end
 
+  let(:cpu_topology_response) do
+    { "sockets" => 2, "cores_per_socket" => 20, "threads_per_core" => 2, "flags" => [ "avx2" ] }
+  end
+
   describe "#call" do
     before do
       allow(salt_client).to receive(:run)
@@ -50,6 +54,9 @@ RSpec.describe Inventory::SaltCollectService do
       allow(salt_client).to receive(:run)
         .with("node-01", "inventory.collect_network_v2")
         .and_return(network_v2_response)
+      allow(salt_client).to receive(:run)
+        .with("node-01", "inventory.collect_cpu")
+        .and_return(cpu_topology_response)
     end
 
     it "collects inventory and creates a node state" do
@@ -65,6 +72,24 @@ RSpec.describe Inventory::SaltCollectService do
       expect(Inventory::ProcessStateService).to receive(:new).with(
         hash_including(node_id: node.id, raw_json: hash_including(:host, :cpu, :memory))
       ).and_return(mock_service)
+
+      service.call
+    end
+
+    it "falls back to lscpu when custom CPU module unavailable" do
+      allow(salt_client).to receive(:run)
+        .with("node-01", "inventory.collect_cpu")
+        .and_raise(SaltApiClient::ApiError, "module not available")
+      allow(salt_client).to receive(:run)
+        .with("node-01", "cmd.run", arg: [ "lscpu" ])
+        .and_return("Socket(s):             2\nCore(s) per socket:    20\n")
+
+      result = service.call
+      expect(result.success?).to be true
+    end
+
+    it "skips lscpu when custom CPU module succeeds" do
+      expect(salt_client).not_to receive(:run).with("node-01", "cmd.run", arg: [ "lscpu" ])
 
       service.call
     end

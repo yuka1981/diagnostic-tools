@@ -1,10 +1,12 @@
 module Salt
   class InventoryMapper
-    def initialize(grains:, dmi: nil, numa: nil, network_v2: nil)
+    def initialize(grains:, dmi: nil, numa: nil, network_v2: nil, cpu_topology: nil, lscpu: nil)
       @grains = grains.is_a?(Hash) ? grains : {}
       @dmi = dmi.is_a?(Hash) ? dmi : nil
       @numa = numa.is_a?(Hash) ? numa : nil
       @network_v2 = network_v2.is_a?(Hash) ? network_v2 : nil
+      @cpu_topology = cpu_topology.is_a?(Hash) ? cpu_topology : nil
+      @lscpu = lscpu.is_a?(String) ? lscpu : nil
     end
 
     def call
@@ -40,11 +42,16 @@ module Salt
 
     def map_cpu_info
       numa_info = build_numa_info
+      topology = build_cpu_topology
 
       {
         model_name: @grains["cpu_model"],
         cpus: @grains["num_cpus"],
-        numa_nodes: @numa&.dig("node_count"),
+        sockets: topology[:sockets],
+        cores_per_socket: topology[:cores_per_socket],
+        threads_per_core: topology[:threads_per_core],
+        flags: topology[:flags],
+        numa_nodes: @numa&.dig("node_count") || topology[:numa_nodes],
         numa_info: numa_info
       }.compact
     end
@@ -66,6 +73,44 @@ module Salt
           type: ssds.include?(name) ? "SSD" : "HDD"
         }
       end
+    end
+
+    def build_cpu_topology
+      return map_cpu_topology_module if @cpu_topology
+      return parse_lscpu if @lscpu
+
+      {}
+    end
+
+    def map_cpu_topology_module
+      {
+        sockets: @cpu_topology["sockets"],
+        cores_per_socket: @cpu_topology["cores_per_socket"],
+        threads_per_core: @cpu_topology["threads_per_core"],
+        flags: @cpu_topology["flags"]
+      }.compact
+    end
+
+    def parse_lscpu
+      fields = {}
+      @lscpu.each_line do |line|
+        key, _, value = line.partition(":")
+        fields[key.strip] = value.strip if value
+      end
+
+      sockets = fields["Socket(s)"]&.to_i
+      cores_per_socket = fields["Core(s) per socket"]&.to_i
+      threads_per_core = fields["Thread(s) per core"]&.to_i
+      numa_nodes = fields["NUMA node(s)"]&.to_i
+      flags_str = fields["Flags"]
+
+      result = {}
+      result[:sockets] = sockets if sockets&.positive?
+      result[:cores_per_socket] = cores_per_socket if cores_per_socket&.positive?
+      result[:threads_per_core] = threads_per_core if threads_per_core&.positive?
+      result[:numa_nodes] = numa_nodes if numa_nodes&.positive?
+      result[:flags] = flags_str.split if flags_str.present?
+      result
     end
 
     def build_numa_info

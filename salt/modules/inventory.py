@@ -1,10 +1,11 @@
 """
 Salt custom execution module for system inventory collection.
-Collects DMI, NUMA topology, and advanced network device information.
+Collects DMI, NUMA topology, CPU topology, and advanced network device information.
 
 Usage via salt-api:
     salt 'minion-id' inventory.collect_dmi
     salt 'minion-id' inventory.collect_numa
+    salt 'minion-id' inventory.collect_cpu
     salt 'minion-id' inventory.collect_network_v2
 """
 
@@ -99,6 +100,68 @@ def _read_file(path):
 def _parse_memtotal(meminfo):
     match = re.search(r'MemTotal:\s+(\d+)\s+kB', meminfo)
     return int(match.group(1)) if match else 0
+
+
+# --- CPU Topology ---
+
+def collect_cpu():
+    """Collect CPU topology from /proc/cpuinfo."""
+    try:
+        cpuinfo = _read_file('/proc/cpuinfo')
+        return _parse_cpuinfo(cpuinfo)
+    except Exception as e:
+        return {'error': str(e)}
+
+
+def _parse_cpuinfo(cpuinfo):
+    """Parse /proc/cpuinfo to extract CPU topology."""
+    physical_ids = set()
+    core_ids_per_socket = {}
+    processor_count = 0
+    model_name = ''
+    flags = []
+
+    current_physical_id = None
+
+    for line in cpuinfo.splitlines():
+        line = line.strip()
+        if not line:
+            current_physical_id = None
+            continue
+
+        if ':' not in line:
+            continue
+
+        key, _, value = line.partition(':')
+        key = key.strip()
+        value = value.strip()
+
+        if key == 'processor':
+            processor_count += 1
+        elif key == 'physical id':
+            current_physical_id = value
+            physical_ids.add(value)
+        elif key == 'core id' and current_physical_id is not None:
+            core_ids_per_socket.setdefault(current_physical_id, set()).add(value)
+        elif key == 'model name' and not model_name:
+            model_name = value
+        elif key == 'flags' and not flags:
+            flags = value.split()
+
+    sockets = len(physical_ids) if physical_ids else 1
+    total_cores = sum(len(cores) for cores in core_ids_per_socket.values()) if core_ids_per_socket else processor_count
+    cores_per_socket = total_cores // sockets if sockets > 0 else total_cores
+    threads_per_core = processor_count // total_cores if total_cores > 0 else 1
+
+    return {
+        'model_name': model_name,
+        'sockets': sockets,
+        'cores': total_cores,
+        'cores_per_socket': cores_per_socket,
+        'threads': processor_count,
+        'threads_per_core': threads_per_core,
+        'flags': flags,
+    }
 
 
 # --- Network V2 (lshw) ---

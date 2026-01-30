@@ -107,6 +107,58 @@ RSpec.describe Salt::InventoryMapper do
       expect(result[:cpu][:numa_info]["1"]).to eq("20-39,60-79")
     end
 
+    it "maps CPU topology from custom Salt module" do
+      cpu_topo = {
+        "sockets" => 2,
+        "cores_per_socket" => 20,
+        "threads_per_core" => 2,
+        "flags" => [ "avx", "avx2", "avx512f", "sse4_1", "sse4_2" ]
+      }
+      mapper = described_class.new(grains: grains, cpu_topology: cpu_topo)
+      result = mapper.call
+      expect(result[:cpu][:sockets]).to eq(2)
+      expect(result[:cpu][:cores_per_socket]).to eq(20)
+      expect(result[:cpu][:threads_per_core]).to eq(2)
+      expect(result[:cpu][:flags]).to eq([ "avx", "avx2", "avx512f", "sse4_1", "sse4_2" ])
+    end
+
+    it "parses lscpu output as fallback for CPU topology" do
+      lscpu_output = <<~LSCPU
+        Architecture:          x86_64
+        CPU op-mode(s):        32-bit, 64-bit
+        CPU(s):                80
+        Thread(s) per core:    2
+        Core(s) per socket:    20
+        Socket(s):             2
+        NUMA node(s):          2
+        Vendor ID:             GenuineIntel
+        Flags:                 avx avx2 avx512f sse4_1 sse4_2
+      LSCPU
+      mapper = described_class.new(grains: grains, lscpu: lscpu_output)
+      result = mapper.call
+      expect(result[:cpu][:sockets]).to eq(2)
+      expect(result[:cpu][:cores_per_socket]).to eq(20)
+      expect(result[:cpu][:threads_per_core]).to eq(2)
+      expect(result[:cpu][:numa_nodes]).to eq(2)
+      expect(result[:cpu][:flags]).to eq([ "avx", "avx2", "avx512f", "sse4_1", "sse4_2" ])
+    end
+
+    it "prefers custom CPU module over lscpu fallback" do
+      cpu_topo = { "sockets" => 4, "cores_per_socket" => 28 }
+      lscpu_output = "Socket(s):             2\nCore(s) per socket:    20\n"
+      mapper = described_class.new(grains: grains, cpu_topology: cpu_topo, lscpu: lscpu_output)
+      result = mapper.call
+      expect(result[:cpu][:sockets]).to eq(4)
+      expect(result[:cpu][:cores_per_socket]).to eq(28)
+    end
+
+    it "uses NUMA nodes from lscpu when custom NUMA module unavailable" do
+      lscpu_output = "Socket(s):             2\nNUMA node(s):          4\n"
+      mapper = described_class.new(grains: grains, numa: nil, lscpu: lscpu_output)
+      result = mapper.call
+      expect(result[:cpu][:numa_nodes]).to eq(4)
+    end
+
     it "maps memory total in bytes for format_bytes helper" do
       result = mapper.call
       expect(result[:memory][:total]).to eq(256000 * 1024 * 1024)

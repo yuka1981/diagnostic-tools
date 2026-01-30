@@ -16,12 +16,16 @@ module Inventory
       dmi = safe_collect("inventory.collect_dmi")
       numa = safe_collect("inventory.collect_numa")
       network_v2 = safe_collect("inventory.collect_network_v2")
+      cpu_topology = safe_collect("inventory.collect_cpu")
+      lscpu = cpu_topology ? nil : safe_cmd_run("lscpu")
 
       mapped = Salt::InventoryMapper.new(
         grains: grains,
         dmi: dmi,
         numa: numa,
-        network_v2: network_v2
+        network_v2: network_v2,
+        cpu_topology: cpu_topology,
+        lscpu: lscpu
       ).call
 
       process_result = Inventory::ProcessStateService.new(
@@ -49,6 +53,14 @@ module Inventory
       @salt_client.run(@target_node.hostname, function)
     rescue SaltApiClient::ApiError => e
       Rails.logger.warn("Salt custom module #{function} failed: #{e.message}")
+      nil
+    end
+
+    def safe_cmd_run(command)
+      result = @salt_client.run(@target_node.hostname, "cmd.run", arg: [ command ])
+      result.is_a?(String) ? result : nil
+    rescue SaltApiClient::ApiError => e
+      Rails.logger.warn("Salt cmd.run '#{command}' failed: #{e.message}")
       nil
     end
   end
