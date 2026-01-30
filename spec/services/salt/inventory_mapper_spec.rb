@@ -242,5 +242,76 @@ RSpec.describe Salt::InventoryMapper do
       expect(result[:dmi]).to eq({})
       expect(result[:network_v2]).to eq({})
     end
+
+    it "extracts virtualization from lscpu" do
+      lscpu_output = <<~LSCPU
+        Socket(s):             2
+        Virtualization:        VT-x
+      LSCPU
+      mapper = described_class.new(grains: grains, lscpu: lscpu_output)
+      result = mapper.call
+      expect(result[:cpu][:virtualization]).to eq("VT-x")
+    end
+
+    it "extracts cache info with short lscpu keys" do
+      lscpu_output = <<~LSCPU
+        Socket(s):             2
+        L1d:                   2.6 MiB (56 instances)
+        L1i:                   1.8 MiB (56 instances)
+        L2:                    112 MiB (56 instances)
+        L3:                    105 MiB (2 instances)
+      LSCPU
+      mapper = described_class.new(grains: grains, lscpu: lscpu_output)
+      result = mapper.call
+      expect(result[:cpu][:l1d_cache]).to eq("2.6 MiB (56 instances)")
+      expect(result[:cpu][:l1i_cache]).to eq("1.8 MiB (56 instances)")
+      expect(result[:cpu][:l2_cache]).to eq("112 MiB (56 instances)")
+      expect(result[:cpu][:l3_cache]).to eq("105 MiB (2 instances)")
+    end
+
+    it "extracts cache info with long lscpu keys" do
+      lscpu_output = <<~LSCPU
+        Socket(s):             2
+        L1d cache:             64K
+        L1i cache:             64K
+        L2 cache:              512K
+        L3 cache:              16384K
+      LSCPU
+      mapper = described_class.new(grains: grains, lscpu: lscpu_output)
+      result = mapper.call
+      expect(result[:cpu][:l1d_cache]).to eq("64K")
+      expect(result[:cpu][:l1i_cache]).to eq("64K")
+      expect(result[:cpu][:l2_cache]).to eq("512K")
+      expect(result[:cpu][:l3_cache]).to eq("16384K")
+    end
+
+    it "falls back to lscpu NUMA mappings when custom module unavailable" do
+      lscpu_output = <<~LSCPU
+        Socket(s):             2
+        NUMA node(s):          2
+        NUMA node0 CPU(s):     0-19,40-59
+        NUMA node1 CPU(s):     20-39,60-79
+      LSCPU
+      mapper = described_class.new(grains: grains, numa: nil, lscpu: lscpu_output)
+      result = mapper.call
+      expect(result[:cpu][:numa_info]).to eq({
+        "0" => "0-19,40-59",
+        "1" => "20-39,60-79"
+      })
+    end
+
+    it "custom NUMA module takes precedence over lscpu NUMA mappings" do
+      lscpu_output = <<~LSCPU
+        Socket(s):             2
+        NUMA node0 CPU(s):     0-19,40-59
+        NUMA node1 CPU(s):     20-39,60-79
+      LSCPU
+      mapper = described_class.new(grains: grains, numa: numa_data, lscpu: lscpu_output)
+      result = mapper.call
+      expect(result[:cpu][:numa_info]).to eq({
+        "0" => "0-3",
+        "1" => "4-7"
+      })
+    end
   end
 end

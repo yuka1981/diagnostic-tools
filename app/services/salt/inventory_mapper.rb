@@ -52,7 +52,12 @@ module Salt
         threads_per_core: topology[:threads_per_core],
         flags: topology[:flags],
         numa_nodes: @numa&.dig("node_count") || topology[:numa_nodes],
-        numa_info: numa_info
+        numa_info: numa_info,
+        virtualization: topology[:virtualization],
+        l1d_cache: topology[:l1d_cache],
+        l1i_cache: topology[:l1i_cache],
+        l2_cache: topology[:l2_cache],
+        l3_cache: topology[:l3_cache]
       }.compact
     end
 
@@ -76,10 +81,15 @@ module Salt
     end
 
     def build_cpu_topology
-      return map_cpu_topology_module if @cpu_topology
-      return parse_lscpu if @lscpu
-
-      {}
+      @cpu_topology_cache ||= begin
+        if @cpu_topology
+          map_cpu_topology_module
+        elsif @lscpu
+          parse_lscpu
+        else
+          {}
+        end
+      end
     end
 
     def map_cpu_topology_module
@@ -103,6 +113,7 @@ module Salt
       threads_per_core = fields["Thread(s) per core"]&.to_i
       numa_nodes = fields["NUMA node(s)"]&.to_i
       flags_str = fields["Flags"]
+      virtualization = fields["Virtualization"]
 
       result = {}
       result[:sockets] = sockets if sockets&.positive?
@@ -110,26 +121,56 @@ module Salt
       result[:threads_per_core] = threads_per_core if threads_per_core&.positive?
       result[:numa_nodes] = numa_nodes if numa_nodes&.positive?
       result[:flags] = flags_str.split if flags_str.present?
+      result[:virtualization] = virtualization if virtualization.present?
+
+      result[:l1d_cache] = find_cache_field(fields, "L1d")
+      result[:l1i_cache] = find_cache_field(fields, "L1i")
+      result[:l2_cache] = find_cache_field(fields, "L2")
+      result[:l3_cache] = find_cache_field(fields, "L3")
+      result.compact!
+
+      numa_map = parse_lscpu_numa_mappings(fields)
+      result[:lscpu_numa_map] = numa_map if numa_map.present?
+
       result
+    end
+
+    def find_cache_field(fields, prefix)
+      fields["#{prefix} cache"] || fields[prefix]
+    end
+
+    def parse_lscpu_numa_mappings(fields)
+      mappings = {}
+      fields.each do |key, value|
+        next unless key.match?(/\ANUMA node\d+ CPU\(s\)\z/)
+
+        node_id = key[/\d+/]
+        mappings[node_id] = value
+      end
+      mappings.presence
     end
 
     def build_numa_info
       nodes = @numa&.dig("nodes")
-      return nil unless nodes.is_a?(Hash)
+      if nodes.is_a?(Hash)
+        return nodes.transform_values do |node_data|
+          # Handle cpulist string from custom Salt module (e.g., "0-3,8-11")
+          cpulist = node_data["cpulist"]
+          if cpulist.is_a?(String) && !cpulist.empty?
+            next cpulist
+          end
 
-      nodes.transform_values do |node_data|
-        # Handle cpulist string from custom Salt module (e.g., "0-3,8-11")
-        cpulist = node_data["cpulist"]
-        if cpulist.is_a?(String) && !cpulist.empty?
-          next cpulist
+          # Handle cpus array format (e.g., [0, 1, 2, 3])
+          cpus = node_data["cpus"]
+          next "" unless cpus.is_a?(Array) && cpus.any?
+
+          format_cpu_ranges(cpus.sort)
         end
-
-        # Handle cpus array format (e.g., [0, 1, 2, 3])
-        cpus = node_data["cpus"]
-        next "" unless cpus.is_a?(Array) && cpus.any?
-
-        format_cpu_ranges(cpus.sort)
       end
+
+      # Fall back to lscpu NUMA mappings when custom module unavailable
+      topology = build_cpu_topology
+      topology[:lscpu_numa_map]
     end
 
     def format_cpu_ranges(cpus)
