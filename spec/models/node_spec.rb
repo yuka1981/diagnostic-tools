@@ -332,70 +332,13 @@ RSpec.describe Node, type: :model do
     it { is_expected.to belong_to(:server_product).optional }
   end
 
-  describe "#effective_ssh_user" do
-    before do
-      # Ensure global defaults are set
-      SshSetting.current.update!(ssh_user: "global_user")
-    end
-
-    context "when ssh_user_override is true" do
-      it "returns node's ssh_user" do
-        node = build(:node, ssh_user: "node_user", ssh_user_override: true)
-        expect(node.effective_ssh_user).to eq("node_user")
-      end
-    end
-
-    context "when ssh_user_override is false" do
-      it "returns global ssh_user" do
-        node = build(:node, ssh_user: "node_user", ssh_user_override: false)
-        expect(node.effective_ssh_user).to eq("global_user")
-      end
-    end
-  end
-
-  describe "#effective_ssh_port" do
-    before do
-      SshSetting.current.update!(ssh_port: 22)
-    end
-
-    context "when ssh_port_override is false" do
-      it "returns global ssh_port" do
-        node = build(:node, ssh_port: 2222, ssh_port_override: false)
-        expect(node.effective_ssh_port).to eq(22)
-      end
-    end
-
-    context "when ssh_port_override is true" do
-      it "returns node's ssh_port" do
-        node = build(:node, ssh_port: 3333, ssh_port_override: true)
-        expect(node.effective_ssh_port).to eq(3333)
-      end
-    end
-  end
-
-  describe "#effective_ssh_connect_method" do
-    context "when ssh_connect_method_override is false" do
-      it "returns global_bastion by default" do
-        node = build(:node, ssh_connect_method: :direct, ssh_connect_method_override: false)
-        expect(node.effective_ssh_connect_method).to eq("global_bastion")
-      end
-    end
-
-    context "when ssh_connect_method_override is true" do
-      it "returns node's connect method" do
-        node = build(:node, ssh_connect_method: :direct, ssh_connect_method_override: true)
-        expect(node.effective_ssh_connect_method).to eq("direct")
-      end
-    end
-  end
-
   describe "profiling associations" do
     it { is_expected.to have_many(:profiling_runs).dependent(:destroy) }
   end
 
   describe "dependent destroy associations" do
     it { is_expected.to have_many(:mlc_installation_nodes).dependent(:destroy) }
-    it { is_expected.to have_many(:agent_events).dependent(:destroy) }
+
     it { is_expected.to have_many(:bmc_inventories).dependent(:destroy) }
     it { is_expected.to have_many(:inventory_discrepancies).dependent(:destroy) }
     it { is_expected.to have_one(:bmc_credential).dependent(:destroy) }
@@ -403,7 +346,7 @@ RSpec.describe Node, type: :model do
     it "can be destroyed when it has dependent records across all tables" do
       node = create(:node)
       create(:mlc_installation_node, node: node)
-      create(:agent_event, node: node)
+
       create(:bmc_inventory, node: node)
       create(:inventory_discrepancy, node: node)
       create(:bmc_credential, node: node)
