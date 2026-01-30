@@ -6,6 +6,14 @@ RSpec.describe SaltApiClient do
   let(:password) { "secret" }
   let(:client) { described_class.new(base_url: base_url, username: username, password: password) }
 
+  before do
+    allow(SaltSetting).to receive(:current).and_return(
+      instance_double(SaltSetting,
+        base_url: nil, username: nil, password: nil,
+        ca_cert_path: nil, verify_ssl: true)
+    )
+  end
+
   describe "#authenticate" do
     it "obtains a token from salt-api" do
       stub_request(:post, "#{base_url}/login")
@@ -266,6 +274,30 @@ RSpec.describe SaltApiClient do
       expect(events.length).to eq(1)
       expect(events[0][0]).to eq("salt/job/ret/123")
       expect(events[0][1]["fun"]).to eq("test.ping")
+    end
+  end
+
+  describe "configuration precedence" do
+    it "reads from SaltSetting when no explicit params given" do
+      allow(SaltSetting).to receive(:current).and_return(
+        instance_double(SaltSetting,
+          base_url: "http://salt-from-db:8000",
+          username: "db_user",
+          password: "db_pass",
+          ca_cert_path: "/etc/ssl/salt-ca.pem",
+          verify_ssl: false)
+      )
+
+      stub_request(:post, "http://salt-from-db:8000/login")
+        .to_return(
+          status: 200,
+          body: { return: [ { token: "db-token", expire: (Time.current + 12.hours).to_f } ] }.to_json,
+          headers: { "Content-Type" => "application/json" }
+        )
+
+      client = described_class.new
+      client.authenticate
+      expect(WebMock).to have_requested(:post, "http://salt-from-db:8000/login")
     end
   end
 end

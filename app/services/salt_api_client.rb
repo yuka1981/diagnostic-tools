@@ -10,10 +10,12 @@ class SaltApiClient
 
   TOKEN_RENEWAL_BUFFER = 60.seconds
 
-  def initialize(base_url: nil, username: nil, password: nil)
+  def initialize(base_url: nil, username: nil, password: nil, verify_ssl: nil, ca_cert: nil)
     @base_url = base_url || salt_config[:base_url]
     @username = username || salt_config[:username]
     @password = password || salt_config[:password]
+    @verify_ssl = verify_ssl.nil? ? salt_config[:verify_ssl] : verify_ssl
+    @ca_cert = ca_cert || salt_config[:ca_cert]
     @token = nil
     @token_expires_at = nil
   end
@@ -93,9 +95,8 @@ class SaltApiClient
     http = Net::HTTP.new(uri.host, uri.port)
     http.use_ssl = uri.scheme == "https"
     if http.use_ssl?
-      http.verify_mode = OpenSSL::SSL::VERIFY_PEER
-      ca_cert = salt_config[:ca_cert]
-      http.ca_file = ca_cert if ca_cert.present?
+      http.verify_mode = @verify_ssl ? OpenSSL::SSL::VERIFY_PEER : OpenSSL::SSL::VERIFY_NONE
+      http.ca_file = @ca_cert if @ca_cert.present?
     end
     http.read_timeout = 0
 
@@ -146,9 +147,8 @@ class SaltApiClient
     http = Net::HTTP.new(uri.host, uri.port)
     http.use_ssl = uri.scheme == "https"
     if http.use_ssl?
-      http.verify_mode = OpenSSL::SSL::VERIFY_PEER
-      ca_cert = salt_config[:ca_cert]
-      http.ca_file = ca_cert if ca_cert.present?
+      http.verify_mode = @verify_ssl ? OpenSSL::SSL::VERIFY_PEER : OpenSSL::SSL::VERIFY_NONE
+      http.ca_file = @ca_cert if @ca_cert.present?
     end
     http.open_timeout = 10
     http.read_timeout = 300
@@ -195,11 +195,23 @@ class SaltApiClient
   end
 
   def salt_config
-    @salt_config ||= {
-      base_url: Rails.application.credentials.dig(:salt_api, :base_url) || ENV["SALT_API_URL"],
-      username: Rails.application.credentials.dig(:salt_api, :username) || ENV["SALT_API_USERNAME"],
-      password: Rails.application.credentials.dig(:salt_api, :password) || ENV["SALT_API_PASSWORD"],
-      ca_cert: Rails.application.credentials.dig(:salt_api, :ca_cert) || ENV["SALT_API_CA_CERT"]
-    }
+    @salt_config ||= begin
+      db_setting = SaltSetting.current
+      {
+        base_url: db_setting.base_url.presence ||
+                  Rails.application.credentials.dig(:salt_api, :base_url) ||
+                  ENV["SALT_API_URL"],
+        username: db_setting.username.presence ||
+                  Rails.application.credentials.dig(:salt_api, :username) ||
+                  ENV["SALT_API_USERNAME"],
+        password: db_setting.password.presence ||
+                  Rails.application.credentials.dig(:salt_api, :password) ||
+                  ENV["SALT_API_PASSWORD"],
+        ca_cert: db_setting.ca_cert_path.presence ||
+                 Rails.application.credentials.dig(:salt_api, :ca_cert) ||
+                 ENV["SALT_API_CA_CERT"],
+        verify_ssl: db_setting.verify_ssl
+      }
+    end
   end
 end
