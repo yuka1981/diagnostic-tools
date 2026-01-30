@@ -1,0 +1,18 @@
+# External authentication for Salt API (managed by Ansible)
+external_auth:
+  pam:
+    {{ salt_api_user }}:
+      - '*':
+        - grains.items
+        - inventory.*
+        - benchmark.run_hpcg
+        - benchmark.run_mlc
+        - benchmark.cancel
+        - test.ping
+        - state.apply
+        - cmd.run
+        - cp.push
+        - cp.push_dir
+        - saltutil.sync_modules
+      - '@runner':
+        - manage.status
