@@ -66,7 +66,7 @@ module Nodes
       Profiling::TriggerJob.perform_later(
         run,
         request.base_url,
-        agent_token,
+        @node.effective_api_token.presence || "",
         user_id: current_user.id
       )
 
@@ -107,10 +107,5 @@ module Nodes
       end
     end
 
-    def agent_token
-      @node.effective_api_token.presence ||
-        Rails.application.credentials.dig(:api, :agent_token) ||
-        ENV["API_AGENT_TOKEN"]
-    end
   end
 end

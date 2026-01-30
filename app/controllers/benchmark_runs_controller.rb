@@ -48,14 +48,8 @@ class BenchmarkRunsController < ApplicationController
       redirect_to benchmark_run_path(@benchmark_run) and return
     end
 
-    service = Benchmark::CancelRunService.new(@benchmark_run)
-    result = service.call
-
-    if result.success?
-      flash[:notice] = "Benchmark run cancelled successfully."
-    else
-      flash[:alert] = "Failed to cancel benchmark run: #{result.error}"
-    end
+    @benchmark_run.update!(status: :cancelled, error_message: "Cancelled by user at #{Time.current}")
+    flash[:notice] = "Benchmark run cancelled successfully."
 
     respond_to do |format|
       format.html { redirect_back(fallback_location: benchmark_runs_path) }

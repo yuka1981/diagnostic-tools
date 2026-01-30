@@ -21,14 +21,13 @@ module Inventory
       end
     end
 
-    def initialize(node_id: nil, hostname: nil, uuid: nil, raw_json:, agent_version: nil)
+    def initialize(node_id: nil, hostname: nil, uuid: nil, raw_json:)
       raise ArgumentError, "Either node_id, hostname or uuid must be provided" if node_id.blank? && hostname.blank? && uuid.blank?
 
       @node_id = node_id
       @hostname = hostname
       @uuid = uuid
       @raw_json = raw_json&.with_indifferent_access
-      @agent_version = agent_version
     end
 
     def call
@@ -104,9 +103,6 @@ module Inventory
         updates[:arch] = host_info[:arch] if host_info[:arch].present?
         updates[:ip] = host_info[:ip] if host_info[:ip].present?
       end
-
-      # Always update agent_version if provided (even if host_info is blank)
-      updates[:agent_version] = @agent_version if @agent_version.present?
 
       node.update(updates) if updates.any?
     end

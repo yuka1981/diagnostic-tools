@@ -135,17 +135,12 @@ class MlcInstallationsController < ApplicationController
     Mlc::InstallJob.perform_later(
       @installation.id,
       server_url,
-      agent_token,
       user_id: current_user.id
     )
   end
 
   def server_url
     request.base_url
-  end
-
-  def agent_token
-    ApiKey.active.first&.token || ""
   end
 
   def extract_tarball_for_selection(stored_path)
