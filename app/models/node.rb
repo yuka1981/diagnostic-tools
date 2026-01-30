@@ -11,6 +11,10 @@ class Node < ApplicationRecord
   has_many :profiling_runs, dependent: :destroy
   has_many :mlc_baselines, dependent: :destroy
   has_many :mlc_installation_nodes, dependent: :destroy
+  has_many :agent_events, dependent: :destroy
+  has_many :bmc_inventories, dependent: :destroy
+  has_many :inventory_discrepancies, dependent: :destroy
+  has_one :bmc_credential, dependent: :destroy
   belongs_to :api_key, optional: true
   belongs_to :server_rack, foreign_key: :rack_id, optional: true
   belongs_to :server_product, optional: true

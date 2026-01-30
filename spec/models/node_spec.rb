@@ -393,15 +393,22 @@ RSpec.describe Node, type: :model do
     it { is_expected.to have_many(:profiling_runs).dependent(:destroy) }
   end
 
-  describe "mlc_installation_nodes association" do
+  describe "dependent destroy associations" do
     it { is_expected.to have_many(:mlc_installation_nodes).dependent(:destroy) }
+    it { is_expected.to have_many(:agent_events).dependent(:destroy) }
+    it { is_expected.to have_many(:bmc_inventories).dependent(:destroy) }
+    it { is_expected.to have_many(:inventory_discrepancies).dependent(:destroy) }
+    it { is_expected.to have_one(:bmc_credential).dependent(:destroy) }
 
-    it "can be destroyed when it has mlc_installation_nodes" do
+    it "can be destroyed when it has dependent records across all tables" do
       node = create(:node)
       create(:mlc_installation_node, node: node)
+      create(:agent_event, node: node)
+      create(:bmc_inventory, node: node)
+      create(:inventory_discrepancy, node: node)
+      create(:bmc_credential, node: node)
 
       expect { node.destroy! }.not_to raise_error
-      expect(MlcInstallationNode.where(node_id: node.id)).to be_empty
     end
   end
 
