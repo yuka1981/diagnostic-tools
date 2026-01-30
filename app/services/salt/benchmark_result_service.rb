@@ -20,7 +20,8 @@ module Salt
       end
 
       result = minion_return["return"]
-      status = BenchmarkRun.status_from_agent(result["status"]) || :failed
+      status_map = { "PASS" => :success, "FAIL" => :failed, "ERROR" => :failed, "RUNNING" => :running }
+      status = status_map[result["status"]] || :failed
       log_file_path = write_log_content(result["log_content"])
 
       @benchmark_run.update!(
