@@ -1,0 +1,9 @@
+---
+# EXAMPLE ONLY -- copy to vault.yml and encrypt with:
+#   ansible-vault encrypt ansible/group_vars/salt_master/vault.yml
+#
+# DO NOT commit vault.yml with real secrets. Only this .example file
+# should be checked into version control.
+
+vault_salt_gitfs_token: "ghp_replace_with_actual_github_token"
+vault_salt_api_password: "replace_with_actual_secure_password"

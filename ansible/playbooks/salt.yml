@@ -1,0 +1,12 @@
+---
+- name: Configure Salt Master
+  hosts: salt_master
+  become: yes
+  roles:
+    - salt_master
+
+- name: Configure Salt Minions
+  hosts: salt_minions
+  become: yes
+  roles:
+    - salt_minion

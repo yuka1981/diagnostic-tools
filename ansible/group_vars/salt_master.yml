@@ -1,0 +1,25 @@
+---
+# Salt Master configuration (non-secret values)
+# Secrets are in group_vars/salt_master/vault.yml (Ansible Vault encrypted)
+
+salt_version: "3006"
+
+# GitFS configuration
+salt_gitfs_user: "machine-account"
+salt_gitfs_branch: "develop"
+salt_gitfs_repo: "https://github.com/yuka1981/diagnostic-tools.git"
+salt_gitfs_update_interval: 60
+
+# Salt API
+salt_api_port: 8000
+salt_api_user: "rails_salt_user"
+salt_api_ssl_cert: "/etc/salt/pki/api/cert.crt"
+salt_api_ssl_key: "/etc/salt/pki/api/key.key"
+
+# Network
+salt_master_address: "10.0.0.1"
+rails_webhook_url: "https://your-rails-app.com/api/v1/salt/events"
+
+# References to vault-encrypted secrets
+salt_gitfs_token: "{{ vault_salt_gitfs_token }}"
+salt_api_password: "{{ vault_salt_api_password }}"
