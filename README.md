@@ -293,6 +293,69 @@ echo $MODULEPATH
 module spider perfspect
 ```
 
+### Salt Module Deployment (via Ansible + GitFS)
+
+The Salt custom modules and states in this repository are deployed to the Salt Master using Salt's GitFS backend. Ansible manages the Salt Master and Minion configuration.
+
+#### Ansible Vault Variables
+
+Sensitive credentials are encrypted using Ansible Vault. There are two recommended approaches:
+
+**Option A: Separate vault file for secrets only (Recommended)**
+
+Create a plain variables file and an encrypted vault file:
+
+```bash
+# Non-secret variables (plain YAML)
+# ansible/group_vars/salt_master.yml
+```
+
+```yaml
+salt_gitfs_user: "machine-account"
+salt_gitfs_branch: "develop"
+salt_api_user: "rails_salt_user"
+salt_api_ssl_cert: "/etc/salt/pki/api/cert.crt"
+salt_api_ssl_key: "/etc/salt/pki/api/key.key"
+salt_master_address: "10.0.0.1"
+rails_webhook_url: "https://your-rails-app.com/api/v1/salt/events"
+
+# References to vault-encrypted values
+salt_gitfs_token: "{{ vault_salt_gitfs_token }}"
+salt_api_password: "{{ vault_salt_api_password }}"
+```
+
+```bash
+# Secrets only (encrypted with Ansible Vault)
+ansible-vault create ansible/group_vars/salt_master/vault.yml
+```
+
+```yaml
+vault_salt_gitfs_token: "ghp_xxxxxxxxxxxxxxxxxxxx"
+vault_salt_api_password: "your-secure-password"
+```
+
+**Option B: Encrypt individual variables inline**
+
+```bash
+ansible-vault encrypt_string 'ghp_xxxxxxxxxxxxxxxxxxxx' --name 'vault_salt_gitfs_token'
+```
+
+Then paste the encrypted block directly into `ansible/group_vars/salt_master.yml`.
+
+Run the Salt playbook:
+
+```bash
+# Deploy Salt Master and Minions
+ansible-playbook -i ansible/inventory/hosts.yml ansible/playbooks/salt.yml --ask-vault-pass
+
+# Or with a vault password file
+ansible-playbook -i ansible/inventory/hosts.yml ansible/playbooks/salt.yml --vault-password-file ~/.vault_pass
+```
+
+For full details on the Salt module deployment architecture, see [docs/plans/2026-01-30-salt-module-deployment-design.md](docs/plans/2026-01-30-salt-module-deployment-design.md).
+
+---
+
 ## Usage
 
 ### Importing Nodes via CSV
