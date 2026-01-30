@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_01_29_162820) do
+ActiveRecord::Schema[7.2].define(version: 2026_01_30_131002) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -40,50 +40,6 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_29_162820) do
     t.bigint "blob_id", null: false
     t.string "variation_digest", null: false
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
-  end
-
-  create_table "agent_binaries", force: :cascade do |t|
-    t.bigint "agent_release_id", null: false
-    t.string "arch", null: false
-    t.string "checksum"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["agent_release_id", "arch"], name: "index_agent_binaries_on_agent_release_id_and_arch", unique: true
-    t.index ["agent_release_id"], name: "index_agent_binaries_on_agent_release_id"
-  end
-
-  create_table "agent_events", force: :cascade do |t|
-    t.bigint "node_id", null: false
-    t.bigint "user_id"
-    t.bigint "agent_release_id"
-    t.string "operation", null: false
-    t.string "status", default: "pending", null: false
-    t.string "from_version"
-    t.string "to_version"
-    t.text "error_message"
-    t.jsonb "error_details", default: {}
-    t.boolean "forced", default: false
-    t.datetime "started_at"
-    t.datetime "completed_at"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["agent_release_id"], name: "index_agent_events_on_agent_release_id"
-    t.index ["created_at"], name: "index_agent_events_on_created_at"
-    t.index ["node_id"], name: "index_agent_events_on_node_id"
-    t.index ["operation"], name: "index_agent_events_on_operation"
-    t.index ["status"], name: "index_agent_events_on_status"
-    t.index ["user_id"], name: "index_agent_events_on_user_id"
-  end
-
-  create_table "agent_releases", force: :cascade do |t|
-    t.string "version", null: false
-    t.string "checksum"
-    t.text "release_notes"
-    t.integer "status", default: 0, null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["status"], name: "index_agent_releases_on_status"
-    t.index ["version"], name: "index_agent_releases_on_version", unique: true
   end
 
   create_table "api_keys", force: :cascade do |t|
@@ -270,31 +226,14 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_29_162820) do
     t.datetime "last_seen_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.integer "ssh_port", default: 22, null: false
-    t.string "ssh_user"
-    t.string "agent_path"
     t.string "uuid"
-    t.integer "ssh_connect_method"
-    t.text "ssh_key"
-    t.string "sudo_credential"
-    t.string "benchmark_work_dir"
     t.string "api_token"
     t.bigint "api_key_id"
-    t.string "agent_version"
-    t.string "ssh_password"
-    t.datetime "last_heartbeat_at"
-    t.string "agent_status", default: "idle"
     t.bigint "rack_id"
     t.integer "rack_position"
     t.integer "rack_height", default: 1
     t.integer "rack_face", default: 0
     t.bigint "server_product_id"
-    t.boolean "ssh_user_override", default: false
-    t.boolean "ssh_port_override", default: false
-    t.boolean "ssh_key_override", default: false
-    t.boolean "ssh_password_override", default: false
-    t.boolean "sudo_credential_override", default: false
-    t.boolean "ssh_connect_method_override", default: false
     t.integer "salt_status", default: 0, null: false
     t.index ["api_key_id"], name: "index_nodes_on_api_key_id"
     t.index ["hostname"], name: "index_nodes_on_hostname", unique: true
@@ -416,6 +355,16 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_29_162820) do
     t.index ["site_id"], name: "index_rooms_on_site_id"
   end
 
+  create_table "salt_settings", force: :cascade do |t|
+    t.string "base_url"
+    t.string "username"
+    t.string "password"
+    t.string "ca_cert_path"
+    t.boolean "verify_ssl", default: true
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
   create_table "server_products", force: :cascade do |t|
     t.string "name", limit: 255, null: false
     t.string "product_series", limit: 100
@@ -451,28 +400,6 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_29_162820) do
     t.index ["name"], name: "index_sites_on_name", unique: true
   end
 
-  create_table "ssh_settings", force: :cascade do |t|
-    t.string "bastion_host"
-    t.string "bastion_user"
-    t.integer "bastion_port", default: 22
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.string "server_url"
-    t.string "benchmark_work_dir"
-    t.string "default_agent_path", default: "/usr/local/bin/hpc-agent"
-    t.string "ssh_user"
-    t.integer "ssh_port", default: 22
-    t.text "ssh_key"
-    t.string "ssh_password"
-    t.string "sudo_credential"
-    t.integer "timeout", default: 30
-    t.boolean "verify_host_key", default: false
-    t.integer "bmc_sensor_polling_interval", default: 5
-    t.boolean "bmc_collection_enabled", default: false
-    t.string "prometheus_pushgateway_url"
-    t.string "prometheus_url"
-  end
-
   create_table "sync_logs", force: :cascade do |t|
     t.string "source", limit: 50, null: false
     t.integer "products_added", default: 0
@@ -502,10 +429,6 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_29_162820) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
-  add_foreign_key "agent_binaries", "agent_releases"
-  add_foreign_key "agent_events", "agent_releases"
-  add_foreign_key "agent_events", "nodes"
-  add_foreign_key "agent_events", "users"
   add_foreign_key "artifact_indices", "benchmark_runs"
   add_foreign_key "benchmark_runs", "benchmark_recipes"
   add_foreign_key "benchmark_runs", "nodes"
