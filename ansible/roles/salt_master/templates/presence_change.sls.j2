@@ -1,0 +1,14 @@
+# Reactor: notify Rails when minion presence changes (managed by Ansible)
+{% raw %}
+{% if data.get('new', []) or data.get('lost', []) %}
+{% endraw %}
+post_presence_change:
+  runner.http.query:
+    - url: {{ rails_webhook_url }}
+    - method: POST
+    - header_dict:
+        Content-Type: application/json
+{% raw %}
+    - data: '{{ {"tag": tag, "new": data.get("new", []), "lost": data.get("lost", [])} | tojson }}'
+{% endif %}
+{% endraw %}

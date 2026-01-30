@@ -1,0 +1,35 @@
+---
+- name: Create reactor directory
+  ansible.builtin.file:
+    path: /srv/salt/reactor
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Deploy reactor configuration
+  ansible.builtin.template:
+    src: reactor.conf.j2
+    dest: /etc/salt/master.d/reactor.conf
+    owner: root
+    group: root
+    mode: '0640'
+  notify: restart salt-master
+
+- name: Deploy job return reactor
+  ansible.builtin.template:
+    src: job_return.sls.j2
+    dest: /srv/salt/reactor/job_return.sls
+    owner: root
+    group: root
+    mode: '0644'
+  notify: restart salt-master
+
+- name: Deploy presence change reactor
+  ansible.builtin.template:
+    src: presence_change.sls.j2
+    dest: /srv/salt/reactor/presence_change.sls
+    owner: root
+    group: root
+    mode: '0644'
+  notify: restart salt-master

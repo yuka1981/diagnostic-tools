@@ -1,0 +1,6 @@
+# Reactor configuration (managed by Ansible)
+reactor:
+  - 'salt/job/ret/*':
+    - /srv/salt/reactor/job_return.sls
+  - 'salt/presence/change':
+    - /srv/salt/reactor/presence_change.sls
