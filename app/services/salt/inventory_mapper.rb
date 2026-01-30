@@ -1,10 +1,10 @@
 module Salt
   class InventoryMapper
     def initialize(grains:, dmi: nil, numa: nil, network_v2: nil)
-      @grains = grains || {}
-      @dmi = dmi
-      @numa = numa
-      @network_v2 = network_v2
+      @grains = grains.is_a?(Hash) ? grains : {}
+      @dmi = dmi.is_a?(Hash) ? dmi : nil
+      @numa = numa.is_a?(Hash) ? numa : nil
+      @network_v2 = network_v2.is_a?(Hash) ? network_v2 : nil
     end
 
     def call

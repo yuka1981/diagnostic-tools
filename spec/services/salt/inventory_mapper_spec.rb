@@ -103,5 +103,20 @@ RSpec.describe Salt::InventoryMapper do
       expect(result[:dmi]).to eq({})
       expect(result[:network_v2]).to eq({})
     end
+
+    it "handles string error responses for optional data" do
+      mapper = described_class.new(
+        grains: grains,
+        dmi: "'inventory.collect_dmi' is not available.",
+        numa: "'inventory.collect_numa' is not available.",
+        network_v2: "'inventory.collect_network_v2' is not available."
+      )
+      result = mapper.call
+      expect(result[:host][:hostname]).to eq("node-01")
+      expect(result[:cpu][:numa_nodes]).to be_nil
+      expect(result[:cpu][:numa_topology]).to be_nil
+      expect(result[:dmi]).to eq({})
+      expect(result[:network_v2]).to eq({})
+    end
   end
 end
