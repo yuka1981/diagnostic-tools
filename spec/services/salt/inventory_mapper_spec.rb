@@ -56,22 +56,54 @@ RSpec.describe Salt::InventoryMapper do
       )
     end
 
-    it "maps grains to host_info" do
+    it "maps grains to host_info with view-compatible field names" do
       result = mapper.call
       expect(result[:host][:hostname]).to eq("node-01")
       expect(result[:host][:ip]).to eq("10.0.1.1")
       expect(result[:host][:arch]).to eq("x86_64")
+      expect(result[:host][:kernel]).to eq("Linux 5.15.0-generic")
+      expect(result[:host][:os]).to eq("CentOS")
+      expect(result[:host][:platform]).to eq("CentOS")
+      expect(result[:host][:platform_version]).to eq("8.5")
     end
 
-    it "maps grains to cpu_info" do
+    it "maps grains to cpu_info with view-compatible field names" do
       result = mapper.call
-      expect(result[:cpu][:model]).to eq("Intel(R) Xeon(R) Gold 6248 CPU @ 2.50GHz")
-      expect(result[:cpu][:cores]).to eq(40)
+      expect(result[:cpu][:model_name]).to eq("Intel(R) Xeon(R) Gold 6248 CPU @ 2.50GHz")
+      expect(result[:cpu][:cpus]).to eq(40)
     end
 
-    it "maps grains to memory_info" do
+    it "maps numa data to cpu_info numa_info as formatted ranges" do
       result = mapper.call
-      expect(result[:memory][:total_kb]).to eq(256000 * 1024)
+      expect(result[:cpu][:numa_info]).to eq({
+        "0" => "0-3",
+        "1" => "4-7"
+      })
+    end
+
+    it "formats non-contiguous CPU ranges correctly" do
+      numa_data_gaps = {
+        "node_count" => 1,
+        "nodes" => {
+          "0" => { "cpus" => [ 0, 1, 2, 5, 6, 10 ], "memory_mb" => 64000 }
+        }
+      }
+      mapper = described_class.new(grains: grains, numa: numa_data_gaps)
+      result = mapper.call
+      expect(result[:cpu][:numa_info]["0"]).to eq("0-2,5-6,10")
+    end
+
+    it "maps memory total in bytes for format_bytes helper" do
+      result = mapper.call
+      expect(result[:memory][:total]).to eq(256000 * 1024 * 1024)
+    end
+
+    it "maps disks with device field name" do
+      result = mapper.call
+      expect(result[:disks].first[:device]).to eq("sda")
+      expect(result[:disks].first[:type]).to eq("SSD")
+      expect(result[:disks].last[:device]).to eq("sdb")
+      expect(result[:disks].last[:type]).to eq("HDD")
     end
 
     it "maps dmi data" do
@@ -100,6 +132,7 @@ RSpec.describe Salt::InventoryMapper do
       mapper = described_class.new(grains: grains, dmi: nil, numa: nil, network_v2: nil)
       result = mapper.call
       expect(result[:host][:hostname]).to eq("node-01")
+      expect(result[:cpu][:numa_info]).to be_nil
       expect(result[:dmi]).to eq({})
       expect(result[:network_v2]).to eq({})
     end
@@ -113,8 +146,7 @@ RSpec.describe Salt::InventoryMapper do
       )
       result = mapper.call
       expect(result[:host][:hostname]).to eq("node-01")
-      expect(result[:cpu][:numa_nodes]).to be_nil
-      expect(result[:cpu][:numa_topology]).to be_nil
+      expect(result[:cpu][:numa_info]).to be_nil
       expect(result[:dmi]).to eq({})
       expect(result[:network_v2]).to eq({})
     end

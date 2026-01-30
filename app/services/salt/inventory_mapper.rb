@@ -30,26 +30,29 @@ module Salt
         hostname: @grains["host"],
         ip: primary_ip,
         arch: @grains["cpuarch"],
-        kernel: @grains["kernel"],
-        kernel_release: @grains["kernelrelease"],
+        kernel: "#{@grains['kernel']} #{@grains['kernelrelease']}",
         os: @grains["os"],
-        os_release: @grains["osrelease"]
+        os_release: @grains["osrelease"],
+        platform: @grains["os"],
+        platform_version: @grains["osrelease"]
       }
     end
 
     def map_cpu_info
+      numa_info = build_numa_info
+
       {
-        model: @grains["cpu_model"],
-        cores: @grains["num_cpus"],
+        model_name: @grains["cpu_model"],
+        cpus: @grains["num_cpus"],
         numa_nodes: @numa&.dig("node_count"),
-        numa_topology: @numa&.dig("nodes")
+        numa_info: numa_info
       }.compact
     end
 
     def map_memory_info
       total_mb = @grains["mem_total"]
       {
-        total_kb: total_mb ? total_mb * 1024 : nil
+        total: total_mb ? total_mb * 1024 * 1024 : nil
       }.compact
     end
 
@@ -59,10 +62,40 @@ module Salt
 
       disk_names.map do |name|
         {
-          name: name,
+          device: name,
           type: ssds.include?(name) ? "SSD" : "HDD"
         }
       end
+    end
+
+    def build_numa_info
+      nodes = @numa&.dig("nodes")
+      return nil unless nodes.is_a?(Hash)
+
+      nodes.transform_values do |node_data|
+        cpus = node_data["cpus"]
+        next "" unless cpus.is_a?(Array) && cpus.any?
+
+        format_cpu_ranges(cpus.sort)
+      end
+    end
+
+    def format_cpu_ranges(cpus)
+      ranges = []
+      range_start = cpus.first
+      prev = cpus.first
+
+      cpus.drop(1).each do |cpu|
+        if cpu == prev + 1
+          prev = cpu
+        else
+          ranges << (range_start == prev ? range_start.to_s : "#{range_start}-#{prev}")
+          range_start = cpu
+          prev = cpu
+        end
+      end
+      ranges << (range_start == prev ? range_start.to_s : "#{range_start}-#{prev}")
+      ranges.join(",")
     end
 
     def map_network_info
