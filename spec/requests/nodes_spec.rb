@@ -181,7 +181,7 @@ RSpec.describe "Nodes", type: :request do
 
     it "returns error message when collection fails" do
       allow(service_double).to receive(:call).and_return(
-        double(success?: false, error: "Agent not found")
+        double(success?: false, error: "Agent not found", node_state: nil)
       )
       post collect_node_path(node), headers: { "Accept" => "text/vnd.turbo-stream.html" }
 

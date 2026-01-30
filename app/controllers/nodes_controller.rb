@@ -55,6 +55,7 @@ class NodesController < ApplicationController
     end
 
     @node.reload
+    @selected_state = result.node_state || @node.current_state
     respond_to do |format|
       format.turbo_stream
       format.html { redirect_to @node }
