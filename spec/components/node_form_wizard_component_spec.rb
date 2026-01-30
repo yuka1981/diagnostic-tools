@@ -5,31 +5,29 @@ require "rails_helper"
 RSpec.describe NodeFormWizardComponent, type: :component do
   let(:node) { build(:node) }
   let(:api_keys) { [] }
-  let(:agent_config) { nil }
 
   subject(:component) do
     described_class.new(
       node: node,
-      api_keys: api_keys,
-      agent_config: agent_config
+      api_keys: api_keys
     )
   end
 
   describe "#render" do
     subject(:rendered) { render_inline(component) }
 
-    it "renders wizard with 3 steps" do
-      expect(rendered.css("[data-wizard-target='step']").length).to eq(3)
+    it "renders wizard with 2 steps" do
+      expect(rendered.css("[data-wizard-target='step']").length).to eq(2)
     end
 
-    it "renders progress indicators for 3 steps" do
-      expect(rendered.css("[data-wizard-target='indicator']").length).to eq(3)
+    it "renders progress indicators for 2 steps" do
+      expect(rendered.css("[data-wizard-target='indicator']").length).to eq(2)
     end
 
     it "renders wizard controller with correct values" do
       wizard_div = rendered.css("[data-controller='wizard']").first
       expect(wizard_div).to be_present
-      expect(wizard_div["data-wizard-total-value"]).to eq("3")
+      expect(wizard_div["data-wizard-total-value"]).to eq("2")
     end
 
     context "step 1 (Basic Info)" do
@@ -68,25 +66,6 @@ RSpec.describe NodeFormWizardComponent, type: :component do
       it "has rack_id select" do
         step2 = rendered.css("[data-wizard-target='step']")[1]
         expect(step2.css("select[name='node[rack_id]']")).to be_present
-      end
-    end
-
-    context "step 3 (Connection)" do
-      it "has SSH override checkboxes" do
-        step3 = rendered.css("[data-wizard-target='step']")[2]
-        expect(step3.css("input[name='node[ssh_user_override]']")).to be_present
-        expect(step3.css("input[name='node[ssh_port_override]']")).to be_present
-        expect(step3.css("input[name='node[ssh_connect_method_override]']")).to be_present
-      end
-
-      it "has api_key_id select" do
-        step3 = rendered.css("[data-wizard-target='step']")[2]
-        expect(step3.css("select[name='node[api_key_id]']")).to be_present
-      end
-
-      it "has link to SSH Defaults settings" do
-        step3 = rendered.css("[data-wizard-target='step']")[2]
-        expect(step3.css("a[href='/settings/ssh_defaults']")).to be_present
       end
     end
 
@@ -190,7 +169,6 @@ RSpec.describe NodeFormWizardComponent, type: :component do
 
       expect(page).to have_css("[data-testid='nodes-wizard-step-1']")
       expect(page).to have_css("[data-testid='nodes-wizard-step-2']")
-      expect(page).to have_css("[data-testid='nodes-wizard-step-3']")
     end
 
     it "renders data-testid on navigation buttons" do
