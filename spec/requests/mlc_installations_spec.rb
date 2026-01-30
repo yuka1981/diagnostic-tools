@@ -22,7 +22,7 @@ RSpec.describe "MlcInstallations", type: :request do
   end
 
   describe "POST /mlc_installations" do
-    let(:node) { create(:node, :online, :direct) }
+    let(:node) { create(:node, :online) }
 
     before do
       # Create test fixture directory

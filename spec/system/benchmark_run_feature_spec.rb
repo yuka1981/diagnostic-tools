@@ -10,29 +10,6 @@ RSpec.describe "Benchmark Run Feature", type: :system do
   before do
     sign_in approver
     driven_by(:rack_test)
-
-    # Mock preflight service to return successful checks
-    mock_preflight = instance_double(
-      Benchmark::PreflightService::Result,
-      success?: true,
-      checks: [
-        Benchmark::PreflightService::Check.new(name: "SSH Connectivity", passed: true, message: "Connected"),
-        Benchmark::PreflightService::Check.new(name: "Working Directory", passed: true, message: "Exists"),
-        Benchmark::PreflightService::Check.new(name: "HPCG Source", passed: true, message: "Ready"),
-        Benchmark::PreflightService::Check.new(name: "Agent Binary", passed: true, message: "Found")
-      ],
-      failed_checks: [],
-      config: {
-        work_dir: "/tmp/hpcg",
-        work_dir_source: :default,
-        agent_path: "../qis-agent",
-        node_hostname: "test-node",
-        server_url: nil,
-        api_configured: false,
-        token_source: :none
-      }
-    )
-    allow_any_instance_of(Benchmark::PreflightService).to receive(:call).and_return(mock_preflight)
   end
 
   it "allows an approver to run a benchmark with a custom log path" do
