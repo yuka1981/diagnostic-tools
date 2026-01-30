@@ -1,0 +1,157 @@
+<% content_for(:page_title) { "Salt API" } %>
+
+<div class="space-y-6" data-testid="salt-api-settings-container">
+  <%# Connection Settings Card %>
+  <div class="card-netbox">
+    <div class="card-header">
+      <h2 class="card-title">Salt API Connection</h2>
+    </div>
+
+    <%= form_with(model: @salt_setting, url: settings_salt_api_path, method: :patch, data: { testid: "salt-api-settings-form" }) do |f| %>
+      <div class="p-4 space-y-6">
+        <%# API Connection Section %>
+        <div>
+          <h3 class="text-sm font-bold text-neutral-85 border-b border-neutral-8 pb-2 mb-4">API Endpoint</h3>
+          <p class="text-[10px] text-neutral-45 italic mb-4">The Salt API (salt-api / CherryPy) endpoint URL. Supports both HTTP and HTTPS.</p>
+
+          <div class="grid grid-cols-1 gap-4 sm:grid-cols-6">
+            <div class="sm:col-span-6">
+              <%= f.label :base_url, "Salt API URL", class: "block text-xs font-bold text-neutral-85 mb-1" %>
+              <%= f.text_field :base_url, placeholder: "e.g. https://salt-master:8000 or http://salt-master:8000", data: { testid: "salt-api-input-url" }, class: "block w-full rounded border border-neutral-15 py-1.5 px-3 text-neutral-85 shadow-sm focus:ring-2 focus:ring-primary-5 focus:border-primary-5 sm:text-sm" %>
+              <p class="text-[10px] text-neutral-45 mt-1">Base URL without trailing path. Both http:// and https:// are supported.</p>
+            </div>
+          </div>
+        </div>
+
+        <%# Authentication Section %>
+        <div>
+          <h3 class="text-sm font-bold text-neutral-85 border-b border-neutral-8 pb-2 mb-4">Authentication</h3>
+          <p class="text-[10px] text-neutral-45 italic mb-4">PAM credentials for authenticating with the Salt API.</p>
+
+          <div class="grid grid-cols-1 gap-4 sm:grid-cols-6">
+            <div class="sm:col-span-3">
+              <%= f.label :username, "Username", class: "block text-xs font-bold text-neutral-85 mb-1" %>
+              <%= f.text_field :username, placeholder: "e.g. saltadmin", autocomplete: "off", data: { testid: "salt-api-input-username" }, class: "block w-full rounded border border-neutral-15 py-1.5 px-3 text-neutral-85 shadow-sm focus:ring-2 focus:ring-primary-5 focus:border-primary-5 sm:text-sm" %>
+            </div>
+
+            <div class="sm:col-span-3">
+              <%= f.label :password, "Password", class: "block text-xs font-bold text-neutral-85 mb-1" %>
+              <%= f.password_field :password, placeholder: @salt_setting.password.present? ? "••••••••" : "Enter password", autocomplete: "off", data: { testid: "salt-api-input-password" }, class: "block w-full rounded border border-neutral-15 py-1.5 px-3 text-neutral-85 shadow-sm focus:ring-2 focus:ring-primary-5 focus:border-primary-5 sm:text-sm" %>
+              <p class="text-[10px] text-neutral-45 mt-1">Leave blank to keep current password.</p>
+            </div>
+          </div>
+        </div>
+
+        <%# SSL/TLS Section %>
+        <div>
+          <h3 class="text-sm font-bold text-neutral-85 border-b border-neutral-8 pb-2 mb-4">SSL / TLS</h3>
+
+          <div class="grid grid-cols-1 gap-4 sm:grid-cols-6">
+            <div class="sm:col-span-6">
+              <%= f.label :ca_cert_path, "CA Certificate Path", class: "block text-xs font-bold text-neutral-85 mb-1" %>
+              <%= f.text_field :ca_cert_path, placeholder: "e.g. /etc/ssl/certs/salt-ca.pem", data: { testid: "salt-api-input-ca-cert" }, class: "block w-full rounded border border-neutral-15 py-1.5 px-3 text-neutral-85 shadow-sm focus:ring-2 focus:ring-primary-5 focus:border-primary-5 sm:text-sm" %>
+              <p class="text-[10px] text-neutral-45 mt-1">Path to CA certificate file on the server. Only needed for HTTPS with custom CA.</p>
+            </div>
+
+            <div class="sm:col-span-6 flex items-center">
+              <div class="flex items-center">
+                <%= f.check_box :verify_ssl, { data: { testid: "salt-api-checkbox-verify-ssl" }, class: "h-4 w-4 rounded border-neutral-15 text-primary-6 focus:ring-primary-5" } %>
+                <%= f.label :verify_ssl, "Verify SSL Certificate", class: "ml-2 text-sm text-neutral-85" %>
+                <span class="ml-2 text-[10px] text-neutral-45">(Disable for self-signed certificates in dev/lab)</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <% if @salt_setting.errors.any? %>
+        <div class="px-4 pb-4">
+          <div class="bg-error-1 border border-error-2 rounded p-3">
+            <h4 class="text-sm font-bold text-error-8">Please correct the following errors:</h4>
+            <ul class="mt-2 text-sm text-error-7 list-disc list-inside">
+              <% @salt_setting.errors.full_messages.each do |message| %>
+                <li><%= message %></li>
+              <% end %>
+            </ul>
+          </div>
+        </div>
+      <% end %>
+
+      <div class="flex items-center justify-end gap-3 bg-neutral-2 border-t border-neutral-8 px-4 py-3">
+        <%= f.submit "Save Settings", data: { testid: "salt-api-button-submit" }, class: "btn-primary" %>
+      </div>
+    <% end %>
+  </div>
+
+  <%# Test Connection Card %>
+  <div class="card-netbox">
+    <div class="card-header">
+      <h2 class="card-title">Test Connection</h2>
+    </div>
+    <div class="p-4">
+      <p class="text-sm text-neutral-65 mb-4">Verify the Salt API connection using the saved settings above.</p>
+
+      <%= button_to "Test Connection",
+          test_connection_settings_salt_api_path,
+          method: :post,
+          data: { testid: "salt-api-button-test", turbo_stream: true },
+          class: "btn-secondary" %>
+
+      <%= render "settings/salt_api/test_result" %>
+    </div>
+  </div>
+
+  <%# Event Webhook URL Card %>
+  <div class="card-netbox">
+    <div class="card-header">
+      <h2 class="card-title">Event Webhook</h2>
+    </div>
+    <div class="p-4">
+      <p class="text-sm text-neutral-65 mb-4">Configure your Salt master reactor to POST events to this URL for real-time benchmark result processing and presence monitoring.</p>
+
+      <div>
+        <label class="block text-xs font-bold text-neutral-85 mb-1">Webhook URL</label>
+        <div class="flex items-center gap-2">
+          <code class="flex-1 block rounded bg-neutral-4 border border-neutral-8 py-1.5 px-3 text-sm text-neutral-85 font-mono" data-testid="salt-api-webhook-url"><%= @webhook_url %></code>
+        </div>
+        <p class="text-[10px] text-neutral-45 mt-2">
+          Add this to your Salt master reactor configuration:<br>
+          <code class="text-[10px] bg-neutral-4 px-1 rounded">reactor: [{salt/job/ret/*: [/srv/reactor/webhook.sls]}]</code>
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <%# Salt Master Status Card %>
+  <div class="card-netbox">
+    <div class="card-header">
+      <h2 class="card-title">Salt Master Status</h2>
+    </div>
+    <div class="p-4">
+      <% if @salt_setting.configured? %>
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <div>
+            <dt class="text-xs font-bold text-neutral-45">Configuration</dt>
+            <dd class="mt-1 text-sm text-emerald-600 font-bold flex items-center gap-1">
+              <%= lucide_icon("check-circle", class: "h-4 w-4") %> Configured
+            </dd>
+          </div>
+          <div>
+            <dt class="text-xs font-bold text-neutral-45">API Endpoint</dt>
+            <dd class="mt-1 text-sm text-neutral-85 font-mono"><%= @salt_setting.base_url %></dd>
+          </div>
+          <div>
+            <dt class="text-xs font-bold text-neutral-45">SSL Verification</dt>
+            <dd class="mt-1 text-sm text-neutral-85"><%= @salt_setting.verify_ssl? ? "Enabled" : "Disabled" %></dd>
+          </div>
+        </div>
+        <p class="text-[10px] text-neutral-45 mt-4">Use "Test Connection" above to verify the Salt master is reachable and view minion count.</p>
+      <% else %>
+        <div class="text-sm text-neutral-45 flex items-center gap-2">
+          <%= lucide_icon("alert-circle", class: "h-4 w-4 text-amber-500") %>
+          Salt API is not configured. Fill in the connection settings above.
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>
