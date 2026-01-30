@@ -67,7 +67,7 @@ group :development, :test do
   gem "factory_bot_rails", "~> 6.4"
 
   # Faker for generating fake data [https://github.com/faker-ruby/faker]
-  gem "faker", "~> 3.4"
+  gem "faker", "~> 3.6"
 
   # Shoulda Matchers for common Rails testing patterns [https://github.com/thoughtbot/shoulda-matchers]
   gem "shoulda-matchers", "~> 6.2"
