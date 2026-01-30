@@ -1,0 +1,28 @@
+---
+- name: Add SaltStack GPG key
+  ansible.builtin.apt_key:
+    url: "https://repo.saltproject.io/salt/py3/{{ ansible_distribution | lower }}/{{ ansible_distribution_version }}/{{ ansible_architecture }}/SALT-PROJECT-GPG-PUBKEY-2023.gpg"
+    state: present
+
+- name: Add SaltStack APT repository
+  ansible.builtin.apt_repository:
+    repo: "deb [arch={{ ansible_architecture }}] https://repo.saltproject.io/salt/py3/{{ ansible_distribution | lower }}/{{ ansible_distribution_version }}/{{ ansible_architecture }}/{{ salt_version }} {{ ansible_distribution_release }} main"
+    state: present
+    filename: saltstack
+
+- name: Install Salt Master and API packages
+  ansible.builtin.apt:
+    name:
+      - salt-master
+      - salt-api
+      - python3-pygit2
+    state: present
+    update_cache: yes
+
+- name: Create Salt API PAM user
+  ansible.builtin.user:
+    name: "{{ salt_api_user }}"
+    password: "{{ salt_api_password | password_hash('sha512') }}"
+    shell: /usr/sbin/nologin
+    system: yes
+    create_home: no
