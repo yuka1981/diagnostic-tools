@@ -55,23 +55,6 @@ RSpec.describe "Benchmark Runs Cancel Functionality", type: :system do
     context "with running benchmark run" do
       let!(:running_run) { create(:benchmark_run, :running, node: node, benchmark_recipe: recipe) }
 
-      before do
-        # Mock SSH for running benchmark cancellation
-        mock_channel = instance_double(Net::SSH::Connection::Channel)
-        mock_session = instance_double(Net::SSH::Connection::Session, loop: true)
-
-        allow(mock_session).to receive(:open_channel).and_yield(mock_channel)
-        allow(mock_channel).to receive(:exec).and_yield(mock_channel, true)
-        allow(mock_channel).to receive(:on_data) do |&block|
-          block.call(mock_channel, '{"status":"ok","message":"Process killed","pid":123}')
-        end
-        allow(mock_channel).to receive(:on_extended_data)
-        allow(mock_channel).to receive(:on_request).with("exit-status").and_yield(mock_channel, double(read_long: 0))
-        allow(mock_channel).to receive(:on_request).with("exit-signal").and_yield(mock_channel, double(read_long: nil))
-
-        allow(Net::SSH).to receive(:start).and_yield(mock_session)
-      end
-
       it "displays cancel icon button for running runs", :js do
         visit benchmark_runs_path
 
@@ -80,7 +63,7 @@ RSpec.describe "Benchmark Runs Cancel Functionality", type: :system do
         end
       end
 
-      it "cancels running run via SSH when confirmed", :js do
+      it "cancels running run when confirmed", :js do
         visit benchmark_runs_path
 
         within("#benchmark_run_#{running_run.id}") do

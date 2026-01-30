@@ -61,7 +61,7 @@ module Ansible
     end
 
     # Standalone SSH executor for admin node using composition
-    # Does not inherit from SshExecutionService - uses Net::SSH directly
+    # Uses Net::SSH directly for admin node connections
     class SshAdminExecutor
       SshResult = Struct.new(:success, :output, :error, :exit_code, :exit_signal, keyword_init: true) do
         def success?

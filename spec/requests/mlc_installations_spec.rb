@@ -59,7 +59,6 @@ RSpec.describe "MlcInstallations", type: :request do
       expect(Mlc::InstallJob).to receive(:perform_later).with(
         kind_of(Integer),
         kind_of(String),
-        kind_of(String),
         user_id: user.id
       )
 

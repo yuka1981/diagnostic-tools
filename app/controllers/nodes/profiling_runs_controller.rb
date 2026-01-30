@@ -106,6 +106,5 @@ module Nodes
         File.expand_path(base_path)
       end
     end
-
   end
 end

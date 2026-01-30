@@ -71,6 +71,5 @@ module Nodes
     def run_params
       params.require(:benchmark_run_form).permit(:benchmark_recipe_id, :argument_overrides, :log_path)
     end
-
   end
 end

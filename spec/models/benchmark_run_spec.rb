@@ -200,5 +200,4 @@ RSpec.describe BenchmarkRun, type: :model do
       expect(node.benchmark_runs.count).to eq(3)
     end
   end
-
 end
