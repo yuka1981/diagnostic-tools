@@ -88,9 +88,6 @@ application.register("sidebar", SidebarController)
 import SlideOverController from "./slide_over_controller"
 application.register("slide-over", SlideOverController)
 
-import SshOverrideController from "./ssh_override_controller"
-application.register("ssh-override", SshOverrideController)
-
 import TabsController from "./tabs_controller"
 application.register("tabs", TabsController)
 
