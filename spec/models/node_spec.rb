@@ -393,6 +393,18 @@ RSpec.describe Node, type: :model do
     it { is_expected.to have_many(:profiling_runs).dependent(:destroy) }
   end
 
+  describe "mlc_installation_nodes association" do
+    it { is_expected.to have_many(:mlc_installation_nodes).dependent(:destroy) }
+
+    it "can be destroyed when it has mlc_installation_nodes" do
+      node = create(:node)
+      create(:mlc_installation_node, node: node)
+
+      expect { node.destroy! }.not_to raise_error
+      expect(MlcInstallationNode.where(node_id: node.id)).to be_empty
+    end
+  end
+
   describe "rack associations and validations" do
     describe "rack_position validation" do
       let(:site) { create(:site) }
