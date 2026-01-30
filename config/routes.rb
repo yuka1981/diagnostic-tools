@@ -19,6 +19,11 @@ Rails.application.routes.draw do
     namespace :v1 do
       get "health", to: "health#show"
       post "salt/events", to: "salt_events#create"
+      resources :nodes, param: :uuid, only: [] do
+        member do
+          post :heartbeat, to: "heartbeats#create"
+        end
+      end
       resources :benchmark_runs, only: [ :create, :update ]
       resources :profiling_runs, param: :uuid, only: [] do
         member do
