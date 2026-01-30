@@ -1,16 +1,15 @@
 # frozen_string_literal: true
 
 class NodeFormWizardComponent < ViewComponent::Base
-  def initialize(node:, api_keys: [], agent_config: nil, testid: nil)
+  def initialize(node:, api_keys: [], testid: nil)
     @node = node
     @api_keys = api_keys
-    @agent_config = agent_config || SshSetting.current
     @testid = testid
   end
 
   private
 
-  attr_reader :node, :api_keys, :agent_config, :testid
+  attr_reader :node, :api_keys, :testid
 
   def roles_for_select
     Node.roles.keys.map { |r| [ r.titleize, r ] }
@@ -40,7 +39,7 @@ class NodeFormWizardComponent < ViewComponent::Base
   end
 
   def default_benchmark_work_dir
-    agent_config&.benchmark_work_dir.presence || BenchmarkConfig::DEFAULT_WORK_DIR
+    BenchmarkConfig::DEFAULT_WORK_DIR
   end
 
   def racks_for_select
@@ -49,7 +48,4 @@ class NodeFormWizardComponent < ViewComponent::Base
     end
   end
 
-  def ssh_connect_methods_for_select
-    Node.ssh_connect_methods.keys.map { |m| [ m.humanize, m ] }
-  end
 end
