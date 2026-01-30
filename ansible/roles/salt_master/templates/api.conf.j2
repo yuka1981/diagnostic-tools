@@ -1,0 +1,18 @@
+# Salt API configuration (managed by Ansible)
+rest_cherrypy:
+  port: {{ salt_api_port | default(8000) }}
+  ssl_crt: {{ salt_api_ssl_cert }}
+  ssl_key: {{ salt_api_ssl_key }}
+
+# Restrict API clients (requires Salt 3006.1+)
+netapi_enable_clients:
+  - local
+  - local_async
+  - runner
+
+# Enable presence events for minion tracking
+presence_events: True
+
+# Allow minions to push files (benchmark artifacts)
+# Security: only authenticated minions can push, stored under /var/cache/salt/master/minions/<id>/files/
+file_recv: True

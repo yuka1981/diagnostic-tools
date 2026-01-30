@@ -1,0 +1,9 @@
+---
+- name: Deploy Salt API configuration
+  ansible.builtin.template:
+    src: api.conf.j2
+    dest: /etc/salt/master.d/api.conf
+    owner: root
+    group: root
+    mode: '0640'
+  notify: restart salt-master
