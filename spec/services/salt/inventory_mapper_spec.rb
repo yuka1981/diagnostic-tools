@@ -300,6 +300,62 @@ RSpec.describe Salt::InventoryMapper do
       })
     end
 
+    it "maps memory available from meminfo" do
+      meminfo = { "MemTotal" => 2113698482, "MemAvailable" => 1900000000 }
+      mapper = described_class.new(grains: grains, meminfo: meminfo)
+      result = mapper.call
+      expect(result[:memory][:available]).to eq(1900000000 * 1024)
+      expect(result[:memory][:total]).to eq(256000 * 1024 * 1024)
+    end
+
+    it "omits available when meminfo is nil" do
+      mapper = described_class.new(grains: grains, meminfo: nil)
+      result = mapper.call
+      expect(result[:memory]).not_to have_key(:available)
+      expect(result[:memory][:total]).to eq(256000 * 1024 * 1024)
+    end
+
+    it "maps DMI memory devices array through dmi_info" do
+      dmi_with_memory = dmi_data.merge(
+        "memory" => [
+          { "size" => "32 GB", "type" => "DDR4", "speed" => "3200 MT/s", "locator" => "DIMM_A0" },
+          { "size" => "32 GB", "type" => "DDR4", "speed" => "3200 MT/s", "locator" => "DIMM_B0" }
+        ]
+      )
+      mapper = described_class.new(grains: grains, dmi: dmi_with_memory)
+      result = mapper.call
+      expect(result[:dmi][:memory]).to be_an(Array)
+      expect(result[:dmi][:memory].length).to eq(2)
+      expect(result[:dmi][:memory].first[:size]).to eq("32 GB")
+      expect(result[:dmi][:memory].first[:locator]).to eq("DIMM_A0")
+    end
+
+    it "normalizes configured_memory_speed to configured_speed in DMI memory" do
+      dmi_with_memory = dmi_data.merge(
+        "memory" => [
+          { "size" => "32 GB", "configured_memory_speed" => "2933 MT/s" }
+        ]
+      )
+      mapper = described_class.new(grains: grains, dmi: dmi_with_memory)
+      result = mapper.call
+      expect(result[:dmi][:memory].first[:configured_speed]).to eq("2933 MT/s")
+      expect(result[:dmi][:memory].first).not_to have_key(:configured_memory_speed)
+    end
+
+    it "falls back to grains when DMI module returns error dict" do
+      grains_with_dmi = grains.merge(
+        "manufacturer" => "Dell Inc.",
+        "productname" => "PowerEdge R750",
+        "biosversion" => "2.13.0"
+      )
+      error_dmi = { "error" => "dmidecode not found" }
+      mapper = described_class.new(grains: grains_with_dmi, dmi: error_dmi)
+      result = mapper.call
+      expect(result[:dmi][:system][:manufacturer]).to eq("Dell Inc.")
+      expect(result[:dmi][:bios][:version]).to eq("2.13.0")
+      expect(result[:dmi]).not_to have_key(:error)
+    end
+
     it "custom NUMA module takes precedence over lscpu NUMA mappings" do
       lscpu_output = <<~LSCPU
         Socket(s):             2

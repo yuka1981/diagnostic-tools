@@ -31,6 +31,7 @@ def collect_dmi():
             'bios': _parse_dmi_section(_run_dmidecode('bios')),
             'system': _parse_dmi_section(_run_dmidecode('system')),
             'baseboard': _parse_dmi_section(_run_dmidecode('baseboard')),
+            'memory': _parse_dmi_memory(_run_dmidecode('memory')),
         }
     except FileNotFoundError as e:
         return {'error': str(e)}
@@ -42,7 +43,7 @@ def collect_dmi():
 
 def _run_dmidecode(dmi_type):
     """Run dmidecode for a specific type."""
-    type_map = {'bios': '0', 'system': '1', 'baseboard': '2'}
+    type_map = {'bios': '0', 'system': '1', 'baseboard': '2', 'memory': '17'}
     result = subprocess.run(
         ['dmidecode', '-t', type_map[dmi_type]],
         capture_output=True, text=True, timeout=10, check=True
@@ -61,6 +62,59 @@ def _parse_dmi_section(output):
             value = value.strip()
             if value:
                 data[key] = value
+    return data
+
+
+def _parse_dmi_memory(output):
+    """Parse dmidecode -t 17 output into a list of memory device dicts."""
+    devices = []
+    current = None
+    for line in output.splitlines():
+        stripped = line.strip()
+        if stripped == 'Memory Device':
+            if current is not None:
+                devices.append(current)
+            current = {}
+            continue
+        if current is None:
+            continue
+        if ':' in stripped and not stripped.endswith(':'):
+            key, _, value = stripped.partition(':')
+            key = key.strip().lower().replace(' ', '_')
+            value = value.strip()
+            if value:
+                current[key] = value
+    if current is not None:
+        devices.append(current)
+    return devices
+
+
+# --- Memory Info ---
+
+def collect_meminfo():
+    """Collect memory info from /proc/meminfo."""
+    try:
+        raw = _read_file('/proc/meminfo')
+        return _parse_proc_meminfo(raw)
+    except Exception as e:
+        return {'error': str(e)}
+
+
+def _parse_proc_meminfo(raw):
+    """Parse /proc/meminfo into a dict of values in kB."""
+    data = {}
+    for line in raw.splitlines():
+        if ':' not in line:
+            continue
+        key, _, value = line.partition(':')
+        key = key.strip()
+        value = value.strip()
+        # Strip ' kB' suffix and convert to int
+        match = re.match(r'^(\d+)\s*kB$', value)
+        if match:
+            data[key] = int(match.group(1))
+        elif value.isdigit():
+            data[key] = int(value)
     return data
 
 

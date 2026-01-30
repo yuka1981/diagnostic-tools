@@ -18,6 +18,7 @@ module Inventory
       network_v2 = safe_collect("inventory.collect_network_v2")
       cpu_topology = safe_collect("inventory.collect_cpu")
       lscpu = cpu_topology.is_a?(Hash) ? nil : safe_cmd_run("lscpu")
+      meminfo = safe_collect("inventory.collect_meminfo")
 
       mapped = Salt::InventoryMapper.new(
         grains: grains,
@@ -25,7 +26,8 @@ module Inventory
         numa: numa,
         network_v2: network_v2,
         cpu_topology: cpu_topology,
-        lscpu: lscpu
+        lscpu: lscpu,
+        meminfo: meminfo
       ).call
 
       process_result = Inventory::ProcessStateService.new(

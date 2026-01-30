@@ -1,12 +1,13 @@
 module Salt
   class InventoryMapper
-    def initialize(grains:, dmi: nil, numa: nil, network_v2: nil, cpu_topology: nil, lscpu: nil)
+    def initialize(grains:, dmi: nil, numa: nil, network_v2: nil, cpu_topology: nil, lscpu: nil, meminfo: nil)
       @grains = grains.is_a?(Hash) ? grains : {}
       @dmi = dmi.is_a?(Hash) ? dmi : nil
       @numa = numa.is_a?(Hash) ? numa : nil
       @network_v2 = network_v2.is_a?(Hash) ? network_v2 : nil
       @cpu_topology = cpu_topology.is_a?(Hash) ? cpu_topology : nil
       @lscpu = lscpu.is_a?(String) ? lscpu : nil
+      @meminfo = meminfo.is_a?(Hash) ? meminfo : nil
     end
 
     def call
@@ -63,8 +64,10 @@ module Salt
 
     def map_memory_info
       total_mb = @grains["mem_total"]
+      available_kb = @meminfo&.dig("MemAvailable")
       {
-        total: total_mb ? total_mb * 1024 * 1024 : nil
+        total: total_mb ? total_mb * 1024 * 1024 : nil,
+        available: available_kb ? available_kb * 1024 : nil
       }.compact
     end
 
@@ -205,9 +208,21 @@ module Salt
     end
 
     def map_dmi_info
-      return @dmi.deep_symbolize_keys if @dmi
+      if @dmi && !@dmi.key?("error")
+        result = @dmi.deep_symbolize_keys
+        if result[:memory].is_a?(Array)
+          result[:memory] = result[:memory].map { |dev| normalize_memory_device(dev) }
+        end
+        return result
+      end
 
       build_dmi_from_grains
+    end
+
+    def normalize_memory_device(device)
+      device.transform_keys do |key|
+        key == :configured_memory_speed ? :configured_speed : key
+      end
     end
 
     def build_dmi_from_grains

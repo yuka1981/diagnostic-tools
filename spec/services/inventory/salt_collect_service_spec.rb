@@ -40,6 +40,10 @@ RSpec.describe Inventory::SaltCollectService do
     { "sockets" => 2, "cores_per_socket" => 20, "threads_per_core" => 2, "flags" => [ "avx2" ] }
   end
 
+  let(:meminfo_response) do
+    { "MemTotal" => 2113698482, "MemAvailable" => 1900000000 }
+  end
+
   describe "#call" do
     before do
       allow(salt_client).to receive(:run)
@@ -57,6 +61,9 @@ RSpec.describe Inventory::SaltCollectService do
       allow(salt_client).to receive(:run)
         .with("node-01", "inventory.collect_cpu")
         .and_return(cpu_topology_response)
+      allow(salt_client).to receive(:run)
+        .with("node-01", "inventory.collect_meminfo")
+        .and_return(meminfo_response)
     end
 
     it "collects inventory and creates a node state" do
@@ -104,6 +111,15 @@ RSpec.describe Inventory::SaltCollectService do
       expect(salt_client).not_to receive(:run).with("node-01", "cmd.run", arg: [ "lscpu" ])
 
       service.call
+    end
+
+    it "degrades gracefully when meminfo module fails" do
+      allow(salt_client).to receive(:run)
+        .with("node-01", "inventory.collect_meminfo")
+        .and_raise(SaltApiClient::ApiError, "module not available")
+
+      result = service.call
+      expect(result.success?).to be true
     end
 
     it "handles SaltApiClient::TargetUnreachable" do
