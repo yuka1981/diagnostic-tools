@@ -1,9 +1,9 @@
-<div data-controller="wizard" data-wizard-total-value="3" data-wizard-current-value="1"<% if testid %> data-testid="<%= testid %>-container"<% end %>>
+<div data-controller="wizard" data-wizard-total-value="2" data-wizard-current-value="1"<% if testid %> data-testid="<%= testid %>-container"<% end %>>
   <%# Progress Indicators %>
   <div class="mb-6">
     <div class="flex items-center justify-between">
-      <% ["Basic Info", "Server & Location", "Connection"].each_with_index do |label, index| %>
-        <div class="flex items-center <%= 'flex-1' unless index == 2 %>">
+      <% ["Basic Info", "Server & Location"].each_with_index do |label, index| %>
+        <div class="flex items-center <%= 'flex-1' unless index == 1 %>">
           <button type="button"
                   data-wizard-target="indicator"
                   data-step="<%= index + 1 %>"
@@ -13,7 +13,7 @@
             <%= index + 1 %>
           </button>
           <span class="ml-2 text-sm font-medium text-neutral-85 hidden sm:inline"><%= label %></span>
-          <% unless index == 2 %>
+          <% unless index == 1 %>
             <div class="flex-1 mx-4 h-0.5 bg-neutral-8"></div>
           <% end %>
         </div>
@@ -151,151 +151,20 @@
           </div>
         </div>
       </div>
-    </div>
-
-    <%# Step 3: Connection %>
-    <div data-wizard-target="step" class="hidden space-y-6">
-      <div class="card-netbox">
-        <div class="card-header">
-          <h3 class="card-title">SSH Connection</h3>
-        </div>
-        <div class="p-4 space-y-6">
-          <p class="text-xs text-neutral-45">
-            By default, nodes use the global SSH settings configured in
-            <%= link_to "SSH Defaults", helpers.settings_ssh_defaults_path, class: "text-primary-6 hover:text-primary-8", data: { turbo_frame: "_top" } %>.
-            Enable overrides below to use node-specific values.
-          </p>
-
-          <%# Connection Method Override %>
-          <div data-controller="ssh-override">
-            <div class="flex items-center gap-3 mb-2">
-              <%= f.check_box :ssh_connect_method_override,
-                  class: "h-4 w-4 rounded border-neutral-15 text-primary-6 focus:ring-primary-5",
-                  data: { ssh_override_target: "checkbox", action: "change->ssh-override#toggle" } %>
-              <%= f.label :ssh_connect_method_override, "Override Connection Method", class: "text-sm font-bold text-neutral-85" %>
-            </div>
-            <div class="<%= 'hidden' unless node.ssh_connect_method_override? %>" data-ssh-override-target="field">
-              <%= f.select :ssh_connect_method,
-                  ssh_connect_methods_for_select,
-                  {},
-                  class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm" %>
-              <p class="mt-1 text-xs text-neutral-45">
-                <strong>Global Bastion:</strong> Connect via the global jump host.
-                <strong>Direct:</strong> Connect directly to the node.
-              </p>
-            </div>
-          </div>
-
-          <%# SSH User Override %>
-          <div data-controller="ssh-override">
-            <div class="flex items-center gap-3 mb-2">
-              <%= f.check_box :ssh_user_override,
-                  class: "h-4 w-4 rounded border-neutral-15 text-primary-6 focus:ring-primary-5",
-                  data: { ssh_override_target: "checkbox", action: "change->ssh-override#toggle" } %>
-              <%= f.label :ssh_user_override, "Override SSH User", class: "text-sm font-bold text-neutral-85" %>
-            </div>
-            <div class="<%= 'hidden' unless node.ssh_user_override? %>" data-ssh-override-target="field">
-              <%= f.text_field :ssh_user,
-                  placeholder: "e.g. root",
-                  class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm" %>
-            </div>
-          </div>
-
-          <%# SSH Port Override %>
-          <div data-controller="ssh-override">
-            <div class="flex items-center gap-3 mb-2">
-              <%= f.check_box :ssh_port_override,
-                  class: "h-4 w-4 rounded border-neutral-15 text-primary-6 focus:ring-primary-5",
-                  data: { ssh_override_target: "checkbox", action: "change->ssh-override#toggle" } %>
-              <%= f.label :ssh_port_override, "Override SSH Port", class: "text-sm font-bold text-neutral-85" %>
-            </div>
-            <div class="<%= 'hidden' unless node.ssh_port_override? %>" data-ssh-override-target="field">
-              <%= f.number_field :ssh_port, min: 1, max: 65535,
-                  class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm" %>
-            </div>
-          </div>
-
-          <%# SSH Key Override %>
-          <div data-controller="ssh-override">
-            <div class="flex items-center gap-3 mb-2">
-              <%= f.check_box :ssh_key_override,
-                  class: "h-4 w-4 rounded border-neutral-15 text-primary-6 focus:ring-primary-5",
-                  data: { ssh_override_target: "checkbox", action: "change->ssh-override#toggle" } %>
-              <%= f.label :ssh_key_override, "Override SSH Key", class: "text-sm font-bold text-neutral-85" %>
-            </div>
-            <div class="<%= 'hidden' unless node.ssh_key_override? %>" data-ssh-override-target="field">
-              <%= f.text_area :ssh_key, rows: 3,
-                  placeholder: "Paste private key here...",
-                  class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm font-mono text-xs" %>
-            </div>
-          </div>
-
-          <%# SSH Password Override %>
-          <div data-controller="ssh-override">
-            <div class="flex items-center gap-3 mb-2">
-              <%= f.check_box :ssh_password_override,
-                  class: "h-4 w-4 rounded border-neutral-15 text-primary-6 focus:ring-primary-5",
-                  data: { ssh_override_target: "checkbox", action: "change->ssh-override#toggle" } %>
-              <%= f.label :ssh_password_override, "Override SSH Password", class: "text-sm font-bold text-neutral-85" %>
-            </div>
-            <div class="<%= 'hidden' unless node.ssh_password_override? %>" data-ssh-override-target="field">
-              <%= f.password_field :ssh_password,
-                  placeholder: node.ssh_password.present? ? "••••••••" : "Leave blank for key auth",
-                  autocomplete: "off",
-                  class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm" %>
-            </div>
-          </div>
-
-          <%# Sudo Credential Override %>
-          <div data-controller="ssh-override">
-            <div class="flex items-center gap-3 mb-2">
-              <%= f.check_box :sudo_credential_override,
-                  class: "h-4 w-4 rounded border-neutral-15 text-primary-6 focus:ring-primary-5",
-                  data: { ssh_override_target: "checkbox", action: "change->ssh-override#toggle" } %>
-              <%= f.label :sudo_credential_override, "Override Sudo Password", class: "text-sm font-bold text-neutral-85" %>
-            </div>
-            <div class="<%= 'hidden' unless node.sudo_credential_override? %>" data-ssh-override-target="field">
-              <%= f.password_field :sudo_credential,
-                  placeholder: node.sudo_credential.present? ? "••••••••" : "For privileged commands",
-                  autocomplete: "off",
-                  class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm" %>
-            </div>
-          </div>
-        </div>
-      </div>
 
       <div class="card-netbox">
         <div class="card-header">
-          <h3 class="card-title">Agent & Benchmark Configuration</h3>
+          <h3 class="card-title">API Configuration</h3>
         </div>
-        <div class="p-4 grid grid-cols-1 gap-6 sm:grid-cols-2">
+        <div class="p-4">
           <div>
-            <%= f.label :agent_path, "Agent Path", class: "block text-sm font-bold text-neutral-85 mb-1" %>
-            <%= f.text_field :agent_path,
-                placeholder: default_agent_path,
-                class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm font-mono" %>
-            <p class="mt-1 text-xs text-neutral-45">Path to the hpc-agent binary on this node. Leave blank to use default.</p>
-          </div>
-
-          <div>
-            <%= f.label :benchmark_work_dir, "Benchmark Working Directory", class: "block text-sm font-bold text-neutral-85 mb-1" %>
-            <%= f.text_field :benchmark_work_dir,
-                placeholder: default_benchmark_work_dir,
-                class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm font-mono" %>
-            <p class="mt-1 text-xs text-neutral-45">
-              Directory where benchmark source code is located.
-              Defaults to <code class="bg-neutral-4 px-1 rounded"><%= default_benchmark_work_dir %></code>
-            </p>
-          </div>
-
-          <div class="sm:col-span-2 border-t border-neutral-4 pt-4">
             <%= f.label :api_key_id, "API Token", class: "block text-sm font-bold text-neutral-85 mb-1" %>
             <%= f.select :api_key_id,
                 options_for_select([["-- Select API Key --", ""]] + api_keys_for_select, node.api_key_id),
                 {},
                 class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm" %>
             <p class="mt-1 text-xs text-neutral-45">
-              Select an API key for agent benchmark result uploads. Manage keys in
+              Select an API key for Salt operations. Manage keys in
               <%= link_to "API Keys", api_keys_path, class: "text-primary-6 hover:text-primary-8", data: { turbo_frame: "_top" } %>.
             </p>
           </div>

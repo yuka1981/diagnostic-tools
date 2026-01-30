@@ -35,53 +35,10 @@
   <td class="whitespace-nowrap px-3 py-2 text-sm text-neutral-45" data-testid="nodes-last-seen-<%= node.hostname %>">
     <%= node.last_seen_at ? time_ago_in_words(node.last_seen_at) + " ago" : "Never" %>
   </td>
-  <%# Agent Actions Column (approvers only) %>
-  <% if current_user.approver? %>
-    <td class="whitespace-nowrap px-3 py-2">
-      <div class="flex items-center justify-center gap-2">
-        <%# Install Action %>
-        <% if node.agent_push? %>
-          <span class="inline-flex items-center text-neutral-15 cursor-not-allowed" title="hpc-agent is already installed" data-testid="nodes-button-install-<%= node.hostname %>">
-            <%= lucide_icon("download", class: "h-4 w-4") %>
-          </span>
-        <% else %>
-          <%= link_to new_node_install_path(hostname: node.hostname, arch: node.arch),
-              class: "inline-flex items-center text-neutral-45 hover:text-neutral-85",
-              title: "Install Agent",
-              data: { turbo_frame: "install_modal", testid: "nodes-button-install-#{node.hostname}" } do %>
-            <%= lucide_icon("download", class: "h-4 w-4") %>
-          <% end %>
-        <% end %>
-
-        <%# Update Agent Action %>
-        <% if node.agent_push? %>
-          <%= link_to new_node_update_path(node),
-              class: "inline-flex items-center text-neutral-45 hover:text-neutral-85",
-              title: "Update Agent",
-              data: { turbo_frame: "update_modal", testid: "nodes-button-update-#{node.hostname}" } do %>
-            <%= lucide_icon("upload", class: "h-4 w-4") %>
-          <% end %>
-        <% else %>
-          <span class="inline-flex items-center text-neutral-15 cursor-not-allowed" title="hpc-agent is not installed" data-testid="nodes-button-update-<%= node.hostname %>">
-            <%= lucide_icon("upload", class: "h-4 w-4") %>
-          </span>
-        <% end %>
-
-        <%# Uninstall Action %>
-        <% if node.agent_push? %>
-          <%= link_to new_node_uninstall_path(hostname: node.hostname),
-              class: "inline-flex items-center text-error-6 hover:text-error-7",
-              title: "Uninstall Agent",
-              data: { turbo_frame: "uninstall_modal", testid: "nodes-button-uninstall-#{node.hostname}" } do %>
-            <%= lucide_icon("circle-x", class: "h-4 w-4") %>
-          <% end %>
-        <% else %>
-          <span class="inline-flex items-center text-neutral-15 cursor-not-allowed" title="hpc-agent is not installed" data-testid="nodes-button-uninstall-<%= node.hostname %>">
-            <%= lucide_icon("circle-x", class: "h-4 w-4") %>
-          </span>
-        <% end %>
-
-        <%# Collect Action %>
+  <%# Node Actions Column %>
+  <td class="whitespace-nowrap px-3 py-2">
+    <div class="flex items-center justify-end gap-2">
+      <% if current_user.approver? %>
         <%= button_to collect_node_path(node),
             method: :post,
             form: { class: "inline-flex" },
@@ -90,13 +47,8 @@
             data: { turbo_submits_with: "...", testid: "nodes-button-collect-#{node.hostname}" } do %>
           <%= lucide_icon("refresh-cw", class: "h-4 w-4") %>
         <% end %>
-      </div>
-    </td>
-  <% end %>
+      <% end %>
 
-  <%# Node CRUD Actions Column %>
-  <td class="whitespace-nowrap px-3 py-2">
-    <div class="flex items-center justify-end gap-2">
       <%= link_to edit_node_path(node),
           class: "inline-flex items-center text-neutral-45 hover:text-neutral-85",
           title: "Edit",

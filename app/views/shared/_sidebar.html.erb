@@ -101,6 +101,20 @@
           <%= lucide_icon("flask-conical", class: "h-5 w-5 opacity-75") %>
           Recipes
         <% end %>
+
+        <%= link_to new_mlc_benchmark_path,
+            data: { turbo_prefetch: false },
+            class: "flex items-center gap-3 px-5 py-2 text-sm font-bold rounded transition-colors #{request.path.start_with?('/mlc_benchmarks') ? 'bg-primary-1 text-primary-6' : 'hover:bg-neutral-4 hover:text-primary-6'}" do %>
+          <%= lucide_icon("cpu", class: "h-5 w-5 opacity-75") %>
+          MLC Benchmark
+        <% end %>
+
+        <%= link_to new_mlc_installation_path,
+            data: { turbo_prefetch: false },
+            class: "flex items-center gap-3 px-5 py-2 text-sm font-bold rounded transition-colors #{request.path.start_with?('/mlc_installations') ? 'bg-primary-1 text-primary-6' : 'hover:bg-neutral-4 hover:text-primary-6'}" do %>
+          <%= lucide_icon("download", class: "h-5 w-5 opacity-75") %>
+          MLC Installation
+        <% end %>
       </div>
     </div>
 
@@ -116,18 +130,11 @@
             API Keys
           <% end %>
 
-          <%= link_to settings_ssh_defaults_path,
+          <%= link_to settings_salt_api_path,
               data: { turbo_prefetch: false },
-              class: "flex items-center gap-3 px-5 py-2 text-sm font-bold rounded transition-colors #{request.path.start_with?('/settings/ssh_defaults') ? 'bg-primary-1 text-primary-6' : 'hover:bg-neutral-4 hover:text-primary-6'}" do %>
-            <%= lucide_icon("lock", class: "h-5 w-5 opacity-75") %>
-            SSH Defaults
-          <% end %>
-
-          <%= link_to settings_agent_path,
-              data: { turbo_prefetch: false },
-              class: "flex items-center gap-3 px-5 py-2 text-sm font-bold rounded transition-colors #{request.path.start_with?('/settings/agent') ? 'bg-primary-1 text-primary-6' : 'hover:bg-neutral-4 hover:text-primary-6'}" do %>
-            <%= lucide_icon("settings", class: "h-5 w-5 opacity-75") %>
-            Agent Config
+              class: "flex items-center gap-3 px-5 py-2 text-sm font-bold rounded transition-colors #{request.path.start_with?('/settings/salt_api') ? 'bg-primary-1 text-primary-6' : 'hover:bg-neutral-4 hover:text-primary-6'}" do %>
+            <%= lucide_icon("cloud-cog", class: "h-5 w-5 opacity-75") %>
+            Salt API
           <% end %>
 
           <%= link_to settings_server_products_path,

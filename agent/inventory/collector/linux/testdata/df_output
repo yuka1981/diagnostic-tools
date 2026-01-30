@@ -1,6 +1,0 @@
-Filesystem     1B-blocks      Used Available Use% Mounted on
-tmpfs          817385472      1856 817383616   1% /run
-/dev/sda2      263174213 100000000 163174213  38% /
-tmpfs          817385472         0 817385472   0% /dev/shm
-/dev/sdb1      524288000 200000000 324288000  38% /mnt/data
-

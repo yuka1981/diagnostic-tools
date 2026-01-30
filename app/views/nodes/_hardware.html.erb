@@ -102,6 +102,28 @@
                   <th class="px-4 py-2 font-bold text-neutral-85 border-r border-neutral-8">NUMA Nodes</th>
                   <td class="px-4 py-2 text-neutral-85"><%= state.cpu_info["numa_nodes"] || "—" %></td>
                 </tr>
+                <% if state.cpu_info["virtualization"].present? %>
+                  <tr class="hover:bg-neutral-2">
+                    <th class="px-4 py-2 font-bold text-neutral-85 border-r border-neutral-8">Virtualization</th>
+                    <td class="px-4 py-2 text-neutral-85"><%= state.cpu_info["virtualization"] %></td>
+                  </tr>
+                <% end %>
+                <% caches = [["L1d", state.cpu_info["l1d_cache"]], ["L1i", state.cpu_info["l1i_cache"]], ["L2", state.cpu_info["l2_cache"]], ["L3", state.cpu_info["l3_cache"]]].select { |_, v| v.present? } %>
+                <% if caches.any? %>
+                  <tr class="hover:bg-neutral-2">
+                    <th class="px-4 py-2 font-bold text-neutral-85 border-r border-neutral-8">Caches</th>
+                    <td class="px-4 py-2 text-neutral-85">
+                      <div class="flex flex-wrap gap-1">
+                        <% caches.each do |label, value| %>
+                          <div class="inline-flex items-center gap-1.5 px-1.5 py-0.5 rounded bg-neutral-4 border border-neutral-8 text-[10px]">
+                            <span class="font-black text-neutral-45"><%= label %>:</span>
+                            <span class="font-mono text-neutral-85"><%= value %></span>
+                          </div>
+                        <% end %>
+                      </div>
+                    </td>
+                  </tr>
+                <% end %>
                 <% if state.cpu_info["numa_info"].present? %>
                   <tr class="hover:bg-neutral-2">
                     <th class="px-4 py-2 font-bold text-neutral-85 border-r border-neutral-8">NUMA Topology</th>

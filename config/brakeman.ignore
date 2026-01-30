@@ -1,6 +1,10 @@
 {
   "ignored_warnings": [
     {
+      "fingerprint": "1b32bfd75163a0c4ec96504eecd1aa7e4357b3c893f4045a21cde5034688bd61",
+      "note": "FileUtils.rm_rf operates on extract_dir created by Dir.mktmpdir, not user input. The stored_path parameter is validated by validate_stored_path which uses File.expand_path and verifies path is within Mlc::UploadService::UPLOAD_DIR. Path traversal attacks are prevented."
+    },
+    {
       "fingerprint": "b92fb09f34234843b9aacd7f3729a65479bd54a001cf676e72652d301a6e543c",
       "note": "Path is validated by validate_artifact_path method which uses File.expand_path and verifies the path starts with PROFILING_ARTIFACTS_PATH base directory. Path traversal attacks are prevented."
     },
@@ -9,19 +13,7 @@
       "note": "Path is validated by ArtifactIndex#safe_download_path model method which ensures the path is within allowed storage/artifacts or artifacts_base_path directories. Path traversal attacks are prevented by Pathname#cleanpath and prefix check. Validation logic moved from controller to model for better separation of concerns."
     },
     {
-      "fingerprint": "7b6c3c7e90f6842f339c03f9c6969f3cc5933f578002d1dc5469e1a8d76dd372",
-      "note": "Inputs are validated before use: version_tag is validated by VERSION_TAG_PATTERN (alphanumeric, dots, dashes, underscores only) and custom_ldflags by LDFLAGS_SAFE_PATTERN. Open3.capture3 with array arguments prevents shell injection. Validation occurs in validate_version_tag! and validate_custom_ldflags! before compile_binary_with_version is called."
-    },
-    {
-      "fingerprint": "c37076f816671994d86d6a59b7b373a68d8b305f314874c1e238e9b17891f6e8",
-      "note": "branch_stdout comes from running 'git symbolic-ref --short HEAD' which returns the current branch name from git's internal state, not user input. Additionally, Open3.capture3 with array arguments (not a single string) passes each argument separately to the command, preventing shell injection."
-    },
-    {
-      "fingerprint": "1f99b59e268a901ee207c47bb426994a1647c13f0d82a716796e6ba75ecd3a18",
-      "note": "URL is validated at runtime with start_with?('https://') before being used in link_to. Non-HTTPS URLs are displayed as plain text. This prevents javascript: and other malicious protocol injection."
-    },
-    {
-      "fingerprint": "623cffc8c373701d450c2cf58535ce9f27fd5966b47f3558633eb4b411d0ca3c",
+      "fingerprint": "00d224fcdfe8a0c15a8df8ecb9902af476d233ac4614025a9a23280abf7554b4",
       "note": "Node :role refers to HPC node type (admin/compute/login), not user authorization. Access to this controller is already protected by authorize_approver! before_action. Only approvers can create/edit nodes."
     },
     {
@@ -29,6 +21,6 @@
       "note": "URL is validated at runtime with start_with?('https://') before being used in link_to. Non-HTTPS URLs are displayed as plain text. This prevents javascript: and other malicious protocol injection."
     }
   ],
-  "updated": "2026-01-26",
+  "updated": "2026-01-30",
   "brakeman_version": "7.1.2"
 }

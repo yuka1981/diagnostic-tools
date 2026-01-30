@@ -27,14 +27,16 @@ module ApplicationHelper
     base_classes = "px-2 py-0.5 rounded text-xs font-bold shadow-sm"
 
     color_class = case status.to_s
-    when "online", "success", "passed"
+    when "connected", "online", "success", "passed"
       "bg-success-2 text-success-7 border border-success-2"
-    when "offline", "failed", "error"
+    when "disconnected", "offline", "failed", "error"
       "bg-error-1 text-error-7 border border-error-2"
     when "running"
       "bg-primary-1 text-primary-7 border border-primary-2 animate-pulse"
-    when "unknown", "warning"
+    when "pending", "warning"
       "bg-warning-1 text-warning-7 border border-warning-2"
+    when "unknown"
+      "bg-neutral-4 text-neutral-85 border border-neutral-8"
     else
       "bg-neutral-4 text-neutral-85 border border-neutral-8"
     end

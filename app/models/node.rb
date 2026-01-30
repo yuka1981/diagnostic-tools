@@ -9,22 +9,25 @@ class Node < ApplicationRecord
   has_many :node_states, dependent: :destroy
   has_many :benchmark_runs, dependent: :destroy
   has_many :profiling_runs, dependent: :destroy
+  has_many :mlc_baselines, dependent: :destroy
+  has_many :mlc_installation_nodes, dependent: :destroy
+  has_many :bmc_inventories, dependent: :destroy
+  has_many :inventory_discrepancies, dependent: :destroy
+  has_one :bmc_credential, dependent: :destroy
   belongs_to :api_key, optional: true
   belongs_to :server_rack, foreign_key: :rack_id, optional: true
   belongs_to :server_product, optional: true
 
-  # Enums - removed custom_bastion, only global_bastion and direct remain
+  # Enums
   enum :role, { compute: 0, login: 1, admin: 2 }, default: :compute
-  enum :source, { manual: 0, csv: 1, agent_push: 2 }, default: :manual
-  enum :ssh_connect_method, { global_bastion: 0, direct: 2 }, default: :global_bastion
+  enum :source, { manual: 0, csv: 1, agent_push: 2, salt_discovery: 3 }, default: :manual
+  enum :salt_status, { unknown: 0, connected: 1, disconnected: 2, pending: 3 }, default: :unknown, prefix: :salt
 
   # Validations
   validates :hostname, presence: true, uniqueness: true, length: { maximum: 255 }
   validates :uuid, uniqueness: true, allow_blank: true
   validates :role, presence: true
   validates :source, presence: true
-  validates :ssh_port, numericality: { only_integer: true, greater_than: 0, less_than: 65536 }
-  validates :ssh_user, length: { maximum: 255 }
   validates :arch, inclusion: { in: %w[x86_64 aarch64 arm64], allow_blank: true }
   validates :rack_height, numericality: { only_integer: true, greater_than: 0 }, allow_nil: true
   validate :hostname_not_localhost
@@ -47,20 +50,14 @@ class Node < ApplicationRecord
     end
   end
 
-  # Constants
-  HEARTBEAT_ONLINE_THRESHOLD = 2.minutes
-  DEFAULT_AGENT_PATH = "hpc-agent"
-
   # Scopes
-  scope :online, -> { where(last_heartbeat_at: HEARTBEAT_ONLINE_THRESHOLD.ago..) }
+  scope :online, -> { where(salt_status: :connected) }
   scope :unracked, -> { where(rack_id: nil) }
   scope :racked, -> { where.not(rack_id: nil) }
 
   # Instance methods
   def online?
-    return false if last_heartbeat_at.nil?
-
-    last_heartbeat_at > HEARTBEAT_ONLINE_THRESHOLD.ago
+    salt_connected?
   end
 
   def touch_last_seen
@@ -72,10 +69,6 @@ class Node < ApplicationRecord
     node_states.latest_first.first
   end
 
-  def effective_agent_path
-    agent_path.presence || DEFAULT_AGENT_PATH
-  end
-
   # Returns the API token for this node, checking both direct storage and ApiKey association
   # Priority: direct api_token column > associated ApiKey's token
   def effective_api_token
@@ -83,34 +76,7 @@ class Node < ApplicationRecord
   end
 
   def status
-    online? ? :online : :offline
-  end
-
-  # Simplified effective_* methods using override flags
-  # If override flag is true, use node value. Otherwise, use global default.
-
-  def effective_ssh_user
-    ssh_user_override? ? ssh_user : SshSetting.current.ssh_user
-  end
-
-  def effective_ssh_port
-    ssh_port_override? ? ssh_port : SshSetting.current.ssh_port
-  end
-
-  def effective_ssh_connect_method
-    ssh_connect_method_override? ? ssh_connect_method : "global_bastion"
-  end
-
-  def effective_ssh_key
-    ssh_key_override? ? ssh_key : SshSetting.current.ssh_key
-  end
-
-  def effective_ssh_password
-    ssh_password_override? ? ssh_password : SshSetting.current.ssh_password
-  end
-
-  def effective_sudo_credential
-    sudo_credential_override? ? sudo_credential : SshSetting.current.sudo_credential
+    salt_status.to_sym
   end
 
   # Returns true if the node has any pending or running benchmark runs

@@ -12,6 +12,12 @@
         <%= lucide_icon("plus", class: "h-4 w-4") %>
         Add Node
       <% end %>
+      <%= link_to discover_nodes_path,
+          class: "btn-secondary",
+          data: { testid: "nodes-button-discover" } do %>
+        <%= lucide_icon("search", class: "h-4 w-4") %>
+        Discover Minions
+      <% end %>
     <% end %>
 
     <%= link_to new_node_import_path,
@@ -31,6 +37,3 @@
 <%# Modals turbo frames %>
 <%= turbo_frame_tag "node_modal" %>
 <%= turbo_frame_tag "import_modal" %>
-<%= turbo_frame_tag "install_modal" %>
-<%= turbo_frame_tag "uninstall_modal" %>
-<%= turbo_frame_tag "update_modal" %>

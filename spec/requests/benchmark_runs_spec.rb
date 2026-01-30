@@ -215,31 +215,14 @@ RSpec.describe "BenchmarkRuns", type: :request do
 
       it "sets error_message on the run" do
         post cancel_benchmark_run_path(pending_run)
-        expect(pending_run.reload.error_message).to include("Cancelled from queue")
+        expect(pending_run.reload.error_message).to include("Cancelled by user")
       end
     end
 
     context "when benchmark run is running" do
       let(:running_run) { create(:benchmark_run, :running, node: node, benchmark_recipe: recipe) }
 
-      before do
-        mock_channel = instance_double(Net::SSH::Connection::Channel)
-        mock_session = instance_double(Net::SSH::Connection::Session, loop: true)
-
-        allow(mock_session).to receive(:open_channel).and_yield(mock_channel)
-        allow(mock_channel).to receive(:exec).and_yield(mock_channel, true)
-        allow(mock_channel).to receive(:on_data) do |&block|
-          block.call(mock_channel, '{"status":"ok","message":"Process killed","pid":123}')
-        end
-        allow(mock_channel).to receive(:on_extended_data)
-        allow(mock_channel).to receive(:on_request).with("exit-status").and_yield(mock_channel, double(read_long: 0))
-        allow(mock_channel).to receive(:on_request).with("exit-signal").and_yield(mock_channel, double(read_long: nil))
-
-        allow(Net::SSH).to receive(:start).and_yield(mock_session)
-      end
-
-      it "cancels the run via SSH" do
-        expect(Net::SSH).to receive(:start)
+      it "cancels the run" do
         post cancel_benchmark_run_path(running_run)
         expect(running_run.reload.status).to eq("cancelled")
       end
@@ -285,24 +268,6 @@ RSpec.describe "BenchmarkRuns", type: :request do
       it "sets alert flash message" do
         post cancel_benchmark_run_path(cancelled_run)
         expect(flash[:alert]).to eq("Cannot cancel a completed benchmark run.")
-      end
-    end
-
-    context "when cancel service fails" do
-      let(:running_run) { create(:benchmark_run, :running, node: node, benchmark_recipe: recipe) }
-
-      before do
-        allow(Net::SSH).to receive(:start).and_raise(Net::SSH::AuthenticationFailed, "Auth failed")
-      end
-
-      it "still marks run as cancelled" do
-        post cancel_benchmark_run_path(running_run)
-        expect(running_run.reload.status).to eq("cancelled")
-      end
-
-      it "sets alert flash with error details" do
-        post cancel_benchmark_run_path(running_run)
-        expect(flash[:alert]).to include("Failed to cancel benchmark run")
       end
     end
 

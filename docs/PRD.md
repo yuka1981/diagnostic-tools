@@ -60,14 +60,14 @@ Changes: Full agent lifecycle management (install/update/uninstall with rollback
   * **Fallback**: standard `dmidecode` / `lshw`.
 * **Deployment Flow**:
   * The web server prepares the correct PerfSpect binary for the target server architecture.
-  * The web server pushes the matching binary to the target server and installs it in the same folder as the `hpc-agent` binary.
+  * The web server pushes the matching binary to the target server and installs it in the same folder as the `qis-agent` binary.
 * **Versioning**: Parsers are strictly bound to specific PerfSpect release versions to ensure data integrity.
 
 ## **4. 核心決策 (Core Decisions)**
 
 * **執行模型**: **Hybrid (Push & Pull)**  
-  * **Inventory (Pull via Gateway)**: Server 端 Collector 建立 SSH 連線至 **Admin Node**，再由 Admin Node 透過內部網路 (SSH/PDSH/Slurm) 觸發 Compute Node 的 `hpc-agent collect`。  
-  * **Inventory (Push)**: Agent 可透過 cron 或啟動腳本執行 `hpc-agent inventory push` 主動回報 (適用於自動註冊/定期更新，需確保 Compute Node 可訪問 Web API)。  
+  * **Inventory (Pull via Gateway)**: Server 端 Collector 建立 SSH 連線至 **Admin Node**，再由 Admin Node 透過內部網路 (SSH/PDSH/Slurm) 觸發 Compute Node 的 `qis-agent collect`。  
+  * **Inventory (Push)**: Agent 可透過 cron 或啟動腳本執行 `qis-agent inventory push` 主動回報 (適用於自動註冊/定期更新，需確保 Compute Node 可訪問 Web API)。  
   * **Benchmark (Push)**: Slurm Job 內的 Agent 主動執行並回報 DB，Artifacts 直寫 Shared Storage。  
 * **Nodes 來源**: **Web UI 匯入 (CSV)** + 靜態清單 + Agent 主動註冊。  
 * **Benchmark 環境**: **Native Compilation** (on-the-fly compile using modules/toolchain).
@@ -89,13 +89,13 @@ Changes: Full agent lifecycle management (install/update/uninstall with rollback
   * CSV 格式：hostname, ip (選填), role (compute/login), arch (選填)。  
   * 後端解析並更新 nodes 資料表。  
 * **主動收集 (Agent Push)**:
-  * Command: `hpc-agent inventory push`。
+  * Command: `qis-agent inventory push`。
   * 行為：Agent 收集本機資訊 -> POST 到 API Server -> 更新 DB。
 * **被動觸發 (Server Pull via Admin Node)**:
   * Action: Web UI 點擊 "Collect Now" (單一節點或批次)。
   * Backend Flow:
         1. Rails (Sidekiq) 建立 SSH 連線至 **Admin Node**。
-        2. 在 Admin Node 上執行遠端指令 (e.g., `ssh <compute_node> hpc-agent collect --json` 或 `pdsh`)。
+        2. 在 Admin Node 上執行遠端指令 (e.g., `ssh <compute_node> qis-agent collect --json` 或 `pdsh`)。
         3. 取得 JSON 輸出並解析更新 DB。  
 * **配置版本控制 (Configuration Versioning)**:  
   * 系統需保留節點的歷史狀態 (History)。  
@@ -121,7 +121,7 @@ Complete agent lifecycle management with install, update, uninstall, and compila
 * **Multi-Architecture Support**: Automatically selects correct binary (x86_64, aarch64) based on node architecture.
 * **SSH Deployment**: Connects via bastion (global or custom) or direct SSH based on node configuration.
 * **Systemd Integration**: Deploys agent as a systemd service with auto-start.
-* **UUID Assignment**: Generates and writes unique node UUID to `/etc/hpc-agent/node_id`.
+* **UUID Assignment**: Generates and writes unique node UUID to `/etc/qis-agent/node_id`.
 * **SELinux Configuration**: Sets appropriate contexts (`bin_t`, `systemd_unit_file_t`).
 * **Checksum Verification**: Verifies binary integrity before and after deployment.
 * **dmidecode Setup**: Configures SUID for dmidecode to allow hardware inventory collection.
@@ -135,7 +135,7 @@ Complete agent lifecycle management with install, update, uninstall, and compila
 #### **5.2.3 UninstallService**
 * **SSH-based Removal**: Removes agent binary, service file, and configuration.
 * **Service Cleanup**: Stops and disables systemd service before removal.
-* **Configuration Removal**: Cleans up `/etc/hpc-agent/` directory.
+* **Configuration Removal**: Cleans up `/etc/qis-agent/` directory.
 
 #### **5.2.4 CompilerService**
 * **Source Compilation**: Builds agent from Go source code.
@@ -227,17 +227,17 @@ Complete agent lifecycle management with install, update, uninstall, and compila
 
 | Command | Description |
 |---------|-------------|
-| `hpc-agent start` | Daemon mode: runs as systemd service, sends periodic heartbeats to server, handles benchmark execution requests |
-| `hpc-agent collect` | Output system info JSON to stdout (CPU, Memory, Disk, Network, DMI) |
-| `hpc-agent push` | Collect inventory and POST to server API (`/api/v1/inventory/push`) |
-| `hpc-agent hpcg` | Execute HPCG benchmark workflow (build, configure, run, parse, upload) |
-| `hpc-agent cancel` | Cancel a running benchmark by UUID |
-| `hpc-agent check-key` | Validate API key against server |
+| `qis-agent start` | Daemon mode: runs as systemd service, sends periodic heartbeats to server, handles benchmark execution requests |
+| `qis-agent collect` | Output system info JSON to stdout (CPU, Memory, Disk, Network, DMI) |
+| `qis-agent push` | Collect inventory and POST to server API (`/api/v1/inventory/push`) |
+| `qis-agent hpcg` | Execute HPCG benchmark workflow (build, configure, run, parse, upload) |
+| `qis-agent cancel` | Cancel a running benchmark by UUID |
+| `qis-agent check-key` | Validate API key against server |
 
 * **Daemon Mode** (`start`):
   * Sends heartbeats every 30 seconds to `/api/v1/nodes/:id/heartbeat`.
   * Reads configuration from environment variables: `HPC_SERVER_URL`, `HPC_API_TOKEN`, `HPC_NODE_UUID`.
-  * Node UUID stored in `/etc/hpc-agent/node_id`.
+  * Node UUID stored in `/etc/qis-agent/node_id`.
 * **Non-Goals (Future)**: Build Cache, Multi-node orchestration (Rank0 leader), HPL support.
 * **Deploy**: 單一靜態編譯執行檔 (Single Static Binary).
 
@@ -307,7 +307,7 @@ Complete agent lifecycle management with install, update, uninstall, and compila
 
 ## **7. 非功能需求 (Non-Functional Requirements)**
 
-* **Performance**: `hpc-agent collect` < 1s.  
+* **Performance**: `qis-agent collect` < 1s.  
 * **Reliability**: API Idempotency.  
 * **Security**: HTTPS only, Token-based Agent Auth.  
 * **UX**: 符合 NetBox 設計規範 (Data-dense)，支援 Dark/Light Mode 自動切換 (Tailwind dark: variant)。  
@@ -368,7 +368,7 @@ flowchart LR
 
   %% Inventory Collection (Pull)
   JOBS -- "SSH to Admin Node" --> COL
-  COL -- "SSH + hpc-agent collect" --> AG
+  COL -- "SSH + qis-agent collect" --> AG
   AG -- "Return JSON" --> COL
   COL -- "Update" --> RAILS
 
@@ -408,7 +408,7 @@ flowchart LR
 
 * 不將 PerfSpect 原始碼納入 Git
 * Web Server 依架構準備對應 binary 並推送到目標主機
-* 安裝位置：與 `hpc-agent` 同層目錄
+* 安裝位置：與 `qis-agent` 同層目錄
 
 #### **9.1.3 Version Binding & Parser Logic**
 
@@ -443,7 +443,7 @@ The Agent should implement a `HybridInventoryCollector`.
 
 1. Build per-architecture PerfSpect binaries
 2. Push binaries to target servers
-3. Install alongside `hpc-agent`
+3. Install alongside `qis-agent`
 4. Implement `PerfspectCollector`
 5. Implement `FallbackCollector`
 

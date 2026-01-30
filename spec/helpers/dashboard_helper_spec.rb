@@ -36,9 +36,17 @@ RSpec.describe DashboardHelper, type: :helper do
       expect(helper.status_badge_class("cancelled")).to include("neutral")
     end
 
-    it "returns warning colors for unknown status" do
-      # "unknown" maps to :warning in STATUS_COLORS
-      expect(helper.status_badge_class("unknown")).to include("warning")
+    it "returns muted colors for unknown status" do
+      # "unknown" maps to :muted in STATUS_COLORS
+      expect(helper.status_badge_class("unknown")).to include("neutral")
+    end
+
+    it "returns success colors for connected status" do
+      expect(helper.status_badge_class("connected")).to include("success")
+    end
+
+    it "returns error colors for disconnected status" do
+      expect(helper.status_badge_class("disconnected")).to include("error")
     end
 
     it "returns default muted colors for unrecognized status" do
@@ -60,9 +68,9 @@ RSpec.describe DashboardHelper, type: :helper do
       expect(helper.status_bg_class("failed")).to include("error")
     end
 
-    it "returns warning background for unknown status" do
-      # "unknown" maps to :warning which uses QPDM warning color
-      expect(helper.status_bg_class("unknown")).to include("warning")
+    it "returns muted background for unknown status" do
+      # "unknown" maps to :muted which uses neutral color
+      expect(helper.status_bg_class("unknown")).to include("neutral")
     end
 
     it "returns default background for unrecognized status" do
@@ -79,9 +87,9 @@ RSpec.describe DashboardHelper, type: :helper do
       expect(helper.status_text_color("failed")).to include("error")
     end
 
-    it "returns warning text color for unknown status" do
-      # "unknown" maps to :warning which uses QPDM warning color
-      expect(helper.status_text_color("unknown")).to include("warning")
+    it "returns muted text color for unknown status" do
+      # "unknown" maps to :muted which uses neutral color
+      expect(helper.status_text_color("unknown")).to include("neutral")
     end
 
     it "returns default text color for unrecognized status" do
@@ -112,11 +120,11 @@ RSpec.describe DashboardHelper, type: :helper do
   end
 
   describe "#node_heatmap_class" do
-    # Node status is computed from last_heartbeat_at, not a status attribute
-    let(:online_compute_node) { build(:node, role: :compute, last_heartbeat_at: 1.minute.ago) }
-    let(:offline_compute_node) { build(:node, role: :compute, last_heartbeat_at: 10.minutes.ago) }
-    let(:online_login_node) { build(:node, role: :login, last_heartbeat_at: 1.minute.ago) }
-    let(:online_admin_node) { build(:node, role: :admin, last_heartbeat_at: 1.minute.ago) }
+    # Node status is computed from salt_status enum
+    let(:online_compute_node) { build(:node, role: :compute, salt_status: :connected) }
+    let(:offline_compute_node) { build(:node, role: :compute, salt_status: :disconnected) }
+    let(:online_login_node) { build(:node, role: :login, salt_status: :connected) }
+    let(:online_admin_node) { build(:node, role: :admin, salt_status: :connected) }
 
     it "returns success for online compute nodes" do
       expect(helper.node_heatmap_class(online_compute_node)).to include("success")

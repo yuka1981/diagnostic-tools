@@ -52,6 +52,12 @@ application.register("image-viewer", ImageViewerController)
 import LogStreamController from "./log_stream_controller"
 application.register("log-stream", LogStreamController)
 
+import MlcProfileController from "./mlc_profile_controller"
+application.register("mlc-profile", MlcProfileController)
+
+import MlcUploadController from "./mlc_upload_controller"
+application.register("mlc-upload", MlcUploadController)
+
 import ModalController from "./modal_controller"
 application.register("modal", ModalController)
 
@@ -81,9 +87,6 @@ application.register("sidebar", SidebarController)
 
 import SlideOverController from "./slide_over_controller"
 application.register("slide-over", SlideOverController)
-
-import SshOverrideController from "./ssh_override_controller"
-application.register("ssh-override", SshOverrideController)
 
 import TabsController from "./tabs_controller"
 application.register("tabs", TabsController)

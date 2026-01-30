@@ -29,11 +29,7 @@ module Api
           return true
         end
 
-        # Fallback to legacy static token for transition
-        expected_token = Rails.application.credentials.dig(:api, :agent_token) || ENV["API_AGENT_TOKEN"]
-        return false unless expected_token.present?
-
-        ActiveSupport::SecurityUtils.secure_compare(token, expected_token)
+        false
       end
 
       def render_unauthorized

@@ -594,7 +594,7 @@ RSpec.describe Agent::Concerns::RemoteExecution do
         /restorecon.*chcon -t bin_t/,
         password: anything
       )
-      service.set_selinux_context(mock_ssh, "/usr/local/bin/hpc-agent", type: "bin_t")
+      service.set_selinux_context(mock_ssh, "/usr/local/bin/qis-agent", type: "bin_t")
     end
   end
 end
@@ -628,9 +628,9 @@ module Agent
     module RemoteExecution
       extend ActiveSupport::Concern
 
-      SERVICE_NAME = "hpc-agent"
-      TARGET_BIN_PATH = "/usr/local/bin/hpc-agent"
-      STAGING_DIR = "/tmp/hpc-agent-staging"
+      SERVICE_NAME = "qis-agent"
+      TARGET_BIN_PATH = "/usr/local/bin/qis-agent"
+      STAGING_DIR = "/tmp/qis-agent-staging"
 
       def localhost?(host)
         return false if host.blank?
@@ -855,7 +855,7 @@ module Agent
           User=root
           StandardOutput=journal
           StandardError=journal
-          SyslogIdentifier=hpc-agent
+          SyslogIdentifier=qis-agent
 
           [Install]
           WantedBy=multi-user.target
@@ -1554,12 +1554,12 @@ module Agent
       execute_local_command("cp #{service_path} #{service_path}.bak 2>/dev/null || true", use_sudo: true)
 
       # Write new service file via temp file
-      tempfile = Tempfile.new("hpc-agent-service")
+      tempfile = Tempfile.new("qis-agent-service")
       tempfile.write(service_content)
       tempfile.close
 
-      FileUtils.cp(tempfile.path, "/tmp/hpc-agent.service")
-      execute_local_command("mv /tmp/hpc-agent.service #{service_path}", use_sudo: true)
+      FileUtils.cp(tempfile.path, "/tmp/qis-agent.service")
+      execute_local_command("mv /tmp/qis-agent.service #{service_path}", use_sudo: true)
       set_selinux_context(nil, service_path, type: "systemd_unit_file_t")
 
       tempfile.unlink
@@ -1575,7 +1575,7 @@ module Agent
 
       # Write new service file via base64 encoding
       encoded_content = Base64.strict_encode64(service_content)
-      write_cmd = build_remote_command("echo '#{encoded_content}' | base64 -d > /tmp/hpc-agent.service && mv /tmp/hpc-agent.service #{service_path}", via_ssh: false, use_sudo: true)
+      write_cmd = build_remote_command("echo '#{encoded_content}' | base64 -d > /tmp/qis-agent.service && mv /tmp/qis-agent.service #{service_path}", via_ssh: false, use_sudo: true)
       execute_command(ssh, write_cmd, password: @sudo_password)
 
       set_selinux_context(ssh, service_path, type: "systemd_unit_file_t")
@@ -1651,14 +1651,14 @@ module Agent
     end
 
     def perform_local_rollback
-      execute_local_command("pkill -9 hpc-agent || true", use_sudo: true)
+      execute_local_command("pkill -9 qis-agent || true", use_sudo: true)
       execute_local_command("mv #{TARGET_BIN_PATH}.bak #{TARGET_BIN_PATH}", use_sudo: true)
       execute_local_command("mv /etc/systemd/system/#{SERVICE_NAME}.service.bak /etc/systemd/system/#{SERVICE_NAME}.service 2>/dev/null || true", use_sudo: true)
       execute_local_command("systemctl daemon-reload && systemctl start #{SERVICE_NAME}", use_sudo: true)
     end
 
     def perform_remote_rollback(ssh)
-      execute_command(ssh, build_remote_command("pkill -9 hpc-agent || true", via_ssh: false, use_sudo: true), password: @sudo_password)
+      execute_command(ssh, build_remote_command("pkill -9 qis-agent || true", via_ssh: false, use_sudo: true), password: @sudo_password)
       execute_command(ssh, build_remote_command("mv #{TARGET_BIN_PATH}.bak #{TARGET_BIN_PATH}", via_ssh: false, use_sudo: true), password: @sudo_password)
       execute_command(ssh, build_remote_command("mv /etc/systemd/system/#{SERVICE_NAME}.service.bak /etc/systemd/system/#{SERVICE_NAME}.service 2>/dev/null || true", via_ssh: false, use_sudo: true), password: @sudo_password)
       execute_command(ssh, build_remote_command("systemctl daemon-reload && systemctl start #{SERVICE_NAME}", via_ssh: false, use_sudo: true), password: @sudo_password)
@@ -1950,12 +1950,12 @@ module Agent
       service_content = generate_service_file(server_url: @server_url, api_token: @api_token)
       service_path = "/etc/systemd/system/#{SERVICE_NAME}.service"
 
-      tempfile = Tempfile.new("hpc-agent-service")
+      tempfile = Tempfile.new("qis-agent-service")
       tempfile.write(service_content)
       tempfile.close
 
-      FileUtils.cp(tempfile.path, "/tmp/hpc-agent.service")
-      execute_local_command("mv /tmp/hpc-agent.service #{service_path}", use_sudo: true)
+      FileUtils.cp(tempfile.path, "/tmp/qis-agent.service")
+      execute_local_command("mv /tmp/qis-agent.service #{service_path}", use_sudo: true)
 
       tempfile.unlink
     end
@@ -1965,7 +1965,7 @@ module Agent
       service_path = "/etc/systemd/system/#{SERVICE_NAME}.service"
 
       encoded_content = Base64.strict_encode64(service_content)
-      write_cmd = build_remote_command("echo '#{encoded_content}' | base64 -d > /tmp/hpc-agent.service && mv /tmp/hpc-agent.service #{service_path}", via_ssh: false, use_sudo: true)
+      write_cmd = build_remote_command("echo '#{encoded_content}' | base64 -d > /tmp/qis-agent.service && mv /tmp/qis-agent.service #{service_path}", via_ssh: false, use_sudo: true)
       execute_command(ssh, write_cmd, password: @sudo_password)
     end
 
@@ -2009,7 +2009,7 @@ module Agent
     def read_agent_uuid(ssh)
       report_progress "Reading agent UUID"
 
-      uuid_path = "/etc/hpc-agent/node_id"
+      uuid_path = "/etc/qis-agent/node_id"
       uuid = if ssh.nil?
                execute_local_command("cat #{uuid_path} 2>/dev/null || echo ''").strip
       else
@@ -2186,7 +2186,7 @@ module Agent
       execute_local_command("rm -f /etc/systemd/system/#{SERVICE_NAME}.service /etc/systemd/system/#{SERVICE_NAME}.service.bak", use_sudo: true)
 
       report_progress "Cleaning up staging files"
-      execute_local_command("rm -rf #{STAGING_DIR} /tmp/agent_install /tmp/agent_update /tmp/hpc-agent.service", use_sudo: true)
+      execute_local_command("rm -rf #{STAGING_DIR} /tmp/agent_install /tmp/agent_update /tmp/qis-agent.service", use_sudo: true)
 
       report_progress "Reloading systemd"
       execute_local_command("systemctl daemon-reload", use_sudo: true)
@@ -2210,7 +2210,7 @@ module Agent
       execute_command(ssh, cmd, password: @sudo_password)
 
       report_progress "Cleaning up staging files"
-      cmd = build_remote_command("rm -rf #{STAGING_DIR} /tmp/agent_install /tmp/agent_update /tmp/hpc-agent.service", via_ssh: false, use_sudo: true)
+      cmd = build_remote_command("rm -rf #{STAGING_DIR} /tmp/agent_install /tmp/agent_update /tmp/qis-agent.service", via_ssh: false, use_sudo: true)
       execute_command(ssh, cmd, password: @sudo_password)
 
       report_progress "Reloading systemd"

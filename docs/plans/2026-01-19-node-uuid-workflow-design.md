@@ -8,7 +8,7 @@
 
 1. **Node UUID is server-authoritative** - Generated at node creation (already implemented via `before_validation :generate_uuid`)
 
-2. **Server writes UUID to agent** - During install, the server writes `@node.uuid` to `/etc/hpc-agent/node_id` on the target
+2. **Server writes UUID to agent** - During install, the server writes `@node.uuid` to `/etc/qis-agent/node_id` on the target
 
 3. **Never read UUID from agent** - Remove `read_agent_uuid` method that overwrote server UUID
 
@@ -21,7 +21,7 @@ Node created → UUID generated (server, SecureRandom.uuid)
      ↓
 Install starts → @node.uuid available
      ↓
-Write UUID to /etc/hpc-agent/node_id on target
+Write UUID to /etc/qis-agent/node_id on target
      ↓
 Deploy service file with --node-uuid flag
      ↓
@@ -40,14 +40,14 @@ Agent starts with consistent UUID
    ```ruby
    def write_agent_uuid(ssh)
      report_progress "Writing node UUID"
-     uuid_path = "/etc/hpc-agent/node_id"
+     uuid_path = "/etc/qis-agent/node_id"
 
      if ssh.nil?
-       execute_local_command("mkdir -p /etc/hpc-agent", use_sudo: true)
+       execute_local_command("mkdir -p /etc/qis-agent", use_sudo: true)
        execute_local_command("echo '#{@node.uuid}' > #{uuid_path}", use_sudo: true)
      else
        cmd = build_remote_command(
-         "mkdir -p /etc/hpc-agent && echo '#{@node.uuid}' > #{uuid_path}",
+         "mkdir -p /etc/qis-agent && echo '#{@node.uuid}' > #{uuid_path}",
          via_ssh: false, use_sudo: true
        )
        execute_command(ssh, cmd, password: @sudo_password)

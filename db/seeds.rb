@@ -16,3 +16,6 @@ end
 
 # Load profiling recipes
 load Rails.root.join("db/seeds/profiling_recipes.rb")
+
+# Load MLC benchmark recipe
+load Rails.root.join("db/seeds/mlc_recipe.rb")

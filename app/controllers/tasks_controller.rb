@@ -27,14 +27,8 @@ class TasksController < ApplicationController
       return redirect_with_error("Cannot cancel a completed task")
     end
 
-    if run.is_a?(BenchmarkRun)
-      service = Benchmark::CancelRunService.new(run)
-      result = service.call
-      message = result.success? ? "Task cancelled successfully" : "Failed to cancel: #{result.error}"
-    else
-      run.update!(status: :cancelled, error_message: "Cancelled by user at #{Time.current}")
-      message = "Task cancelled successfully"
-    end
+    run.update!(status: :cancelled, error_message: "Cancelled by user at #{Time.current}")
+    message = "Task cancelled successfully"
 
     respond_to do |format|
       format.html { redirect_to tasks_path, notice: message }
@@ -60,8 +54,6 @@ class TasksController < ApplicationController
       Benchmark::TriggerJob.perform_later(
         new_run.node,
         new_run,
-        request.base_url,
-        agent_token(new_run.node),
         {},
         user_id: current_user.id
       )
@@ -71,7 +63,7 @@ class TasksController < ApplicationController
       Profiling::TriggerJob.perform_later(
         new_run,
         request.base_url,
-        agent_token(new_run.node),
+        new_run.node.effective_api_token.presence || "",
         user_id: current_user.id
       )
     end
@@ -100,11 +92,5 @@ class TasksController < ApplicationController
 
   def redirect_with_error(message)
     redirect_to tasks_path, alert: message
-  end
-
-  def agent_token(node)
-    node.effective_api_token.presence ||
-      Rails.application.credentials.dig(:api, :agent_token) ||
-      ENV["API_AGENT_TOKEN"]
   end
 end

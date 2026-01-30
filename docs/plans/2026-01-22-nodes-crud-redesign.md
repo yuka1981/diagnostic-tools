@@ -32,7 +32,7 @@ Redesign the Nodes CRUD interface to reduce complexity and add auto-fill/autocom
 ### Agent Config Page (`/settings/agent_config`)
 
 **Single form with defaults:**
-- Default agent path (default: `/usr/local/bin/hpc-agent`)
+- Default agent path (default: `/usr/local/bin/qis-agent`)
 - Default benchmark working directory
 - Extensible for future agent settings
 
@@ -175,7 +175,7 @@ As user types in hostname field:
 
 ```ruby
 # Fields
-- default_agent_path: string (default: "/usr/local/bin/hpc-agent")
+- default_agent_path: string (default: "/usr/local/bin/qis-agent")
 - default_benchmark_working_dir: string
 
 # Single record pattern - use find_or_create for ID 1

@@ -389,7 +389,7 @@ module Agent
       execute_local_command("rm -f /etc/systemd/system/#{SERVICE_NAME}.service /etc/systemd/system/#{SERVICE_NAME}.service.bak", use_sudo: true)
 
       report_progress "Cleaning up staging files"
-      execute_local_command("rm -rf #{STAGING_DIR} /tmp/agent_install /tmp/agent_update /tmp/hpc-agent.service", use_sudo: true)
+      execute_local_command("rm -rf #{STAGING_DIR} /tmp/agent_install /tmp/agent_update /tmp/qis-agent.service", use_sudo: true)
 
       report_progress "Reloading systemd"
       execute_local_command("systemctl daemon-reload", use_sudo: true)
@@ -413,7 +413,7 @@ module Agent
       execute_command(ssh, cmd, password: @sudo_password)
 
       report_progress "Cleaning up staging files"
-      cmd = build_remote_command("rm -rf #{STAGING_DIR} /tmp/agent_install /tmp/agent_update /tmp/hpc-agent.service", via_ssh: false, use_sudo: true)
+      cmd = build_remote_command("rm -rf #{STAGING_DIR} /tmp/agent_install /tmp/agent_update /tmp/qis-agent.service", via_ssh: false, use_sudo: true)
       execute_command(ssh, cmd, password: @sudo_password)
 
       report_progress "Reloading systemd"

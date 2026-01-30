@@ -80,34 +80,6 @@ The application will be available at `http://localhost:3000`.
 
 ## Configuration
 
-### SSH & Agent Collection
-
-To enable the application to collect data from nodes via SSH, you need to configure SSH credentials and ensure hpc-agent is installed on the target nodes.
-
-#### 1. Credentials
-
-You can configure SSH settings using Rails credentials (`bin/rails credentials:edit`) or Environment Variables.
-
-| Setting | Rails Credential (`ssh:`) | Environment Variable | Description |
-|---------|---------------------------|----------------------|-------------|
-| User | `user` | `SSH_USER` | SSH username to connect as |
-| Key Path | `key_path` | `SSH_KEY_PATH` | Path to the private key file |
-| Timeout | `timeout` | `SSH_TIMEOUT` | Connection timeout in seconds (default: 30) |
-| Host Key Verification | `verify_host_key` | `SSH_VERIFY_HOST_KEY` | Host key verification strategy (default: strict) |
-
-**Example `config/credentials.yml.enc`:**
-
-```yaml
-ssh:
-  user: "hpc-admin"
-  key_path: "/home/app/.ssh/id_rsa"
-  timeout: 10
-```
-
-#### 2. Agent Installation
-
-The `hpc-agent` binary must be available on the target nodes. By default, the service expects the binary to be named `hpc-agent` and available in the system PATH.
-
 ### Ansible & Profiling Configuration
 
 The application uses Ansible to execute Intel PerfSPECT profiling commands on compute nodes. The architecture follows a three-tier approach:
@@ -293,6 +265,69 @@ echo $MODULEPATH
 module spider perfspect
 ```
 
+### Salt Module Deployment (via Ansible + GitFS)
+
+The Salt custom modules and states in this repository are deployed to the Salt Master using Salt's GitFS backend. Ansible manages the Salt Master and Minion configuration.
+
+#### Ansible Vault Variables
+
+Sensitive credentials are encrypted using Ansible Vault. There are two recommended approaches:
+
+**Option A: Separate vault file for secrets only (Recommended)**
+
+Create a plain variables file and an encrypted vault file:
+
+```bash
+# Non-secret variables (plain YAML)
+# ansible/group_vars/salt_master.yml
+```
+
+```yaml
+salt_gitfs_user: "machine-account"
+salt_gitfs_branch: "develop"
+salt_api_user: "rails_salt_user"
+salt_api_ssl_cert: "/etc/salt/pki/api/cert.crt"
+salt_api_ssl_key: "/etc/salt/pki/api/key.key"
+salt_master_address: "10.0.0.1"
+rails_webhook_url: "https://your-rails-app.com/api/v1/salt/events"
+
+# References to vault-encrypted values
+salt_gitfs_token: "{{ vault_salt_gitfs_token }}"
+salt_api_password: "{{ vault_salt_api_password }}"
+```
+
+```bash
+# Secrets only (encrypted with Ansible Vault)
+ansible-vault create ansible/group_vars/salt_master/vault.yml
+```
+
+```yaml
+vault_salt_gitfs_token: "ghp_xxxxxxxxxxxxxxxxxxxx"
+vault_salt_api_password: "your-secure-password"
+```
+
+**Option B: Encrypt individual variables inline**
+
+```bash
+ansible-vault encrypt_string 'ghp_xxxxxxxxxxxxxxxxxxxx' --name 'vault_salt_gitfs_token'
+```
+
+Then paste the encrypted block directly into `ansible/group_vars/salt_master.yml`.
+
+Run the Salt playbook:
+
+```bash
+# Deploy Salt Master and Minions
+ansible-playbook -i ansible/inventory/hosts.yml ansible/playbooks/salt.yml --ask-vault-pass
+
+# Or with a vault password file
+ansible-playbook -i ansible/inventory/hosts.yml ansible/playbooks/salt.yml --vault-password-file ~/.vault_pass
+```
+
+For full details on the Salt module deployment architecture, see [docs/plans/2026-01-30-salt-module-deployment-design.md](docs/plans/2026-01-30-salt-module-deployment-design.md).
+
+---
+
 ## Usage
 
 ### Importing Nodes via CSV
@@ -320,72 +355,6 @@ To import nodes via the UI:
 1. Navigate to the **Nodes** page in the dashboard.
 2. Click the **Import CSV** button.
 3. Upload your CSV file using the form.
-
-## Agent CLI Guide
-
-The HPC Agent is a Go-based CLI tool that runs on cluster nodes to collect system information and execute benchmarks.
-
-### Building the Agent
-
-To build the hpc-agent binary (requires Go 1.22+):
-
-```bash
-cd agent
-go build -o hpc-agent .
-```
-
-### Commands
-
-#### `hpc-agent collect`
-Collects the current node's detailed system information (CPU architecture/topology/cache, Memory, Disk, Network, Host) and outputs it as JSON to stdout.
-
-```bash
-./hpc-agent collect
-```
-
-#### `hpc-agent inventory push`
-Collects system information and pushes it directly to the web application's API.
-
-```bash
-./hpc-agent inventory push --server http://your-app-url --token your-api-token
-```
-
-**Flags:**
-- `--server`: The URL of the web application (default: `http://localhost:3000`).
-- `--token`: Authentication token (required). Can also be set via `AGENT_TOKEN` environment variable.
-
-#### `hpc-agent hpcg`
-Runs the HPCG (High Performance Conjugate Gradients) benchmark workflow. This includes environment setup, native compilation, configuration generation, execution, and result parsing.
-
-```bash
-./hpc-agent hpcg --id run-001 --module mpi/openmpi --rt 120 --log-path /var/log/hpcg/run-001.txt
-```
-
-**Flags:**
-- `--id`: Unique Run ID (default: `manual-run`).
-- `--module`: Comma-separated list of modules to load.
-- `--build`: Custom build command (e.g., `make`).
-- `--run`: Custom run command (default: `./xhpcg`).
-- `--nx`, `--ny`, `--nz`: Problem dimensions (default: `104`).
-- `--rt`: Runtime in seconds (default: `60`).
-- `--log-path`: Custom path to save the benchmark log file.
-- `--server`: Server URL for uploading results.
-- `--token`: API token for uploading results.
-
-**Upload**: Sends results to the web application if `--server` and `--token` are provided.
-
-### Building from Source
-
-A helper script is provided to automate cloning the HPCG repository and running the benchmark using hpc-agent:
-
-```bash
-./scripts/run_hpcg_from_source.sh
-```
-
-This script:
-1. Builds the `hpc-agent` binary.
-2. Clones the official HPCG repository.
-3. Uses the `hpc-agent hpcg` command to compile (`make`) and run (`mpirun`) the benchmark.
 
 ## Development
 
@@ -448,7 +417,7 @@ See [docs/PRD.md](docs/PRD.md) for the full Product Requirements Document.
 ### Key Components
 
 - **Web Application**: Rails monolith with Hotwire for SPA-like interactions
-- **Agent (Go)**: CLI tool deployed on compute nodes for system information collection
+- **Salt Integration**: Remote execution and inventory collection via SaltStack
 - **Shared Storage**: NFS/Lustre for artifact storage
 - **Slurm Integration**: Job scheduling for benchmark execution
 

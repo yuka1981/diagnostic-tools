@@ -4,7 +4,7 @@ class NodesController < ApplicationController
   layout "dashboard"
   before_action :authenticate_user!
   before_action :set_node, only: %i[show edit update destroy test_connection collect run_benchmark]
-  before_action :authorize_approver!, only: %i[new create edit update destroy bulk_destroy test_connection collect run_benchmark]
+  before_action :authorize_approver!, only: %i[new create edit update destroy bulk_destroy test_connection collect run_benchmark discover import_minions]
 
   def index
     @nodes = Node.order(:hostname)
@@ -19,16 +19,19 @@ class NodesController < ApplicationController
   end
 
   def test_connection
-    service = Inventory::TriggerCollectService.new(@node)
-    result = service.call
+    salt_client = SaltApiClient.new
+    salt_client.run(@node.hostname, "test.ping")
 
     respond_to do |format|
       format.turbo_stream do
-        if result.success?
-          flash.now[:notice] = "Connection to #{@node.hostname} successful!"
-        else
-          flash.now[:alert] = "Connection to #{@node.hostname} failed: #{result.error}"
-        end
+        flash.now[:notice] = "Connection to #{@node.hostname} successful!"
+        render turbo_stream: turbo_stream.update("flash_messages", partial: "shared/flash")
+      end
+    end
+  rescue SaltApiClient::TargetUnreachable => e
+    respond_to do |format|
+      format.turbo_stream do
+        flash.now[:alert] = "Connection to #{@node.hostname} failed: #{e.message}"
         render turbo_stream: turbo_stream.update("flash_messages", partial: "shared/flash")
       end
     end
@@ -42,28 +45,17 @@ class NodesController < ApplicationController
   end
 
   def collect
-    trigger_service = Inventory::TriggerCollectService.new(@node)
-    trigger_result = trigger_service.call
+    service = Inventory::SaltCollectService.new(@node)
+    result = service.call
 
-    if trigger_result.success?
-      if trigger_result.output.is_a?(Hash) && trigger_result.output[:async]
-        @is_async = true
-        flash.now[:notice] = "Collection command sent to agent on #{@node.hostname}. Data will update shortly."
-      else
-        process_service = Inventory::ProcessStateService.new(node_id: @node.id, raw_json: trigger_result.output)
-        process_result = process_service.call
-
-        if process_result.success?
-          flash.now[:notice] = "System information collected successfully for #{@node.hostname}."
-        else
-          flash.now[:alert] = "Collected data but failed to process: #{process_result.error}"
-        end
-      end
+    if result.success?
+      flash.now[:notice] = "System information collected successfully for #{@node.hostname}."
     else
-      flash.now[:alert] = "Failed to collect information from #{@node.hostname}: #{trigger_result.error}"
+      flash.now[:alert] = "Failed to collect information from #{@node.hostname}: #{result.error}"
     end
 
     @node.reload
+    @selected_state = result.node_state || @node.current_state
     respond_to do |format|
       format.turbo_stream
       format.html { redirect_to @node }
@@ -149,6 +141,46 @@ class NodesController < ApplicationController
     end
   end
 
+  def discover
+    result = Salt::MinionDiscoveryService.new.call
+
+    if result.success?
+      @discovered = result.discovered
+      @existing_count = result.existing.size
+    else
+      @error = result.error
+      @discovered = []
+      @existing_count = 0
+    end
+  end
+
+  def import_minions
+    hostnames = params[:hostnames] || []
+    if hostnames.empty?
+      redirect_to nodes_path, alert: "No minions selected"
+      return
+    end
+
+    imported = []
+    errors = []
+
+    hostnames.each do |hostname|
+      node = Node.new(hostname: hostname, source: :salt_discovery, salt_status: :connected)
+      if node.save
+        imported << node
+        InventoryCollectJob.perform_later(node.id, user_id: current_user.id)
+      else
+        errors << { hostname: hostname, error: node.errors.full_messages.join(", ") }
+      end
+    end
+
+    if errors.empty?
+      redirect_to nodes_path, notice: "#{imported.size} minion(s) imported successfully"
+    else
+      redirect_to nodes_path, alert: "#{imported.size} imported, #{errors.size} failed"
+    end
+  end
+
   private
 
   def set_node
@@ -157,11 +189,8 @@ class NodesController < ApplicationController
 
   def node_params
     params.require(:node).permit(
-      :hostname, :ip, :role, :arch, :ssh_port, :ssh_user, :ssh_key, :ssh_password,
-      :sudo_credential, :ssh_connect_method, :agent_path, :benchmark_work_dir,
-      :api_key_id, :rack_id, :rack_position, :rack_height, :server_product_id,
-      :ssh_user_override, :ssh_port_override, :ssh_key_override, :ssh_password_override,
-      :sudo_credential_override, :ssh_connect_method_override
+      :hostname, :ip, :role, :arch,
+      :api_key_id, :rack_id, :rack_position, :rack_height, :server_product_id
     )
   end
 

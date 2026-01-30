@@ -5,6 +5,7 @@ class BenchmarkRun < ApplicationRecord
   belongs_to :node
   belongs_to :benchmark_recipe
   has_many :artifact_indices, dependent: :destroy
+  has_many :mlc_baselines, dependent: :destroy
 
   # Enums
   enum :status, {
@@ -14,14 +15,6 @@ class BenchmarkRun < ApplicationRecord
     failed: 3,
     cancelled: 4
   }, default: :pending
-
-  # Maps agent-reported status strings to model status symbols
-  AGENT_STATUS_MAP = {
-    "PASS" => :success,
-    "FAIL" => :failed,
-    "ERROR" => :failed,
-    "RUNNING" => :running
-  }.freeze
 
   # Validations
   validates :status, presence: true
@@ -46,14 +39,6 @@ class BenchmarkRun < ApplicationRecord
     scope = scope.for_node(node) if node
     scope.limit(10)
   }
-
-  # Class methods
-  # Converts agent status string to model status symbol
-  # @param agent_status [String] Status from agent (PASS, FAIL, ERROR, RUNNING)
-  # @return [Symbol, nil] Model status symbol or nil if unknown
-  def self.status_from_agent(agent_status)
-    AGENT_STATUS_MAP[agent_status]
-  end
 
   # Instance methods
   def duration
