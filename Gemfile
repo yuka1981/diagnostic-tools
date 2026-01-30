@@ -93,6 +93,8 @@ group :development do
   gem "web-console"
 end
 
+gem "chartkick"
+
 gem "view_component", "~> 4.2"
 
 gem "net-ssh-gateway", "~> 2.0"
