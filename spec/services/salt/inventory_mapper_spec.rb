@@ -93,6 +93,20 @@ RSpec.describe Salt::InventoryMapper do
       expect(result[:cpu][:numa_info]["0"]).to eq("0-2,5-6,10")
     end
 
+    it "handles cpulist string format from custom Salt module" do
+      numa_cpulist = {
+        "node_count" => 2,
+        "nodes" => {
+          "0" => { "cpulist" => "0-19,40-59", "memory_kb" => 131072000 },
+          "1" => { "cpulist" => "20-39,60-79", "memory_kb" => 131072000 }
+        }
+      }
+      mapper = described_class.new(grains: grains, numa: numa_cpulist)
+      result = mapper.call
+      expect(result[:cpu][:numa_info]["0"]).to eq("0-19,40-59")
+      expect(result[:cpu][:numa_info]["1"]).to eq("20-39,60-79")
+    end
+
     it "maps memory total in bytes for format_bytes helper" do
       result = mapper.call
       expect(result[:memory][:total]).to eq(256000 * 1024 * 1024)
@@ -126,6 +140,32 @@ RSpec.describe Salt::InventoryMapper do
       expect(result).to have_key(:network)
       expect(result).to have_key(:network_v2)
       expect(result).to have_key(:dmi)
+    end
+
+    it "builds DMI fallback from grains when custom module unavailable" do
+      grains_with_dmi = grains.merge(
+        "manufacturer" => "Dell Inc.",
+        "productname" => "PowerEdge R750",
+        "serialnumber" => "ABC1234",
+        "uuid" => "4c4c4544-0044-4810-8031-c7c04f323432",
+        "biosversion" => "2.13.0",
+        "biosreleasedate" => "06/15/2024"
+      )
+      mapper = described_class.new(grains: grains_with_dmi, dmi: nil)
+      result = mapper.call
+      expect(result[:dmi][:system][:manufacturer]).to eq("Dell Inc.")
+      expect(result[:dmi][:system][:product_name]).to eq("PowerEdge R750")
+      expect(result[:dmi][:system][:serial_number]).to eq("ABC1234")
+      expect(result[:dmi][:system][:uuid]).to eq("4c4c4544-0044-4810-8031-c7c04f323432")
+      expect(result[:dmi][:bios][:version]).to eq("2.13.0")
+      expect(result[:dmi][:bios][:release_date]).to eq("06/15/2024")
+    end
+
+    it "prefers custom DMI module data over grains fallback" do
+      grains_with_dmi = grains.merge("manufacturer" => "Grains Manufacturer")
+      mapper = described_class.new(grains: grains_with_dmi, dmi: dmi_data)
+      result = mapper.call
+      expect(result[:dmi][:system][:manufacturer]).to eq("QCT")
     end
 
     it "handles missing optional data gracefully" do

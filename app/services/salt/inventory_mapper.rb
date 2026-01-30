@@ -73,6 +73,13 @@ module Salt
       return nil unless nodes.is_a?(Hash)
 
       nodes.transform_values do |node_data|
+        # Handle cpulist string from custom Salt module (e.g., "0-3,8-11")
+        cpulist = node_data["cpulist"]
+        if cpulist.is_a?(String) && !cpulist.empty?
+          next cpulist
+        end
+
+        # Handle cpus array format (e.g., [0, 1, 2, 3])
         cpus = node_data["cpus"]
         next "" unless cpus.is_a?(Array) && cpus.any?
 
@@ -112,9 +119,28 @@ module Salt
     end
 
     def map_dmi_info
-      return {} unless @dmi
+      return @dmi.deep_symbolize_keys if @dmi
 
-      @dmi.deep_symbolize_keys
+      build_dmi_from_grains
+    end
+
+    def build_dmi_from_grains
+      system_info = {
+        manufacturer: @grains["manufacturer"],
+        product_name: @grains["productname"],
+        serial_number: @grains["serialnumber"],
+        uuid: @grains["uuid"]
+      }.compact
+
+      bios_info = {
+        version: @grains["biosversion"],
+        release_date: @grains["biosreleasedate"]
+      }.compact
+
+      result = {}
+      result[:system] = system_info if system_info.any?
+      result[:bios] = bios_info if bios_info.any?
+      result
     end
   end
 end
