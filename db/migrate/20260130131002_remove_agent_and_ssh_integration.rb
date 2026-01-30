@@ -1,10 +1,18 @@
 class RemoveAgentAndSshIntegration < ActiveRecord::Migration[7.2]
   def up
+    # Remove jump host and SSH profile columns from nodes (before dropping ssh_profiles table)
+    remove_column :nodes, :jump_host, if_exists: true
+    remove_column :nodes, :jump_user, if_exists: true
+    remove_column :nodes, :jump_port, if_exists: true
+    remove_column :nodes, :ssh_profile_id, if_exists: true
+    remove_column :nodes, :ssh_profile_override, if_exists: true
+
     # Drop agent/SSH tables
     drop_table :agent_events, if_exists: true
     drop_table :agent_binaries, if_exists: true
     drop_table :agent_releases, if_exists: true
     drop_table :ssh_settings, if_exists: true
+    drop_table :ssh_profiles, if_exists: true
 
     # Remove agent columns from nodes
     remove_column :nodes, :agent_path, if_exists: true

@@ -91,10 +91,9 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_30_131002) do
     t.datetime "updated_at", null: false
     t.string "log_path"
     t.uuid "uuid", default: -> { "gen_random_uuid()" }, null: false
-    t.datetime "last_heartbeat_at"
-    t.string "current_phase"
     t.text "log_content"
     t.jsonb "arguments", default: {}
+    t.string "current_phase"
     t.index [ "benchmark_recipe_id" ], name: "index_benchmark_runs_on_benchmark_recipe_id"
     t.index [ "node_id", "started_at" ], name: "index_benchmark_runs_on_node_id_and_started_at", order: { started_at: :desc }
     t.index [ "node_id" ], name: "index_benchmark_runs_on_node_id"
@@ -237,6 +236,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_30_131002) do
     t.integer "salt_status", default: 0, null: false
     t.index [ "api_key_id" ], name: "index_nodes_on_api_key_id"
     t.index [ "hostname" ], name: "index_nodes_on_hostname", unique: true
+    t.index [ "rack_id", "rack_face", "rack_position" ], name: "index_nodes_on_rack_id_and_rack_face_and_rack_position"
     t.index [ "rack_id" ], name: "index_nodes_on_rack_id"
     t.index [ "role" ], name: "index_nodes_on_role"
     t.index [ "salt_status" ], name: "index_nodes_on_salt_status"
@@ -422,7 +422,6 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_30_131002) do
     t.integer "role", default: 0, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.string "rack_node_preview_fields", default: [ "cpu", "ram", "storage", "network" ], array: true
     t.index [ "email" ], name: "index_users_on_email", unique: true
     t.index [ "reset_password_token" ], name: "index_users_on_reset_password_token", unique: true
   end
