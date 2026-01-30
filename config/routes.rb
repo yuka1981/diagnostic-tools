@@ -17,26 +17,7 @@ Rails.application.routes.draw do
     end
 
     namespace :v1 do
-      get "health", to: "health#show"
       post "salt/events", to: "salt_events#create"
-      resources :nodes, param: :uuid, only: [] do
-        member do
-          post :heartbeat, to: "heartbeats#create"
-        end
-      end
-      resources :benchmark_runs, only: [ :create, :update ]
-      resources :profiling_runs, param: :uuid, only: [] do
-        member do
-          post :status
-          post :complete
-        end
-      end
-      resources :mlc_installations, param: :uuid, only: [] do
-        member do
-          post :progress
-          post :complete
-        end
-      end
     end
   end
 
@@ -51,7 +32,6 @@ Rails.application.routes.draw do
   end
 
   namespace :settings do
-    resource :ssh_defaults, only: [ :show, :update ], controller: :ssh_defaults
     resource :salt_api, only: [ :show, :update ], controller: :salt_api do
       post :test_connection
     end
