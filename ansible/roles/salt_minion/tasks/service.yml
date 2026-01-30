@@ -1,0 +1,6 @@
+---
+- name: Enable and start salt-minion
+  ansible.builtin.systemd:
+    name: salt-minion
+    state: started
+    enabled: yes

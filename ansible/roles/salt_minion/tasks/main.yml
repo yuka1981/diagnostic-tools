@@ -1,0 +1,9 @@
+---
+- name: Install Salt Minion
+  ansible.builtin.import_tasks: install.yml
+
+- name: Configure Salt Minion
+  ansible.builtin.import_tasks: configure.yml
+
+- name: Manage Salt Minion service
+  ansible.builtin.import_tasks: service.yml

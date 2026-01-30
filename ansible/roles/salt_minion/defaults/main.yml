@@ -1,0 +1,6 @@
+---
+# Salt package version (must match master version)
+salt_version: "3006"
+
+# Salt master address (IP or hostname)
+salt_master_address: "salt"
