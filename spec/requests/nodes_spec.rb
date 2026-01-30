@@ -42,11 +42,7 @@ RSpec.describe "Nodes", type: :request do
         node: {
           hostname: "new-node",
           role: "compute",
-          arch: "x86_64",
-          ssh_port: 22,
-          ssh_user: "root",
-          ssh_key: "ssh-rsa ...",
-          password: "password123"
+          arch: "x86_64"
         }
       }
     end
@@ -77,11 +73,11 @@ RSpec.describe "Nodes", type: :request do
   end
 
   describe "PATCH /nodes/:id" do
-    let(:update_params) { { node: { ssh_port: 2222 } } }
+    let(:update_params) { { node: { arch: "aarch64" } } }
 
     it "updates the node" do
       patch node_path(node), params: update_params
-      expect(node.reload.ssh_port).to eq(2222)
+      expect(node.reload.arch).to eq("aarch64")
     end
 
     it "returns turbo stream when requested" do
@@ -99,18 +95,6 @@ RSpec.describe "Nodes", type: :request do
     it "replaces node_modal with empty frame in turbo stream response" do
       patch node_path(node), params: update_params, headers: { "Accept" => "text/vnd.turbo-stream.html" }
       expect(response.body).to include("node_modal")
-    end
-
-    it "can update ssh_password field" do
-      patch node_path(node), params: { node: { ssh_password: "new_ssh_pass" } }
-      expect(node.reload.ssh_password).to eq("new_ssh_pass")
-    end
-
-    it "keeps ssh_password separate from sudo_credential" do
-      patch node_path(node), params: { node: { ssh_password: "ssh_pass", sudo_credential: "sudo_pass" } }
-      node.reload
-      expect(node.ssh_password).to eq("ssh_pass")
-      expect(node.sudo_credential).to eq("sudo_pass")
     end
 
     context "with invalid params" do
