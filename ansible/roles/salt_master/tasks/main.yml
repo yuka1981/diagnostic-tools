@@ -1,0 +1,18 @@
+---
+- name: Install Salt Master packages
+  ansible.builtin.import_tasks: install.yml
+
+- name: Configure Salt Master
+  ansible.builtin.import_tasks: configure.yml
+
+- name: Configure GitFS
+  ansible.builtin.import_tasks: gitfs.yml
+
+- name: Configure authentication
+  ansible.builtin.import_tasks: auth.yml
+
+- name: Deploy reactor files
+  ansible.builtin.import_tasks: reactor.yml
+
+- name: Manage Salt services
+  ansible.builtin.import_tasks: service.yml

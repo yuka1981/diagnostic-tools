@@ -1,0 +1,19 @@
+---
+# Salt package version (3006 = LTS release)
+salt_version: "3006"
+
+# GitFS configuration
+salt_gitfs_branch: "develop"
+salt_gitfs_update_interval: 60
+salt_gitfs_repo: "https://github.com/yuka1981/diagnostic-tools.git"
+
+# Salt API
+salt_api_port: 8000
+salt_api_ssl_cert: "/etc/salt/pki/api/cert.crt"
+salt_api_ssl_key: "/etc/salt/pki/api/key.key"
+
+# Salt API user (PAM authentication)
+salt_api_user: "rails_salt_user"
+
+# Reactor webhook URL
+rails_webhook_url: "http://localhost:3000/api/v1/salt/events"
