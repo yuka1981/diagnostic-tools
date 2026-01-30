@@ -2,10 +2,9 @@ module Mlc
   class InstallJob < ApplicationJob
     queue_as :default
 
-    def perform(installation_id, server_url, agent_token, user_id: nil)
+    def perform(installation_id, server_url, user_id: nil)
       @installation = MlcInstallation.find(installation_id)
       @server_url = server_url
-      @agent_token = agent_token
       @user_id = user_id
 
       @installation.update!(status: :running, started_at: Time.current)
@@ -41,23 +40,8 @@ module Mlc
       installation_node.update!(status: :running, started_at: Time.current, step_current: 1, step_name: "Starting")
       broadcast_node_update(installation_node)
 
-      service = TriggerInstallService.new(
-        installation: @installation,
-        installation_node: installation_node,
-        server_url: @server_url,
-        agent_token: @agent_token
-      )
-
-      result = service.call
-
-      if result.success?
-        installation_node.update!(status: :success, completed_at: Time.current, step_current: 7)
-      else
-        installation_node.update!(status: :failed, completed_at: Time.current, error_message: result.error)
-      end
-
-      broadcast_node_update(installation_node)
-      result
+      # TODO: Replace with Salt-based MLC installation service
+      raise NotImplementedError, "MLC installation via Salt not yet implemented"
     end
 
     def skip_remaining_nodes(nodes)
