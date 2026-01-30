@@ -76,10 +76,22 @@ RSpec.describe Inventory::SaltCollectService do
       service.call
     end
 
-    it "falls back to lscpu when custom CPU module unavailable" do
+    it "falls back to lscpu when custom CPU module raises error" do
       allow(salt_client).to receive(:run)
         .with("node-01", "inventory.collect_cpu")
         .and_raise(SaltApiClient::ApiError, "module not available")
+      allow(salt_client).to receive(:run)
+        .with("node-01", "cmd.run", arg: [ "lscpu" ])
+        .and_return("Socket(s):             2\nCore(s) per socket:    20\n")
+
+      result = service.call
+      expect(result.success?).to be true
+    end
+
+    it "falls back to lscpu when custom CPU module returns string error" do
+      allow(salt_client).to receive(:run)
+        .with("node-01", "inventory.collect_cpu")
+        .and_return("'inventory.collect_cpu' is not available.")
       allow(salt_client).to receive(:run)
         .with("node-01", "cmd.run", arg: [ "lscpu" ])
         .and_return("Socket(s):             2\nCore(s) per socket:    20\n")

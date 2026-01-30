@@ -17,7 +17,7 @@ module Inventory
       numa = safe_collect("inventory.collect_numa")
       network_v2 = safe_collect("inventory.collect_network_v2")
       cpu_topology = safe_collect("inventory.collect_cpu")
-      lscpu = cpu_topology ? nil : safe_cmd_run("lscpu")
+      lscpu = cpu_topology.is_a?(Hash) ? nil : safe_cmd_run("lscpu")
 
       mapped = Salt::InventoryMapper.new(
         grains: grains,
