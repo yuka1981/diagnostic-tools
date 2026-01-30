@@ -47,6 +47,9 @@ Rails.application.routes.draw do
 
   namespace :settings do
     resource :ssh_defaults, only: [ :show, :update ], controller: :ssh_defaults
+    resource :salt_api, only: [ :show, :update ], controller: :salt_api do
+      post :test_connection
+    end
     resources :server_products do
       collection do
         post :sync
