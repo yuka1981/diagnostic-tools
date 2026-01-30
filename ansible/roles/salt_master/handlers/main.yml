@@ -3,7 +3,7 @@
   ansible.builtin.systemd:
     name: salt-master
     state: restarted
-    daemon_reload: yes
+    daemon_reload: true
 
 - name: restart salt-api
   ansible.builtin.systemd:

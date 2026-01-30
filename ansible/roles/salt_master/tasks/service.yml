@@ -3,10 +3,10 @@
   ansible.builtin.systemd:
     name: salt-master
     state: started
-    enabled: yes
+    enabled: true
 
 - name: Enable and start salt-api
   ansible.builtin.systemd:
     name: salt-api
     state: started
-    enabled: yes
+    enabled: true

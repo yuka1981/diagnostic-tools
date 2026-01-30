@@ -1,12 +1,13 @@
 ---
-- name: Add SaltStack GPG key
-  ansible.builtin.apt_key:
+- name: Download SaltStack GPG key
+  ansible.builtin.get_url:
     url: "https://repo.saltproject.io/salt/py3/{{ ansible_distribution | lower }}/{{ ansible_distribution_version }}/{{ ansible_architecture }}/SALT-PROJECT-GPG-PUBKEY-2023.gpg"
-    state: present
+    dest: /etc/apt/keyrings/salt-archive-keyring.gpg
+    mode: '0644'
 
 - name: Add SaltStack APT repository
   ansible.builtin.apt_repository:
-    repo: "deb [arch={{ ansible_architecture }}] https://repo.saltproject.io/salt/py3/{{ ansible_distribution | lower }}/{{ ansible_distribution_version }}/{{ ansible_architecture }}/{{ salt_version }} {{ ansible_distribution_release }} main"
+    repo: "deb [arch={{ ansible_architecture }} signed-by=/etc/apt/keyrings/salt-archive-keyring.gpg] https://repo.saltproject.io/salt/py3/{{ ansible_distribution | lower }}/{{ ansible_distribution_version }}/{{ ansible_architecture }}/{{ salt_version }} {{ ansible_distribution_release }} main"
     state: present
     filename: saltstack
 
@@ -15,4 +16,4 @@
     name:
       - salt-minion
     state: present
-    update_cache: yes
+    update_cache: true
