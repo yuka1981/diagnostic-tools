@@ -27,13 +27,8 @@ class TasksController < ApplicationController
       return redirect_with_error("Cannot cancel a completed task")
     end
 
-    if run.is_a?(BenchmarkRun)
-      run.update!(status: :cancelled, error_message: "Cancelled by user at #{Time.current}")
-      message = "Task cancelled successfully"
-    else
-      run.update!(status: :cancelled, error_message: "Cancelled by user at #{Time.current}")
-      message = "Task cancelled successfully"
-    end
+    run.update!(status: :cancelled, error_message: "Cancelled by user at #{Time.current}")
+    message = "Task cancelled successfully"
 
     respond_to do |format|
       format.html { redirect_to tasks_path, notice: message }
@@ -98,5 +93,4 @@ class TasksController < ApplicationController
   def redirect_with_error(message)
     redirect_to tasks_path, alert: message
   end
-
 end

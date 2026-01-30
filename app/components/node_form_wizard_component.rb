@@ -38,14 +38,9 @@ class NodeFormWizardComponent < ViewComponent::Base
     }
   end
 
-  def default_benchmark_work_dir
-    BenchmarkConfig::DEFAULT_WORK_DIR
-  end
-
   def racks_for_select
     ServerRack.includes(room: :site).order("sites.name, rooms.name, racks.name").map do |r|
       [ "#{r.site.name} / #{r.room.name} / #{r.name}", r.id ]
     end
   end
-
 end

@@ -18,7 +18,7 @@ class Node < ApplicationRecord
   belongs_to :server_rack, foreign_key: :rack_id, optional: true
   belongs_to :server_product, optional: true
 
-  # Enums - removed custom_bastion, only global_bastion and direct remain
+  # Enums
   enum :role, { compute: 0, login: 1, admin: 2 }, default: :compute
   enum :source, { manual: 0, csv: 1, agent_push: 2, salt_discovery: 3 }, default: :manual
   enum :salt_status, { unknown: 0, connected: 1, disconnected: 2, pending: 3 }, default: :unknown, prefix: :salt
