@@ -35,6 +35,7 @@ Rails.application.routes.draw do
     resource :salt_api, only: [ :show, :update ], controller: :salt_api do
       post :test_connection
     end
+    resource :bmc_credentials, only: [ :show, :update ], controller: :bmc_credentials
     resources :server_products do
       collection do
         post :sync
