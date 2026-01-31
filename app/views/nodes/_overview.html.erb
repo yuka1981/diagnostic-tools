@@ -73,6 +73,11 @@
   <%= render "nodes/server_product_card", node: node %>
 </div>
 
+<!-- BMC Status Card -->
+<div class="mb-6">
+  <%= render "nodes/bmc_status_card", node: node %>
+</div>
+
 <!-- Bottom Section: Recent Benchmarks -->
     <div class="card-netbox" data-testid="nodes-overview-runs">
   <div class="card-header">
