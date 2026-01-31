@@ -7,7 +7,7 @@ class NodesController < ApplicationController
   before_action :authorize_approver!, only: %i[new create edit update destroy bulk_destroy test_connection collect run_benchmark discover import_minions]
 
   def index
-    @nodes = Node.order(:hostname)
+    @nodes = Node.includes(:bmc_credential, :inventory_discrepancies).order(:hostname)
   end
 
   def show

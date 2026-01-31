@@ -3,8 +3,12 @@
 module Api
   module V1
     module Bmc
+      # NOTE: Inherits from ApplicationController (not Api::V1::BaseController) because
+      # this endpoint is called from Stimulus JS using browser session authentication,
+      # not Bearer token authentication.
       class SensorsController < ApplicationController
         before_action :authenticate_user!
+        skip_forgery_protection
 
         def show
           node = Node.find(params[:node_id])

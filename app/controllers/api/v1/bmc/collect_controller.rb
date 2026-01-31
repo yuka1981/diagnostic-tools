@@ -3,9 +3,7 @@
 module Api
   module V1
     module Bmc
-      class CollectController < ApplicationController
-        before_action :authenticate_user!
-
+      class CollectController < Api::V1::BaseController
         def sensors
           result = ::Bmc::SaltTriggerService.new.collect_sensors(node: params[:node])
           render json: result

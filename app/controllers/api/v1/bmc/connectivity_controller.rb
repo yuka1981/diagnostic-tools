@@ -3,9 +3,7 @@
 module Api
   module V1
     module Bmc
-      class ConnectivityController < ApplicationController
-        before_action :authenticate_user!
-
+      class ConnectivityController < Api::V1::BaseController
         def check
           result = ::Bmc::SaltTriggerService.new.check_connectivity(node: params[:node])
           render json: result

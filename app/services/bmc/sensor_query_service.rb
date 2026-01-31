@@ -19,6 +19,8 @@ module Bmc
       readings = BmcSensorReading
         .for_node(@node.id)
         .since(@range.ago)
+        .select(:sensor_name, :recorded_at, :value)
+        .order(:recorded_at)
 
       readings = readings.of_type(@sensor_type) if @sensor_type
 
@@ -27,7 +29,7 @@ module Bmc
         .map do |name, records|
           {
             name: name,
-            data: records.sort_by(&:recorded_at).map { |r| [ r.recorded_at, r.value ] }
+            data: records.map { |r| [ r.recorded_at, r.value ] }
           }
         end
     end
@@ -35,6 +37,7 @@ module Bmc
     def current_readings
       subquery = BmcSensorReading
         .for_node(@node.id)
+        .since(24.hours.ago)
         .select("DISTINCT ON (sensor_type, sensor_name) *")
         .order(:sensor_type, :sensor_name, recorded_at: :desc)
 

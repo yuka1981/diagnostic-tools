@@ -3,6 +3,8 @@
 require "rails_helper"
 
 RSpec.describe Bmc::InventoryIngestionService do
+  include ActiveSupport::Testing::TimeHelpers
+
   let(:node) { create(:node) }
 
   let(:event_data) do
@@ -51,6 +53,30 @@ RSpec.describe Bmc::InventoryIngestionService do
     it "triggers reconciliation" do
       expect(Bmc::ReconciliationService).to receive(:new).with(node)
       described_class.new(event_data).call
+    end
+
+    context "when collected_at is nil" do
+      before { event_data["results"][0]["collected_at"] = nil }
+
+      it "falls back to Time.current and still creates inventory" do
+        travel_to(Time.zone.local(2026, 1, 30, 12, 0, 0)) do
+          expect { described_class.new(event_data).call }
+            .to change(BmcInventory, :count).by(1)
+          expect(BmcInventory.last.captured_at).to be_within(1.second).of(Time.current)
+        end
+      end
+    end
+
+    context "when collected_at is malformed" do
+      before { event_data["results"][0]["collected_at"] = "garbage-timestamp" }
+
+      it "falls back to Time.current and still creates inventory" do
+        travel_to(Time.zone.local(2026, 1, 30, 12, 0, 0)) do
+          expect { described_class.new(event_data).call }
+            .to change(BmcInventory, :count).by(1)
+          expect(BmcInventory.last.captured_at).to be_within(1.second).of(Time.current)
+        end
+      end
     end
   end
 end

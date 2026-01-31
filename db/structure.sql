@@ -210,7 +210,8 @@ CREATE TABLE public.api_keys (
     status integer DEFAULT 0 NOT NULL,
     last_used_at timestamp(6) without time zone,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    bmc_access boolean DEFAULT false NOT NULL
 );
 
 
@@ -2287,6 +2288,7 @@ ALTER TABLE ONLY public.profiling_runs
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260131000005'),
 ('20260131000004'),
 ('20260131000003'),
 ('20260131000002'),

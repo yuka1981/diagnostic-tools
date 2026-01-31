@@ -4,6 +4,8 @@ module Api
   module V1
     module Bmc
       class CredentialsController < Api::V1::BaseController
+        before_action :require_bmc_access!
+
         def index
           global_default = BmcCredential.global_default
           credentials = []
@@ -25,6 +27,14 @@ module Api
           end
 
           render json: { credentials: credentials }
+        end
+
+        private
+
+        def require_bmc_access!
+          return if current_api_key&.bmc_access?
+
+          render json: { error: "Forbidden: BMC credential access not granted for this API key" }, status: :forbidden
         end
       end
     end

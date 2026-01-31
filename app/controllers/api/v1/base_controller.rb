@@ -22,14 +22,18 @@ module Api
       end
 
       def valid_token?(token)
-        api_key = ApiKey.active.find_by(token: token)
+        @current_api_key = ApiKey.active.find_by(token: token)
 
-        if api_key
-          api_key.touch_last_used
+        if @current_api_key
+          @current_api_key.touch_last_used
           return true
         end
 
         false
+      end
+
+      def current_api_key
+        @current_api_key
       end
 
       def render_unauthorized

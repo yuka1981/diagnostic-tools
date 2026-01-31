@@ -3,7 +3,7 @@
 require "rails_helper"
 
 RSpec.describe "Api::V1::Bmc::Credentials", type: :request do
-  let(:api_key) { create(:api_key) }
+  let(:api_key) { create(:api_key, :bmc_access) }
   let(:headers) { { "Authorization" => "Bearer #{api_key.token}" } }
 
   describe "GET /api/v1/bmc/credentials" do
@@ -25,6 +25,13 @@ RSpec.describe "Api::V1::Bmc::Credentials", type: :request do
     it "requires authentication" do
       get "/api/v1/bmc/credentials"
       expect(response).to have_http_status(:unauthorized)
+    end
+
+    it "returns forbidden when API key does not have bmc_access" do
+      regular_key = create(:api_key)
+      get "/api/v1/bmc/credentials", headers: { "Authorization" => "Bearer #{regular_key.token}" }
+      expect(response).to have_http_status(:forbidden)
+      expect(response.parsed_body["error"]).to include("BMC credential access not granted")
     end
   end
 end

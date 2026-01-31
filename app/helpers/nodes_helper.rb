@@ -61,7 +61,7 @@ module NodesHelper
   end
 
   def bmc_status_for(node)
-    return :not_configured unless BmcCredential.for_node(node)
+    return :not_configured unless node.bmc_credential || BmcCredential.global_default
 
     latest = node.bmc_sensor_readings.order(recorded_at: :desc).first
     return :no_data unless latest

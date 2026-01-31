@@ -22,7 +22,7 @@ module Bmc
           bios: result["inventory"]["bios"] || {},
           bmc_info: result["inventory"]["bmc_info"] || {},
           collection_method: result["protocol"],
-          captured_at: Time.zone.parse(result["collected_at"])
+          captured_at: parse_collected_at(result["collected_at"])
         )
         created << inventory
 
@@ -31,6 +31,14 @@ module Bmc
       end
 
       { created: created.size }
+    end
+
+    private
+
+    def parse_collected_at(value)
+      Time.zone.parse(value) || Time.current
+    rescue TypeError, ArgumentError
+      Time.current
     end
   end
 end
