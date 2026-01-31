@@ -5,8 +5,8 @@
 salt_version: "3006"
 
 # GitFS configuration
-salt_gitfs_user: "machine-account"
-salt_gitfs_branch: "develop"
+salt_gitfs_user: "yuka1981"
+salt_gitfs_branch: "feature/salt-module-deployment"
 salt_gitfs_repo: "https://github.com/yuka1981/diagnostic-tools.git"
 salt_gitfs_update_interval: 60
 
@@ -17,8 +17,8 @@ salt_api_ssl_cert: "/etc/salt/pki/api/cert.crt"
 salt_api_ssl_key: "/etc/salt/pki/api/key.key"
 
 # Network
-salt_master_address: "10.0.0.1"
-rails_webhook_url: "https://your-rails-app.com/api/v1/salt/events"
+salt_master_address: "192.168.127.128"
+rails_webhook_url: "https://qis.hayashi-dev.me/api/v1/salt/events"
 
 # References to vault-encrypted secrets
 salt_gitfs_token: "{{ vault_salt_gitfs_token }}"

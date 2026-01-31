@@ -157,7 +157,7 @@ class SaltApiClient
 
     case response
     when Net::HTTPUnauthorized
-      raise AuthenticationError, "Authentication failed: #{response.body}"
+      raise AuthenticationError, extract_error_message(response)
     when Net::HTTPSuccess
       response
     else
@@ -191,6 +191,19 @@ class SaltApiClient
           data_lines = []
         end
       end
+    end
+  end
+
+  def extract_error_message(response)
+    body = response.body.to_s
+    if body.include?("<html")
+      # CherryPy returns HTML error pages; strip tags and extract <p> content
+      paragraph = body[%r{<p>(.*?)</p>}m, 1]&.strip
+      paragraph.presence || "Could not authenticate using provided credentials"
+    elsif body.length > 200
+      body[0..200] + "..."
+    else
+      body.presence || "HTTP #{response.code} #{response.message}"
     end
   end
 

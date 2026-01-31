@@ -28,11 +28,28 @@ RSpec.describe SaltApiClient do
       expect(token).to eq("abc123")
     end
 
-    it "raises AuthenticationError on 401" do
+    it "raises AuthenticationError on 401 with plain text body" do
       stub_request(:post, "#{base_url}/login")
         .to_return(status: 401, body: "Unauthorized")
 
-      expect { client.authenticate }.to raise_error(SaltApiClient::AuthenticationError)
+      expect { client.authenticate }.to raise_error(
+        SaltApiClient::AuthenticationError, "Unauthorized"
+      )
+    end
+
+    it "raises AuthenticationError with clean message for HTML error pages" do
+      html_body = <<~HTML
+        <html><head><title>401 Unauthorized</title></head>
+        <body><h1>401 Unauthorized</h1><p>Could not authenticate using provided credentials</p></body></html>
+      HTML
+
+      stub_request(:post, "#{base_url}/login")
+        .to_return(status: 401, body: html_body)
+
+      expect { client.authenticate }.to raise_error(
+        SaltApiClient::AuthenticationError,
+        /401 Unauthorized.*Could not authenticate/
+      )
     end
   end
 

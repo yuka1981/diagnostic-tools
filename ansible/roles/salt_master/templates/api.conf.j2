@@ -1,5 +1,5 @@
 # Salt API configuration (managed by Ansible)
-rest_cherrypy:
+rest_tornado:
   port: {{ salt_api_port | default(8000) }}
   ssl_crt: {{ salt_api_ssl_cert }}
   ssl_key: {{ salt_api_ssl_key }}

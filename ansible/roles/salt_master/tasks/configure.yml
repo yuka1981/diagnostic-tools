@@ -1,9 +1,37 @@
 ---
+- name: Create Salt API PKI directory
+  ansible.builtin.file:
+    path: /etc/salt/pki/api
+    state: directory
+    owner: salt
+    group: salt
+    mode: '0750'
+
+- name: Generate self-signed SSL certificate for Salt API
+  ansible.builtin.command:
+    cmd: >-
+      openssl req -x509 -nodes -days 3650
+      -newkey rsa:2048
+      -keyout /etc/salt/pki/api/key.key
+      -out /etc/salt/pki/api/cert.crt
+      -subj "/CN={{ ansible_fqdn }}/O=SaltStack"
+    creates: /etc/salt/pki/api/cert.crt
+
+- name: Set SSL certificate permissions
+  ansible.builtin.file:
+    path: "{{ item }}"
+    owner: salt
+    group: salt
+    mode: '0640'
+  loop:
+    - /etc/salt/pki/api/cert.crt
+    - /etc/salt/pki/api/key.key
+
 - name: Deploy Salt API configuration
   ansible.builtin.template:
     src: api.conf.j2
     dest: /etc/salt/master.d/api.conf
-    owner: root
-    group: root
+    owner: salt
+    group: salt
     mode: '0640'
   notify: restart salt-master
