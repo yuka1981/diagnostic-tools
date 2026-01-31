@@ -1004,6 +1004,39 @@ sudo setenforce 1
 
 ---
 
+### Managing minion auto-accept
+
+Auto-accept allows the Salt master to automatically trust any connecting minion
+without manual key approval. This is convenient for development and lab
+environments but should be disabled in production.
+
+**Check current setting:**
+
+```bash
+cd ansible/
+ansible-playbook playbooks/auto-accept.yml --tags status
+```
+
+**Enable auto-accept:**
+
+```bash
+cd ansible/
+ansible-playbook playbooks/auto-accept.yml -e "auto_accept=true"
+```
+
+**Disable auto-accept:**
+
+```bash
+cd ansible/
+ansible-playbook playbooks/auto-accept.yml -e "auto_accept=false"
+```
+
+> **Security warning:** With `auto_accept: true`, any host that can reach ports
+> 4505/4506 will be trusted as a minion. Always disable in production and use
+> `sudo salt-key -A` to manually accept keys.
+
+---
+
 ### Minion keys not appearing
 
 **Symptom:** `salt-key --list unaccepted` shows no pending keys after starting

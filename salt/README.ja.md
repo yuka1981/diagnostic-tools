@@ -935,6 +935,39 @@ sudo setenforce 1
 
 ---
 
+### Minion 自動承認の管理
+
+自動承認を有効にすると、Salt master は接続してくるすべての minion を手動での鍵
+承認なしに自動的に信頼します。開発やラボ環境では便利ですが、本番環境では無効に
+してください。
+
+**現在の設定を確認：**
+
+```bash
+cd ansible/
+ansible-playbook playbooks/auto-accept.yml --tags status
+```
+
+**自動承認を有効化：**
+
+```bash
+cd ansible/
+ansible-playbook playbooks/auto-accept.yml -e "auto_accept=true"
+```
+
+**自動承認を無効化：**
+
+```bash
+cd ansible/
+ansible-playbook playbooks/auto-accept.yml -e "auto_accept=false"
+```
+
+> **セキュリティ警告：** `auto_accept: true` の場合、ポート 4505/4506 に到達
+> できるすべてのホストが minion として信頼されます。本番環境では必ず無効にし、
+> `sudo salt-key -A` で手動で鍵を承認してください。
+
+---
+
 ### Minion の鍵が表示されない
 
 **症状:** minion を起動した後、`salt-key --list unaccepted` に保留中の鍵が表示されません。

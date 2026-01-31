@@ -990,6 +990,38 @@ sudo setenforce 1
 
 ---
 
+### 管理 minion 自動接受
+
+自動接受允許 Salt master 自動信任任何連線的 minion，無須手動核准金鑰。這在開發
+和實驗環境中十分方便，但在正式環境中應停用。
+
+**檢查目前設定：**
+
+```bash
+cd ansible/
+ansible-playbook playbooks/auto-accept.yml --tags status
+```
+
+**啟用自動接受：**
+
+```bash
+cd ansible/
+ansible-playbook playbooks/auto-accept.yml -e "auto_accept=true"
+```
+
+**停用自動接受：**
+
+```bash
+cd ansible/
+ansible-playbook playbooks/auto-accept.yml -e "auto_accept=false"
+```
+
+> **安全警告：** 啟用 `auto_accept: true` 時，任何能連線到 4505/4506 連接埠的
+> 主機都會被信任為 minion。正式環境中務必停用，並使用 `sudo salt-key -A`
+> 手動接受金鑰。
+
+---
+
 ### Minion 金鑰未出現
 
 **症狀：** 啟動 minion 後，`salt-key --list unaccepted` 未顯示待接受的
