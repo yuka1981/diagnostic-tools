@@ -1,40 +1,37 @@
 ---
-# --- RHEL / Rocky / AlmaLinux (dnf) ---
-
-- name: Download Salt repo file (RHEL)
-  ansible.builtin.get_url:
-    url: https://github.com/saltstack/salt-install-guide/releases/latest/download/salt.repo
-    dest: /etc/yum.repos.d/salt.repo
-    mode: '0644'
+- name: Install salt-minion on RHEL
   when: ansible_os_family == 'RedHat'
+  block:
+    - name: Download Salt repo file
+      ansible.builtin.get_url:
+        url: https://github.com/saltstack/salt-install-guide/releases/latest/download/salt.repo
+        dest: /etc/yum.repos.d/salt.repo
+        mode: '0644'
 
-- name: Install salt-minion (RHEL)
-  ansible.builtin.dnf:
-    name:
-      - salt-minion
-    state: present
-  when: ansible_os_family == 'RedHat'
+    - name: Install salt-minion
+      ansible.builtin.dnf:
+        name:
+          - salt-minion
+        state: present
 
-# --- Debian / Ubuntu (apt) ---
-
-- name: Download SaltStack GPG key (Debian)
-  ansible.builtin.get_url:
-    url: https://packages.broadcom.com/artifactory/api/security/keypair/SaltProjectKey/public
-    dest: /etc/apt/keyrings/salt-archive-keyring.gpg
-    mode: '0644'
+- name: Install salt-minion on Debian
   when: ansible_os_family == 'Debian'
+  block:
+    - name: Download SaltStack GPG key
+      ansible.builtin.get_url:
+        url: https://packages.broadcom.com/artifactory/api/security/keypair/SaltProjectKey/public
+        dest: /etc/apt/keyrings/salt-archive-keyring.gpg
+        mode: '0644'
 
-- name: Add SaltStack APT repository (Debian)
-  ansible.builtin.apt_repository:
-    repo: "deb [arch={{ ansible_architecture }} signed-by=/etc/apt/keyrings/salt-archive-keyring.gpg] https://packages.broadcom.com/artifactory/saltproject-deb/ stable main"
-    state: present
-    filename: saltstack
-  when: ansible_os_family == 'Debian'
+    - name: Add SaltStack APT repository
+      ansible.builtin.apt_repository:
+        repo: "deb [arch={{ ansible_architecture }} signed-by=/etc/apt/keyrings/salt-archive-keyring.gpg] https://packages.broadcom.com/artifactory/saltproject-deb/ stable main"
+        state: present
+        filename: saltstack
 
-- name: Install salt-minion (Debian)
-  ansible.builtin.apt:
-    name:
-      - salt-minion
-    state: present
-    update_cache: true
-  when: ansible_os_family == 'Debian'
+    - name: Install salt-minion
+      ansible.builtin.apt:
+        name:
+          - salt-minion
+        state: present
+        update_cache: true

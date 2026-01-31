@@ -1,5 +1,5 @@
 ---
-- name: restart salt-minion
+- name: Restart salt-minion
   ansible.builtin.systemd:
     name: salt-minion
     state: restarted

@@ -1,18 +1,20 @@
 ---
-- name: restart salt-master
+- name: Restart salt-master
   ansible.builtin.systemd:
     name: salt-master
     state: restarted
     daemon_reload: true
 
-- name: restart salt-api
+- name: Restart salt-api
   ansible.builtin.systemd:
     name: salt-api
     state: restarted
-  listen: "restart salt-master"
+  listen: "Restart salt-master"
 
-- name: sync salt modules
-  ansible.builtin.command: salt '*' saltutil.sync_modules
-  listen: "restart salt-master"
+- name: Sync salt modules
+  ansible.builtin.command:
+    cmd: salt '*' saltutil.sync_modules
+  listen: "Restart salt-master"
+  when: not ansible_check_mode
   failed_when: false
   changed_when: false

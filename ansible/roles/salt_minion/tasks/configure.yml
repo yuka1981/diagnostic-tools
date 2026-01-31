@@ -6,4 +6,4 @@
     owner: root
     group: root
     mode: '0640'
-  notify: restart salt-minion
+  notify: Restart salt-minion

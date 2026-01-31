@@ -21,7 +21,7 @@ DIM='\033[2m'
 NC='\033[0m' # No Color
 
 # --- Paths to generated files -------------------------------------------------
-INVENTORY_FILE="${SCRIPT_DIR}/inventory/hosts.yml"
+INVENTORY_FILE="${SCRIPT_DIR}/inventory/hosts.ini"
 MASTER_VARS_FILE="${SCRIPT_DIR}/inventory/group_vars/salt_master/main.yml"
 VAULT_FILE="${SCRIPT_DIR}/inventory/group_vars/salt_master/vault.yml"
 VAULT_EXAMPLE="${SCRIPT_DIR}/inventory/group_vars/salt_master/vault.yml.example"
@@ -248,7 +248,7 @@ show_help() {
     echo "  7. Configuration verification"
     echo ""
     echo "Files created/modified (relative to ansible/):"
-    echo "  inventory/hosts.yml"
+    echo "  inventory/hosts.ini"
     echo "  inventory/group_vars/salt_master/main.yml"
     echo "  inventory/group_vars/salt_master/vault.yml  (encrypted)"
     echo "  inventory/group_vars/salt_minions.yml"

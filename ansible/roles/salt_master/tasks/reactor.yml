@@ -14,7 +14,7 @@
     owner: salt
     group: salt
     mode: '0640'
-  notify: restart salt-master
+  notify: Restart salt-master
 
 - name: Deploy job return reactor
   ansible.builtin.template:
@@ -23,7 +23,7 @@
     owner: salt
     group: salt
     mode: '0644'
-  notify: restart salt-master
+  notify: Restart salt-master
 
 - name: Deploy presence change reactor
   ansible.builtin.template:
@@ -32,4 +32,4 @@
     owner: salt
     group: salt
     mode: '0644'
-  notify: restart salt-master
+  notify: Restart salt-master

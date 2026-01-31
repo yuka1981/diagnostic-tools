@@ -6,4 +6,5 @@
     owner: salt
     group: salt
     mode: '0640'
-  notify: restart salt-master
+  no_log: true
+  notify: Restart salt-master
