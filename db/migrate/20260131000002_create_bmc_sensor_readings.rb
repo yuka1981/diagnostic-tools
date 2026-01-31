@@ -10,7 +10,7 @@ class CreateBmcSensorReadings < ActiveRecord::Migration[7.2]
       t.timestamptz :recorded_at, null: false
     end
 
-    add_index :bmc_sensor_readings, [:node_id, :recorded_at, :sensor_type],
+    add_index :bmc_sensor_readings, [ :node_id, :recorded_at, :sensor_type ],
               name: "idx_sensor_readings_node_time_type"
     add_foreign_key :bmc_sensor_readings, :nodes
 

@@ -71,3 +71,4 @@ Thumbs.db
 /package.json
 /package-lock.json
 .worktrees/
+__pycache__/

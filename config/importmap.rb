@@ -9,3 +9,5 @@ pin_all_from "app/javascript/channels", under: "channels"
 pin_all_from "app/javascript/lib", under: "lib"
 pin "@rails/actioncable", to: "@rails--actioncable.js" # @8.1.100
 pin "interactjs" # @1.10.27
+pin "chartkick", to: "chartkick.js"
+pin "Chart.bundle", to: "Chart.bundle.js"
