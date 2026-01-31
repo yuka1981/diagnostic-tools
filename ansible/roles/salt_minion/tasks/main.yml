@@ -7,6 +7,13 @@
   ansible.builtin.import_tasks: configure.yml
   tags: [salt_minion, configure]
 
+- name: Configure SELinux for Salt Minion
+  ansible.builtin.import_tasks: selinux.yml
+  when: ansible_facts['os_family'] == 'RedHat'
+  tags:
+    - salt_minion
+    - selinux
+
 - name: Manage Salt Minion service
   ansible.builtin.import_tasks: service.yml
   tags: [salt_minion, service]

@@ -14,7 +14,7 @@
       -newkey rsa:2048
       -keyout /etc/salt/pki/api/key.key
       -out /etc/salt/pki/api/cert.crt
-      -subj "/CN={{ ansible_fqdn }}/O=SaltStack"
+      -subj "/CN={{ ansible_facts['fqdn'] }}/O=SaltStack"
     creates: /etc/salt/pki/api/cert.crt
 
 - name: Set SSL certificate permissions

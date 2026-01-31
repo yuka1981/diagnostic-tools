@@ -1,6 +1,6 @@
 ---
 - name: Install salt-minion on RHEL
-  when: ansible_os_family == 'RedHat'
+  when: ansible_facts['os_family'] == 'RedHat'
   block:
     - name: Download Salt repo file
       ansible.builtin.get_url:
@@ -15,7 +15,7 @@
         state: present
 
 - name: Install salt-minion on Debian
-  when: ansible_os_family == 'Debian'
+  when: ansible_facts['os_family'] == 'Debian'
   block:
     - name: Download SaltStack GPG key
       ansible.builtin.get_url:
@@ -25,7 +25,7 @@
 
     - name: Add SaltStack APT repository
       ansible.builtin.apt_repository:
-        repo: "deb [arch={{ ansible_architecture }} signed-by=/etc/apt/keyrings/salt-archive-keyring.gpg] https://packages.broadcom.com/artifactory/saltproject-deb/ stable main"
+        repo: "deb [arch={{ ansible_facts['architecture'] }} signed-by=/etc/apt/keyrings/salt-archive-keyring.gpg] https://packages.broadcom.com/artifactory/saltproject-deb/ stable main"
         state: present
         filename: saltstack
 

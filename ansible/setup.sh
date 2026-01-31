@@ -765,19 +765,13 @@ ENDOFVAULT
         fi
     done
 
-    # Encrypt the vault file
-    echo "$vault_password" | ansible-vault encrypt "$VAULT_FILE" --vault-password-file /dev/stdin
-    if [[ $? -eq 0 ]]; then
-        success "vault.yml encrypted successfully."
-    else
-        error "Failed to encrypt vault.yml. You can encrypt manually with:"
-        echo "  ansible-vault encrypt ${VAULT_FILE}"
-        return 1
-    fi
-
-    # Offer to save vault password
+    # Offer to save vault password BEFORE encryption to avoid duplicate vault-id.
+    # ansible.cfg has vault_password_file = ~/.vault_pass. If we save the password
+    # there first, ansible-vault encrypt picks it up automatically. If we don't save
+    # it, we pipe the password via --vault-password-file /dev/stdin instead.
     echo ""
     local vault_pass_path="${HOME}/.vault_pass"
+    local vault_pass_saved=false
     info "ansible.cfg is configured to use ${vault_pass_path} as the vault password file."
 
     if [[ -f "$vault_pass_path" ]]; then
@@ -785,17 +779,37 @@ ENDOFVAULT
         if ask_yes_no "Overwrite it with the new password?" "y"; then
             echo "$vault_password" > "$vault_pass_path"
             chmod 600 "$vault_pass_path"
+            vault_pass_saved=true
             success "Vault password saved to ${vault_pass_path} (permissions: 600)"
         fi
     else
         if ask_yes_no "Save vault password to ${vault_pass_path}? (chmod 600)" "y"; then
             echo "$vault_password" > "$vault_pass_path"
             chmod 600 "$vault_pass_path"
+            vault_pass_saved=true
             success "Vault password saved to ${vault_pass_path} (permissions: 600)"
         else
             warn "You will need to provide the vault password manually when running playbooks."
             info "Use: ansible-playbook --ask-vault-pass ..."
         fi
+    fi
+
+    echo ""
+
+    # Encrypt the vault file.
+    # If ~/.vault_pass was saved (or already existed), ansible-vault picks it up
+    # from ansible.cfg — no extra flags needed. Otherwise, pipe via stdin.
+    if [[ "$vault_pass_saved" == true ]] || [[ -f "$vault_pass_path" ]]; then
+        ansible-vault encrypt "$VAULT_FILE"
+    else
+        echo "$vault_password" | ansible-vault encrypt "$VAULT_FILE" --vault-password-file /dev/stdin
+    fi
+    if [[ $? -eq 0 ]]; then
+        success "vault.yml encrypted successfully."
+    else
+        error "Failed to encrypt vault.yml. You can encrypt manually with:"
+        echo "  ansible-vault encrypt ${VAULT_FILE}"
+        return 1
     fi
 }
 

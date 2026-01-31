@@ -1,0 +1,56 @@
+module salt_master_selinux 1.0;
+
+require {
+    type initrc_t;
+    type unconfined_t;
+    type var_run_t;
+    type unreserved_port_t;
+    type soundd_port_t;
+    type http_port_t;
+    type node_t;
+    type bin_t;
+    type usr_t;
+    type cert_t;
+    type tmp_t;
+    class tcp_socket { name_bind name_connect };
+    class udp_socket { name_bind };
+    class unix_stream_socket { connectto };
+    class unix_dgram_socket { sendto };
+    class file { execute execute_no_trans open read write getattr map create unlink rename };
+    class dir { search read open getattr add_name remove_name write };
+    class sock_file { write read getattr create unlink };
+    class process { signal signull };
+    class lnk_file { read getattr };
+}
+
+#============= Salt Master Policy =============
+
+# Allow salt CLI (unconfined_t or sudo context) to connect to
+# salt-master IPC sockets at /var/run/salt/master/
+allow unconfined_t initrc_t:unix_stream_socket connectto;
+allow unconfined_t var_run_t:sock_file { write read getattr };
+
+# Allow salt-master (initrc_t) to bind to ZeroMQ ports (4505, 4506)
+# These ports fall under unreserved_port_t in RHEL's SELinux policy
+allow initrc_t unreserved_port_t:tcp_socket { name_bind name_connect };
+
+# Allow salt-master to create and manage IPC sockets in /var/run/salt/
+allow initrc_t var_run_t:sock_file { create write read getattr unlink };
+allow initrc_t var_run_t:dir { add_name remove_name write };
+
+# Allow salt-master to execute bundled Python from /opt/saltstack/salt/
+allow initrc_t usr_t:file { execute execute_no_trans open read getattr map };
+allow initrc_t bin_t:file { execute execute_no_trans open read getattr map };
+allow initrc_t usr_t:dir { search read open getattr };
+allow initrc_t usr_t:lnk_file { read getattr };
+
+# Allow salt-api to bind to HTTP port (8000)
+allow initrc_t http_port_t:tcp_socket { name_bind name_connect };
+
+# Allow salt-master to manage temp files (for job cache, returns, etc.)
+allow initrc_t tmp_t:file { create open read write getattr unlink rename };
+allow initrc_t tmp_t:dir { add_name remove_name write search read };
+
+# Allow salt-master to read SSL certificates
+allow initrc_t cert_t:file { open read getattr };
+allow initrc_t cert_t:dir { search read open getattr };
