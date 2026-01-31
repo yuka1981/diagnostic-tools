@@ -590,6 +590,19 @@ step_master_vars() {
     prompt_with_default "Salt version" "3006"
     SALT_VERSION="$REPLY"
 
+    # Auto-accept minion keys
+    echo ""
+    warn "Auto-accept automatically trusts any minion that connects."
+    warn "Only enable for development/lab environments."
+    read -rp "$(echo -e "${CYAN}  Auto-accept minion keys? (yes/no) [no]: ${NC}")" salt_auto_accept
+    salt_auto_accept="${salt_auto_accept:-no}"
+    if [[ "$salt_auto_accept" =~ ^[Yy]([Ee][Ss])?$ ]]; then
+      salt_auto_accept="true"
+    else
+      salt_auto_accept="false"
+    fi
+    SALT_AUTO_ACCEPT="$salt_auto_accept"
+
     echo ""
 
     # --- Write master vars ---
@@ -622,6 +635,10 @@ salt_api_user: "${SALT_API_USER}"
 # Network
 salt_master_address: "${SALT_MASTER_ADDRESS}"
 rails_webhook_url: "${RAILS_WEBHOOK_URL}"
+
+# Minion key management
+# WARNING: Not recommended for production — allows any minion to connect
+salt_auto_accept: ${SALT_AUTO_ACCEPT}
 
 # References to vault-encrypted secrets
 salt_gitfs_token: "{{ vault_salt_gitfs_token }}"
@@ -964,6 +981,7 @@ main() {
     SALT_API_USER=""
     RAILS_WEBHOOK_URL=""
     SALT_VERSION=""
+    SALT_AUTO_ACCEPT="false"
     VAULT_GITFS_TOKEN=""
     VAULT_API_PASSWORD=""
 

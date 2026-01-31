@@ -10,6 +10,10 @@ netapi_enable_clients:
   - local_async
   - runner
 
+# Auto-accept minion keys (lab/development use only)
+# WARNING: In production, manually accept keys with salt-key -A
+auto_accept: {{ salt_auto_accept | default(false) | lower }}
+
 # Enable presence events for minion tracking
 presence_events: true
 
