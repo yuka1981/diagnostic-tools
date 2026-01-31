@@ -30,3 +30,9 @@ salt_auto_accept: false
 # References to vault-encrypted secrets
 salt_gitfs_token: "{{ vault_salt_gitfs_token }}"
 salt_api_password: "{{ vault_salt_api_password }}"
+
+# Timeout settings for Salt command execution (seconds)
+# The default Salt timeout of 5s is too short for custom inventory modules
+# that gather detailed hardware information via grains or custom modules.
+salt_timeout: 120
+salt_gather_job_timeout: 120

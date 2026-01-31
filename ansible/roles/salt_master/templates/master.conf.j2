@@ -1,0 +1,8 @@
+# Salt Master general configuration (managed by Ansible)
+
+# Timeout settings for custom module execution (e.g., inventory.collect_*)
+# The default Salt timeout of 5 seconds is too short for custom modules that
+# gather detailed hardware information. These values allow up to 120 seconds
+# for module execution and result gathering.
+timeout: {{ salt_timeout | default(120) }}
+gather_job_timeout: {{ salt_gather_job_timeout | default(120) }}

@@ -218,33 +218,279 @@ def _parse_cpuinfo(cpuinfo):
     }
 
 
-# --- Network V2 (lshw) ---
+# --- Network V2 (lshw + sysfs) ---
 
 def collect_network_v2():
-    """Collect advanced network device information using lshw."""
+    """Collect advanced network device information using lshw and sysfs.
+
+    Combines hardware info from lshw with runtime state from sysfs and the
+    ``ip`` command.  Interfaces that lshw does not report (bridges, bonds,
+    VLANs, etc.) are discovered via /sys/class/net/.  Loopback (``lo``) is
+    always excluded.
+    """
     try:
-        raw = _run_lshw()
-        entries = json.loads(raw)
-        devices = []
-        for entry in entries:
-            config = entry.get('configuration', {})
-            devices.append({
-                'name': entry.get('logicalname', ''),
-                'product': entry.get('product', ''),
-                'vendor': entry.get('vendor', ''),
-                'mac': entry.get('serial', ''),
-                'driver': config.get('driver', ''),
-                'speed': config.get('speed', ''),
-                'link': config.get('link', ''),
-                'pci_slot': entry.get('handle', ''),
-            })
-        return {'devices': devices}
+        lshw_devices = _collect_lshw_devices()
     except FileNotFoundError as e:
         return {'error': str(e)}
     except (json.JSONDecodeError, subprocess.CalledProcessError) as e:
         return {'error': f'lshw failed: {e}'}
     except subprocess.TimeoutExpired as e:
         return {'error': f'lshw timed out after {e.timeout}s'}
+
+    # Index lshw devices by logical name for enrichment
+    devices_by_name = {d['name']: d for d in lshw_devices if d.get('name')}
+
+    # Discover all interfaces from sysfs and merge
+    sysfs_ifaces = _list_sysfs_interfaces()
+    for iface_name in sysfs_ifaces:
+        if iface_name == 'lo':
+            continue
+        if iface_name in devices_by_name:
+            # Enrich existing lshw device with sysfs / ip data
+            _enrich_device(devices_by_name[iface_name])
+        else:
+            # Create a new device entry from sysfs / ip data only
+            dev = _build_sysfs_device(iface_name)
+            devices_by_name[iface_name] = dev
+
+    # Also enrich any lshw device whose name was not found in sysfs
+    # (unlikely, but keeps data consistent)
+    for dev in devices_by_name.values():
+        if 'oper_state' not in dev:
+            _enrich_device(dev)
+
+    # Return devices sorted by name for deterministic output
+    devices = sorted(devices_by_name.values(), key=lambda d: d.get('name', ''))
+    return {'devices': devices}
+
+
+def _collect_lshw_devices():
+    """Run lshw and return a list of device dicts with view-compatible keys."""
+    raw = _run_lshw()
+    entries = json.loads(raw)
+    devices = []
+    for entry in entries:
+        config = entry.get('configuration', {})
+        pci_handle = entry.get('handle', '')
+        # Normalise PCI handle from lshw (e.g. "PCI:0000:3b:00.0" -> "0000:3b:00.0")
+        pci_address = pci_handle.replace('PCI:', '') if pci_handle else ''
+        devices.append({
+            'name': entry.get('logicalname', ''),
+            'model': entry.get('product', ''),
+            'vendor': entry.get('vendor', ''),
+            'mac': entry.get('serial', ''),
+            'driver': config.get('driver', ''),
+            'speed': config.get('speed', ''),
+            'link': config.get('link', ''),
+            'pci_address': pci_address,
+        })
+    return devices
+
+
+def _enrich_device(dev):
+    """Add sysfs / ip runtime fields to an existing device dict."""
+    name = dev.get('name', '')
+    if not name:
+        return
+    dev['oper_state'] = _read_sysfs_attr(name, 'operstate')
+    dev['type'] = _detect_interface_type(name)
+    dev['ip_addresses'] = _get_ip_addresses(name)
+    dev['master'] = _get_master(name)
+
+
+def _build_sysfs_device(name):
+    """Create a device dict for an interface discovered only via sysfs."""
+    return {
+        'name': name,
+        'model': None,
+        'vendor': None,
+        'mac': _read_sysfs_attr(name, 'address'),
+        'driver': _get_driver_name(name),
+        'speed': _read_sysfs_speed(name),
+        'link': None,
+        'pci_address': _get_pci_address_from_sysfs(name),
+        'oper_state': _read_sysfs_attr(name, 'operstate'),
+        'type': _detect_interface_type(name),
+        'ip_addresses': _get_ip_addresses(name),
+        'master': _get_master(name),
+    }
+
+
+# --- sysfs helpers ---
+
+def _list_sysfs_interfaces():
+    """Return a sorted list of interface names from /sys/class/net/."""
+    base = '/sys/class/net'
+    try:
+        return sorted(os.listdir(base))
+    except OSError:
+        return []
+
+
+def _read_sysfs_attr(iface, attr):
+    """Read a single sysfs attribute for an interface, returning None on failure."""
+    value = _read_file(f'/sys/class/net/{iface}/{attr}').strip()
+    return value if value else None
+
+
+def _detect_interface_type(iface):
+    """Determine the type of a network interface from sysfs.
+
+    Checks the ARPHRD type code first, then looks for well-known virtual
+    interface indicators in sysfs.
+    """
+    type_code = _read_file(f'/sys/class/net/{iface}/type').strip()
+
+    # ARPHRD_INFINIBAND = 32
+    if type_code == '32':
+        return 'infiniband'
+
+    # Check for virtual interface types via sysfs directory presence
+    base = f'/sys/class/net/{iface}'
+    if os.path.isdir(f'{base}/bridge'):
+        return 'bridge'
+    if os.path.isdir(f'{base}/bonding'):
+        return 'bond'
+    # VLAN interfaces have a parent link in /proc/net/vlan/
+    if os.path.isfile(f'/proc/net/vlan/{iface}'):
+        return 'vlan'
+
+    # ARPHRD_ETHER = 1
+    if type_code == '1':
+        return 'ethernet'
+
+    return 'other'
+
+
+def _get_master(iface):
+    """Return the master interface name, or None."""
+    master_path = f'/sys/class/net/{iface}/master'
+    try:
+        target = os.readlink(master_path)
+        return os.path.basename(target)
+    except OSError:
+        return None
+
+
+def _get_driver_name(iface):
+    """Resolve the kernel driver for an interface from its sysfs device/driver symlink."""
+    driver_link = f'/sys/class/net/{iface}/device/driver'
+    try:
+        target = os.readlink(driver_link)
+        return os.path.basename(target)
+    except OSError:
+        return None
+
+
+def _get_pci_address_from_sysfs(iface):
+    """Resolve PCI address by reading the device symlink in sysfs."""
+    device_link = f'/sys/class/net/{iface}/device'
+    try:
+        target = os.readlink(device_link)
+        return os.path.basename(target)
+    except OSError:
+        return None
+
+
+def _read_sysfs_speed(iface):
+    """Read interface speed from sysfs, returning None on failure.
+
+    The kernel reports speed in Mbit/s as a plain integer.  We convert to a
+    human-friendly string like ``1Gbit/s`` or ``25Gbit/s``.
+    """
+    raw = _read_file(f'/sys/class/net/{iface}/speed').strip()
+    if not raw:
+        return None
+    try:
+        mbit = int(raw)
+    except ValueError:
+        return None
+    if mbit <= 0:
+        return None
+    if mbit >= 1000 and mbit % 1000 == 0:
+        return f'{mbit // 1000}Gbit/s'
+    return f'{mbit}Mbit/s'
+
+
+# --- ip command helpers ---
+
+def _get_ip_addresses(iface):
+    """Return a list of IP addresses (with prefix length) for *iface*.
+
+    Tries ``ip -j addr show <iface>`` first (JSON output).  Falls back to
+    parsing text output of ``ip addr show <iface>`` and /proc/net/if_inet6.
+    """
+    addrs = _get_ip_addresses_json(iface)
+    if addrs is not None:
+        return addrs
+    return _get_ip_addresses_fallback(iface)
+
+
+def _get_ip_addresses_json(iface):
+    """Try to get addresses via ``ip -j addr show``."""
+    try:
+        result = subprocess.run(
+            ['ip', '-j', 'addr', 'show', iface],
+            capture_output=True, text=True, timeout=5, check=True,
+        )
+        data = json.loads(result.stdout)
+        addrs = []
+        for entry in data:
+            for addr_info in entry.get('addr_info', []):
+                local = addr_info.get('local', '')
+                prefixlen = addr_info.get('prefixlen', '')
+                if local:
+                    addrs.append(f'{local}/{prefixlen}' if prefixlen else local)
+        return addrs
+    except (FileNotFoundError, subprocess.CalledProcessError,
+            subprocess.TimeoutExpired, json.JSONDecodeError, KeyError):
+        return None
+
+
+def _get_ip_addresses_fallback(iface):
+    """Fallback: parse ``ip addr show`` text + /proc/net/if_inet6."""
+    addrs = []
+    # IPv4 from ip addr show
+    try:
+        result = subprocess.run(
+            ['ip', 'addr', 'show', iface],
+            capture_output=True, text=True, timeout=5, check=True,
+        )
+        for line in result.stdout.splitlines():
+            line = line.strip()
+            if line.startswith('inet '):
+                parts = line.split()
+                if len(parts) >= 2:
+                    addrs.append(parts[1])  # e.g. "192.168.1.10/24"
+            elif line.startswith('inet6 '):
+                parts = line.split()
+                if len(parts) >= 2:
+                    addrs.append(parts[1])
+    except (FileNotFoundError, subprocess.CalledProcessError,
+            subprocess.TimeoutExpired):
+        pass
+
+    # If we got nothing for IPv6, try /proc/net/if_inet6
+    if not any(':' in a for a in addrs):
+        addrs.extend(_parse_proc_if_inet6(iface))
+
+    return addrs
+
+
+def _parse_proc_if_inet6(iface):
+    """Parse /proc/net/if_inet6 for addresses belonging to *iface*."""
+    addrs = []
+    raw = _read_file('/proc/net/if_inet6')
+    for line in raw.splitlines():
+        parts = line.split()
+        if len(parts) >= 6 and parts[5] == iface:
+            hex_addr = parts[0]
+            prefix_len = int(parts[2], 16)
+            # Expand compressed IPv6 from the hex string
+            groups = [hex_addr[i:i + 4] for i in range(0, 32, 4)]
+            ipv6 = ':'.join(groups)
+            addrs.append(f'{ipv6}/{prefix_len}')
+    return addrs
 
 
 def _run_lshw():
