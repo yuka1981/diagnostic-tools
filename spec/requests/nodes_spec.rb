@@ -97,6 +97,23 @@ RSpec.describe "Nodes", type: :request do
       expect(response.body).to include("node_modal")
     end
 
+    context "with BMC credential params" do
+      it "creates a BMC credential for the node" do
+        patch node_path(node), params: {
+          node: {
+            bmc_credential_attributes: {
+              bmc_address: "10.0.0.100",
+              username: "admin",
+              password: "secret",
+              protocol: "ipmi"
+            }
+          }
+        }
+        expect(node.reload.bmc_credential).to be_present
+        expect(node.bmc_credential.bmc_address).to eq("10.0.0.100")
+      end
+    end
+
     context "with invalid params" do
       it "renders edit form with unprocessable_entity status" do
         # Assuming hostname is required - adjust if needed

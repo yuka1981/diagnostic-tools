@@ -1,9 +1,10 @@
-<div data-controller="wizard" data-wizard-total-value="2" data-wizard-current-value="1"<% if testid %> data-testid="<%= testid %>-container"<% end %>>
+<% wizard_steps = node.persisted? ? ["Basic Info", "Server & Location", "BMC"] : ["Basic Info", "Server & Location"] %>
+<div data-controller="wizard" data-wizard-total-value="<%= wizard_steps.size %>" data-wizard-current-value="1"<% if testid %> data-testid="<%= testid %>-container"<% end %>>
   <%# Progress Indicators %>
   <div class="mb-6">
     <div class="flex items-center justify-between">
-      <% ["Basic Info", "Server & Location"].each_with_index do |label, index| %>
-        <div class="flex items-center <%= 'flex-1' unless index == 1 %>">
+      <% wizard_steps.each_with_index do |label, index| %>
+        <div class="flex items-center <%= 'flex-1' unless index == wizard_steps.size - 1 %>">
           <button type="button"
                   data-wizard-target="indicator"
                   data-step="<%= index + 1 %>"
@@ -13,7 +14,7 @@
             <%= index + 1 %>
           </button>
           <span class="ml-2 text-sm font-medium text-neutral-85 hidden sm:inline"><%= label %></span>
-          <% unless index == 1 %>
+          <% unless index == wizard_steps.size - 1 %>
             <div class="flex-1 mx-4 h-0.5 bg-neutral-8"></div>
           <% end %>
         </div>
@@ -171,6 +172,64 @@
         </div>
       </div>
     </div>
+
+    <%# BMC Configuration (optional, always visible on step 2) %>
+    <% if node.persisted? %>
+      <div data-wizard-target="step" class="hidden space-y-6">
+        <div class="card-netbox">
+          <div class="card-header">
+            <h3 class="card-title">BMC Configuration</h3>
+          </div>
+          <div class="p-4">
+            <p class="text-xs text-neutral-45 mb-4">
+              Optional: Configure BMC (Baseboard Management Controller) credentials for out-of-band management.
+              If left blank, the global default credentials will be used.
+            </p>
+            <%= f.fields_for :bmc_credential do |bmc| %>
+              <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                <div>
+                  <%= bmc.label :bmc_address, "BMC Address", class: "block text-sm font-bold text-neutral-85 mb-1" %>
+                  <%= bmc.text_field :bmc_address,
+                      placeholder: "10.0.0.100",
+                      class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm font-mono" %>
+                  <p class="mt-1 text-xs text-neutral-45">IP address or hostname of the BMC interface.</p>
+                </div>
+
+                <div>
+                  <%= bmc.label :username, class: "block text-sm font-bold text-neutral-85 mb-1" %>
+                  <%= bmc.text_field :username,
+                      placeholder: "admin",
+                      class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm" %>
+                </div>
+
+                <div>
+                  <%= bmc.label :password, class: "block text-sm font-bold text-neutral-85 mb-1" %>
+                  <%= bmc.password_field :password,
+                      placeholder: node.bmc_credential&.persisted? ? "********" : "",
+                      class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm" %>
+                  <p class="mt-1 text-xs text-neutral-45">Leave blank to keep existing password.</p>
+                </div>
+
+                <div>
+                  <%= bmc.label :protocol, class: "block text-sm font-bold text-neutral-85 mb-1" %>
+                  <%= bmc.select :protocol, bmc_protocols_for_select, {},
+                      class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm" %>
+                  <p class="mt-1 text-xs text-neutral-45">Auto will try Redfish first, then fall back to IPMI.</p>
+                </div>
+
+                <div>
+                  <%= bmc.label :port, class: "block text-sm font-bold text-neutral-85 mb-1" %>
+                  <%= bmc.number_field :port,
+                      placeholder: "443",
+                      class: "block w-full rounded-md border-neutral-15 shadow-sm focus:border-primary-5 focus:ring-primary-5 sm:text-sm" %>
+                  <p class="mt-1 text-xs text-neutral-45">Leave blank to use default port (443 for Redfish, 623 for IPMI).</p>
+                </div>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    <% end %>
 
     <%# Navigation Buttons %>
     <div class="flex items-center justify-between pt-4 border-t border-neutral-8">
