@@ -67,6 +67,11 @@ Rails.application.routes.draw do
       post :test_connection
       post :collect
     end
+    resources :discrepancies, only: [], controller: "nodes/discrepancies" do
+      member do
+        patch :resolve
+      end
+    end
     resources :benchmark_runs, only: %i[index new create], controller: "nodes/benchmark_runs"
     resources :profiling_runs, only: %i[index show new create], controller: "nodes/profiling_runs" do
       member do
