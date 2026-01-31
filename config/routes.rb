@@ -18,6 +18,10 @@ Rails.application.routes.draw do
 
     namespace :v1 do
       post "salt/events", to: "salt_events#create"
+
+      namespace :bmc do
+        get "credentials", to: "credentials#index"
+      end
     end
   end
 
