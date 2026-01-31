@@ -12,7 +12,7 @@ module Nodes
       end
 
       if @state && @state.network_inventory.present?
-        @interface = @state.network_inventory["interfaces"]&.find { |i| i["name"] == params[:interface_name] }
+        @interface = @state.network_inventory["devices"]&.find { |i| i["name"] == params[:interface_name] }
       end
 
       render partial: "nodes/ib_details", locals: { interface: @interface }

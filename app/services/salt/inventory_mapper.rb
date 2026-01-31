@@ -1,6 +1,7 @@
 module Salt
   class InventoryMapper
-    def initialize(grains:, dmi: nil, numa: nil, network_v2: nil, cpu_topology: nil, lscpu: nil, meminfo: nil)
+    def initialize(grains:, dmi: nil, numa: nil, network_v2: nil, cpu_topology: nil, lscpu: nil, meminfo: nil,
+                   disk_usage: nil, disk_blkid: nil)
       @grains = grains.is_a?(Hash) ? grains : {}
       @dmi = dmi.is_a?(Hash) ? dmi : nil
       @numa = numa.is_a?(Hash) ? numa : nil
@@ -8,6 +9,8 @@ module Salt
       @cpu_topology = cpu_topology.is_a?(Hash) ? cpu_topology : nil
       @lscpu = lscpu.is_a?(String) ? lscpu : nil
       @meminfo = meminfo.is_a?(Hash) ? meminfo : nil
+      @disk_usage = disk_usage.is_a?(Hash) ? disk_usage : nil
+      @disk_blkid = disk_blkid.is_a?(Hash) ? disk_blkid : nil
     end
 
     def call
@@ -72,6 +75,35 @@ module Salt
     end
 
     def map_disk_info
+      if @disk_usage.present?
+        map_disk_usage_info
+      else
+        map_disk_grains_fallback
+      end
+    end
+
+    def map_disk_usage_info
+      fstype_map = build_fstype_map
+
+      @disk_usage.filter_map do |mountpoint, usage|
+        next unless usage.is_a?(Hash)
+        next unless usage["1K-blocks"].present?
+
+        filesystem = usage["filesystem"]
+        total_kb = usage["1K-blocks"].to_i
+        used_kb = usage["used"].to_i
+
+        {
+          device: filesystem,
+          mountpoint: mountpoint,
+          total: total_kb * 1024,
+          used: used_kb * 1024,
+          fstype: fstype_map[filesystem]
+        }
+      end
+    end
+
+    def map_disk_grains_fallback
       disk_names = @grains["disks"] || []
       ssds = @grains["SSDs"] || []
 
@@ -80,6 +112,16 @@ module Salt
           device: name,
           type: ssds.include?(name) ? "SSD" : "HDD"
         }
+      end
+    end
+
+    def build_fstype_map
+      return {} unless @disk_blkid.is_a?(Hash)
+
+      @disk_blkid.each_with_object({}) do |(device, info), map|
+        next unless info.is_a?(Hash)
+
+        map[device] = info["TYPE"] if info["TYPE"].present?
       end
     end
 

@@ -15,8 +15,8 @@
         </tr>
       </thead>
       <tbody class="divide-y divide-neutral-4 bg-white">
-        <% if state.network_inventory.present? && state.network_inventory["interfaces"].present? %>
-          <% state.network_inventory["interfaces"].each do |iface| %>
+        <% if state.network_inventory.present? && state.network_inventory["devices"].present? %>
+          <% state.network_inventory["devices"].each do |iface| %>
             <tr class="hover:bg-neutral-2 transition-colors">
               <td class="px-4 py-2 font-bold">
                 <div class="flex items-center gap-2">

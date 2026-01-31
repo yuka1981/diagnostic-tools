@@ -164,12 +164,77 @@ RSpec.describe Salt::InventoryMapper do
       expect(result[:memory][:total]).to eq(256000 * 1024 * 1024)
     end
 
-    it "maps disks with device field name" do
+    it "maps disks with device field name from grains fallback" do
       result = mapper.call
       expect(result[:disks].first[:device]).to eq("sda")
       expect(result[:disks].first[:type]).to eq("SSD")
       expect(result[:disks].last[:device]).to eq("sdb")
       expect(result[:disks].last[:type]).to eq("HDD")
+    end
+
+    context "with disk.usage data" do
+      let(:disk_usage_data) do
+        {
+          "/" => { "filesystem" => "/dev/sda2", "1K-blocks" => "50000000", "used" => "20000000",
+                   "available" => "30000000", "capacity" => "40%" },
+          "/boot" => { "filesystem" => "/dev/sda1", "1K-blocks" => "1000000", "used" => "200000",
+                       "available" => "800000", "capacity" => "20%" }
+        }
+      end
+
+      let(:disk_blkid_data) do
+        {
+          "/dev/sda1" => { "TYPE" => "ext4", "UUID" => "abc-123" },
+          "/dev/sda2" => { "TYPE" => "xfs", "UUID" => "def-456" }
+        }
+      end
+
+      let(:mapper_with_disk) do
+        described_class.new(
+          grains: grains,
+          dmi: dmi_data,
+          disk_usage: disk_usage_data,
+          disk_blkid: disk_blkid_data
+        )
+      end
+
+      it "maps filesystem data from disk.usage with mountpoints and byte sizes" do
+        result = mapper_with_disk.call
+        disks = result[:disks]
+
+        root_disk = disks.find { |d| d[:mountpoint] == "/" }
+        expect(root_disk[:device]).to eq("/dev/sda2")
+        expect(root_disk[:total]).to eq(50000000 * 1024)
+        expect(root_disk[:used]).to eq(20000000 * 1024)
+      end
+
+      it "includes fstype from disk.blkid data" do
+        result = mapper_with_disk.call
+        disks = result[:disks]
+
+        root_disk = disks.find { |d| d[:mountpoint] == "/" }
+        boot_disk = disks.find { |d| d[:mountpoint] == "/boot" }
+        expect(root_disk[:fstype]).to eq("xfs")
+        expect(boot_disk[:fstype]).to eq("ext4")
+      end
+
+      it "handles disk.usage without disk.blkid" do
+        mapper = described_class.new(grains: grains, disk_usage: disk_usage_data, disk_blkid: nil)
+        result = mapper.call
+        disks = result[:disks]
+
+        root_disk = disks.find { |d| d[:mountpoint] == "/" }
+        expect(root_disk[:device]).to eq("/dev/sda2")
+        expect(root_disk[:fstype]).to be_nil
+      end
+
+      it "prefers disk.usage over grains fallback" do
+        result = mapper_with_disk.call
+        disks = result[:disks]
+
+        # Should have filesystem entries, not raw disk names
+        expect(disks.any? { |d| d[:mountpoint].present? }).to be true
+      end
     end
 
     it "maps dmi data" do
