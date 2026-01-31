@@ -14,7 +14,14 @@
   <td class="whitespace-nowrap px-3 py-2">
     <div class="flex items-center gap-3">
       <div>
-        <p class="text-sm font-bold text-primary-6 hover:underline"><%= link_to node.hostname, node_path(node), data: { testid: "nodes-link-#{node.hostname}" } %></p>
+        <div class="flex items-center gap-1.5">
+          <p class="text-sm font-bold text-primary-6 hover:underline"><%= link_to node.hostname, node_path(node), data: { testid: "nodes-link-#{node.hostname}" } %></p>
+          <%= bmc_status_dot(node) %>
+          <% unresolved = node.inventory_discrepancies.unresolved.count %>
+          <% if unresolved > 0 %>
+            <span class="inline-flex items-center justify-center rounded-full bg-red-100 text-red-700 px-1.5 py-0.5 text-[10px] font-bold ml-1"><%= unresolved %></span>
+          <% end %>
+        </div>
         <% if node.ip.present? %>
           <p class="text-xs text-neutral-45 font-mono" data-testid="nodes-ip-<%= node.hostname %>"><%= node.ip %></p>
         <% end %>
