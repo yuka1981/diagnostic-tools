@@ -33,7 +33,8 @@ module Settings
     end
 
     def credential_params
-      params.require(:bmc_credential).permit(:bmc_address, :username, :password, :protocol, :port, :verify_ssl)
+      params.require(:bmc_credential).permit(:bmc_address, :username, :password, :protocol, :port, :verify_ssl,
+                                             :collection_interval)
     end
   end
 end

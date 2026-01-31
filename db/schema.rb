@@ -10,13 +10,18 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_01_31_000003) do
+ActiveRecord::Schema[7.2].define(version: 2026_01_31_000004) do
+  create_schema "_timescaledb_cache"
+  create_schema "_timescaledb_catalog"
+  create_schema "_timescaledb_config"
+  create_schema "_timescaledb_functions"
+  create_schema "_timescaledb_internal"
+  create_schema "timescaledb_experimental"
+  create_schema "timescaledb_information"
+
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
   enable_extension "timescaledb"
-
-  # TimescaleDB internal schemas are created automatically by the extension
-  # Do not add create_schema calls for _timescaledb_* schemas here
 
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
@@ -117,6 +122,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_31_000003) do
     t.boolean "is_global_default", default: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "collection_interval", default: 5
     t.index ["is_global_default"], name: "index_bmc_credentials_on_is_global_default", unique: true, where: "(is_global_default = true)"
     t.index ["node_id"], name: "index_bmc_credentials_on_node_id", unique: true, where: "(node_id IS NOT NULL)"
   end
