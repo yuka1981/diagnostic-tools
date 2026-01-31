@@ -10,10 +10,13 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_01_31_000002) do
+ActiveRecord::Schema[7.2].define(version: 2026_01_31_000003) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
   enable_extension "timescaledb"
+
+  # TimescaleDB internal schemas are created automatically by the extension
+  # Do not add create_schema calls for _timescaledb_* schemas here
 
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
@@ -247,7 +250,6 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_31_000002) do
     t.integer "rack_face", default: 0
     t.bigint "server_product_id"
     t.integer "salt_status", default: 0, null: false
-    t.string "bmc_address"
     t.index ["api_key_id"], name: "index_nodes_on_api_key_id"
     t.index ["hostname"], name: "index_nodes_on_hostname", unique: true
     t.index ["rack_id", "rack_face", "rack_position"], name: "index_nodes_on_rack_id_and_rack_face_and_rack_position"
@@ -377,10 +379,6 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_31_000002) do
     t.boolean "verify_ssl", default: true
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.integer "bmc_sensor_polling_interval", default: 5
-    t.boolean "bmc_collection_enabled", default: false
-    t.string "prometheus_pushgateway_url"
-    t.string "prometheus_url"
   end
 
   create_table "server_products", force: :cascade do |t|
