@@ -21,6 +21,10 @@ Rails.application.routes.draw do
 
       namespace :bmc do
         get "credentials", to: "credentials#index"
+        post "collect/sensors", to: "collect#sensors"
+        post "collect/inventory", to: "collect#inventory"
+        post "check_connectivity", to: "connectivity#check"
+        get "sensors/:node_id", to: "sensors#show"
       end
     end
   end
