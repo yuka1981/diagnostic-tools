@@ -927,8 +927,80 @@ sudo firewall-cmd --list-ports
 | 4506 | Minion to Master | TCP | Salt return (ZeroMQ) |
 | 8000 | Rails to Master | TCP | Salt REST API (HTTPS) |
 
-> **Note:** Consider adding a firewall task to the Ansible role if your
-> environment uses `firewalld`. The current roles do not manage firewall rules.
+> **Note:** The Ansible `salt_master` role now includes a `firewall.yml` task that
+> automatically opens these ports via `firewall-cmd` when firewalld is active.
+> Re-running the playbook will fix firewall issues without manual intervention.
+
+---
+
+### SELinux blocking Salt communication
+
+**Symptoms:** Salt commands timeout with `Message timed out` or `Unable to connect
+to the salt master publisher`, `ausearch -m AVC` shows Salt-related denials.
+
+**Cause:** SELinux in Enforcing mode may block Salt's ZeroMQ IPC sockets, port
+binding, or execution of the bundled Python at `/opt/saltstack/salt/`.
+
+**Diagnosis:**
+
+```bash
+# Check SELinux mode
+sudo getenforce
+
+# Search for Salt-related AVC denials
+sudo ausearch -m AVC -ts today | grep -i salt
+
+# Analyze denials
+sudo ausearch -m AVC -ts today | grep salt | audit2why
+```
+
+**Fix — Ansible playbook (recommended):**
+
+The Ansible `salt_master` and `salt_minion` roles include `selinux.yml` tasks that
+automatically deploy custom SELinux policy modules when SELinux is Enforcing. The
+playbook handles:
+
+- Installing SELinux management tools (`policycoreutils-python-utils`, `checkpolicy`)
+- Labeling port 8000 as `http_port_t` for salt-api
+- Enabling `httpd_can_network_connect` SELinux boolean
+- Restoring file contexts on Salt directories (`/etc/salt`, `/var/cache/salt`,
+  `/var/run/salt`, `/var/log/salt`, `/opt/saltstack/salt`)
+- Compiling and installing custom Type Enforcement policy modules
+  (`salt_master_selinux`, `salt_minion_selinux`)
+
+Re-run the playbook to apply:
+
+```bash
+cd ansible/
+ansible-playbook playbooks/salt.yml --tags selinux
+```
+
+**Fix — Manual:**
+
+```bash
+# Verify the custom policy is installed
+sudo semodule -l | grep salt
+
+# If not installed, temporarily set permissive to collect denials
+sudo setenforce 0
+
+# Exercise Salt functionality, then generate policy from audit log
+sudo ausearch -m AVC -ts recent | grep salt | audit2allow -M salt_local
+sudo semodule -i salt_local.pp
+
+# Re-enable enforcing
+sudo setenforce 1
+```
+
+**Custom policy modules cover:**
+
+| Permission | Purpose |
+|---|---|
+| ZeroMQ port binding (4505/4506) | Master publish and return channels |
+| IPC socket management (`/var/run/salt/`) | Inter-process communication |
+| Bundled Python execution (`/opt/saltstack/salt/`) | Salt onedir package runtime |
+| HTTP port binding (8000) | Salt API (master only) |
+| SSL certificate access | Salt API HTTPS |
 
 ---
 
@@ -1067,3 +1139,22 @@ The API configuration limits allowed netapi client types to:
 
 This prevents use of other client types such as `wheel` (which could modify
 keys or configuration).
+
+### SELinux Policy
+
+Salt does not ship an official SELinux policy. The Ansible playbook deploys custom
+Type Enforcement modules (`salt_master_selinux.te`, `salt_minion_selinux.te`) that
+grant the minimum permissions needed for Salt to operate under SELinux Enforcing
+mode. The policy modules allow:
+
+- ZeroMQ port binding and IPC socket management
+- Execution of Salt's bundled Python from `/opt/saltstack/salt/`
+- Salt CLI (`unconfined_t`) to connect to master/minion IPC sockets
+
+If new Salt modules or state operations trigger additional AVC denials, extend the
+policy using `audit2allow`:
+
+```bash
+sudo ausearch -m AVC -ts today | grep salt | audit2allow -M salt_custom
+sudo semodule -i salt_custom.pp
+```

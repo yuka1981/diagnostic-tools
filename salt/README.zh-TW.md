@@ -914,8 +914,79 @@ sudo firewall-cmd --list-ports
 | 4506 | Minion 至 Master | TCP | Salt 回傳通道（ZeroMQ） |
 | 8000 | Rails 至 Master | TCP | Salt REST API（HTTPS） |
 
-> **注意：** 如果你的環境使用 `firewalld`，可考慮在 Ansible role 中加入
-> 防火牆任務。目前的 role 不管理防火牆規則。
+> **注意：** Ansible `salt_master` 角色現已包含 `firewall.yml` 任務，當 firewalld
+> 處於啟用狀態時會自動開放這些連接埠。重新執行 playbook 即可修正防火牆問題，
+> 無須手動操作。
+
+---
+
+### SELinux 阻擋 Salt 通訊
+
+**症狀：** Salt 命令逾時顯示 `Message timed out` 或 `Unable to connect to the salt
+master publisher`，`ausearch -m AVC` 顯示 Salt 相關的拒絕記錄。
+
+**原因：** SELinux 處於 Enforcing 模式時，可能阻擋 Salt 的 ZeroMQ IPC 通訊端、
+連接埠綁定，或阻止執行 `/opt/saltstack/salt/` 下的內建 Python。
+
+**診斷：**
+
+```bash
+# 檢查 SELinux 模式
+sudo getenforce
+
+# 搜尋 Salt 相關的 AVC 拒絕記錄
+sudo ausearch -m AVC -ts today | grep -i salt
+
+# 分析拒絕原因
+sudo ausearch -m AVC -ts today | grep salt | audit2why
+```
+
+**修正 — Ansible playbook（建議方式）：**
+
+Ansible 的 `salt_master` 與 `salt_minion` 角色包含 `selinux.yml` 任務，當
+SELinux 為 Enforcing 時會自動部署自訂 SELinux 政策模組。playbook 處理項目：
+
+- 安裝 SELinux 管理工具（`policycoreutils-python-utils`、`checkpolicy`）
+- 將連接埠 8000 標記為 `http_port_t` 供 salt-api 使用
+- 啟用 `httpd_can_network_connect` SELinux 布林值
+- 還原 Salt 目錄的檔案上下文（`/etc/salt`、`/var/cache/salt`、`/var/run/salt`、
+  `/var/log/salt`、`/opt/saltstack/salt`）
+- 編譯並安裝自訂 Type Enforcement 政策模組
+  （`salt_master_selinux`、`salt_minion_selinux`）
+
+重新執行 playbook 即可套用：
+
+```bash
+cd ansible/
+ansible-playbook playbooks/salt.yml --tags selinux
+```
+
+**手動修正：**
+
+```bash
+# 確認自訂政策是否已安裝
+sudo semodule -l | grep salt
+
+# 若未安裝，暫時切換為 permissive 以收集拒絕記錄
+sudo setenforce 0
+
+# 執行 Salt 功能後，從稽核日誌產生政策
+sudo ausearch -m AVC -ts recent | grep salt | audit2allow -M salt_local
+sudo semodule -i salt_local.pp
+
+# 重新啟用 enforcing
+sudo setenforce 1
+```
+
+**自訂政策模組涵蓋：**
+
+| 權限 | 用途 |
+|---|---|
+| ZeroMQ 連接埠綁定（4505/4506） | Master 發布與回傳通道 |
+| IPC 通訊端管理（`/var/run/salt/`） | 行程間通訊 |
+| 內建 Python 執行（`/opt/saltstack/salt/`） | Salt onedir 套件執行環境 |
+| HTTP 連接埠綁定（8000） | Salt API（僅 master） |
+| SSL 憑證存取 | Salt API HTTPS |
 
 ---
 
@@ -1031,6 +1102,23 @@ PAM 使用者僅被授權存取特定的 Salt 函式白名單：
 - Runner：`manage.status`
 
 這表示 API 使用者無法執行此清單以外的任意 Salt 函式。
+
+### SELinux 政策
+
+Salt 未提供官方 SELinux 政策。Ansible playbook 會部署自訂 Type Enforcement 模組
+（`salt_master_selinux.te`、`salt_minion_selinux.te`），授予 Salt 在 SELinux
+Enforcing 模式下運作所需的最小權限。政策模組允許：
+
+- ZeroMQ 連接埠綁定與 IPC 通訊端管理
+- 從 `/opt/saltstack/salt/` 執行 Salt 內建 Python
+- Salt CLI（`unconfined_t`）連線至 master/minion IPC 通訊端
+
+若新的 Salt 模組或狀態操作觸發額外的 AVC 拒絕，可使用 `audit2allow` 擴展政策：
+
+```bash
+sudo ausearch -m AVC -ts today | grep salt | audit2allow -M salt_custom
+sudo semodule -i salt_custom.pp
+```
 
 ### SSL/TLS
 

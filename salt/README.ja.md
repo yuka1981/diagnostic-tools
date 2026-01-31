@@ -857,6 +857,82 @@ sudo firewall-cmd --list-ports
 
 > **注意:** 環境で `firewalld` を使用している場合は、Ansible ロールにファイアウォールタスクを追加することを検討してください。現在のロールはファイアウォールルールを管理していません。
 
+> **注意：** Ansible の `salt_master` ロールには `firewall.yml` タスクが含まれており、
+> firewalld がアクティブな場合にこれらのポートを自動的に開放します。playbook を
+> 再実行するだけでファイアウォールの問題を修正でき、手動操作は不要です。
+
+---
+
+### SELinux が Salt 通信をブロック
+
+**症状：** Salt コマンドが `Message timed out` や `Unable to connect to the salt
+master publisher` でタイムアウトし、`ausearch -m AVC` で Salt 関連の拒否が表示される。
+
+**原因：** SELinux が Enforcing モードの場合、Salt の ZeroMQ IPC ソケット、ポート
+バインド、または `/opt/saltstack/salt/` のバンドル Python の実行がブロックされる
+可能性があります。
+
+**診断：**
+
+```bash
+# SELinux モードを確認
+sudo getenforce
+
+# Salt 関連の AVC 拒否を検索
+sudo ausearch -m AVC -ts today | grep -i salt
+
+# 拒否の原因を分析
+sudo ausearch -m AVC -ts today | grep salt | audit2why
+```
+
+**修正 — Ansible playbook（推奨）：**
+
+Ansible の `salt_master` および `salt_minion` ロールには `selinux.yml` タスクが
+含まれており、SELinux が Enforcing の場合にカスタム SELinux ポリシーモジュールを
+自動的にデプロイします。playbook が処理する項目：
+
+- SELinux 管理ツールのインストール（`policycoreutils-python-utils`、`checkpolicy`）
+- ポート 8000 を salt-api 用に `http_port_t` としてラベル付け
+- `httpd_can_network_connect` SELinux ブール値の有効化
+- Salt ディレクトリのファイルコンテキスト復元（`/etc/salt`、`/var/cache/salt`、
+  `/var/run/salt`、`/var/log/salt`、`/opt/saltstack/salt`）
+- カスタム Type Enforcement ポリシーモジュールのコンパイルとインストール
+  （`salt_master_selinux`、`salt_minion_selinux`）
+
+playbook を再実行して適用：
+
+```bash
+cd ansible/
+ansible-playbook playbooks/salt.yml --tags selinux
+```
+
+**手動修正：**
+
+```bash
+# カスタムポリシーがインストールされているか確認
+sudo semodule -l | grep salt
+
+# インストールされていない場合、一時的に permissive に設定して拒否を収集
+sudo setenforce 0
+
+# Salt 機能を実行後、監査ログからポリシーを生成
+sudo ausearch -m AVC -ts recent | grep salt | audit2allow -M salt_local
+sudo semodule -i salt_local.pp
+
+# enforcing を再有効化
+sudo setenforce 1
+```
+
+**カスタムポリシーモジュールの対象：**
+
+| 権限 | 用途 |
+|---|---|
+| ZeroMQ ポートバインド（4505/4506） | Master パブリッシュおよびリターンチャネル |
+| IPC ソケット管理（`/var/run/salt/`） | プロセス間通信 |
+| バンドル Python 実行（`/opt/saltstack/salt/`） | Salt onedir パッケージランタイム |
+| HTTP ポートバインド（8000） | Salt API（master のみ） |
+| SSL 証明書アクセス | Salt API HTTPS |
+
 ---
 
 ### Minion の鍵が表示されない
@@ -962,6 +1038,25 @@ PAM ユーザーには、以下の Salt 関数のホワイトリストへのア�
 ### SSL/TLS
 
 Salt REST API は、設定で指定された証明書と鍵を使用して Tornado 経由の HTTPS で構成されています。本番環境では必ず有効な証明書を使用してください。
+
+### SELinux ポリシー
+
+Salt には公式の SELinux ポリシーが付属していません。Ansible playbook がカスタム
+Type Enforcement モジュール（`salt_master_selinux.te`、`salt_minion_selinux.te`）
+をデプロイし、SELinux Enforcing モードで Salt が動作するために必要な最小限の権限を
+付与します。ポリシーモジュールが許可する項目：
+
+- ZeroMQ ポートバインドと IPC ソケット管理
+- `/opt/saltstack/salt/` からの Salt バンドル Python の実行
+- Salt CLI（`unconfined_t`）から master/minion IPC ソケットへの接続
+
+新しい Salt モジュールや state 操作が追加の AVC 拒否をトリガーした場合、
+`audit2allow` でポリシーを拡張できます：
+
+```bash
+sudo ausearch -m AVC -ts today | grep salt | audit2allow -M salt_custom
+sudo semodule -i salt_custom.pp
+```
 
 ### 制限された API クライアント
 
