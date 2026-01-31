@@ -1,0 +1,42 @@
+<%# BMC Sensor Charts %>
+<% sensor_service = Bmc::SensorQueryService.new(node, sensor_type: "temperature") %>
+<% temp_data = sensor_service.chart_data %>
+<% fan_service = Bmc::SensorQueryService.new(node, sensor_type: "fan") %>
+<% fan_data = fan_service.chart_data %>
+<% power_service = Bmc::SensorQueryService.new(node, sensor_type: "power") %>
+<% power_data = power_service.chart_data %>
+
+<div class="card-netbox">
+  <div class="card-header">
+    <h2 class="card-title">Sensor Charts</h2>
+  </div>
+  <div class="p-4 space-y-6">
+    <% if temp_data.empty? && fan_data.empty? && power_data.empty? %>
+      <p class="text-sm text-neutral-45">No sensor data available. Collect sensors to populate charts.</p>
+    <% else %>
+      <%# Temperature Chart %>
+      <% unless temp_data.empty? %>
+        <div>
+          <h3 class="text-xs font-bold text-neutral-45 mb-2">Temperature</h3>
+          <%= line_chart temp_data, xtitle: "Time", ytitle: "Celsius", height: "200px", colors: ["#ef4444", "#f97316", "#eab308"] %>
+        </div>
+      <% end %>
+
+      <%# Fan Speed Chart %>
+      <% unless fan_data.empty? %>
+        <div>
+          <h3 class="text-xs font-bold text-neutral-45 mb-2">Fan Speed</h3>
+          <%= line_chart fan_data, xtitle: "Time", ytitle: "RPM", height: "200px", colors: ["#3b82f6", "#6366f1", "#8b5cf6"] %>
+        </div>
+      <% end %>
+
+      <%# Power Consumption Chart %>
+      <% unless power_data.empty? %>
+        <div>
+          <h3 class="text-xs font-bold text-neutral-45 mb-2">Power Consumption</h3>
+          <%= area_chart power_data, xtitle: "Time", ytitle: "Watts", height: "200px", colors: ["#10b981"] %>
+        </div>
+      <% end %>
+    <% end %>
+  </div>
+</div>

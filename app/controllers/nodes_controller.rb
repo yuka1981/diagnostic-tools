@@ -7,7 +7,7 @@ class NodesController < ApplicationController
   before_action :authorize_approver!, only: %i[new create edit update destroy bulk_destroy test_connection collect run_benchmark discover import_minions]
 
   def index
-    @nodes = Node.order(:hostname)
+    @nodes = Node.includes(:bmc_credential, :inventory_discrepancies).order(:hostname)
   end
 
   def show
@@ -96,6 +96,7 @@ class NodesController < ApplicationController
 
   def edit
     @api_keys = ApiKey.active.order(:name)
+    @node.build_bmc_credential unless @node.bmc_credential
   end
 
   def update
@@ -190,7 +191,8 @@ class NodesController < ApplicationController
   def node_params
     params.require(:node).permit(
       :hostname, :ip, :role, :arch,
-      :api_key_id, :rack_id, :rack_position, :rack_height, :server_product_id
+      :api_key_id, :rack_id, :rack_position, :rack_height, :server_product_id,
+      bmc_credential_attributes: %i[bmc_address username password protocol port]
     )
   end
 

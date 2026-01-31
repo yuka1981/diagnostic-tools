@@ -13,14 +13,14 @@
       "note": "Path is validated by ArtifactIndex#safe_download_path model method which ensures the path is within allowed storage/artifacts or artifacts_base_path directories. Path traversal attacks are prevented by Pathname#cleanpath and prefix check. Validation logic moved from controller to model for better separation of concerns."
     },
     {
-      "fingerprint": "00d224fcdfe8a0c15a8df8ecb9902af476d233ac4614025a9a23280abf7554b4",
-      "note": "Node :role refers to HPC node type (admin/compute/login), not user authorization. Access to this controller is already protected by authorize_approver! before_action. Only approvers can create/edit nodes."
+      "fingerprint": "0770fb095b5aebc5df8670be7209c9fd04333b08c83b8726b108ed0e8d469d3f",
+      "note": "Node :role refers to HPC node type (admin/compute/login), not user authorization. The bmc_credential_attributes nested attributes are required for the per-node BMC credential form; password is encrypted at rest via Rails Active Record Encryption. Access protected by authorize_approver! before_action."
     },
     {
       "fingerprint": "7ce1de64c13e8bbb631f3853d24e531da008c4c50b9b4d95a67f62b9eb5fd716",
       "note": "URL is validated at runtime with start_with?('https://') before being used in link_to. Non-HTTPS URLs are displayed as plain text. This prevents javascript: and other malicious protocol injection."
     }
   ],
-  "updated": "2026-01-30",
+  "updated": "2026-01-31",
   "brakeman_version": "7.1.2"
 }

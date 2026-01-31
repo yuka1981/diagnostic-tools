@@ -1,0 +1,226 @@
+<%# BMC Inventory Tables (OOB) %>
+<% latest_inventory = node.bmc_inventories.order(captured_at: :desc).first %>
+
+<div class="card-netbox">
+  <div class="card-header flex items-center justify-between">
+    <h2 class="card-title">BMC Inventory (Out-of-Band)</h2>
+    <% if latest_inventory %>
+      <span class="text-[10px] text-neutral-45">
+        Last collected: <%= time_ago_in_words(latest_inventory.captured_at) %> ago
+        via <%= latest_inventory.collection_method.titleize %>
+      </span>
+    <% end %>
+  </div>
+
+  <% if latest_inventory.nil? %>
+    <div class="p-4">
+      <p class="text-sm text-neutral-45">No BMC inventory data available. Collect inventory to populate this section.</p>
+    </div>
+  <% else %>
+    <div class="p-4" data-controller="tabs" data-tabs-active-class="border-primary-6 text-primary-6" data-tabs-inactive-class="border-transparent text-neutral-45">
+      <%# Tab Navigation %>
+      <div class="flex border-b border-neutral-8 mb-4 -mx-4 px-4 gap-4 overflow-x-auto">
+        <% %w[Processors Memory Storage Network InfiniBand BIOS BMC\ Info].each_with_index do |tab, idx| %>
+          <button class="py-2 px-1 text-xs font-bold border-b-2 whitespace-nowrap <%= idx == 0 ? 'border-primary-6 text-primary-6' : 'border-transparent text-neutral-45 hover:text-neutral-65' %>"
+                  data-tabs-target="tab"
+                  data-action="click->tabs#select">
+            <%= tab %>
+          </button>
+        <% end %>
+      </div>
+
+      <%# Tab Panels %>
+      <%# Processors %>
+      <div data-tabs-target="panel">
+        <% if latest_inventory.processors.present? && latest_inventory.processors.any? %>
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="text-left text-xs font-bold text-neutral-45 border-b border-neutral-8">
+                <th class="py-2 pr-4">Socket</th>
+                <th class="py-2 pr-4">Model</th>
+                <th class="py-2 pr-4">Cores</th>
+                <th class="py-2 pr-4">Base Freq</th>
+                <th class="py-2 pr-4">Serial</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% latest_inventory.processors.each do |proc| %>
+                <tr class="border-b border-neutral-4">
+                  <td class="py-2 pr-4 text-neutral-85"><%= proc["socket"] %></td>
+                  <td class="py-2 pr-4 text-neutral-85"><%= proc["model"] %></td>
+                  <td class="py-2 pr-4 text-neutral-85"><%= proc["cores_physical"] %></td>
+                  <td class="py-2 pr-4 text-neutral-85"><%= proc["freq_base"] %> MHz</td>
+                  <td class="py-2 pr-4 text-neutral-85 font-mono text-xs"><%= proc["serial"] %></td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        <% else %>
+          <p class="text-sm text-neutral-45">No processor data.</p>
+        <% end %>
+      </div>
+
+      <%# Memory %>
+      <div data-tabs-target="panel" class="hidden">
+        <% if latest_inventory.memory.present? && latest_inventory.memory.any? %>
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="text-left text-xs font-bold text-neutral-45 border-b border-neutral-8">
+                <th class="py-2 pr-4">Slot</th>
+                <th class="py-2 pr-4">Size</th>
+                <th class="py-2 pr-4">Speed</th>
+                <th class="py-2 pr-4">Manufacturer</th>
+                <th class="py-2 pr-4">Type</th>
+                <th class="py-2 pr-4">Serial</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% latest_inventory.memory.each do |mem| %>
+                <tr class="border-b border-neutral-4">
+                  <td class="py-2 pr-4 text-neutral-85"><%= mem["slot"] %></td>
+                  <td class="py-2 pr-4 text-neutral-85"><%= mem["size_gb"] %> GB</td>
+                  <td class="py-2 pr-4 text-neutral-85"><%= mem["speed_mhz"] %> MHz</td>
+                  <td class="py-2 pr-4 text-neutral-85"><%= mem["manufacturer"] %></td>
+                  <td class="py-2 pr-4 text-neutral-85"><%= mem["type"] %></td>
+                  <td class="py-2 pr-4 text-neutral-85 font-mono text-xs"><%= mem["serial"] %></td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        <% else %>
+          <p class="text-sm text-neutral-45">No memory data.</p>
+        <% end %>
+      </div>
+
+      <%# Storage %>
+      <div data-tabs-target="panel" class="hidden">
+        <% if latest_inventory.storage.present? && latest_inventory.storage.any? %>
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="text-left text-xs font-bold text-neutral-45 border-b border-neutral-8">
+                <th class="py-2 pr-4">Name</th>
+                <th class="py-2 pr-4">Capacity</th>
+                <th class="py-2 pr-4">Model</th>
+                <th class="py-2 pr-4">Interface</th>
+                <th class="py-2 pr-4">Health</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% latest_inventory.storage.each do |disk| %>
+                <tr class="border-b border-neutral-4">
+                  <td class="py-2 pr-4 text-neutral-85"><%= disk["name"] %></td>
+                  <td class="py-2 pr-4 text-neutral-85"><%= number_to_human_size(disk["capacity_bytes"].to_i) %></td>
+                  <td class="py-2 pr-4 text-neutral-85"><%= disk["model"] %></td>
+                  <td class="py-2 pr-4 text-neutral-85"><%= disk["interface"] %></td>
+                  <td class="py-2 pr-4 text-neutral-85"><%= disk["health"] %></td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        <% else %>
+          <p class="text-sm text-neutral-45">No storage data.</p>
+        <% end %>
+      </div>
+
+      <%# Network %>
+      <div data-tabs-target="panel" class="hidden">
+        <% if latest_inventory.network.present? && latest_inventory.network.any? %>
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="text-left text-xs font-bold text-neutral-45 border-b border-neutral-8">
+                <th class="py-2 pr-4">Interface</th>
+                <th class="py-2 pr-4">MAC</th>
+                <th class="py-2 pr-4">Model</th>
+                <th class="py-2 pr-4">Speed</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% latest_inventory.network.each do |nic| %>
+                <tr class="border-b border-neutral-4">
+                  <td class="py-2 pr-4 text-neutral-85"><%= nic["name"] %></td>
+                  <td class="py-2 pr-4 text-neutral-85 font-mono text-xs"><%= nic["mac"] %></td>
+                  <td class="py-2 pr-4 text-neutral-85"><%= nic["model"] %></td>
+                  <td class="py-2 pr-4 text-neutral-85"><%= nic["speed"] %></td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        <% else %>
+          <p class="text-sm text-neutral-45">No network data.</p>
+        <% end %>
+      </div>
+
+      <%# InfiniBand %>
+      <div data-tabs-target="panel" class="hidden">
+        <% if latest_inventory.infiniband.present? && latest_inventory.infiniband.any? %>
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="text-left text-xs font-bold text-neutral-45 border-b border-neutral-8">
+                <th class="py-2 pr-4">HCA</th>
+                <th class="py-2 pr-4">Port State</th>
+                <th class="py-2 pr-4">Firmware</th>
+                <th class="py-2 pr-4">GUID</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% latest_inventory.infiniband.each do |ib| %>
+                <tr class="border-b border-neutral-4">
+                  <td class="py-2 pr-4 text-neutral-85"><%= ib["hca"] %></td>
+                  <td class="py-2 pr-4 text-neutral-85"><%= ib["port_state"] %></td>
+                  <td class="py-2 pr-4 text-neutral-85"><%= ib["firmware"] %></td>
+                  <td class="py-2 pr-4 text-neutral-85 font-mono text-xs"><%= ib["guid"] %></td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        <% else %>
+          <p class="text-sm text-neutral-45">No InfiniBand data.</p>
+        <% end %>
+      </div>
+
+      <%# BIOS %>
+      <div data-tabs-target="panel" class="hidden">
+        <% if latest_inventory.bios.present? && latest_inventory.bios.any? %>
+          <dl class="grid grid-cols-2 gap-3">
+            <div>
+              <dt class="text-xs font-bold text-neutral-45">Vendor</dt>
+              <dd class="mt-1 text-sm text-neutral-85"><%= latest_inventory.bios["vendor"] %></dd>
+            </div>
+            <div>
+              <dt class="text-xs font-bold text-neutral-45">Version</dt>
+              <dd class="mt-1 text-sm text-neutral-85"><%= latest_inventory.bios["version"] %></dd>
+            </div>
+            <div>
+              <dt class="text-xs font-bold text-neutral-45">Release Date</dt>
+              <dd class="mt-1 text-sm text-neutral-85"><%= latest_inventory.bios["release_date"] %></dd>
+            </div>
+          </dl>
+        <% else %>
+          <p class="text-sm text-neutral-45">No BIOS data.</p>
+        <% end %>
+      </div>
+
+      <%# BMC Info %>
+      <div data-tabs-target="panel" class="hidden">
+        <% if latest_inventory.bmc_info.present? && latest_inventory.bmc_info.any? %>
+          <dl class="grid grid-cols-2 gap-3">
+            <div>
+              <dt class="text-xs font-bold text-neutral-45">Model</dt>
+              <dd class="mt-1 text-sm text-neutral-85"><%= latest_inventory.bmc_info["model"] %></dd>
+            </div>
+            <div>
+              <dt class="text-xs font-bold text-neutral-45">Firmware</dt>
+              <dd class="mt-1 text-sm text-neutral-85"><%= latest_inventory.bmc_info["firmware"] %></dd>
+            </div>
+            <div>
+              <dt class="text-xs font-bold text-neutral-45">IP Address</dt>
+              <dd class="mt-1 text-sm text-neutral-85"><%= latest_inventory.bmc_info["ip"] %></dd>
+            </div>
+          </dl>
+        <% else %>
+          <p class="text-sm text-neutral-45">No BMC info data.</p>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+</div>

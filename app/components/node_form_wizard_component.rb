@@ -43,4 +43,8 @@ class NodeFormWizardComponent < ViewComponent::Base
       [ "#{r.site.name} / #{r.room.name} / #{r.name}", r.id ]
     end
   end
+
+  def bmc_protocols_for_select
+    BmcCredential.protocols.keys.map { |p| [ p.titleize, p ] }
+  end
 end

@@ -16,6 +16,9 @@ application.register("autosubmit", AutosubmitController)
 import BenchmarkRecipeController from "./benchmark_recipe_controller"
 application.register("benchmark-recipe", BenchmarkRecipeController)
 
+import BmcChartController from "./bmc_chart_controller"
+application.register("bmc-chart", BmcChartController)
+
 import BulkReviewController from "./bulk_review_controller"
 application.register("bulk-review", BulkReviewController)
 

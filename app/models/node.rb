@@ -12,8 +12,10 @@ class Node < ApplicationRecord
   has_many :mlc_baselines, dependent: :destroy
   has_many :mlc_installation_nodes, dependent: :destroy
   has_many :bmc_inventories, dependent: :destroy
+  has_many :bmc_sensor_readings, dependent: :delete_all
   has_many :inventory_discrepancies, dependent: :destroy
   has_one :bmc_credential, dependent: :destroy
+  accepts_nested_attributes_for :bmc_credential, update_only: true, reject_if: :all_blank
   belongs_to :api_key, optional: true
   belongs_to :server_rack, foreign_key: :rack_id, optional: true
   belongs_to :server_product, optional: true

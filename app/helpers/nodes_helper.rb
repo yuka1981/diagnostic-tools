@@ -59,4 +59,27 @@ module NodesHelper
       content_tag :span, status.to_s.upcase, class: "inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-neutral-45 text-white shadow-sm uppercase tracking-wider"
     end
   end
+
+  def bmc_status_for(node)
+    return :not_configured unless node.bmc_credential || BmcCredential.global_default
+
+    latest = node.bmc_sensor_readings.order(recorded_at: :desc).first
+    return :no_data unless latest
+    return :stale if latest.recorded_at < 10.minutes.ago
+
+    :connected
+  end
+
+  def bmc_status_dot(node)
+    case bmc_status_for(node)
+    when :connected
+      tag.span(class: "inline-block h-2 w-2 rounded-full bg-emerald-500", title: "BMC Connected")
+    when :stale
+      tag.span(class: "inline-block h-2 w-2 rounded-full bg-amber-500", title: "BMC: No recent data")
+    when :no_data
+      tag.span(class: "inline-block h-2 w-2 rounded-full bg-red-500", title: "BMC: Unreachable")
+    when :not_configured
+      tag.span(class: "inline-block h-2 w-2 rounded-full bg-neutral-30", title: "BMC: Not configured")
+    end
+  end
 end

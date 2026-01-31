@@ -28,6 +28,10 @@ module Salt
         handle_benchmark_return(data) if benchmark_event?(data)
       when PRESENCE_CHANGE_TAG
         handle_presence_change(data)
+      when /\Aqis\/bmc\/sensors\z/
+        handle_bmc_sensors(data)
+      when /\Aqis\/bmc\/inventory\z/
+        handle_bmc_inventory(data)
       end
     end
 
@@ -85,6 +89,18 @@ module Salt
         return run_id if run_id
       end
       nil
+    end
+
+    def handle_bmc_sensors(data)
+      Bmc::SensorIngestionService.new(data).call
+    rescue StandardError => e
+      Rails.logger.error("[SaltEventListener] BMC sensor ingestion failed: #{e.message}")
+    end
+
+    def handle_bmc_inventory(data)
+      Bmc::InventoryIngestionService.new(data).call
+    rescue StandardError => e
+      Rails.logger.error("[SaltEventListener] BMC inventory ingestion failed: #{e.message}")
     end
   end
 end

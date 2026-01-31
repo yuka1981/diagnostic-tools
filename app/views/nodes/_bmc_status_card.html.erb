@@ -1,0 +1,86 @@
+<%# BMC Out-of-Band Management Status Card %>
+<% credential = BmcCredential.for_node(node) %>
+<% latest_sensor = node.bmc_sensor_readings.order(recorded_at: :desc).first %>
+<% latest_inventory = node.bmc_inventories.order(captured_at: :desc).first %>
+<% unresolved_count = node.inventory_discrepancies.unresolved.count %>
+
+<div class="card-netbox" data-testid="nodes-overview-bmc-status">
+  <div class="card-header">
+    <h3 class="card-title text-xs font-bold text-neutral-45 uppercase">BMC Status</h3>
+  </div>
+  <div class="p-4 space-y-4">
+    <% if credential.nil? %>
+      <div class="flex items-center gap-2 text-neutral-45 text-sm">
+        <%= lucide_icon("alert-circle", class: "h-4 w-4 text-neutral-30") %>
+        <span>BMC not configured</span>
+      </div>
+      <p class="text-[10px] text-neutral-45">
+        Configure BMC credentials in
+        <%= link_to "Settings", settings_bmc_credentials_path, class: "text-primary-6 hover:text-primary-7" %>
+        or on the node edit page.
+      </p>
+    <% else %>
+      <dl class="grid grid-cols-2 gap-3">
+        <div>
+          <dt class="text-xs font-bold text-neutral-45">Status</dt>
+          <dd class="mt-1">
+            <% if latest_sensor && latest_sensor.recorded_at > 15.minutes.ago %>
+              <span class="inline-flex items-center gap-1 text-xs font-bold text-emerald-600">
+                <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
+                Connected
+              </span>
+            <% else %>
+              <span class="inline-flex items-center gap-1 text-xs font-bold text-amber-600">
+                <span class="h-2 w-2 rounded-full bg-amber-500"></span>
+                No recent data
+              </span>
+            <% end %>
+          </dd>
+        </div>
+
+        <div>
+          <dt class="text-xs font-bold text-neutral-45">Protocol</dt>
+          <dd class="mt-1 text-sm text-neutral-85"><%= credential.protocol.titleize %></dd>
+        </div>
+
+        <div>
+          <dt class="text-xs font-bold text-neutral-45">Last Sensors</dt>
+          <dd class="mt-1 text-sm text-neutral-85">
+            <%= latest_sensor ? time_ago_in_words(latest_sensor.recorded_at) + " ago" : "Never" %>
+          </dd>
+        </div>
+
+        <div>
+          <dt class="text-xs font-bold text-neutral-45">Last Inventory</dt>
+          <dd class="mt-1 text-sm text-neutral-85">
+            <%= latest_inventory ? time_ago_in_words(latest_inventory.captured_at) + " ago" : "Never" %>
+          </dd>
+        </div>
+      </dl>
+
+      <% if unresolved_count > 0 %>
+        <div class="flex items-center gap-2 text-sm">
+          <span class="inline-flex items-center justify-center rounded-full bg-red-100 text-red-700 px-2 py-0.5 text-xs font-bold">
+            <%= unresolved_count %>
+          </span>
+          <span class="text-neutral-65">unresolved discrepancies</span>
+        </div>
+      <% end %>
+
+      <div class="flex gap-2 pt-2 border-t border-neutral-8">
+        <%= button_to "Collect Sensors",
+            collect_node_path(node),
+            method: :post,
+            params: { collection_type: "bmc_sensors" },
+            class: "btn-secondary text-xs",
+            data: { turbo_submits_with: "Collecting..." } %>
+        <%= button_to "Collect Inventory",
+            collect_node_path(node),
+            method: :post,
+            params: { collection_type: "bmc_inventory" },
+            class: "btn-secondary text-xs",
+            data: { turbo_submits_with: "Collecting..." } %>
+      </div>
+    <% end %>
+  </div>
+</div>

@@ -1,0 +1,59 @@
+<%# Inventory Discrepancy Panel %>
+<% discrepancies = node.inventory_discrepancies.order(created_at: :desc) %>
+<% unresolved = discrepancies.unresolved %>
+
+<div class="card-netbox">
+  <div class="card-header flex items-center justify-between">
+    <h2 class="card-title">Inventory Discrepancies</h2>
+    <% if unresolved.any? %>
+      <span class="inline-flex items-center justify-center rounded-full bg-red-100 text-red-700 px-2 py-0.5 text-xs font-bold">
+        <%= unresolved.count %> unresolved
+      </span>
+    <% end %>
+  </div>
+
+  <div class="p-4">
+    <% if discrepancies.empty? %>
+      <p class="text-sm text-neutral-45">No discrepancies detected between in-band and BMC inventory data.</p>
+    <% else %>
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="text-left text-xs font-bold text-neutral-45 border-b border-neutral-8">
+            <th class="py-2 pr-4">Field</th>
+            <th class="py-2 pr-4">In-Band Value</th>
+            <th class="py-2 pr-4">BMC Value</th>
+            <th class="py-2 pr-4">Severity</th>
+            <th class="py-2 pr-4">Status</th>
+            <th class="py-2 pr-4"></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% unresolved.each do |disc| %>
+            <tr class="border-b border-neutral-4">
+              <td class="py-2 pr-4 text-neutral-85 font-mono text-xs"><%= disc.field_path %></td>
+              <td class="py-2 pr-4 text-neutral-85"><%= disc.inband_value %></td>
+              <td class="py-2 pr-4 text-neutral-85"><%= disc.bmc_value %></td>
+              <td class="py-2 pr-4">
+                <% case disc.severity %>
+                <% when "critical" %>
+                  <span class="inline-flex items-center rounded-full bg-red-100 text-red-700 px-2 py-0.5 text-xs font-bold">Critical</span>
+                <% when "warning" %>
+                  <span class="inline-flex items-center rounded-full bg-amber-100 text-amber-700 px-2 py-0.5 text-xs font-bold">Warning</span>
+                <% else %>
+                  <span class="inline-flex items-center rounded-full bg-blue-100 text-blue-700 px-2 py-0.5 text-xs font-bold">Info</span>
+                <% end %>
+              </td>
+              <td class="py-2 pr-4 text-xs text-amber-600 font-bold">Unresolved</td>
+              <td class="py-2">
+                <%= button_to "Resolve", resolve_node_discrepancy_path(node, disc),
+                    method: :patch,
+                    class: "btn-secondary text-xs",
+                    form: { data: { turbo_confirm: "Mark this discrepancy as resolved?" } } %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    <% end %>
+  </div>
+</div>

@@ -18,6 +18,14 @@ Rails.application.routes.draw do
 
     namespace :v1 do
       post "salt/events", to: "salt_events#create"
+
+      namespace :bmc do
+        get "credentials", to: "credentials#index"
+        post "collect/sensors", to: "collect#sensors"
+        post "collect/inventory", to: "collect#inventory"
+        post "check_connectivity", to: "connectivity#check"
+        get "sensors/:node_id", to: "sensors#show"
+      end
     end
   end
 
@@ -35,6 +43,7 @@ Rails.application.routes.draw do
     resource :salt_api, only: [ :show, :update ], controller: :salt_api do
       post :test_connection
     end
+    resource :bmc_credentials, only: [ :show, :update ], controller: :bmc_credentials
     resources :server_products do
       collection do
         post :sync
@@ -57,6 +66,11 @@ Rails.application.routes.draw do
     member do
       post :test_connection
       post :collect
+    end
+    resources :discrepancies, only: [], controller: "nodes/discrepancies" do
+      member do
+        patch :resolve
+      end
     end
     resources :benchmark_runs, only: %i[index new create], controller: "nodes/benchmark_runs"
     resources :profiling_runs, only: %i[index show new create], controller: "nodes/profiling_runs" do
