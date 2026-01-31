@@ -78,6 +78,21 @@
   <%= render "nodes/bmc_status_card", node: node %>
 </div>
 
+<!-- BMC Sensor Charts -->
+<div class="mb-6">
+  <%= render "nodes/bmc_sensor_charts", node: node %>
+</div>
+
+<!-- BMC Inventory Tables (Out-of-Band) -->
+<div class="mb-6">
+  <%= render "nodes/bmc_inventory_tables", node: node %>
+</div>
+
+<!-- Inventory Discrepancy Panel -->
+<div class="mb-6">
+  <%= render "nodes/discrepancy_panel", node: node %>
+</div>
+
 <!-- Bottom Section: Recent Benchmarks -->
     <div class="card-netbox" data-testid="nodes-overview-runs">
   <div class="card-header">
