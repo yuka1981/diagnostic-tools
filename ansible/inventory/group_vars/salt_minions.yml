@@ -1,1 +1,8 @@
 salt_master_address: "192.168.127.128"
+
+# Timeout settings for minion returning job results to master (seconds)
+# Effective timeout = return_retry_tries * return_retry_timer_max = 4 * 30 = 120s
+# Default Salt values (3 * 10 = 30s) cause TimeoutError on custom inventory modules
+salt_return_retry_timer: 5
+salt_return_retry_timer_max: 30
+salt_return_retry_tries: 4
