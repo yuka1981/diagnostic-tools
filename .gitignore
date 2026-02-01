@@ -71,3 +71,6 @@ Thumbs.db
 /package.json
 /package-lock.json
 .worktrees/
+
+# Ansible Vault encrypted secrets (use vault.yml.example as template)
+ansible/group_vars/salt_master/vault.yml

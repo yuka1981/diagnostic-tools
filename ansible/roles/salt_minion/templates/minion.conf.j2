@@ -1,0 +1,10 @@
+# Salt Minion configuration (managed by Ansible)
+master: {{ salt_master_address }}
+
+# Timeout settings for returning job results to the master.
+# The effective return timeout = return_retry_tries * return_retry_timer_max.
+# Defaults (3 * 10 = 30s) are too short for custom inventory modules that
+# collect detailed hardware info. These values give 120s (4 * 30).
+return_retry_timer: {{ salt_return_retry_timer | default(5) }}
+return_retry_timer_max: {{ salt_return_retry_timer_max | default(30) }}
+return_retry_tries: {{ salt_return_retry_tries | default(4) }}

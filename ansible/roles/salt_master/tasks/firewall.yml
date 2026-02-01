@@ -1,0 +1,40 @@
+---
+# Firewall configuration for Salt Master
+# Opens required ports for ZeroMQ transport and Salt API
+
+- name: Check if firewalld is running
+  ansible.builtin.systemd:
+    name: firewalld
+  register: firewalld_status
+  failed_when: false
+  changed_when: false
+
+- name: Configure firewall for Salt Master
+  when: firewalld_status.status.ActiveState | default('inactive') == 'active'
+  block:
+    - name: Open Salt Master publish port (4505/tcp)
+      ansible.builtin.command:
+        cmd: firewall-cmd --permanent --add-port=4505/tcp
+      register: fw_4505
+      changed_when: "'ALREADY_ENABLED' not in fw_4505.stderr"
+      failed_when: fw_4505.rc != 0 and 'ALREADY_ENABLED' not in fw_4505.stderr
+
+    - name: Open Salt Master return port (4506/tcp)
+      ansible.builtin.command:
+        cmd: firewall-cmd --permanent --add-port=4506/tcp
+      register: fw_4506
+      changed_when: "'ALREADY_ENABLED' not in fw_4506.stderr"
+      failed_when: fw_4506.rc != 0 and 'ALREADY_ENABLED' not in fw_4506.stderr
+
+    - name: Open Salt API port ({{ salt_api_port | default(8000) }}/tcp)
+      ansible.builtin.command:
+        cmd: "firewall-cmd --permanent --add-port={{ salt_api_port | default(8000) }}/tcp"
+      register: fw_api
+      changed_when: "'ALREADY_ENABLED' not in fw_api.stderr"
+      failed_when: fw_api.rc != 0 and 'ALREADY_ENABLED' not in fw_api.stderr
+
+    - name: Reload firewalld
+      ansible.builtin.command:
+        cmd: firewall-cmd --reload
+      when: fw_4505.changed or fw_4506.changed or fw_api.changed
+      changed_when: true

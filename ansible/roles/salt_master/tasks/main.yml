@@ -1,0 +1,37 @@
+---
+- name: Install Salt Master packages
+  ansible.builtin.import_tasks: install.yml
+  tags: [salt_master, install]
+
+- name: Configure firewall for Salt Master
+  ansible.builtin.import_tasks: firewall.yml
+  tags:
+    - salt_master
+    - firewall
+
+- name: Configure Salt Master
+  ansible.builtin.import_tasks: configure.yml
+  tags: [salt_master, configure]
+
+- name: Configure GitFS
+  ansible.builtin.import_tasks: gitfs.yml
+  tags: [salt_master, gitfs]
+
+- name: Configure authentication
+  ansible.builtin.import_tasks: auth.yml
+  tags: [salt_master, auth]
+
+- name: Deploy reactor files
+  ansible.builtin.import_tasks: reactor.yml
+  tags: [salt_master, reactor]
+
+- name: Configure SELinux for Salt Master
+  ansible.builtin.import_tasks: selinux.yml
+  when: ansible_facts['os_family'] == 'RedHat'
+  tags:
+    - salt_master
+    - selinux
+
+- name: Manage Salt services
+  ansible.builtin.import_tasks: service.yml
+  tags: [salt_master, service]

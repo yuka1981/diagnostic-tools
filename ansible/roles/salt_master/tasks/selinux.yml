@@ -1,0 +1,93 @@
+---
+# SELinux configuration for Salt Master
+# Only applies to RHEL-family systems with SELinux enforcing
+
+- name: Check SELinux status
+  ansible.builtin.command:
+    cmd: getenforce
+  register: selinux_status
+  changed_when: false
+  failed_when: false
+
+- name: Configure SELinux for Salt Master
+  when: selinux_status.stdout == 'Enforcing'
+  block:
+    - name: Install SELinux management tools
+      ansible.builtin.dnf:
+        name:
+          - policycoreutils-python-utils
+          - policycoreutils
+          - checkpolicy
+        state: present
+
+    - name: Allow salt-api to bind on port 8000
+      ansible.builtin.command:
+        cmd: semanage port -a -t http_port_t -p tcp 8000
+      register: seport_add_result
+      changed_when: seport_add_result.rc == 0
+      failed_when: false
+
+    - name: Modify port type if add failed (port already assigned)
+      ansible.builtin.command:
+        cmd: semanage port -m -t http_port_t -p tcp 8000
+      when: seport_add_result.rc != 0
+      changed_when: true
+
+    - name: Enable httpd_can_network_connect for salt-api
+      ansible.builtin.command:
+        cmd: setsebool -P httpd_can_network_connect on
+      changed_when: true
+
+    - name: Restore SELinux file contexts on Salt directories
+      ansible.builtin.command:
+        cmd: "restorecon -Rv {{ item }}"
+      loop:
+        - /etc/salt
+        - /var/cache/salt
+        - /var/run/salt
+        - /var/log/salt
+        - /opt/saltstack/salt
+      register: restorecon_result
+      changed_when: restorecon_result.stdout | default('') | length > 0
+      failed_when: false
+
+    - name: Copy Salt Master SELinux policy module
+      ansible.builtin.copy:
+        src: salt_master_selinux.te
+        dest: /tmp/salt_master_selinux.te
+        mode: "0644"
+
+    - name: Check if Salt Master SELinux policy is installed
+      ansible.builtin.shell:
+        cmd: "semodule -l | grep -q salt_master_selinux"
+      register: selinux_policy_check
+      changed_when: false
+      failed_when: false
+
+    - name: Compile Salt Master SELinux policy module
+      ansible.builtin.command:
+        cmd: "checkmodule -M -m -o /tmp/salt_master_selinux.mod /tmp/salt_master_selinux.te"
+      when: selinux_policy_check.rc != 0
+      changed_when: true
+
+    - name: Package Salt Master SELinux policy module
+      ansible.builtin.command:
+        cmd: "semodule_package -o /tmp/salt_master_selinux.pp -m /tmp/salt_master_selinux.mod"
+      when: selinux_policy_check.rc != 0
+      changed_when: true
+
+    - name: Install Salt Master SELinux policy module
+      ansible.builtin.command:
+        cmd: "semodule -i /tmp/salt_master_selinux.pp"
+      when: selinux_policy_check.rc != 0
+      changed_when: true
+      notify: Restart salt-master
+
+    - name: Clean up temporary SELinux policy files
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /tmp/salt_master_selinux.te
+        - /tmp/salt_master_selinux.mod
+        - /tmp/salt_master_selinux.pp

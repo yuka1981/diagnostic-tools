@@ -5,7 +5,7 @@ require "rails_helper"
 RSpec.describe "Nodes::Networks", type: :request do
   let(:user) { create(:user, :approver) }
   let(:node) { create(:node) }
-  let(:node_state) { create(:node_state, node: node, network_inventory: { "interfaces" => [ { "name" => "ib0", "type" => "infiniband", "infiniband" => { "lid" => "14" } } ] }) }
+  let(:node_state) { create(:node_state, node: node, network_inventory: { "devices" => [ { "name" => "ib0", "type" => "infiniband", "infiniband" => { "lid" => "14" } } ] }) }
 
   before do
     sign_in user

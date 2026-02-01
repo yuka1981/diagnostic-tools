@@ -1,0 +1,40 @@
+module salt_minion_selinux 1.0;
+
+require {
+    type initrc_t;
+    type unconfined_t;
+    type var_run_t;
+    type unreserved_port_t;
+    type bin_t;
+    type usr_t;
+    type tmp_t;
+    class tcp_socket { name_connect };
+    class unix_stream_socket { connectto };
+    class file { execute execute_no_trans open read write getattr map create unlink rename };
+    class dir { search read open getattr add_name remove_name write };
+    class sock_file { write read getattr create unlink };
+    class lnk_file { read getattr };
+}
+
+#============= Salt Minion Policy =============
+
+# Allow salt-call (unconfined_t) to connect to salt-minion IPC sockets
+allow unconfined_t initrc_t:unix_stream_socket connectto;
+allow unconfined_t var_run_t:sock_file { write read getattr };
+
+# Allow salt-minion to connect to salt-master ZeroMQ ports (4505, 4506)
+allow initrc_t unreserved_port_t:tcp_socket name_connect;
+
+# Allow salt-minion to create and manage IPC sockets in /var/run/salt/
+allow initrc_t var_run_t:sock_file { create write read getattr unlink };
+allow initrc_t var_run_t:dir { add_name remove_name write };
+
+# Allow salt-minion to execute bundled Python from /opt/saltstack/salt/
+allow initrc_t usr_t:file { execute execute_no_trans open read getattr map };
+allow initrc_t bin_t:file { execute execute_no_trans open read getattr map };
+allow initrc_t usr_t:dir { search read open getattr };
+allow initrc_t usr_t:lnk_file { read getattr };
+
+# Allow salt-minion to manage temp files
+allow initrc_t tmp_t:file { create open read write getattr unlink rename };
+allow initrc_t tmp_t:dir { add_name remove_name write search read };

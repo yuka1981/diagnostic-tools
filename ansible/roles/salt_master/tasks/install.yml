@@ -1,0 +1,88 @@
+---
+- name: Install Salt Master on RHEL
+  when: ansible_facts['os_family'] == 'RedHat'
+  block:
+    - name: Install EPEL repository
+      ansible.builtin.dnf:
+        name: epel-release
+        state: present
+
+    - name: Enable CRB repository
+      ansible.builtin.command:
+        cmd: /usr/bin/crb enable
+      register: crb_result
+      changed_when: "'enabled' in crb_result.stdout"
+
+    - name: Download Salt repo file
+      ansible.builtin.get_url:
+        url: https://github.com/saltstack/salt-install-guide/releases/latest/download/salt.repo
+        dest: /etc/yum.repos.d/salt.repo
+        mode: '0644'
+
+    - name: Install Salt Master and API packages
+      ansible.builtin.dnf:
+        name:
+          - salt-master
+          - salt-api
+          - patchelf
+        state: present
+
+    - name: Install pygit2 in Salt bundled Python
+      ansible.builtin.pip:
+        name: pygit2
+        executable: /opt/saltstack/salt/bin/pip3
+
+- name: Install Salt Master on Debian
+  when: ansible_facts['os_family'] == 'Debian'
+  block:
+    - name: Download SaltStack GPG key
+      ansible.builtin.get_url:
+        url: https://packages.broadcom.com/artifactory/api/security/keypair/SaltProjectKey/public
+        dest: /etc/apt/keyrings/salt-archive-keyring.gpg
+        mode: '0644'
+
+    - name: Add SaltStack APT repository
+      ansible.builtin.apt_repository:
+        repo: "deb [arch={{ ansible_facts['architecture'] }} signed-by=/etc/apt/keyrings/salt-archive-keyring.gpg] https://packages.broadcom.com/artifactory/saltproject-deb/ stable main"
+        state: present
+        filename: saltstack
+
+    - name: Install Salt Master and API packages
+      ansible.builtin.apt:
+        name:
+          - salt-master
+          - salt-api
+          - python3-pygit2
+        state: present
+        update_cache: true
+
+- name: Create Salt API PAM user
+  ansible.builtin.user:
+    name: "{{ salt_api_user }}"
+    password: "{{ salt_api_password | password_hash('sha512') }}"
+    shell: /bin/bash
+    system: true
+    create_home: false
+  no_log: true
+
+- name: Configure shadow group for PAM auth on RHEL
+  when: ansible_facts['os_family'] == 'RedHat'
+  block:
+    - name: Create shadow group for PAM auth
+      ansible.builtin.group:
+        name: shadow
+        system: true
+        state: present
+
+    - name: Add salt user to shadow group for PAM auth
+      ansible.builtin.user:
+        name: salt
+        groups: shadow
+        append: true
+      notify: Restart salt-master
+
+    - name: Allow shadow group to read /etc/shadow
+      ansible.builtin.file:
+        path: /etc/shadow
+        group: shadow
+        mode: '0640'

@@ -1,0 +1,14 @@
+# GitFS fileserver backend (managed by Ansible)
+fileserver_backend:
+  - gitfs
+  - roots
+
+gitfs_remotes:
+  - {{ salt_gitfs_repo }}:
+    - root: salt
+    - base: {{ salt_gitfs_branch | default('develop') }}
+    - user: {{ salt_gitfs_user }}
+    - password: {{ salt_gitfs_token }}
+
+gitfs_provider: pygit2
+gitfs_update_interval: {{ salt_gitfs_update_interval | default(60) }}

@@ -1,0 +1,75 @@
+---
+# Toggle Salt minion auto-accept setting
+#
+# Usage:
+#   Enable:  ansible-playbook playbooks/auto-accept.yml -e "auto_accept=true"
+#   Disable: ansible-playbook playbooks/auto-accept.yml -e "auto_accept=false"
+#   Check:   ansible-playbook playbooks/auto-accept.yml --tags status
+#
+# WARNING: auto_accept=true allows ANY minion to connect without manual approval.
+#          Only use in development/lab environments.
+
+- name: Toggle Salt Master auto-accept
+  hosts: salt_master
+  become: true
+  vars:
+    auto_accept: false
+  tasks:
+    - name: Check current auto_accept setting
+      ansible.builtin.command:
+        cmd: grep -E '^auto_accept:' /etc/salt/master.d/api.conf
+      register: current_setting
+      changed_when: false
+      failed_when: false
+      tags:
+        - always
+
+    - name: Display current setting
+      ansible.builtin.debug:
+        msg: "Current setting: {{ current_setting.stdout | default('auto_accept not found in config') }}"
+      tags:
+        - always
+
+    - name: Update auto_accept setting
+      ansible.builtin.lineinfile:
+        path: /etc/salt/master.d/api.conf
+        regexp: '^auto_accept:.*'
+        line: "auto_accept: {{ auto_accept | lower }}"
+        backup: true
+      register: config_changed
+      tags:
+        - configure
+
+    - name: Restart salt-master to apply change
+      ansible.builtin.systemd:
+        name: salt-master
+        state: restarted
+      when: config_changed.changed
+      tags:
+        - configure
+
+    - name: Wait for salt-master to initialize
+      ansible.builtin.pause:
+        seconds: 10
+      when: config_changed.changed
+      tags:
+        - configure
+
+    - name: Verify new setting
+      ansible.builtin.command:
+        cmd: grep -E '^auto_accept:' /etc/salt/master.d/api.conf
+      register: new_setting
+      changed_when: false
+      tags:
+        - configure
+
+    - name: Display result
+      ansible.builtin.debug:
+        msg: >-
+          {% if config_changed.changed | default(false) %}
+          Changed: {{ current_setting.stdout | default('unknown') }} → {{ new_setting.stdout }}
+          {% else %}
+          No change needed: {{ current_setting.stdout | default('unknown') }}
+          {% endif %}
+      tags:
+        - configure

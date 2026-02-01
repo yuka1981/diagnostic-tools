@@ -1,0 +1,9 @@
+---
+- name: Deploy Salt Minion configuration
+  ansible.builtin.template:
+    src: minion.conf.j2
+    dest: /etc/salt/minion.d/master.conf
+    owner: root
+    group: root
+    mode: '0640'
+  notify: Restart salt-minion

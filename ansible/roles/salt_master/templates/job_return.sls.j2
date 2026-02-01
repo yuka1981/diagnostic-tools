@@ -1,0 +1,18 @@
+# Reactor: forward benchmark job returns to Rails webhook (managed by Ansible)
+{% raw %}
+{% set fun = data.get('fun', '') %}
+{% set fun_args = data.get('fun_args', []) %}
+{% set fun_args_str = fun_args | join(' ') %}
+{% set is_benchmark = 'benchmark' in fun or (fun == 'state.apply' and 'benchmark' in fun_args_str) %}
+{% if is_benchmark %}
+{% endraw %}
+post_benchmark_result:
+  runner.http.query:
+    - url: {{ rails_webhook_url }}
+    - method: POST
+    - header_dict:
+        Content-Type: application/json
+{% raw %}
+    - data: '{{ {"tag": tag, "fun": data.get("fun", ""), "id": data.get("id", ""), "jid": data.get("jid", ""), "retcode": data.get("retcode", 1), "return": data.get("return", {})} | tojson }}'
+{% endif %}
+{% endraw %}

@@ -44,31 +44,62 @@ RSpec.describe Inventory::SaltCollectService do
     { "MemTotal" => 2113698482, "MemAvailable" => 1900000000 }
   end
 
+  let(:disk_usage_response) do
+    {
+      "/" => { "filesystem" => "/dev/sda2", "1K-blocks" => "50000000", "used" => "20000000", "available" => "30000000", "capacity" => "40%" },
+      "/boot" => { "filesystem" => "/dev/sda1", "1K-blocks" => "1000000", "used" => "200000", "available" => "800000", "capacity" => "20%" }
+    }
+  end
+
+  let(:disk_blkid_response) do
+    {
+      "/dev/sda1" => { "TYPE" => "ext4", "UUID" => "abc-123" },
+      "/dev/sda2" => { "TYPE" => "xfs", "UUID" => "def-456" }
+    }
+  end
+
+  let(:salt_timeout) { Inventory::SaltCollectService::SALT_TIMEOUT }
+
   describe "#call" do
     before do
+      allow(salt_client).to receive(:run_async)
+        .with("node-01", "saltutil.sync_modules")
+        .and_return("20260201000000000001")
       allow(salt_client).to receive(:run)
-        .with("node-01", "grains.items")
+        .with("node-01", "grains.items", timeout: salt_timeout)
         .and_return(grains_response)
       allow(salt_client).to receive(:run)
-        .with("node-01", "inventory.collect_dmi")
+        .with("node-01", "inventory.collect_dmi", timeout: salt_timeout)
         .and_return(dmi_response)
       allow(salt_client).to receive(:run)
-        .with("node-01", "inventory.collect_numa")
+        .with("node-01", "inventory.collect_numa", timeout: salt_timeout)
         .and_return(numa_response)
       allow(salt_client).to receive(:run)
-        .with("node-01", "inventory.collect_network_v2")
+        .with("node-01", "inventory.collect_network_v2", timeout: salt_timeout)
         .and_return(network_v2_response)
       allow(salt_client).to receive(:run)
-        .with("node-01", "inventory.collect_cpu")
+        .with("node-01", "inventory.collect_cpu", timeout: salt_timeout)
         .and_return(cpu_topology_response)
       allow(salt_client).to receive(:run)
-        .with("node-01", "inventory.collect_meminfo")
+        .with("node-01", "inventory.collect_meminfo", timeout: salt_timeout)
         .and_return(meminfo_response)
+      allow(salt_client).to receive(:run)
+        .with("node-01", "disk.usage", timeout: salt_timeout)
+        .and_return(disk_usage_response)
+      allow(salt_client).to receive(:run)
+        .with("node-01", "disk.blkid", timeout: salt_timeout)
+        .and_return(disk_blkid_response)
     end
 
     it "collects inventory and creates a node state" do
       result = service.call
       expect(result.success?).to be true
+    end
+
+    it "fires async module sync before collecting" do
+      expect(salt_client).to receive(:run_async)
+        .with("node-01", "saltutil.sync_modules")
+      service.call
     end
 
     it "delegates to ProcessStateService with mapped data" do
@@ -83,12 +114,24 @@ RSpec.describe Inventory::SaltCollectService do
       service.call
     end
 
-    it "falls back to lscpu when custom CPU module raises error" do
+    it "falls back to lscpu when custom CPU module raises ApiError" do
       allow(salt_client).to receive(:run)
-        .with("node-01", "inventory.collect_cpu")
+        .with("node-01", "inventory.collect_cpu", timeout: salt_timeout)
         .and_raise(SaltApiClient::ApiError, "module not available")
       allow(salt_client).to receive(:run)
-        .with("node-01", "cmd.run", arg: [ "lscpu" ])
+        .with("node-01", "cmd.run", arg: [ "lscpu" ], timeout: salt_timeout)
+        .and_return("Socket(s):             2\nCore(s) per socket:    20\n")
+
+      result = service.call
+      expect(result.success?).to be true
+    end
+
+    it "falls back to lscpu when custom CPU module raises TargetUnreachable" do
+      allow(salt_client).to receive(:run)
+        .with("node-01", "inventory.collect_cpu", timeout: salt_timeout)
+        .and_raise(SaltApiClient::TargetUnreachable, "Minion did not return a result")
+      allow(salt_client).to receive(:run)
+        .with("node-01", "cmd.run", arg: [ "lscpu" ], timeout: salt_timeout)
         .and_return("Socket(s):             2\nCore(s) per socket:    20\n")
 
       result = service.call
@@ -97,10 +140,10 @@ RSpec.describe Inventory::SaltCollectService do
 
     it "falls back to lscpu when custom CPU module returns string error" do
       allow(salt_client).to receive(:run)
-        .with("node-01", "inventory.collect_cpu")
+        .with("node-01", "inventory.collect_cpu", timeout: salt_timeout)
         .and_return("'inventory.collect_cpu' is not available.")
       allow(salt_client).to receive(:run)
-        .with("node-01", "cmd.run", arg: [ "lscpu" ])
+        .with("node-01", "cmd.run", arg: [ "lscpu" ], timeout: salt_timeout)
         .and_return("Socket(s):             2\nCore(s) per socket:    20\n")
 
       result = service.call
@@ -108,23 +151,41 @@ RSpec.describe Inventory::SaltCollectService do
     end
 
     it "skips lscpu when custom CPU module succeeds" do
-      expect(salt_client).not_to receive(:run).with("node-01", "cmd.run", arg: [ "lscpu" ])
+      expect(salt_client).not_to receive(:run).with("node-01", "cmd.run", arg: [ "lscpu" ], timeout: salt_timeout)
 
       service.call
     end
 
-    it "degrades gracefully when meminfo module fails" do
+    it "degrades gracefully when meminfo module fails with ApiError" do
       allow(salt_client).to receive(:run)
-        .with("node-01", "inventory.collect_meminfo")
+        .with("node-01", "inventory.collect_meminfo", timeout: salt_timeout)
         .and_raise(SaltApiClient::ApiError, "module not available")
 
       result = service.call
       expect(result.success?).to be true
     end
 
-    it "handles SaltApiClient::TargetUnreachable" do
+    it "degrades gracefully when meminfo module fails with TargetUnreachable" do
       allow(salt_client).to receive(:run)
-        .with("node-01", "grains.items")
+        .with("node-01", "inventory.collect_meminfo", timeout: salt_timeout)
+        .and_raise(SaltApiClient::TargetUnreachable, "Minion did not return a result")
+
+      result = service.call
+      expect(result.success?).to be true
+    end
+
+    it "continues when async module sync fails" do
+      allow(salt_client).to receive(:run_async)
+        .with("node-01", "saltutil.sync_modules")
+        .and_raise(SaltApiClient::ApiError, "No job ID returned")
+
+      result = service.call
+      expect(result.success?).to be true
+    end
+
+    it "handles SaltApiClient::TargetUnreachable on grains.items" do
+      allow(salt_client).to receive(:run)
+        .with("node-01", "grains.items", timeout: salt_timeout)
         .and_raise(SaltApiClient::TargetUnreachable, "Minion not responding")
 
       result = service.call
@@ -134,12 +195,39 @@ RSpec.describe Inventory::SaltCollectService do
 
     it "handles SaltApiClient::TimeoutError" do
       allow(salt_client).to receive(:run)
-        .with("node-01", "grains.items")
+        .with("node-01", "grains.items", timeout: salt_timeout)
         .and_raise(SaltApiClient::TimeoutError, "Connection timed out")
 
       result = service.call
       expect(result.success?).to be false
       expect(result.error).to include("timed out")
+    end
+
+    it "degrades gracefully when disk.usage fails with ApiError" do
+      allow(salt_client).to receive(:run)
+        .with("node-01", "disk.usage", timeout: salt_timeout)
+        .and_raise(SaltApiClient::ApiError, "module not available")
+
+      result = service.call
+      expect(result.success?).to be true
+    end
+
+    it "degrades gracefully when disk.usage fails with TargetUnreachable" do
+      allow(salt_client).to receive(:run)
+        .with("node-01", "disk.usage", timeout: salt_timeout)
+        .and_raise(SaltApiClient::TargetUnreachable, "Minion did not return a result")
+
+      result = service.call
+      expect(result.success?).to be true
+    end
+
+    it "degrades gracefully when disk.blkid fails with ApiError" do
+      allow(salt_client).to receive(:run)
+        .with("node-01", "disk.blkid", timeout: salt_timeout)
+        .and_raise(SaltApiClient::ApiError, "module not available")
+
+      result = service.call
+      expect(result.success?).to be true
     end
   end
 end
